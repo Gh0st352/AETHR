@@ -6,6 +6,8 @@ __AETHR.Include( AETHR_LIBRARIES_FOLDER ..'/MIST/mist.lua' )
 --- AETHER 
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/AETHR.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/fileOps.lua' )
+__AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/pSQL.lua' )
+
 
 --- MIZ SCRIPTS
 __AETHR.Include( AETHR_MIZ_FOLDER ..'/scripts/1_Setup.lua' )
