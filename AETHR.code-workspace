@@ -4,10 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../../../../Program Files/Eagle Dynamics/DCS World Server/Scripts"
-		},
-		{
-			"path": "../../../../Program Files/Eagle Dynamics/DCS World Server/LuaSocket"
+			"path": "lib"
 		}
 	],
 	"settings": {}

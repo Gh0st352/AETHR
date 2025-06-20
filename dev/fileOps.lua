@@ -57,7 +57,7 @@ end
 --- @param data table The Lua table to convert to JSON
 --- @return boolean success True if the file was created and data was written successfully
 function AETHR.fileOps.saveTableAsJSON(directory, filename, data)
-    local JSON = require("JSON")
+    local JSON = require "json"
 
     -- Ensure directory exists
     if not AETHR.fileOps.ensureDirectory(directory) then
@@ -66,9 +66,7 @@ function AETHR.fileOps.saveTableAsJSON(directory, filename, data)
     end
 
     -- Convert table to JSON string
-    local success, jsonString = pcall(function()
-        return JSON:encode_pretty(data)
-    end)
+    local success, jsonString = pcall(JSON.encode, data)
 
     if not success then
         print("Failed to convert table to JSON: " .. (jsonString or "unknown error"))
@@ -96,7 +94,7 @@ end
 --- @param filename string The name of the JSON file to read
 --- @return table|nil data The Lua table from the JSON file, or nil if failed
 function AETHR.fileOps.loadTableFromJSON(directory, filename)
-    local JSON = require("JSON")
+    local JSON = require "json"
 
     -- Construct full file path
     local filepath = directory .. "/" .. filename
@@ -125,12 +123,16 @@ function AETHR.fileOps.loadTableFromJSON(directory, filename)
     end
 
     -- Convert JSON string to Lua table
-    local success, data = pcall(function()
-        return JSON:decode(jsonString)
-    end)
+      local success, data = pcall(JSON.decode, jsonString)
 
     if not success then
         print("Failed to parse JSON from file: " .. (data or "unknown error"))
+        return nil
+    end
+
+    -- Ensure the decoded data is a table
+    if type(data) ~= "table" then
+        print("JSON file does not contain a valid table: " .. filepath)
         return nil
     end
 
