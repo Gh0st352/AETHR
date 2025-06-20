@@ -8,12 +8,12 @@ AETHR_ROOT_FOLDER 		    = "C:/Users/Administrator/Documents/AETHR"
 AETHR_DEVELOPMENT_FOLDER    = AETHR_ROOT_FOLDER  .. "/dev"
 AETHR_LIBRARIES_FOLDER      = AETHR_ROOT_FOLDER  .. "/lib"
 AETHR_DEBUG_FOLDER 		    = AETHR_ROOT_FOLDER  .. "/Debugger"
-AETHR_MODULES_FOLDER 		= AETHR_ROOT_FOLDER  .. "/Modules"
 AETHR_MIZ_FOLDER            = AETHR_ROOT_FOLDER  .. "/miz"
 
+AETHR_MODULES_FOLDER 		= AETHR_DEBUG_FOLDER  .. "/Modules"
 AETHR_DYNAMIC_LOADER_FOLDER = AETHR_DEBUG_FOLDER .. "/DynamicLoaders"
 
-AETHR_DYNAMIC_LOADER     = "/DynamicLoaders/AETHR_Dynamic_Loader.lua"
+AETHR_DYNAMIC_LOADER     = AETHR_DYNAMIC_LOADER_FOLDER .. "/AETHR_Dynamic_Loader.lua"
 
 
 dofile('Scripts/ScriptingSystem.lua')
