@@ -9,5 +9,4 @@ AETHR = {
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
     ROOT_FOLDER = "AETHR",
-
 }
