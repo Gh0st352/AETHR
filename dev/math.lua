@@ -60,37 +60,82 @@ end
 
 
 
--- Divide a 4-sided polygon into sub-polygons of given area (with tolerance)
-function AETHR.math.dividePolygon(polygon, targetArea, tolerance)
+-- Divide a 4-sided polygon into sub-polygons of given area
+function AETHR.math.dividePolygon(polygon, targetArea)
+    
     -- Calculate total area of the polygon
     local totalArea = AETHR.math.polygonArea(polygon)
     local numDivisions = math.max(1, math.floor(totalArea / targetArea + 0.5))
     
-    -- Calculate grid dimensions (approximately square grid)
-    local gridSize = math.ceil(math.sqrt(numDivisions))
-    local rows = gridSize
-    local cols = gridSize
+    -- Create vertices for left and right edges of the polygon
+    local leftEdge = { polygon[1], polygon[4] }
+    local rightEdge = { polygon[2], polygon[3] }
+    
+    -- Calculate rows and columns based on aspect ratio
+    local width = math.sqrt((polygon[2].x - polygon[1].x)^2 + (polygon[2].z - polygon[1].z)^2)
+    local height = math.sqrt((polygon[4].x - polygon[1].x)^2 + (polygon[4].z - polygon[1].z)^2)
+    local aspectRatio = width / height
+    
+    local cols = math.ceil(math.sqrt(numDivisions * aspectRatio))
+    local rows = math.ceil(numDivisions / cols)
+    
+    -- Ensure we have at least the required number of divisions
+    while rows * cols < numDivisions do
+        if width > height then
+            cols = cols + 1
+        else
+            rows = rows + 1
+        end
+    end
     
     local divisions = {}
     
-    -- Calculate steps for both dimensions
-    local stepX = (polygon[2].x - polygon[1].x) / cols
-    local stepZ = (polygon[4].z - polygon[1].z) / rows
-    
-    -- Create grid of polygons
     for row = 0, rows - 1 do
+        -- Calculate top and bottom points for this row
+        local topFraction = (row + 1) / rows
+        local bottomFraction = row / rows
+        
+        local bottomLeft = {
+            x = leftEdge[1].x + bottomFraction * (leftEdge[2].x - leftEdge[1].x),
+            z = leftEdge[1].z + bottomFraction * (leftEdge[2].z - leftEdge[1].z)
+        }
+        local bottomRight = {
+            x = rightEdge[1].x + bottomFraction * (rightEdge[2].x - rightEdge[1].x),
+            z = rightEdge[1].z + bottomFraction * (rightEdge[2].z - rightEdge[1].z)
+        }
+        local topLeft = {
+            x = leftEdge[1].x + topFraction * (leftEdge[2].x - leftEdge[1].x),
+            z = leftEdge[1].z + topFraction * (leftEdge[2].z - leftEdge[1].z)
+        }
+        local topRight = {
+            x = rightEdge[1].x + topFraction * (rightEdge[2].x - rightEdge[1].x),
+            z = rightEdge[1].z + topFraction * (rightEdge[2].z - rightEdge[1].z)
+        }
+        
         for col = 0, cols - 1 do
-            local xStart = polygon[1].x + col * stepX
-            local xEnd = xStart + stepX
-            local zStart = polygon[1].z + row * stepZ
-            local zEnd = zStart + stepZ
+            local leftFraction = col / cols
+            local rightFraction = (col + 1) / cols
             
-            divisions[#divisions + 1] = {
-                { x = xStart, z = zStart },
-                { x = xEnd, z = zStart },
-                { x = xEnd, z = zEnd },
-                { x = xStart, z = zEnd }
+            local subPoly = {
+                {  -- Bottom left
+                    x = bottomLeft.x + leftFraction * (bottomRight.x - bottomLeft.x),
+                    z = bottomLeft.z + leftFraction * (bottomRight.z - bottomLeft.z)
+                },
+                {  -- Bottom right
+                    x = bottomLeft.x + rightFraction * (bottomRight.x - bottomLeft.x),
+                    z = bottomLeft.z + rightFraction * (bottomRight.z - bottomLeft.z)
+                },
+                {  -- Top right
+                    x = topLeft.x + rightFraction * (topRight.x - topLeft.x),
+                    z = topLeft.z + rightFraction * (topRight.z - topLeft.z)
+                },
+                {  -- Top left
+                    x = topLeft.x + leftFraction * (topRight.x - topLeft.x),
+                    z = topLeft.z + leftFraction * (topRight.z - topLeft.z)
+                }
             }
+            
+            divisions[#divisions + 1] = subPoly
         end
     end
     
