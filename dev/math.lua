@@ -134,8 +134,8 @@ function AETHR.math.dividePolygon(polygon, targetArea)
                     z = topLeft.z + leftFraction * (topRight.z - topLeft.z)
                 }
             }
-            
-            divisions[#divisions + 1] = subPoly
+            divisions[#divisions + 1] = {}
+            divisions[#divisions].corners = subPoly
         end
     end
     

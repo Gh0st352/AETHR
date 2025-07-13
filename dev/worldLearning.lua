@@ -3,31 +3,28 @@ AETHR.worldLearning = {}
 function AETHR:loadWorldDivisions()
     local lfs = require("lfs")
     local rt_path = lfs.writedir()
-
     local fullPath = AETHR.fileOps.joinPaths(rt_path, self.CONFIG.STORAGE.ROOT_FOLDER, self.CONFIG.STORAGE.CONFIG_FOLDER)
     local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
     if fileExists then
         -- Load existing config
         local worldDivisions_ = self.fileOps.loadTableFromJSON(fullPath,
             self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
-        for i, division in ipairs(worldDivisions_) do
-
-            self.LEARNED_DATA.worldDivisions[division.ID] = division
+        if worldDivisions_ then
+            for _, division in ipairs(worldDivisions_) do
+                self.LEARNED_DATA.worldDivisions[division.ID] = division
+            end
         end
     else
         local worldBounds_ = AETHR.math.convertBoundsToPolygon(self.CONFIG.worldBounds[self.CONFIG.THEATER])
-
         local worldDivisions_ = self.math.dividePolygon(
             worldBounds_,
             self.CONFIG.worldDivisionArea
         )
-
         for i, division in ipairs(worldDivisions_) do
-            worldDivisions_[i].ID = i
-            worldDivisions_[i].active = false
             self.LEARNED_DATA.worldDivisions[i] = division
+            self.LEARNED_DATA.worldDivisions[i].ID = i
+            self.LEARNED_DATA.worldDivisions[i].active = false
         end
-
         -- Save the world divisions to file
         self.fileOps.saveTableAsPrettyJSON(
             fullPath,

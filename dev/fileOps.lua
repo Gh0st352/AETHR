@@ -204,3 +204,18 @@ function AETHR.fileOps.joinPaths(...)
     local sep = package.config:sub(1, 1)
     return table.concat({ ... }, sep)
 end
+
+function AETHR.fileOps.deepcopy(orig)
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in next, orig, nil do
+      copy[AETHR.fileOps.deepcopy(orig_key)] = AETHR.fileOps.deepcopy(orig_value)
+    end
+    setmetatable(copy, AETHR.fileOps.deepcopy(getmetatable(orig)))
+  else -- number, string, boolean, etc
+    copy = orig
+  end
+  return copy
+end
