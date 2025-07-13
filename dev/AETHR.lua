@@ -38,7 +38,7 @@ AETHR = {
             },
         },
         worldBounds = {
-            AREA = 10000000,     -- Area of each division in square meters
+            AREA = 100000000,     -- Area of each division in square meters
             TOLERANCE = 25600, -- Tolerance for area division in square meters
             Caucasus = {
                 X = { min = -600000, max = 400000 },
