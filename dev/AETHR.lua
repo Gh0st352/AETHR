@@ -38,8 +38,8 @@ AETHR = {
             },
         },
         worldBounds = {
-            AREA = 10000000000,     -- Area of each division in square meters
-            TOLERANCE = 2560000, -- Tolerance for area division in square meters
+            AREA = 10000000,     -- Area of each division in square meters
+            TOLERANCE = 25600, -- Tolerance for area division in square meters
             Caucasus = {
                 X = { min = -600000, max = 400000 },
                 Z = { min = -570000, max = 1130000 },
@@ -126,29 +126,7 @@ function AETHR:loadConfig()
     return self
 end
 
-function AETHR:loadWorldDivisions()
-    local lfs = require("lfs")
-    local rt_path = lfs.writedir()
-    local fullPath = rt_path .. self.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. self.CONFIG.STORAGE.CONFIG_FOLDER
-    local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
-    if fileExists then
-        -- Load existing config
-        self.LEARNED_DATA.worldDivisions = self.fileOps.loadTableFromJSON(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
-    else
-        self.LEARNED_DATA.worldDivisions = self.math.dividePolygon(
-            self.CONFIG.worldBounds[self.CONFIG.THEATER],
-            self.CONFIG.worldBounds.AREA,
-            self.CONFIG.worldBounds.TOLERANCE
-        )
-        -- Save the world divisions to file
-        self.fileOps.saveTableAsPrettyJSON(
-            fullPath,
-            self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
-            self.LEARNED_DATA.worldDivisions
-        )
-    end
-    return self
-end
+
 
 function AETHR:Init()
     local lfs = require("lfs")
@@ -173,3 +151,4 @@ function AETHR:SaveConfig()
     )
     return self
 end
+
