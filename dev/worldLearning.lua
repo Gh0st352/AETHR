@@ -59,3 +59,51 @@ function AETHR.worldLearning._markWorldDivisions(AETHR)
         if _B > 1 then _B = 0.1 end
     end
 end
+
+function AETHR:getAirbases()
+    local _airbases = world.getAirbases()
+
+    for i = 1, #_airbases do
+        local _airbase = _airbases[i]
+        local _airbaseData = {
+            id = _airbase:getID(),
+            id_ = _airbase.id_,
+            coordinates = {
+                x = _airbase:getPosition().p.x,
+                y = _airbase:getPosition().p.y,
+                z = _airbase:getPosition().p.z,
+            },
+            description = _airbase:getDesc(),
+        }
+        if _airbaseData.description.category and _airbaseData.description.category == 0 then _airbaseData.categoryText =
+            "AIRDROME" end
+        if _airbaseData.description.category and _airbaseData.description.category == 1 then _airbaseData.categoryText =
+            "HELIPAD" end
+        if _airbaseData.description.category and _airbaseData.description.category == 2 then _airbaseData.categoryText =
+            "SHIP" end
+
+        self.AIRBASES[_airbaseData.description.displayName] = _airbaseData
+    end
+    return self
+end
+
+function AETHR:loadAirbases()
+    local configData = self.fileOps.loadTableFromJSON(
+        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+        self.CONFIG.STORAGE.FILENAMES.AIRBASES_FILE
+    )
+    if configData then
+        for k, v in pairs(configData) do
+            self.AETHR.AIRBASES[k] = v
+        end
+    else
+        self:getAirbases()
+        -- If no config file exists, create a new one with default values
+        self.fileOps.saveTableAsPrettyJSON(
+            self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+            self.CONFIG.STORAGE.FILENAMES.AIRBASES_FILE,
+            self.AIRBASES
+        )
+    end
+    return self
+end

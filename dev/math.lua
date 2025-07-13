@@ -20,8 +20,13 @@ end
 -- Calculate the cross product (determinant) of three points in 3D space
 -- This is used to determine the orientation of the polygon formed by the points
 function AETHR.math.crossProduct(p1, p2, p3)
+    -- Get the appropriate z coordinate (using y as fallback) for each point
+    local z1 = p1.z or p1.y
+    local z2 = p2.z or p2.y
+    local z3 = p3.z or p3.y
+    
     -- Calculate and return the cross product (determinant) of the vectors formed by the three points
-    return (p2.x - p1.x) * (p3.z - p1.z) - (p2.z - p1.z) * (p3.x - p1.x)
+    return (p2.x - p1.x) * (z3 - z1) - (z2 - z1) * (p3.x - p1.x)
 end
 
 -- Ensure a 4-sided polygon is convex by checking the signs of the cross products
