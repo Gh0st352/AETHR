@@ -5,8 +5,8 @@ function AETHR.worldLearning.divideRectangle(bounds, area, tolerance)
     -- Example usage:
     --[[
         local bounds = { X = { min = -600000, max = 400000 }, Z = { min = -570000, max = 1130000 } }
-        local area = 16000
-        local tolerance = 1000
+        local area = 10000000000
+        local tolerance = 2560000
         local Divisions = AETHR.worldLearning.divideRectangle(bounds, area, tolerance)
         -- Divisions is now an array of rectangles as specified
         ]]

@@ -1,5 +1,7 @@
 AETHR = {
-    worldDivisions = {},
+    LEARNED_DATA = {
+        worldDivisions = {},
+    },
     CONFIG = {
         VERSION = "0.1.0",
         AUTHOR = "Gh0st352",
@@ -36,6 +38,8 @@ AETHR = {
             },
         },
         worldBounds = {
+            AREA = 10000000000,     -- Area of each division in square meters
+            TOLERANCE = 2560000, -- Tolerance for area division in square meters
             Caucasus = {
                 X = { min = -600000, max = 400000 },
                 Z = { min = -570000, max = 1130000 },
@@ -96,21 +100,7 @@ function AETHR:New(MISSION_ID)
     local rt_path = lfs.writedir()
     local fullPath = rt_path .. instance.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. instance.CONFIG.STORAGE.CONFIG_FOLDER
     self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER = fullPath
-
-    -- local configExsits = AETHR.fileOps.ensureDirectory(fullPath)
-    -- if configExsits then
-    --     local configFilePath = fullPath .. "/" .. instance.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE
-    --     local fileExists = AETHR.fileOps.fileExists(fullPath, instance.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE)
-    --     if fileExists then
-    --         -- Load existing config
-    --         local configData = AETHR.fileOps.loadTableFromJSON(fullPath, instance.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE)
-    --         if configData then
-    --             for k, v in pairs(configData) do
-    --                 instance.CONFIG[k] = v
-    --             end
-    --         end
-    --     end
-    -- end
+    self.CONFIG.THEATER = env.mission.theatre
     return instance
 end
 
@@ -123,7 +113,6 @@ function AETHR:loadConfig()
     local lfs = require("lfs")
     local rt_path = lfs.writedir()
     local fullPath = rt_path .. self.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. self.CONFIG.STORAGE.CONFIG_FOLDER
-    local configFilePath = fullPath .. "/" .. self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE
     local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE)
     if fileExists then
         -- Load existing config
@@ -134,27 +123,45 @@ function AETHR:loadConfig()
             end
         end
     end
+    return self
 end
 
-
+function AETHR:loadWorldDivisions()
+    local lfs = require("lfs")
+    local rt_path = lfs.writedir()
+    local fullPath = rt_path .. self.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. self.CONFIG.STORAGE.CONFIG_FOLDER
+    local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
+    if fileExists then
+        -- Load existing config
+        self.LEARNED_DATA.worldDivisions = self.fileOps.loadTableFromJSON(fullPath, self.CONFIG.STORAGE.FILENAMES
+        .WORLD_DIVISIONS_FILE)
+    else
+        self.LEARNED_DATA.worldDivisions = self.worldLearning.divideRectangle(
+            self.CONFIG.worldBounds[self.CONFIG.THEATER],
+            self.CONFIG.worldBounds.AREA,
+            self.CONFIG.worldBounds.TOLERANCE
+        )
+        -- Save the world divisions to file
+        self.fileOps.saveTableAsPrettyJSON(
+            fullPath,
+            self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
+            self.LEARNED_DATA.worldDivisions
+        )
+    end
+    return self
+end
 
 function AETHR:Init()
     local lfs = require("lfs")
     local rt_path = lfs.writedir()
-
-    self:loadExistingData()
-
-    self.CONFIG.THEATER = env.mission.theatre
-
     for folderName, folderPath in pairs(self.CONFIG.STORAGE.SUB_FOLDERS) do
         local fullPath = rt_path .. self.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. self.CONFIG.MISSION_ID .. "/" .. folderPath
         self.CONFIG.STORAGE.PATHS[folderName] = fullPath
         self.fileOps.ensureDirectory(fullPath)
     end
 
-
-
-
+    self:loadExistingData()
+    self:loadWorldDivisions()
 
     return self
 end
