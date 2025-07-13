@@ -8,6 +8,7 @@ __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/AETHR.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/json.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/fileOps.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/worldLearning.lua' )
+__AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/math.lua' )
 
 
 --- MIZ SCRIPTS

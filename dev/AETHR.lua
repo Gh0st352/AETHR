@@ -133,10 +133,9 @@ function AETHR:loadWorldDivisions()
     local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
     if fileExists then
         -- Load existing config
-        self.LEARNED_DATA.worldDivisions = self.fileOps.loadTableFromJSON(fullPath, self.CONFIG.STORAGE.FILENAMES
-        .WORLD_DIVISIONS_FILE)
+        self.LEARNED_DATA.worldDivisions = self.fileOps.loadTableFromJSON(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
     else
-        self.LEARNED_DATA.worldDivisions = self.worldLearning.divideRectangle(
+        self.LEARNED_DATA.worldDivisions = self.math.dividePolygon(
             self.CONFIG.worldBounds[self.CONFIG.THEATER],
             self.CONFIG.worldBounds.AREA,
             self.CONFIG.worldBounds.TOLERANCE
