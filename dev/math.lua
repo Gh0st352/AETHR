@@ -65,23 +65,34 @@ function AETHR.math.dividePolygon(polygon, targetArea, tolerance)
     -- Calculate total area of the polygon
     local totalArea = AETHR.math.polygonArea(polygon)
     local numDivisions = math.max(1, math.floor(totalArea / targetArea + 0.5))
-
+    
+    -- Calculate grid dimensions (approximately square grid)
+    local gridSize = math.ceil(math.sqrt(numDivisions))
+    local rows = gridSize
+    local cols = gridSize
+    
     local divisions = {}
-    local stepX = (polygon[2].x - polygon[1].x) / numDivisions
-    local stepZ = (polygon[4].z - polygon[1].z) / numDivisions
-
-    for i = 0, numDivisions - 1 do
-        local xStart = polygon[1].x + i * stepX
-        local xEnd = xStart + stepX
-        local zStart = polygon[1].z + i * stepZ
-        local zEnd = zStart + stepZ
-
-        divisions[#divisions + 1] = {
-            { x = xStart, z = zStart },
-            { x = xEnd, z = zStart },
-            { x = xEnd, z = zEnd },
-            { x = xStart, z = zEnd }
-        }
+    
+    -- Calculate steps for both dimensions
+    local stepX = (polygon[2].x - polygon[1].x) / cols
+    local stepZ = (polygon[4].z - polygon[1].z) / rows
+    
+    -- Create grid of polygons
+    for row = 0, rows - 1 do
+        for col = 0, cols - 1 do
+            local xStart = polygon[1].x + col * stepX
+            local xEnd = xStart + stepX
+            local zStart = polygon[1].z + row * stepZ
+            local zEnd = zStart + stepZ
+            
+            divisions[#divisions + 1] = {
+                { x = xStart, z = zStart },
+                { x = xEnd, z = zStart },
+                { x = xEnd, z = zEnd },
+                { x = xStart, z = zEnd }
+            }
+        end
     end
+    
     return divisions
 end
