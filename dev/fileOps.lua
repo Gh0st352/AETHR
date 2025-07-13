@@ -200,3 +200,7 @@ function AETHR.fileOps.fileExists(directory, filename)
     return attr and attr.mode == "file" or false
 end
 
+function AETHR.fileOps.joinPaths(...)
+    local sep = package.config:sub(1, 1)
+    return table.concat({ ... }, sep)
+end

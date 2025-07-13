@@ -3,7 +3,8 @@ AETHR.worldLearning = {}
 function AETHR:loadWorldDivisions()
     local lfs = require("lfs")
     local rt_path = lfs.writedir()
-    local fullPath = rt_path .. self.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. self.CONFIG.STORAGE.CONFIG_FOLDER
+
+    local fullPath = AETHR.fileOps.joinPaths(rt_path, self.CONFIG.STORAGE.ROOT_FOLDER, self.CONFIG.STORAGE.CONFIG_FOLDER)
     local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
     if fileExists then
         -- Load existing config

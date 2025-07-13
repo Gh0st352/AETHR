@@ -11,8 +11,7 @@ function AETHR:New(MISSION_ID)
     setmetatable(instance, { __index = self })
     local lfs = require("lfs")
     local rt_path = lfs.writedir()
-    local fullPath = rt_path .. instance.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. instance.CONFIG.STORAGE.CONFIG_FOLDER
-    self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER = fullPath
+    self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER = AETHR.fileOps.joinPaths(rt_path, instance.CONFIG.STORAGE.ROOT_FOLDER, instance.CONFIG.STORAGE.CONFIG_FOLDER)
     self.CONFIG.THEATER = env.mission.theatre
     return instance
 end
@@ -26,7 +25,7 @@ function AETHR:Init()
     local lfs = require("lfs")
     local rt_path = lfs.writedir()
     for folderName, folderPath in pairs(self.CONFIG.STORAGE.SUB_FOLDERS) do
-        local fullPath = rt_path .. self.CONFIG.STORAGE.ROOT_FOLDER .. "/" .. self.CONFIG.MISSION_ID .. "/" .. folderPath
+        local fullPath = AETHR.fileOps.joinPaths(rt_path, self.CONFIG.STORAGE.ROOT_FOLDER, self.CONFIG.MISSION_ID, folderPath)
         self.CONFIG.STORAGE.PATHS[folderName] = fullPath
         self.fileOps.ensureDirectory(fullPath)
     end
