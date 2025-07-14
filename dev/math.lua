@@ -290,7 +290,9 @@ end
 
 function AETHR.math.PointWithinShape(P, Polygon)
     local n = #Polygon
-
+    
+    -- Get the appropriate vertical coordinate from P
+    local vertCoord = P.y or P.z
 
     -- A polygon must have at least 3 vertices to enclose a space
     if n < 3 then
@@ -298,7 +300,7 @@ function AETHR.math.PointWithinShape(P, Polygon)
     end
 
     -- Create a point for line segment from P to infinite
-    local extreme = { x = 99999999, y = P.y }
+    local extreme = { x = 99999999, y = vertCoord }
 
     -- Count intersections of the above line with sides of polygon
     local count = 0
@@ -307,13 +309,26 @@ function AETHR.math.PointWithinShape(P, Polygon)
     -- Use a loop to iterate through all sides of the polygon
     repeat
         local next = (i % n) + 1
-        local side = { p1 = Polygon[i], p2 = Polygon[next] }
+        
+        -- Create normalized points with consistent coordinate naming
+        local p1 = { 
+            x = Polygon[i].x, 
+            y = Polygon[i].y or Polygon[i].z 
+        }
+        
+        local p2 = { 
+            x = Polygon[next].x, 
+            y = Polygon[next].y or Polygon[next].z 
+        }
+        
+        local side = { p1 = p1, p2 = p2 }
+        local normalizedP = { x = P.x, y = vertCoord }
 
         -- Check if the line segment formed by P and extreme intersects with the side of the polygon
-        if AETHR.math.isIntersect(side, { p1 = P, p2 = extreme }) then
+        if AETHR.math.isIntersect(side, { p1 = normalizedP, p2 = extreme }) then
             -- If the point P is collinear with the side of the polygon, check if it lies on the segment
-            if AETHR.math.direction(side.p1, P, side.p2) == 0 then
-                return AETHR.math.onLine(side, P)
+            if AETHR.math.direction(side.p1, normalizedP, side.p2) == 0 then
+                return AETHR.math.onLine(side, normalizedP)
             end
 
             -- Increment the count of intersections
@@ -323,7 +338,7 @@ function AETHR.math.PointWithinShape(P, Polygon)
         i = next
     until i == 1
 
-    -- Return `true` if count is odd, `false` otherwise. If the count of intersections is odd, the point is inside.
+    -- Return `true` if count is odd, `false` otherwise
     return (count % 2) == 1
 end
 

@@ -65,7 +65,7 @@ function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
                                 NeighborLine_, NeighborLength_)
 
                             -- Adjust perpendicular points if needed to ensure they are within the zone shape
-                            if AETHR.math.PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].Vertices2D) then
+                            if AETHR.math.PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].verticies) then
                                 currentBorder.ZoneLinePerpendicularPoint = AETHR.math.findPerpendicularEndpoints(ArrowMP,
                                     line_, length_)
                                 currentBorder.NeighborLinePerpendicularPoint = AETHR.math.findPerpendicularEndpoints(

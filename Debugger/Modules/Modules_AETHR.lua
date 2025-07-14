@@ -11,6 +11,7 @@ __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/fileOps.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/worldLearning.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/math.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/zoneManager.lua' )
+__AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/autosave.lua' )
 
 
 --- MIZ SCRIPTS

@@ -47,6 +47,7 @@ AETHR.CONFIG = {
             USER_STORAGE_FILE = "userStorage.json",
             AIRBASES_FILE = "airbases.json",
             MIZ_ZONES_FILE = "mizZones.json",
+            SAVE_DIVS_FILE = "saveDivs.json",
         },
     },
     worldDivisionArea = 1862500000, -- Area of each division in square meters, 1862500000 is approximately a 43km x 43km square

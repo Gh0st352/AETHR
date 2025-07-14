@@ -8,6 +8,9 @@ G_AETHR.USERSTORAGE = {
 G_AETHR:setMizZones(G_AETHR.USERSTORAGE.missionZones)
     :setRedStartMizZones(G_AETHR.USERSTORAGE.RedStartZones)
     :setBlueStartMizZones(G_AETHR.USERSTORAGE.BlueStartZones)
-    :Init()
+    :Init():InitAutoSave()
+
+
+G_AETHR.worldLearning._markWorldDivisions(G_AETHR)
 
 local pause = ""
