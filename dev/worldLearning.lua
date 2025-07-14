@@ -24,6 +24,12 @@ function AETHR:loadWorldDivisions()
             self.LEARNED_DATA.worldDivisions[i] = division
             self.LEARNED_DATA.worldDivisions[i].ID = i
             self.LEARNED_DATA.worldDivisions[i].active = false
+            self.LEARNED_DATA.worldDivisions[i].Objects = {
+                [Object.Category.SCENERY] = {},
+                [Object.Category.STATIC] = {},
+                [Object.Category.UNIT] = {},
+                [Object.Category.BASE] = {},
+            }
         end
         -- Save the world divisions to file
         self.fileOps.saveTableAsPrettyJSON(
@@ -175,5 +181,62 @@ function AETHR.worldLearning.getBoxPoints(corners, height)
     min.y = 0
     max.y = height
 
-    return { min = min, max = max}
+    return { min = min, max = max }
+end
+
+function AETHR:determineActiveDivisions()
+    local configData = self.fileOps.loadTableFromJSON(
+        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+        self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
+    )
+    if configData then
+        self.LEARNED_DATA.worldDivisions = {}
+        for _, division in ipairs(configData) do
+            if division.active then
+                self.LEARNED_DATA.saveDivisions[division.ID] = division
+            end
+        end
+    else
+        self.LEARNED_DATA.worldDivisions = self.AUTOSAVE.checkDivisionsInZones(self.LEARNED_DATA.worldDivisions,
+            self.MIZ_ZONES)
+        for _, division in ipairs(self.LEARNED_DATA.worldDivisions) do
+            if division.active then
+                self.LEARNED_DATA.saveDivisions[division.ID] = division
+            end
+        end
+        self.fileOps.saveTableAsPrettyJSON(
+            self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+            self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE,
+            self.LEARNED_DATA.saveDivisions
+        )
+    end
+
+    return self
+end
+
+function AETHR:objectsInDivision(divisionID, objectCategory)
+    local division = self.LEARNED_DATA.worldDivisions[divisionID]
+    if not division then
+        return {}
+    end
+
+    local corners = division.corners
+    local height = division.height or 2000 -- Default height if not specified
+    return self.worldLearning.searchObjectsBox(objectCategory, corners, height)
+end
+
+function AETHR:getActiveObjectsInDivisions(objectCategory)
+    local activeObjects = {}
+    for divisionID, division in pairs(self.LEARNED_DATA.saveDivisions) do
+        local objects = self:objectsInDivision(divisionID, objectCategory)
+        if next(objects) then
+            self.LEARNED_DATA.saveDivisions[divisionID].Objects[objectCategory] = objects
+        end
+    end
+    self.fileOps.saveTableAsPrettyJSON(
+        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+        self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE,
+        self.LEARNED_DATA.saveDivisions
+    )
+    return self
 end

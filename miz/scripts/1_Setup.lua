@@ -8,7 +8,7 @@ G_AETHR.USERSTORAGE = {
 G_AETHR:setMizZones(G_AETHR.USERSTORAGE.missionZones)
     :setRedStartMizZones(G_AETHR.USERSTORAGE.RedStartZones)
     :setBlueStartMizZones(G_AETHR.USERSTORAGE.BlueStartZones)
-    :Init():InitAutoSave()
+    :Init():determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
 
 
 G_AETHR.worldLearning._markWorldDivisions(G_AETHR)
