@@ -291,6 +291,7 @@ end
 function AETHR.math.PointWithinShape(P, Polygon)
     local n = #Polygon
 
+
     -- A polygon must have at least 3 vertices to enclose a space
     if n < 3 then
         return false

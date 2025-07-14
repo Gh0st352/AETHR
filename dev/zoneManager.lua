@@ -123,6 +123,8 @@ function AETHR:getMizZoneData()
                         name = envZone.name,
                         zoneId = envZone.zoneId,
                         type = envZone.type,
+                        BorderOffsetThreshold = self.CONFIG.Zone.BorderOffsetThreshold,
+                        ArrowLength = self.CONFIG.Zone.ArrowLength,
                         verticies = AETHR.math.ensureConvex(envZone.verticies),
                         ownedBy = 0,    -- Default to neutral
                         oldOwnedBy = 0, -- Default to neutral
