@@ -393,3 +393,14 @@ function AETHR.math.onLine(l1, p)
 
     return false
 end
+
+function AETHR.math.createBox(WS_Vec3, EN_Vec3)
+    local box = {
+        id =  world.VolumeType.BOX,
+        params = {
+            min = WS_Vec3,
+            max = EN_Vec3
+        }
+    }
+    return box
+end
