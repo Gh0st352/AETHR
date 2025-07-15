@@ -24,12 +24,12 @@ function AETHR:loadWorldDivisions()
             self.LEARNED_DATA.worldDivisions[i] = division
             self.LEARNED_DATA.worldDivisions[i].ID = i
             self.LEARNED_DATA.worldDivisions[i].active = false
-            self.LEARNED_DATA.worldDivisions[i].Objects = {
-                [Object.Category.SCENERY] = {},
-                [Object.Category.STATIC] = {},
-                [Object.Category.UNIT] = {},
-                [Object.Category.BASE] = {},
-            }
+            -- self.LEARNED_DATA.worldDivisions[i].Objects = {
+            --     [Object.Category.SCENERY] = {},
+            --     [Object.Category.STATIC] = {},
+            --     [Object.Category.UNIT] = {},
+            --     [Object.Category.BASE] = {},
+            -- }
         end
         -- Save the world divisions to file
         self.fileOps.saveTableAsPrettyJSON(
@@ -226,17 +226,27 @@ function AETHR:objectsInDivision(divisionID, objectCategory)
 end
 
 function AETHR:getActiveObjectsInDivisions(objectCategory)
-    local activeObjects = {}
-    for divisionID, division in pairs(self.LEARNED_DATA.saveDivisions) do
-        local objects = self:objectsInDivision(divisionID, objectCategory)
-        if next(objects) then
-            self.LEARNED_DATA.saveDivisions[divisionID].Objects[objectCategory] = objects
+    for divisionID in pairs(self.LEARNED_DATA.saveDivisions) do
+        local configData = self.fileOps.loadTableFromJSON(
+            self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. divisionID,
+            objectCategory .. "_" .. self.CONFIG.STORAGE.FILENAMES.OBJECTS_FILE
+        )
+        if configData then
+            self.LEARNED_DATA.divisionObjects[divisionID] = self.LEARNED_DATA.divisionObjects[divisionID] or {}
+            self.LEARNED_DATA.divisionObjects[divisionID][objectCategory] = configData
+        else
+            local objects = self:objectsInDivision(divisionID, objectCategory)
+            if next(objects) then
+                self.LEARNED_DATA.divisionObjects[divisionID] = self.LEARNED_DATA.divisionObjects[divisionID] or {}
+                self.LEARNED_DATA.divisionObjects[divisionID][objectCategory] = objects
+
+                self.fileOps.saveTableAsPrettyJSON(
+                    self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. divisionID,
+                    objectCategory .. "_" .. self.CONFIG.STORAGE.FILENAMES.OBJECTS_FILE,
+                    objects
+                )
+            end
         end
     end
-    self.fileOps.saveTableAsPrettyJSON(
-        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE,
-        self.LEARNED_DATA.saveDivisions
-    )
     return self
 end

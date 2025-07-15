@@ -3,6 +3,7 @@ AETHR = {
     LEARNED_DATA = {
         worldDivisions = {},
         saveDivisions = {},
+        divisionObjects = {},
     },
     AIRBASES = {},
     MIZ_ZONES = {},

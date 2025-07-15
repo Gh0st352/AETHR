@@ -381,20 +381,53 @@ function AETHR.json.prettyEncode(val, indent)
 	indent = indent or 0
 	local t = type(val)
 	if t == "table" then
-		local isArray = (rawget(val, 1) ~= nil or next(val) == nil)
+		-- Better array detection: check if all keys are consecutive integers starting from 1
+		local isArray = true
+		local maxIndex = 0
+		local keyCount = 0
+		
+		for k, v in pairs(val) do
+			keyCount = keyCount + 1
+			if type(k) ~= "number" or k ~= math.floor(k) or k < 1 then
+				isArray = false
+				break
+			end
+			if k > maxIndex then
+				maxIndex = k
+			end
+		end
+		
+		-- If it's not empty and has gaps or doesn't start at 1, it's not an array
+		if isArray and keyCount > 0 and maxIndex ~= keyCount then
+			isArray = false
+		end
+		
+		-- Empty table is treated as array
+		if keyCount == 0 then
+			isArray = true
+		end
+		
 		local items = {}
-		-- Use recursion with indentation
 		if isArray then
-			for i, v in ipairs(val) do
-				table.insert(items, AETHR.json.prettyEncode(v, indent + 2))
+			-- Handle as array
+			for i = 1, maxIndex do
+				table.insert(items, AETHR.json.prettyEncode(val[i], indent + 2))
+			end
+			if #items == 0 then
+				return "[]"
 			end
 			return "[\n" .. string.rep(" ", indent + 2) ..
 				table.concat(items, ",\n" .. string.rep(" ", indent + 2)) .. "\n" ..
 				string.rep(" ", indent) .. "]"
 		else
+			-- Handle as object
 			for k, v in pairs(val) do
-				table.insert(items, AETHR.json.prettyEncode(k, indent + 2)
-					.. ": " .. AETHR.json.prettyEncode(v, indent + 2))
+				local key = AETHR.json.prettyEncode(k, 0) -- Keys don't need indentation
+				local value = AETHR.json.prettyEncode(v, indent + 2)
+				table.insert(items, key .. ": " .. value)
+			end
+			if #items == 0 then
+				return "{}"
 			end
 			return "{\n" .. string.rep(" ", indent + 2) ..
 				table.concat(items, ",\n" .. string.rep(" ", indent + 2)) .. "\n" ..
