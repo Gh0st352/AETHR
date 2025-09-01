@@ -1,68 +1,83 @@
 --- @module AETHR.CONFIG
 --- @brief Default configuration and storage settings for AETHR framework.
+--- @author Gh0st352
 --- @class AETHR.CONFIG
+--- @field VERSION string Framework version identifier.
+--- @field AUTHOR string Package author.
+--- @field GITHUB string GitHub repository URL.
+--- @field THEATER string Mission theater name (set at runtime).
+--- @field DESCRIPTION table Array of description lines.
+--- @field MISSION_ID string Default mission identifier.
+--- @field MIZ_ZONES table Lists of trigger zone names by coalition or overall.
+--- @field FLAGS table Runtime flags to toggle features.
+--- @field COUNTERS table Numeric counters for marker IDs.
+--- @field STORAGE table Directory and filename configuration for persistence.
+--- @field worldDivisionArea number Target area in square meters for grid divisions.
+--- @field worldBounds table Coordinate bounds for supported theaters.
+--- @field Zone table Default rendering and arrow settings for zones.
+
 AETHR.CONFIG = {
-    VERSION = "0.1.0",
-    AUTHOR = "Gh0st352",
-    GITHUB = "https://github.com/Gh0st352",
-    THEATER = "",
-    DESCRIPTION = {
+    VERSION = "0.1.0",             -- Library version.
+    AUTHOR = "Gh0st352",           -- Package author.
+    GITHUB = "https://github.com/Gh0st352", -- Repository URL.
+    THEATER = "",                  -- Mission theater name, populated at runtime.
+    DESCRIPTION = {                -- Human-readable framework description.
         "Autonomous Environment for Theater Realism",
         "AETHR is a framework designed to enhance the realism and immersion of DCS World missions.",
         "It provides a set of tools and libraries to create dynamic and engaging scenarios.",
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
-    MISSION_ID = "1",
-    MIZ_ZONES = {
+    MISSION_ID = "1",              -- Default mission identifier.
+    MIZ_ZONES = {                  -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},
         BLUESTART = {},
     },
-    FLAGS = {
-        AETHR_FIRST_RUN = true,      -- Flag to check if this is the first run of the mission
-        AETHR_LEARNING_MODE = false, -- Flag to enable learning mode
-        AETHR_DEBUG_MODE = false,    -- Flag to enable debug mode
+    FLAGS = {                      -- Runtime feature flags.
+        AETHR_FIRST_RUN     = true,  -- True on first mission run.
+        AETHR_LEARNING_MODE = false, -- Enable learning mode.
+        AETHR_DEBUG_MODE    = false, -- Enable debug mode.
     },
-    COUNTERS = {
-        MARKERS = 352352352, -- Counter for markers
+    COUNTERS = {                   -- Counters for generating unique IDs.
+        MARKERS = 352352352,          -- Base ID for zone markers.
     },
-    STORAGE = {
-        ROOT_FOLDER = "AETHR",
-        CONFIG_FOLDER = "CONFIG",
-        SUB_FOLDERS = {
+    STORAGE = {                    -- Filesystem storage configuration.
+        ROOT_FOLDER   = "AETHR",       -- Root directory under writable path.
+        CONFIG_FOLDER = "CONFIG",      -- Subdirectory for config files.
+        SUB_FOLDERS = {                -- Additional subdirectories.
             LEARNING_FOLDER = "LEARNING",
-            MAP_FOLDER = "MAP",
-            UNITS_FOLDER = "UNITS",
-            OBJECTS_FOLDER = "OBJECTS",
-            USER_FOLDER = "USER",
+            MAP_FOLDER      = "MAP",
+            UNITS_FOLDER    = "UNITS",
+            OBJECTS_FOLDER  = "OBJECTS",
+            USER_FOLDER     = "USER",
         },
-        PATHS = {
+        PATHS = {                     -- Populated at runtime with full paths.
             LEARNING_FOLDER = "",
-            CONFIG_FOLDER = "",
-            MAP_FOLDER = "",
-            UNITS_FOLDER = "",
-            OBJECTS_FOLDER = "",
-            USER_FOLDER = "",
+            CONFIG_FOLDER   = "",
+            MAP_FOLDER      = "",
+            UNITS_FOLDER    = "",
+            OBJECTS_FOLDER  = "",
+            USER_FOLDER     = "",
         },
-        FILENAMES = {
-            AETHER_CONFIG_FILE = "AETHR_Config.json",
+        FILENAMES = {                -- JSON filenames for data persistence.
+            AETHER_CONFIG_FILE   = "AETHR_Config.json",
             WORLD_DIVISIONS_FILE = "worldDivisions.json",
-            USER_STORAGE_FILE = "userStorage.json",
-            AIRBASES_FILE = "airbases.json",
-            MIZ_ZONES_FILE = "mizZones.json",
-            SAVE_DIVS_FILE = "saveDivs.json",
-            OBJECTS_FILE = "objects.json",
+            USER_STORAGE_FILE    = "userStorage.json",
+            AIRBASES_FILE        = "airbases.json",
+            MIZ_ZONES_FILE       = "mizZones.json",
+            SAVE_DIVS_FILE       = "saveDivs.json",
+            OBJECTS_FILE         = "objects.json",
         },
     },
-    worldDivisionArea = 1862500000, -- Area of each division in square meters, 1862500000 is approximately a 43km x 43km square
-    worldBounds = {
+    worldDivisionArea = 1862500000, -- Desired area (m²) per world division.
+    worldBounds = {                 -- Coordinate bounds for supported theaters.
         Caucasus = {
             X = { min = -600000, max = 400000 },
             Z = { min = -570000, max = 1130000 },
         },
-        NEVADA = { --TODO: Update to real bounds
-            X = { min = -0, max = 0 },
-            Z = { min = -0, max = 0 },
+        NEVADA = { -- TODO: Update to real bounds.
+            X = { min = 0, max = 0 },
+            Z = { min = 0, max = 0 },
         },
         PersianGulf = {
             X = { min = -460000, max = 800000 },
@@ -105,54 +120,57 @@ AETHR.CONFIG = {
             Z = { min = -900000, max = 860000 },
         },
     },
-    Zone = {
+    Zone = {                       -- Default visualization settings for trigger zones.
         paintColors = {
             LineColors = {
                 [0] = { 0, 0, 0 },
                 [1] = { 1, 0, 0 },
-                [2] = { 0, 0, 1 }
+                [2] = { 0, 0, 1 },
             },
             FillColors = {
                 [0] = { 0, 0, 0 },
                 [1] = { 1, 0, 0 },
-                [2] = { 0, 0, 1 }
+                [2] = { 0, 0, 1 },
             },
             ArrowColors = {
                 [0] = { 0, 0, 0, 0.80 },
                 [1] = { 1, 0, 0, 0.80 },
-                [2] = { 0, 0, 1, 0.80 }
+                [2] = { 0, 0, 1, 0.80 },
             },
-            FillAlpha = 0.20,
-            LineAlpha = 0.80,
-            lineType = 4, -- Default line type for zones
+            FillAlpha = 0.20,    -- Transparency for filled zones.
+            LineAlpha = 0.80,    -- Transparency for zone borders.
+            lineType  = 4,       -- Default line style.
         },
-        BorderOffsetThreshold = 800,
-        ArrowLength = 20000,
+        BorderOffsetThreshold = 800, -- Distance threshold for bordering detection.
+        ArrowLength           = 20000, -- Length of directional arrows.
     },
 }
 
-
---- Loads existing configuration from JSON or creates a default config file.
---- @return AETHR self
+--- @function AETHR:loadExistingData
+--- @brief Loads configuration from JSON or writes defaults if none exist.
+--- @return AETHR self Framework instance for chaining.
 function AETHR:loadExistingData()
+    -- Load or create the AETHR configuration file.
     self:loadConfig()
     return self
 end
 
---- Loads configuration values from JSON file and merges into defaults.
---- If no file exists, writes default configuration to disk.
---- @return AETHR self
+--- @function AETHR:loadConfig
+--- @brief Reads config JSON and merges into `AETHR.CONFIG`; writes default if absent.
+--- @return AETHR self Framework instance for chaining.
 function AETHR:loadConfig()
+    -- Attempt to read existing config from JSON file.
     local configData = self.fileOps.loadTableFromJSON(
         self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE
     )
     if configData then
+        -- Merge JSON values into default config.
         for k, v in pairs(configData) do
             self.CONFIG[k] = v
         end
     else
-        -- If no config file exists, create a new one with default values
+        -- Persist defaults to disk as JSON.
         self.fileOps.saveTableAsPrettyJSON(
             self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
             self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
@@ -162,9 +180,11 @@ function AETHR:loadConfig()
     return self
 end
 
---- Saves current configuration table to JSON file.
---- @return AETHR self
+--- @function AETHR:SaveConfig
+--- @brief Persists the `AETHR.CONFIG` table to JSON file.
+--- @return AETHR self Framework instance for chaining.
 function AETHR:SaveConfig()
+    -- Write pretty-printed JSON to disk.
     self.fileOps.saveTableAsPrettyJSON(
         self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
@@ -173,22 +193,26 @@ function AETHR:SaveConfig()
     return self
 end
 
---- Loads user-specific storage data from JSON if available.
---- @return AETHR self
+--- @function AETHR:loadUSERSTORAGE
+--- @brief Loads user-specific data from JSON if available.
+--- @return AETHR self Framework instance for chaining.
 function AETHR:loadUSERSTORAGE()
+    -- Attempt to load userStorage JSON file.
     local userData = self.fileOps.loadTableFromJSON(
         self.CONFIG.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.USER_STORAGE_FILE
     )
     if userData then
-        self.USERSTORAGE = userData
+        self.USERSTORAGE = userData -- Update in-memory storage.
     end
     return self
 end
 
---- Saves current user storage table to JSON file.
---- @return AETHR self
+--- @function AETHR:SaveUSERSTORAGE
+--- @brief Saves the `USERSTORAGE` table to JSON file.
+--- @return AETHR self Framework instance for chaining.
 function AETHR:SaveUSERSTORAGE()
+    -- Write pretty-printed user storage JSON to disk.
     self.fileOps.saveTableAsPrettyJSON(
         self.CONFIG.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.USER_STORAGE_FILE,

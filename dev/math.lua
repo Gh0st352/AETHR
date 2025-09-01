@@ -5,13 +5,15 @@
 --- distance calculations and small helpers for sampling and constructing geometry.
 --- @module AETHR.math
 --- @brief Geometry and polygon math utilities for world divisions and zone operations.
+---@diagnostic disable: undefined-global
 AETHR.math = {}
 
 --- Converts axis-aligned world bounds into a 4-point polygon.
 --- Ensures convexity of the resulting polygon.
---- @function convertBoundsToPolygon
---- @param bounds table Structure with `X.min`, `X.max`, `Z.min`, `Z.max`
---- @return table Polygon as array of points `{ x=number, z=number }`
+--- @function AETHR.math.convertBoundsToPolygon
+--- @brief Converts world bounds into a convex quadrilateral polygon.
+--- @param bounds table Structure with `X.min`, `X.max`, `Z.min`, `Z.max` coordinates.
+--- @return table Array of four corner points `{x=number, z=number}` in clockwise order.
 function AETHR.math.convertBoundsToPolygon(bounds)
     -- Create initial polygon corners: bottom-left, bottom-right, top-right, top-left
     local polygon = {

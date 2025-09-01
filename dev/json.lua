@@ -30,7 +30,9 @@ AETHR.json = {}
 -- Encode
 -------------------------------------------------------------------------------
 
- AETHR.json.escape_char_map = {
+--- @table AETHR.json.escape_char_map
+--- @brief Maps special characters to their JSON escape codes.
+AETHR.json.escape_char_map = {
   [ "\\" ] = "\\",
   [ "\"" ] = "\"",
   [ "\b" ] = "b",
@@ -40,22 +42,37 @@ AETHR.json = {}
   [ "\t" ] = "t",
 }
 
+--- @table AETHR.json.escape_char_map_inv
+--- @brief Inverse mapping from JSON escape codes back to literal characters.
 AETHR.json.escape_char_map_inv = { [ "/" ] = "/" }
 for k, v in pairs(AETHR.json.escape_char_map) do
   AETHR.json.escape_char_map_inv[v] = k
 end
 
 
- function AETHR.json.escape_char(c)
+--- @function AETHR.json.escape_char
+--- @brief Returns the JSON escape sequence for a given character.
+--- @param c string Character to escape (may use unicode if not in map).
+--- @return string JSON escape sequence, prefixed with backslash.
+function AETHR.json.escape_char(c)
   return "\\" .. (AETHR.json.escape_char_map[c] or string.format("u%04x", c:byte()))
 end
 
 
+--- @function AETHR.json.encode_nil
+--- @brief Encodes Lua nil as JSON null.
+--- @param val any Ignored input.
+--- @return string "null"
 function AETHR.json.encode_nil(val)
   return "null"
 end
 
 
+--- @function AETHR.json.encode_table
+--- @brief Recursively encodes a Lua table (array or object) into JSON.
+--- @param val table Input Lua table (array or hash) to encode.
+--- @param stack table Internal stack for circular reference detection.
+--- @return string JSON string representation of the table.
 function AETHR.json.encode_table(val, stack)
   local res = {}
   stack = stack or {}
@@ -98,11 +115,19 @@ function AETHR.json.encode_table(val, stack)
 end
 
 
+--- @function AETHR.json.encode_string
+--- @brief Encodes a Lua string by escaping special characters and wrapping in quotes.
+--- @param val string Input Lua string.
+--- @return string JSON-encoded string with surrounding double quotes.
 function AETHR.json.encode_string(val)
   return '"' .. val:gsub('[%z\1-\31\\"]', AETHR.json.escape_char) .. '"'
 end
 
 
+--- @function AETHR.json.encode_number
+--- @brief Encodes a Lua number into a JSON numeric literal.
+--- @param val number Numeric value to encode.
+--- @return string JSON-formatted number string.
 function AETHR.json.encode_number(val)
   -- Check for NaN, -inf and inf
   if val ~= val or val <= -math.huge or val >= math.huge then
@@ -112,6 +137,8 @@ function AETHR.json.encode_number(val)
 end
 
 
+--- @table AETHR.json.type_func_map
+--- @brief Mapping of Lua types to their respective JSON encoding functions.
 AETHR.json.type_func_map = {
   [ "nil"     ] = AETHR.json.encode_nil,
   [ "table"   ] = AETHR.json.encode_table,
@@ -121,6 +148,11 @@ AETHR.json.type_func_map = {
 }
 
 
+--- @function AETHR.json.encode
+--- @brief Encodes a Lua value (nil, number, boolean, string, or table) into a JSON string.
+--- @param val any Value to serialize to JSON.
+--- @param stack table Internal recursion stack to detect circular references.
+--- @return string JSON-formatted string representing the value.
 AETHR.json.encode = function(val, stack)
   local t = type(val)
   local f = AETHR.json.type_func_map[t]
@@ -367,6 +399,10 @@ AETHR.json.parse = function(str, idx)
 end
 
 
+--- @function AETHR.json.decode
+--- @brief Parses a JSON string into the corresponding Lua value.
+--- @param str string JSON text to decode.
+--- @return any Lua value (table, string, number, boolean, or nil).
 function AETHR.json.decode(str)
   if type(str) ~= "string" then
     error("expected argument of type string, got " .. type(str))
@@ -379,6 +415,11 @@ function AETHR.json.decode(str)
   return res
 end
 
+--- @function AETHR.json.prettyEncode
+--- @brief Pretty-formats a Lua value into human-readable JSON with indentation.
+--- @param val any Lua value to format (table, string, number, boolean, or nil).
+--- @param indent number Current indentation level (internal use).
+--- @return string Indented JSON string.
 function AETHR.json.prettyEncode(val, indent)
 	indent = indent or 0
 	local t = type(val)

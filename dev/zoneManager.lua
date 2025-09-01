@@ -1,3 +1,6 @@
+--- @module AETHR.ZONE_MANAGER
+--- @brief Manages mission trigger zones and computes bordering relationships.
+---@diagnostic disable: undefined-global
 AETHR.ZONE_MANAGER = {}
 
 function AETHR.ZONE_MANAGER:New(AETHR)
