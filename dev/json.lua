@@ -22,7 +22,9 @@
 -- SOFTWARE.
 -- _version = "0.1.2"
 
- AETHR.json = {}
+--- @module AETHR.json
+--- @brief JSON serialization and parsing utilities.
+AETHR.json = {}
 
 -------------------------------------------------------------------------------
 -- Encode
@@ -444,7 +446,3 @@ function AETHR.json.prettyEncode(val, indent)
 	end
 	error("Cannot prettyEncode type '" .. t .. "'")
 end
-
-
-
-

@@ -1,252 +1,241 @@
+--- @module AETHR.worldLearning
+--- @brief Provides functions to load and manage learning data for world divisions.
+
 AETHR.worldLearning = {}
 
+--- Loads existing world divisions from JSON if available; otherwise generates and saves new divisions.
+--- @return AETHR Instance
 function AETHR:loadWorldDivisions()
-    local lfs = require("lfs")
-    local rt_path = lfs.writedir()
-    local fullPath = AETHR.fileOps.joinPaths(rt_path, self.CONFIG.STORAGE.ROOT_FOLDER, self.CONFIG.STORAGE.CONFIG_FOLDER)
-    local fileExists = self.fileOps.fileExists(fullPath, self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
+    local lfs = require("lfs")  -- LuaFileSystem for directory operations
+    local rt_path = lfs.writedir()  -- Root writable path
+    local fullPath = AETHR.fileOps.joinPaths(
+        rt_path,
+        self.CONFIG.STORAGE.ROOT_FOLDER,
+        self.CONFIG.STORAGE.CONFIG_FOLDER
+    )
+    local fileExists = self.fileOps.fileExists(
+        fullPath,
+        self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE
+    )
+
     if fileExists then
-        -- Load existing config
-        local worldDivisions_ = self.fileOps.loadTableFromJSON(fullPath,
-            self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE)
-        if worldDivisions_ then
-            for _, division in ipairs(worldDivisions_) do
-                self.LEARNED_DATA.worldDivisions[division.ID] = division
+        -- Load existing divisions from file
+        local divisions = self.fileOps.loadTableFromJSON(
+            fullPath,
+            self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE
+        )
+        if divisions then
+            for _, div in ipairs(divisions) do
+                self.LEARNED_DATA.worldDivisions[div.ID] = div
             end
         end
     else
-        local worldBounds_ = AETHR.math.convertBoundsToPolygon(self.CONFIG.worldBounds[self.CONFIG.THEATER])
-        local worldDivisions_ = self.math.dividePolygon(
-            worldBounds_,
+        -- Generate new divisions based on theater bounds and division area
+        local boundsPoly = AETHR.math.convertBoundsToPolygon(
+            self.CONFIG.worldBounds[self.CONFIG.THEATER]
+        )
+        local worldDivs = self.math.dividePolygon(
+            boundsPoly,
             self.CONFIG.worldDivisionArea
         )
-        for i, division in ipairs(worldDivisions_) do
-            self.LEARNED_DATA.worldDivisions[i] = division
-            self.LEARNED_DATA.worldDivisions[i].ID = i
-            self.LEARNED_DATA.worldDivisions[i].active = false
-            -- self.LEARNED_DATA.worldDivisions[i].Objects = {
-            --     [Object.Category.SCENERY] = {},
-            --     [Object.Category.STATIC] = {},
-            --     [Object.Category.UNIT] = {},
-            --     [Object.Category.BASE] = {},
-            -- }
+        for i, div in ipairs(worldDivs) do
+            div.ID = i                -- Assign unique ID
+            div.active = false        -- Initial active flag
+            self.LEARNED_DATA.worldDivisions[i] = div
         end
-        -- Save the world divisions to file
+        -- Persist generated divisions
         self.fileOps.saveTableAsPrettyJSON(
             fullPath,
             self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
             self.LEARNED_DATA.worldDivisions
         )
     end
+
     return self
 end
 
+--- Displays active world divisions on the map with randomized colors.
+--- @param AETHR Instance containing learned world divisions.
 function AETHR.worldLearning._markWorldDivisions(AETHR)
     local divisions = AETHR.LEARNED_DATA.worldDivisions
-    local _shapeID = 352352352
-    local _divs = divisions
-    local _R = 0.1
-    local _G = 0.1
-    local _B = 0.1
+    local shapeID = 352352352      -- Base marker ID
+    local r, g, b = 0.1, 0.1, 0.1  -- Initial RGB components
 
-    for i = 1, #_divs do
-        if _divs[i]["active"] then
-            trigger.action.markupToAll(7, -1, _shapeID,
-                { x = _divs[i]["corners"][4].x, y = 0, z = _divs[i]["corners"][4].z },
-                { x = _divs[i]["corners"][3].x, y = 0, z = _divs[i]["corners"][3].z },
-                { x = _divs[i]["corners"][2].x, y = 0, z = _divs[i]["corners"][2].z },
-                { x = _divs[i]["corners"][1].x, y = 0, z = _divs[i]["corners"][1].z }, { _R, _G, _B, 0.8 },
-                { _R + 0.2, _G + 0.4, _B + 0.8, 0.3 },
-                4, true)
-            _shapeID = _shapeID + 1
+    for _, div in ipairs(divisions) do
+        if div.active then
+            -- Draw polygon on map
+            trigger.action.markupToAll(
+                7, -1, shapeID,
+                { x = div.corners[4].x, y = 0, z = div.corners[4].z },
+                { x = div.corners[3].x, y = 0, z = div.corners[3].z },
+                { x = div.corners[2].x, y = 0, z = div.corners[2].z },
+                { x = div.corners[1].x, y = 0, z = div.corners[1].z },
+                { r, g, b, 0.8 },       -- Fill color
+                { r + 0.2, g + 0.4, b + 0.8, 0.3 }, -- Border color
+                4, true
+            )
+            shapeID = shapeID + 1  -- Increment marker ID
 
-            _R = _R + math.random()
-            _G = _G + math.random()
-            _B = _B + math.random()
-
-            if _R > 1 then _R = 0.1 end
-            if _G > 1 then _G = 0.1 end
-            if _B > 1 then _B = 0.1 end
+            -- Randomize next color
+            r = (r + math.random()) % 1
+            g = (g + math.random()) % 1
+            b = (b + math.random()) % 1
         end
     end
 end
 
+--- Retrieves all airbases in the world and stores their data.
+--- @return AETHR Instance
 function AETHR:getAirbases()
-    local _airbases = world.getAirbases()
-
-    for i = 1, #_airbases do
-        local _airbase = _airbases[i]
-        local _airbaseData = {
-            id = _airbase:getID(),
-            id_ = _airbase.id_,
-            coordinates = {
-                x = _airbase:getPosition().p.x,
-                y = _airbase:getPosition().p.y,
-                z = _airbase:getPosition().p.z,
-            },
-            description = _airbase:getDesc(),
+    local bases = world.getAirbases()  -- Array of airbase objects
+    for _, ab in ipairs(bases) do
+        local desc = ab:getDesc()
+        local pos = ab:getPosition().p
+        local data = {
+            id = ab:getID(),
+            id_ = ab.id_,
+            coordinates = { x = pos.x, y = pos.y, z = pos.z },
+            description = desc,
         }
-        if _airbaseData.description.category and _airbaseData.description.category == 0 then
-            _airbaseData.categoryText =
-            "AIRDROME"
+        -- Map numeric category to text
+        if desc.category == 0 then
+            data.categoryText = "AIRDROME"
+        elseif desc.category == 1 then
+            data.categoryText = "HELIPAD"
+        elseif desc.category == 2 then
+            data.categoryText = "SHIP"
         end
-        if _airbaseData.description.category and _airbaseData.description.category == 1 then
-            _airbaseData.categoryText =
-            "HELIPAD"
-        end
-        if _airbaseData.description.category and _airbaseData.description.category == 2 then
-            _airbaseData.categoryText =
-            "SHIP"
-        end
-
-        self.AIRBASES[_airbaseData.description.displayName] = _airbaseData
+        self.AIRBASES[desc.displayName] = data
     end
     return self
 end
 
+--- Loads airbase data from JSON or collects and saves new data.
+--- @return AETHR Instance
 function AETHR:loadAirbases()
-    local configData = self.fileOps.loadTableFromJSON(
-        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.AIRBASES_FILE
-    )
-    if configData then
-        for k, v in pairs(configData) do
-            self.AIRBASES[k] = v
+    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
+    local fileName = self.CONFIG.STORAGE.FILENAMES.AIRBASES_FILE
+    local data = self.fileOps.loadTableFromJSON(mapPath, fileName)
+
+    if data then
+        -- Populate from existing JSON
+        for name, info in pairs(data) do
+            self.AIRBASES[name] = info
         end
     else
+        -- Gather and persist new data
         self:getAirbases()
-        -- If no config file exists, create a new one with default values
-        self.fileOps.saveTableAsPrettyJSON(
-            self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-            self.CONFIG.STORAGE.FILENAMES.AIRBASES_FILE,
-            self.AIRBASES
-        )
+        self.fileOps.saveTableAsPrettyJSON(mapPath, fileName, self.AIRBASES)
     end
     return self
 end
 
+--- Searches for objects of a given category within a 3D box volume.
+--- @param objectCategory Object.Category Category filter for search
+--- @param corners table Array of base corner points (x,z)
+--- @param height number Height of the search volume
+--- @return table Found objects keyed by object ID
 function AETHR.worldLearning.searchObjectsBox(objectCategory, corners, height)
-    --       Object.Category.SCENERY
-    --       Object.Category.STATIC
-    --       Object.Category.UNIT
+    -- Compute box extents
+    local box = AETHR.worldLearning.getBoxPoints(corners, height)
+    local vol = AETHR.math.createBox(box.min, box.max)
+    local found = {}
 
-    local foundObjects = {}
-    local boxVec = AETHR.worldLearning.getBoxPoints(corners, height)
-
-    local _vol = AETHR.math.createBox(boxVec.min, boxVec.max)
-
-    local ifFound = function(foundItem)
-        local foundItemData = {
-            id = foundItem.id_,
-            desc = foundItem:getDesc(),
-            position = foundItem:getPoint(),
+    -- Callback for world.searchObjects
+    local function ifFound(item)
+        found[item.id_] = {
+            id = item.id_,
+            desc = item:getDesc(),
+            position = item:getPoint()
         }
-        foundObjects[foundItem.id_] = foundItemData
-        return
     end
 
-    world.searchObjects(objectCategory, _vol, ifFound)
-
-    return foundObjects
+    world.searchObjects(objectCategory, vol, ifFound)
+    return found
 end
 
+--- Calculates bounding box min/max points for a set of corners and height.
+--- @param corners table Array of corner points (x,z)
+--- @param height number Vertical extent
+--- @return table { min={x,y,z}, max={x,y,z} }
 function AETHR.worldLearning.getBoxPoints(corners, height)
-    local min = {} -- min: vec3 coordinate located at the western-southern-lower vertex of the box
-    local max = {} -- max: vec3 coordinate located at the eastern-northern-upper vertex of the box
+    local minPt = { x = math.huge, y = 0, z = math.huge }
+    local maxPt = { x = -math.huge, y = height, z = -math.huge }
 
-    -- Initialize min and max with the first corner's values
-    min.x = corners[1].x
-    min.z = corners[1].z
-    max.x = corners[1].x
-    max.z = corners[1].z
-
-    -- Find the minimum and maximum values for x and z
-    for i = 1, #corners do
-        if corners[i].x < min.x then
-            min.x = corners[i].x
-        end
-        if corners[i].x > max.x then
-            max.x = corners[i].x
-        end
-
-        if corners[i].z < min.z then
-            min.z = corners[i].z
-        end
-        if corners[i].z > max.z then
-            max.z = corners[i].z
-        end
+    -- Determine min/max X,Z
+    for _, c in ipairs(corners) do
+        if c.x < minPt.x then minPt.x = c.x end
+        if c.z < minPt.z then minPt.z = c.z end
+        if c.x > maxPt.x then maxPt.x = c.x end
+        if c.z > maxPt.z then maxPt.z = c.z end
     end
 
-    -- Add y-coordinate to convert to 3D points
-    min.y = 0
-    max.y = height
-
-    return { min = min, max = max }
+    -- Set Y extents
+    minPt.y = 0
+    maxPt.y = height
+    return { min = minPt, max = maxPt }
 end
 
+--- Determines active world divisions via saved data or spatial intersection.
+--- @return AETHR Instance
 function AETHR:determineActiveDivisions()
-    local configData = self.fileOps.loadTableFromJSON(
-        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
-    )
-    if configData then
-        self.LEARNED_DATA.worldDivisions = {}
-        for _, division in ipairs(configData) do
-            if division.active then
-                self.LEARNED_DATA.saveDivisions[division.ID] = division
+    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
+    local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
+    local data = self.fileOps.loadTableFromJSON(mapPath, saveFile)
+
+    if data then
+        -- Use saved active flags
+        self.LEARNED_DATA.saveDivisions = {}
+        for _, div in ipairs(data) do
+            if div.active then
+                self.LEARNED_DATA.saveDivisions[div.ID] = div
             end
         end
     else
-        self.LEARNED_DATA.worldDivisions = self.AUTOSAVE.checkDivisionsInZones(self.LEARNED_DATA.worldDivisions,
-            self.MIZ_ZONES)
-        for _, division in ipairs(self.LEARNED_DATA.worldDivisions) do
-            if division.active then
-                self.LEARNED_DATA.saveDivisions[division.ID] = division
+        -- Compute active flags by intersection
+        local updated = self.AUTOSAVE.checkDivisionsInZones(
+            self.LEARNED_DATA.worldDivisions,
+            self.MIZ_ZONES
+        )
+        for _, div in ipairs(updated) do
+            if div.active then
+                self.LEARNED_DATA.saveDivisions[div.ID] = div
             end
         end
-        self.fileOps.saveTableAsPrettyJSON(
-            self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-            self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE,
-            self.LEARNED_DATA.saveDivisions
-        )
+        self.fileOps.saveTableAsPrettyJSON(mapPath, saveFile, self.LEARNED_DATA.saveDivisions)
     end
 
     return self
 end
 
+--- Retrieves objects of a specific category within a division.
+--- @param divisionID number ID of the division
+--- @param objectCategory Object.Category Category filter
+--- @return table Found objects
 function AETHR:objectsInDivision(divisionID, objectCategory)
-    local division = self.LEARNED_DATA.worldDivisions[divisionID]
-    if not division then
-        return {}
-    end
-
-    local corners = division.corners
-    local height = division.height or 2000 -- Default height if not specified
-    return self.worldLearning.searchObjectsBox(objectCategory, corners, height)
+    local div = self.LEARNED_DATA.worldDivisions[divisionID]
+    if not div then return {} end
+    return self.worldLearning.searchObjectsBox(objectCategory, div.corners, div.height or 2000)
 end
 
+--- Loads or collects objects for all active divisions and saves them.
+--- @param objectCategory string Category (e.g., "SCENERY", "STATIC", "UNIT")
+--- @return self Instance
 function AETHR:getActiveObjectsInDivisions(objectCategory)
-    for divisionID in pairs(self.LEARNED_DATA.saveDivisions) do
-        local configData = self.fileOps.loadTableFromJSON(
-            self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. divisionID,
-            objectCategory .. "_" .. self.CONFIG.STORAGE.FILENAMES.OBJECTS_FILE
-        )
-        if configData then
-            self.LEARNED_DATA.divisionObjects[divisionID] = self.LEARNED_DATA.divisionObjects[divisionID] or {}
-            self.LEARNED_DATA.divisionObjects[divisionID][objectCategory] = configData
-        else
-            local objects = self:objectsInDivision(divisionID, objectCategory)
-            if next(objects) then
-                self.LEARNED_DATA.divisionObjects[divisionID] = self.LEARNED_DATA.divisionObjects[divisionID] or {}
-                self.LEARNED_DATA.divisionObjects[divisionID][objectCategory] = objects
+    for id, _ in pairs(self.LEARNED_DATA.saveDivisions) do
+        local dir = self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
+        local file = objectCategory .. "_" .. self.CONFIG.STORAGE.FILENAMES.OBJECTS_FILE
+        local objs = self.fileOps.loadTableFromJSON(dir, file)
 
-                self.fileOps.saveTableAsPrettyJSON(
-                    self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. divisionID,
-                    objectCategory .. "_" .. self.CONFIG.STORAGE.FILENAMES.OBJECTS_FILE,
-                    objects
-                )
+        if not objs then
+            objs = self:objectsInDivision(id, objectCategory)
+            if next(objs) then
+                self.fileOps.saveTableAsPrettyJSON(dir, file, objs)
             end
         end
+
+        self.LEARNED_DATA.divisionObjects[id] = self.LEARNED_DATA.divisionObjects[id] or {}
+        self.LEARNED_DATA.divisionObjects[id][objectCategory] = objs
     end
     return self
 end

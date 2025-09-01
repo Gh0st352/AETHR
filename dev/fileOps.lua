@@ -1,16 +1,16 @@
-AETHR.fileOps = {}
---- File Operations Module for AETHR
---- Provides functions to handle file operations such as reading, writing, and checking file existence.
 --- @module AETHR.fileOps
+--- @brief Provides functions for file and directory operations: ensure, read, write, existence checks.
+AETHR.fileOps = {}
 
---- Check if a directory exists, create it if it doesn't
---- @param path string The directory path to check/create
---- @return boolean success True if directory exists or was created successfully
+--- Ensures a directory exists; creates it if missing.
+--- @function ensureDirectory
+--- @param path string Directory path to check or create
+--- @return boolean success True if created or already exists, false on error
 function AETHR.fileOps.ensureDirectory(path)
     local lfs = require("lfs")
 
     -- Check if directory already exists
-    local attr = lfs.attributes(path)
+local attr = lfs.attributes(path)  -- Get file system attributes
     if attr and attr.mode == "directory" then
         return true
     end
@@ -25,10 +25,11 @@ function AETHR.fileOps.ensureDirectory(path)
     end
 end
 
---- Check if a file exists in a directory, create it if it doesn't
---- @param directory string The directory path to check
---- @param filename string The name of the file to check/create
---- @return boolean success True if file exists or was created successfully
+--- Ensures a file exists in the given directory; creates empty file if missing.
+--- @function ensureFile
+--- @param directory string Directory path to check
+--- @param filename string Filename to check or create
+--- @return boolean success True on success, false on error
 function AETHR.fileOps.ensureFile(directory, filename)
     local lfs = require("lfs")
     -- Construct full file path
@@ -51,11 +52,12 @@ function AETHR.fileOps.ensureFile(directory, filename)
     end
 end
 
---- Convert a Lua table to JSON string and save to file
---- @param directory string The directory path where the file will be saved
---- @param filename string The name of the file to save
---- @param data table The Lua table to convert to JSON
---- @return boolean success True if the file was created and data was written successfully
+--- Saves a Lua table as compact JSON to a file.
+--- @function saveTableAsJSON
+--- @param directory string Directory path to write JSON
+--- @param filename string Filename for JSON output
+--- @param data table Lua table to encode
+--- @return boolean success True on success, false on error
 function AETHR.fileOps.saveTableAsJSON(directory, filename, data)
     -- Ensure directory exists
     if not AETHR.fileOps.ensureDirectory(directory) then
@@ -87,10 +89,11 @@ function AETHR.fileOps.saveTableAsJSON(directory, filename, data)
     return true
 end
 
---- Read a JSON file and convert it to a Lua table
---- @param directory string The directory path where the file is located
---- @param filename string The name of the JSON file to read
---- @return table|nil data The Lua table from the JSON file, or nil if failed
+--- Loads and decodes JSON from a file into a Lua table.
+--- @function loadTableFromJSON
+--- @param directory string Directory path containing JSON
+--- @param filename string JSON filename to load
+--- @return table|nil data Decoded table or nil on failure
 function AETHR.fileOps.loadTableFromJSON(directory, filename)
     -- Construct full file path
     local filepath = directory .. "/" .. filename
@@ -135,11 +138,12 @@ function AETHR.fileOps.loadTableFromJSON(directory, filename)
     return data
 end
 
---- Convert a Lua table to pretty-printed JSON string and save to file
---- @param directory string The directory path where the file will be saved
---- @param filename string The name of the file to save
---- @param data table The Lua table to convert to JSON
---- @return boolean success True if the file was created and data was written successfully
+--- Saves a Lua table as formatted (pretty) JSON to a file.
+--- @function saveTableAsPrettyJSON
+--- @param directory string Directory path to write JSON
+--- @param filename string Filename for pretty JSON
+--- @param data table Lua table to encode
+--- @return boolean success True on success, false on error
 function AETHR.fileOps.saveTableAsPrettyJSON(directory, filename, data)
     if not AETHR.fileOps.ensureDirectory(directory) then
         return false
@@ -160,10 +164,11 @@ function AETHR.fileOps.saveTableAsPrettyJSON(directory, filename, data)
     return true
 end
 
---- Read a pretty-printed JSON file and convert it to a Lua table
---- @param directory string The directory path where the file is located
---- @param filename string The name of the JSON file to read
---- @return table|nil data The Lua table from the JSON file, or nil if failed
+--- Loads and decodes pretty JSON from a file into a Lua table.
+--- @function loadTableFromPrettyJSON
+--- @param directory string Directory path containing JSON
+--- @param filename string Pretty JSON filename to load
+--- @return table|nil data Decoded table or nil on failure
 function AETHR.fileOps.loadTableFromPrettyJSON(directory, filename)
     local filepath = directory .. "/" .. filename
     local lfs = require("lfs")
@@ -189,10 +194,11 @@ function AETHR.fileOps.loadTableFromPrettyJSON(directory, filename)
     return data
 end
 
---- Check if a file exists in a directory
---- @param directory string The directory path to check
---- @param filename string The name of the file to check
---- @return boolean exists True if the file exists, false otherwise
+--- Checks if a file exists in the specified directory.
+--- @function fileExists
+--- @param directory string Directory path to check
+--- @param filename string Filename to verify
+--- @return boolean exists True if file is found, false otherwise
 function AETHR.fileOps.fileExists(directory, filename)
     local filepath = directory .. "/" .. filename
     local lfs = require("lfs")
@@ -200,11 +206,19 @@ function AETHR.fileOps.fileExists(directory, filename)
     return attr and attr.mode == "file" or false
 end
 
+--- Joins multiple path segments using the system path separator.
+--- @function joinPaths
+--- @param ... string Path segments to join
+--- @return string Joined path string
 function AETHR.fileOps.joinPaths(...)
     local sep = package.config:sub(1, 1)
     return table.concat({ ... }, sep)
 end
 
+--- Performs deep copy of tables (including nested tables and metatables).
+--- @function deepcopy
+--- @param orig any Source value or table to copy
+--- @return any copy Deep copied value
 function AETHR.fileOps.deepcopy(orig)
   local orig_type = type(orig)
   local copy

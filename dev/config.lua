@@ -1,3 +1,6 @@
+--- @module AETHR.CONFIG
+--- @brief Default configuration and storage settings for AETHR framework.
+--- @class AETHR.CONFIG
 AETHR.CONFIG = {
     VERSION = "0.1.0",
     AUTHOR = "Gh0st352",
@@ -129,11 +132,16 @@ AETHR.CONFIG = {
 }
 
 
+--- Loads existing configuration from JSON or creates a default config file.
+--- @return AETHR self
 function AETHR:loadExistingData()
     self:loadConfig()
     return self
 end
 
+--- Loads configuration values from JSON file and merges into defaults.
+--- If no file exists, writes default configuration to disk.
+--- @return AETHR self
 function AETHR:loadConfig()
     local configData = self.fileOps.loadTableFromJSON(
         self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
@@ -154,6 +162,8 @@ function AETHR:loadConfig()
     return self
 end
 
+--- Saves current configuration table to JSON file.
+--- @return AETHR self
 function AETHR:SaveConfig()
     self.fileOps.saveTableAsPrettyJSON(
         self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
@@ -163,6 +173,8 @@ function AETHR:SaveConfig()
     return self
 end
 
+--- Loads user-specific storage data from JSON if available.
+--- @return AETHR self
 function AETHR:loadUSERSTORAGE()
     local userData = self.fileOps.loadTableFromJSON(
         self.CONFIG.STORAGE.PATHS.USER_FOLDER,
@@ -174,6 +186,8 @@ function AETHR:loadUSERSTORAGE()
     return self
 end
 
+--- Saves current user storage table to JSON file.
+--- @return AETHR self
 function AETHR:SaveUSERSTORAGE()
     self.fileOps.saveTableAsPrettyJSON(
         self.CONFIG.STORAGE.PATHS.USER_FOLDER,

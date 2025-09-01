@@ -1,179 +1,183 @@
+
+--- AETHR.math
+--- Utility math helpers used across the AETHR project.
+--- Provides geometric primitives (points/lines/boxes), intersection tests,
+--- distance calculations and small helpers for sampling and constructing geometry.
+--- @module AETHR.math
+--- @brief Geometry and polygon math utilities for world divisions and zone operations.
 AETHR.math = {}
 
--- Convert bounds (min/max X and Z values) to a 4-point polygon array
--- This function takes a bounds object with min/max X and Z values and converts it into a polygon array
--- representing the corners of the bounding box.
+--- Converts axis-aligned world bounds into a 4-point polygon.
+--- Ensures convexity of the resulting polygon.
+--- @function convertBoundsToPolygon
+--- @param bounds table Structure with `X.min`, `X.max`, `Z.min`, `Z.max`
+--- @return table Polygon as array of points `{ x=number, z=number }`
 function AETHR.math.convertBoundsToPolygon(bounds)
-    -- Convert min/max X and Z values to a 4-point polygon array
+    -- Create initial polygon corners: bottom-left, bottom-right, top-right, top-left
     local polygon = {
-        { x = bounds.X.min, z = bounds.Z.min }, -- bottom left
-        { x = bounds.X.max, z = bounds.Z.min }, -- bottom right
-        { x = bounds.X.max, z = bounds.Z.max }, -- top right
-        { x = bounds.X.min, z = bounds.Z.max }  -- top left
+        { x = bounds.X.min, z = bounds.Z.min },
+        { x = bounds.X.max, z = bounds.Z.min },
+        { x = bounds.X.max, z = bounds.Z.max },
+        { x = bounds.X.min, z = bounds.Z.max },
     }
 
-    polygon = AETHR.math.ensureConvex(polygon)
-
-    return polygon
+    -- Ensure polygon is convex by swapping vertices if needed
+    return AETHR.math.ensureConvex(polygon)
 end
 
--- Calculate the cross product (determinant) of three points in 3D space
--- This is used to determine the orientation of the polygon formed by the points
+--- Calculates the 2D cross product (determinant) of three points.
+--- Used to determine orientation (clockwise, counterclockwise, or colinear).
+--- @function crossProduct
+--- @param p1 table First point with `.x`, `.z` or `.y`
+--- @param p2 table Second point
+--- @param p3 table Third point
+--- @return number Determinant value (positive = CCW, negative = CW, zero = colinear)
 function AETHR.math.crossProduct(p1, p2, p3)
-    -- Get the appropriate z coordinate (using y as fallback) for each point
     local z1 = p1.z or p1.y
     local z2 = p2.z or p2.y
     local z3 = p3.z or p3.y
-
-    -- Calculate and return the cross product (determinant) of the vectors formed by the three points
     return (p2.x - p1.x) * (z3 - z1) - (z2 - z1) * (p3.x - p1.x)
 end
 
--- Ensure a 4-sided polygon is convex by checking the signs of the cross products
--- If not convex, swap the last two vertices to make it convex
+--- Ensures a quadrilateral polygon is convex by checking cross product signs.
+--- Swaps the last two vertices if orientation is inconsistent.
+--- @function ensureConvex
+--- @param coords table Array of four `{x,z}` points
+--- @return table Possibly reordered convex polygon
 function AETHR.math.ensureConvex(coords)
-    -- Calculate the signs of the cross products of consecutive vertices
     local signs = {
         AETHR.math.crossProduct(coords[1], coords[2], coords[3]) >= 0,
         AETHR.math.crossProduct(coords[2], coords[3], coords[4]) >= 0,
         AETHR.math.crossProduct(coords[3], coords[4], coords[1]) >= 0,
-        AETHR.math.crossProduct(coords[4], coords[1], coords[2]) >= 0
+        AETHR.math.crossProduct(coords[4], coords[1], coords[2]) >= 0,
     }
-
-    -- If the signs are not consistent, swap the last two vertices
-    if not (signs[1] == signs[2] and signs[2] == signs[3] and signs[3] == signs[4]) then
+    -- If any sign differs, swap to reorder vertices
+    if not (signs[1] and signs[2] and signs[3] and signs[4]) then
         coords[3], coords[4] = coords[4], coords[3]
     end
-
     return coords
 end
 
--- Calculate area of a polygon using the Shoelace formula
+--- Computes the area of a polygon using the Shoelace formula.
+--- @function polygonArea
+--- @param polygon table Array of `{x,z}` vertices
+--- @return number Absolute area value
 function AETHR.math.polygonArea(polygon)
-    local numVertices = #polygon
-    if numVertices < 3 then
-        return 0 -- A polygon with less than 3 vertices has no area
-    end
-
+    local n = #polygon
+    if n < 3 then return 0 end
     local sum = 0
-    for i = 1, numVertices do
-        local j = i % numVertices + 1 -- Next vertex, with wrap-around
+    for i = 1, n do
+        local j = (i % n) + 1
         sum = sum + (polygon[i].x * polygon[j].z - polygon[j].x * polygon[i].z)
     end
     return math.abs(sum) / 2
 end
 
--- Divide a 4-sided polygon into sub-polygons of given area
+--- Divides a quadrilateral polygon into sub-polygons of roughly equal area.
+--- Calculates rows and columns based on aspect ratio.
+--- @function dividePolygon
+--- @param polygon table Array of `{x,z}` four corners
+--- @param targetArea number Desired area per sub-polygon
+--- @return table Array of division tables `{ corners = {pt1,pt2,pt3,pt4} }`
 function AETHR.math.dividePolygon(polygon, targetArea)
-    -- Calculate total area of the polygon
-    local totalArea = AETHR.math.polygonArea(polygon)
-    local numDivisions = math.max(1, math.floor(totalArea / targetArea + 0.5))
+    local total = AETHR.math.polygonArea(polygon)
+    local count = math.max(1, math.floor(total / targetArea + 0.5))
 
-    -- Create vertices for left and right edges of the polygon
-    local leftEdge = { polygon[1], polygon[4] }
+    -- Define left and right edges
+    local leftEdge  = { polygon[1], polygon[4] }
     local rightEdge = { polygon[2], polygon[3] }
 
-    -- Calculate rows and columns based on aspect ratio
-    local width = math.sqrt((polygon[2].x - polygon[1].x) ^ 2 + (polygon[2].z - polygon[1].z) ^ 2)
-    local height = math.sqrt((polygon[4].x - polygon[1].x) ^ 2 + (polygon[4].z - polygon[1].z) ^ 2)
-    local aspectRatio = width / height
+    -- Determine grid shape by aspect ratio
+    local width  = math.sqrt((polygon[2].x - polygon[1].x)^2 + (polygon[2].z - polygon[1].z)^2)
+    local height = math.sqrt((polygon[4].x - polygon[1].x)^2 + (polygon[4].z - polygon[1].z)^2)
+    local ratio  = width / height
 
-    local cols = math.ceil(math.sqrt(numDivisions * aspectRatio))
-    local rows = math.ceil(numDivisions / cols)
-
-    -- Ensure we have at least the required number of divisions
-    while rows * cols < numDivisions do
-        if width > height then
-            cols = cols + 1
-        else
-            rows = rows + 1
-        end
+    local cols = math.ceil(math.sqrt(count * ratio))
+    local rows = math.ceil(count / cols)
+    -- Adjust if grid smaller than needed
+    while rows * cols < count do
+        if width > height then cols = cols + 1 else rows = rows + 1 end
     end
 
     local divisions = {}
+    -- Generate grid divisions
+    for r = 0, rows - 1 do
+        local tFrac, bFrac = (r+1)/rows, r/rows
+        local bottomLeft  = { x = leftEdge[1].x  + bFrac*(leftEdge[2].x - leftEdge[1].x),
+                              z = leftEdge[1].z  + bFrac*(leftEdge[2].z - leftEdge[1].z)}
+        local bottomRight = { x = rightEdge[1].x + bFrac*(rightEdge[2].x - rightEdge[1].x),
+                              z = rightEdge[1].z + bFrac*(rightEdge[2].z - rightEdge[1].z)}
+        local topLeft     = { x = leftEdge[1].x  + tFrac*(leftEdge[2].x - leftEdge[1].x),
+                              z = leftEdge[1].z  + tFrac*(leftEdge[2].z - leftEdge[1].z)}
+        local topRight    = { x = rightEdge[1].x + tFrac*(rightEdge[2].x - rightEdge[1].x),
+                              z = rightEdge[1].z + tFrac*(rightEdge[2].z - rightEdge[1].z)}
 
-    for row = 0, rows - 1 do
-        -- Calculate top and bottom points for this row
-        local topFraction = (row + 1) / rows
-        local bottomFraction = row / rows
-
-        local bottomLeft = {
-            x = leftEdge[1].x + bottomFraction * (leftEdge[2].x - leftEdge[1].x),
-            z = leftEdge[1].z + bottomFraction * (leftEdge[2].z - leftEdge[1].z)
-        }
-        local bottomRight = {
-            x = rightEdge[1].x + bottomFraction * (rightEdge[2].x - rightEdge[1].x),
-            z = rightEdge[1].z + bottomFraction * (rightEdge[2].z - rightEdge[1].z)
-        }
-        local topLeft = {
-            x = leftEdge[1].x + topFraction * (leftEdge[2].x - leftEdge[1].x),
-            z = leftEdge[1].z + topFraction * (leftEdge[2].z - leftEdge[1].z)
-        }
-        local topRight = {
-            x = rightEdge[1].x + topFraction * (rightEdge[2].x - rightEdge[1].x),
-            z = rightEdge[1].z + topFraction * (rightEdge[2].z - rightEdge[1].z)
-        }
-
-        for col = 0, cols - 1 do
-            local leftFraction = col / cols
-            local rightFraction = (col + 1) / cols
-
-            local subPoly = {
-                { -- Bottom left
-                    x = bottomLeft.x + leftFraction * (bottomRight.x - bottomLeft.x),
-                    z = bottomLeft.z + leftFraction * (bottomRight.z - bottomLeft.z)
-                },
-                { -- Bottom right
-                    x = bottomLeft.x + rightFraction * (bottomRight.x - bottomLeft.x),
-                    z = bottomLeft.z + rightFraction * (bottomRight.z - bottomLeft.z)
-                },
-                { -- Top right
-                    x = topLeft.x + rightFraction * (topRight.x - topLeft.x),
-                    z = topLeft.z + rightFraction * (topRight.z - topLeft.z)
-                },
-                { -- Top left
-                    x = topLeft.x + leftFraction * (topRight.x - topLeft.x),
-                    z = topLeft.z + leftFraction * (topRight.z - topLeft.z)
-                }
+        for c = 0, cols - 1 do
+            local lFrac, rFrac = c/cols, (c+1)/cols
+            -- Interpolate four corners
+            local poly = {
+                { x = bottomLeft.x  + lFrac*(bottomRight.x - bottomLeft.x),
+                  z = bottomLeft.z  + lFrac*(bottomRight.z - bottomLeft.z)},
+                { x = bottomLeft.x  + rFrac*(bottomRight.x - bottomLeft.x),
+                  z = bottomLeft.z  + rFrac*(bottomRight.z - bottomLeft.z)},
+                { x = topLeft.x     + rFrac*(topRight.x     - topLeft.x),
+                  z = topLeft.z     + rFrac*(topRight.z     - topLeft.z)},
+                { x = topLeft.x     + lFrac*(topRight.x     - topLeft.x),
+                  z = topLeft.z     + lFrac*(topRight.z     - topLeft.z)},
             }
-            divisions[#divisions + 1] = {}
-            divisions[#divisions].corners = subPoly
+            table.insert(divisions, { corners = poly })
         end
     end
 
     return divisions
 end
 
+--- Converts a polygon (list of points) into an array of line segments.
+--- @function convertZoneToLines
+--- @param zone table Array of points `{x,y}` or `{x,z}`
+--- @return table Array of segments `{{x,y},{x,y}}`
 function AETHR.math.convertZoneToLines(zone)
     local lines = {}
-
-    -- Iterate through the points in the zone
     for i = 1, #zone do
-        -- Determine the next point (if the current point is the last one, the next is the first)
-        local nextIndex = (i == #zone) and 1 or (i + 1)
-
-        -- Create a line segment between the current point and the next point
-        table.insert(lines, { { x = zone[i].x, y = zone[i].y }, { x = zone[nextIndex].x, y = zone[nextIndex].y } })
+        local j = (i % #zone) + 1
+        table.insert(lines, { { x = zone[i].x, y = zone[i].y or zone[i].z },
+                              { x = zone[j].x, y = zone[j].y or zone[j].z } })
     end
-
     return lines
 end
 
+--- Computes ratio of two values (min/max) safely handling zero.
+--- @function computeRatio
+--- @param A number First value
+--- @param B number Second value
+--- @return number Ratio in [0,1]
 function AETHR.math.computeRatio(A, B)
-    if A == 0 or B == 0 then
-        return 0.00
-    end
-    return (A > B) and (B / A) or (A / B)
+    if A == 0 or B == 0 then return 0 end
+    return (A > B) and (B/A) or (A/B)
 end
 
+--- Calculates the Euclidean length of a line segment.
+--- @function lineLength
+--- @param line table Two points `{ {x,y},{x,y} }`
+--- @return number Length of the segment
 function AETHR.math.lineLength(line)
-    -- Calculate the differences in x and y coordinates between the two endpoints of the line
     local dx = line[2].x - line[1].x
     local dy = line[2].y - line[1].y
-    -- Use the Pythagorean theorem to compute the length of the line segment
-    return math.sqrt(dx ^ 2 + dy ^ 2)
+    return math.sqrt(dx*dx + dy*dy)
 end
 
+--------------------------------------------------------------------------------
+--- Samples `n` equally spaced points along a line segment (excluding endpoints).
+--- Uses linear interpolation between the two endpoints.
+---
+--- Notes / inline behavior:
+--- - InputLine is expected to be an array-like table with two points: { [1] = {x=..., y=...}, [2] = {x=..., y=...} }.
+--- - DesiredPoints is the number of interior samples; points are spaced at t = i/(DesiredPoints+1) for i=1..DesiredPoints.
+--- - Returns a list of points in the form { {x=..., y=...}, ... }.
+--- @function AETHR.math.getEquallySpacedPoints
+--- @param InputLine table Two-element array of endpoints, each endpoint is a table with numeric x and y fields.
+--- @param DesiredPoints integer Number of points to sample along the segment (interior points).
+--- @return table OutputPoints Array of sampled points, each point being a table with x and y numeric fields.
 function AETHR.math.getEquallySpacedPoints(InputLine, DesiredPoints)
     local P1, P2 = InputLine[1], InputLine[2]
     local OutputPoints = {}
@@ -190,6 +194,15 @@ function AETHR.math.getEquallySpacedPoints(InputLine, DesiredPoints)
     return OutputPoints
 end
 
+--------------------------------------------------------------------------------
+--- Computes the squared Euclidean distance between two 2D points.
+--- This avoids the costly square-root when only comparison of distances is required.
+--- @function AETHR.math.distanceSquared
+--- @param ax number X coordinate of first point.
+--- @param ay number Y coordinate of first point.
+--- @param bx number X coordinate of second point.
+--- @param by number Y coordinate of second point.
+--- @return number Squared distance: (ax-bx)^2 + (ay-by)^2.
 function AETHR.math.distanceSquared(ax, ay, bx, by)
     -- Calculate the differences in x and y coordinates between the two points
     local dx = ax - bx
@@ -199,11 +212,35 @@ function AETHR.math.distanceSquared(ax, ay, bx, by)
     return dx * dx + dy * dy
 end
 
+--------------------------------------------------------------------------------
+--- Computes the dot product of two 2D vectors.
+--- @function AETHR.math.dot
+--- @param ax number X component of first vector.
+--- @param ay number Y component of first vector.
+--- @param bx number X component of second vector.
+--- @param by number Y component of second vector.
+--- @return number Dot product: ax*bx + ay*by.
 function AETHR.math.dot(ax, ay, bx, by)
     -- Return the dot product of the two vectors
     return ax * bx + ay * by
 end
 
+--------------------------------------------------------------------------------
+--- Computes the squared distance from a point to a segment in 2D.
+---
+--- Notes / inline behavior:
+--- - If the segment degenerates to a single point (both endpoints equal), returns distance squared to that point.
+--- - Projects the point onto the infinite line defined by the segment, clamps the projection parameter t to [0,1],
+---   and returns the squared distance to the clamped projection.
+--- - This function returns squared distances to avoid unnecessary square roots in comparisons.
+--- @function AETHR.math.pointToSegmentSquared
+--- @param px number X coordinate of the point to measure.
+--- @param py number Y coordinate of the point to measure.
+--- @param ax number X coordinate of segment endpoint A.
+--- @param ay number Y coordinate of segment endpoint A.
+--- @param bx number X coordinate of segment endpoint B.
+--- @param by number Y coordinate of segment endpoint B.
+--- @return number Squared distance from (px,py) to the closest point on segment AB.
 function AETHR.math.pointToSegmentSquared(px, py, ax, ay, bx, by)
     -- Calculate the squared distance between the endpoints of the segment
     local l2 = AETHR.math.distanceSquared(ax, ay, bx, by)
@@ -222,6 +259,22 @@ function AETHR.math.pointToSegmentSquared(px, py, ax, ay, bx, by)
     return AETHR.math.distanceSquared(px, py, ax + t * (bx - ax), ay + t * (by - ay))
 end
 
+--------------------------------------------------------------------------------
+--- Tests whether two line segments (provided as 2-element arrays) are within a given offset.
+---
+--- Behavior and notes:
+--- - For robustness against different line lengths, this routine samples a fixed number of interior points
+---   along each line (default 11) and computes a "confirmation rate" using a ratio of line lengths
+---   (via computeRatio and lineLength helpers expected elsewhere in AETHR.math).
+--- - A sampled point is considered close to the other line if the point-to-segment distance <= Offset.
+--- - The function checks both directions: sampling LineA against LineB and LineB against LineA,
+---   returning true if either direction has enough sample points within the offset threshold.
+--- - This is an approximation: sampling density and the ratio calculation affect sensitivity.
+--- @function AETHR.math.isWithinOffset
+--- @param LineA table Two-element array of endpoints for first line.
+--- @param LineB table Two-element array of endpoints for second line.
+--- @param Offset number Distance threshold to consider a sampled point "within" the other line.
+--- @return boolean bool True if lines are considered within Offset of each other (approximate via sampling), false otherwise.
 function AETHR.math.isWithinOffset(LineA, LineB, Offset)
     local DesiredPoints = 11
     -- Compute the ratio of the lengths of LineA and LineB
@@ -248,6 +301,11 @@ function AETHR.math.isWithinOffset(LineA, LineB, Offset)
     return checkPointsWithinOffset(LineA, LineB) or checkPointsWithinOffset(LineB, LineA)
 end
 
+--------------------------------------------------------------------------------
+--- Returns the midpoint of a line segment.
+--- @function AETHR.math.getMidpoint
+--- @param line table Two-element array of endpoints, each with numeric x and y fields.
+--- @return table A point with numeric fields x and y representing the midpoint of the segment.
 function AETHR.math.getMidpoint(line)
     -- Calculate the x and y coordinates of the midpoint using the average of the endpoints' coordinates
     return {
@@ -256,6 +314,15 @@ function AETHR.math.getMidpoint(line)
     }
 end
 
+--------------------------------------------------------------------------------
+--- Calculates the slope (dy/dx) of a line segment.
+---
+--- Notes:
+--- - If the line is vertical (dx == 0) the function returns math.huge to indicate an infinite slope.
+--- - The slope is computed as (y2 - y1) / (x2 - x1).
+--- @function AETHR.math.calculateLineSlope
+--- @param line table Two-element array of endpoints, each with numeric x and y fields.
+--- @return number Slope of the line (dy/dx), or math.huge for a vertical line.
 function AETHR.math.calculateLineSlope(line)
     -- Calculate the differences in x and y coordinates between the two points of the line
     local dx = line[2].x - line[1].x
@@ -269,6 +336,23 @@ function AETHR.math.calculateLineSlope(line)
     return slope
 end
 
+--------------------------------------------------------------------------------
+--- Given a point and a line, computes one endpoint of a perpendicular segment of given length
+--- that starts at the point and extends in one perpendicular direction.
+---
+--- Behavior and notes:
+--- - The provided `length` is the absolute linear distance from the starting Point to the returned endpoint.
+--- - If the original line is vertical, the perpendicular is horizontal and the function returns a point
+---   at (Point.x, Point.y + length).
+--- - For non-vertical lines, the perpendicular slope is -1/m where m is the line slope; the function
+---   computes a displacement along x such that the Euclidean length equals `length` and then computes y
+---   using the perpendicular slope.
+--- - The function returns a single endpoint in one perpendicular direction; to get both you may mirror the x displacement.
+--- @function AETHR.math.findPerpendicularEndpoints
+--- @param Point table Starting point for the perpendicular segment. Expects numeric fields x and y.
+--- @param line table Two-element array of endpoints defining the reference line, each with numeric x and y fields.
+--- @param length number Desired length of the perpendicular from Point to the endpoint.
+--- @return table Endpoint point with numeric fields x and y located `length` away from Point along a perpendicular.
 function AETHR.math.findPerpendicularEndpoints(Point, line, length)
     -- Calculate the differences in x and y coordinates between the two points of the line
     local dx = line[2].x - line[1].x
@@ -288,6 +372,21 @@ function AETHR.math.findPerpendicularEndpoints(Point, line, length)
     return { x = x, y = y }
 end
 
+
+--------------------------------------------------------------------------------
+--- Determines whether a 2D point lies strictly inside a polygon using the ray-casting algorithm.
+---
+--- Behavior and notes:
+--- - Accepts polygons whose vertices may use fields y or z for the vertical coordinate; the function will
+---   use P.y or P.z (preferring y) and uses the same coordinate in polygon vertices.
+--- - If the polygon has fewer than 3 vertices, it cannot enclose an area and the function returns false.
+--- - Ray-casting is done horizontally to a large positive X ("extreme") and counts edge intersections.
+--- - If the point is collinear with an edge, the function uses onLine to decide if the point lies on that edge.
+--- - Returns true for points strictly inside (odd number of intersections), false otherwise.
+--- @function AETHR.math.PointWithinShape
+--- @param P table Point to test; expects numeric x and y (or z) field.
+--- @param Polygon table Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
+--- @return boolean True if P is inside the polygon (or on an edge when onLine returns true), false otherwise.
 function AETHR.math.PointWithinShape(P, Polygon)
     local n = #Polygon
     
@@ -342,6 +441,18 @@ function AETHR.math.PointWithinShape(P, Polygon)
     return (count % 2) == 1
 end
 
+--------------------------------------------------------------------------------
+--- Tests whether two line segments intersect.
+---
+--- Behavior and notes:
+--- - Each line is supplied as a table with p1 and p2 fields, each being a point with numeric x and y.
+--- - Uses orientation (direction) tests on point triplets to detect general intersection cases.
+--- - Handles collinear overlap by checking whether endpoints of one segment lie on the other via onLine.
+--- - Returns true if segments intersect or touch (including collinear overlapping or touching at endpoints).
+--- @function AETHR.math.isIntersect
+--- @param l1 table First line, with fields p1 and p2 (points with x and y).
+--- @param l2 table Second line, with fields p1 and p2 (points with x and y).
+--- @return boolean True if the segments intersect or touch, false otherwise.
 function AETHR.math.isIntersect(l1, l2)
     -- Calculate orientation values for each pair of points from the two lines
     local dir1 = AETHR.math.direction(l1.p1, l1.p2, l2.p1)
@@ -369,6 +480,21 @@ function AETHR.math.isIntersect(l1, l2)
     return false
 end
 
+--------------------------------------------------------------------------------
+--- Computes the orientation of the ordered triplet (a, b, c).
+---
+--- Returns values:
+--- - 0 if collinear
+--- - 1 if clockwise
+--- - 2 if counterclockwise
+---
+--- Formula used (cross-product sign):
+--- val = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
+--- @function AETHR.math.direction
+--- @param a table First point with numeric x and y.
+--- @param b table Second point with numeric x and y.
+--- @param c table Third point with numeric x and y.
+--- @return integer 0 = collinear, 1 = clockwise, 2 = counterclockwise.
 function AETHR.math.direction(a, b, c)
     local val = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
 
@@ -384,6 +510,16 @@ function AETHR.math.direction(a, b, c)
     end
 end
 
+--------------------------------------------------------------------------------
+--- Checks whether a point lies on the (closed) segment defined by l1.p1 and l1.p2.
+---
+--- Behavior:
+--- - Assumes collinearity has already been established when used in conjunction with direction checks.
+--- - Returns true if p.x and p.y are within the bounding box of the segment endpoints.
+--- @function AETHR.math.onLine
+--- @param l1 table Line with fields p1 and p2 (points with numeric x and y).
+--- @param p table Point to test, with numeric x and y.
+--- @return boolean True if p lies on the segment [l1.p1, l1.p2], false otherwise.
 function AETHR.math.onLine(l1, p)
     -- Check if the x and y coordinates of the point are within the bounds of the line segment's endpoints
     if (p.x >= math.min(l1.p1.x, l1.p2.x) and p.x <= math.max(l1.p1.x, l1.p2.x)
@@ -394,6 +530,17 @@ function AETHR.math.onLine(l1, p)
     return false
 end
 
+--------------------------------------------------------------------------------
+--- Constructs a volume descriptor representing an axis-aligned box used by the runtime/world layer.
+---
+--- Notes:
+--- - Expected that world.VolumeType.BOX is available in the runtime environment.
+--- - WS_Vec3 and EN_Vec3 should be vector-like tables describing min and max coordinates respectively.
+--- - Returns a simple table with id and params suitable for whatever world API consumes it.
+--- @function AETHR.math.createBox
+--- @param WS_Vec3 table Minimum corner vector (table with numeric x,y,z or equivalent fields).
+--- @param EN_Vec3 table Maximum corner vector (table with numeric x,y,z or equivalent fields).
+--- @return table Volume descriptor in the form { id = world.VolumeType.BOX, params = { min = WS_Vec3, max = EN_Vec3 } }.
 function AETHR.math.createBox(WS_Vec3, EN_Vec3)
     local box = {
         id =  world.VolumeType.BOX,
