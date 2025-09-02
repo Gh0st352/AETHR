@@ -92,8 +92,10 @@ function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
     return MIZ_ZONES
 end
 
-function AETHR:setMizZones(zoneNames)
+function AETHR:setMizZones(zoneNames, RedStartZones, BlueStartZones)
     self.CONFIG.MIZ_ZONES.ALL = zoneNames
+    if RedStartZones then self:setRedStartMizZones(RedStartZones) end
+    if BlueStartZones then self:setBlueStartMizZones(BlueStartZones) end
     return self
 end
 
@@ -107,48 +109,78 @@ function AETHR:setBlueStartMizZones(zoneNames)
     return self
 end
 
-function AETHR:getMizZoneData()
-    local configData = self.fileOps.loadTableFromJSON(
-        self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.MIZ_ZONES_FILE
-    )
-    if configData then
-        for k, v in pairs(configData) do
-            self.MIZ_ZONES[v.name] = v
-        end
-    else
-        if self.CONFIG.MIZ_ZONES.ALL == nil or #self.CONFIG.MIZ_ZONES.ALL == 0 then return self end
-        local envZones_ = env.mission.triggers.zones
-        for _, zoneName in ipairs(self.CONFIG.MIZ_ZONES.ALL) do
-            for __, envZone in ipairs(envZones_) do
-                if envZone.name == zoneName then
-                    self.MIZ_ZONES[zoneName] = {
-                        name = envZone.name,
-                        zoneId = envZone.zoneId,
-                        type = envZone.type,
-                        BorderOffsetThreshold = self.CONFIG.Zone.BorderOffsetThreshold,
-                        ArrowLength = self.CONFIG.Zone.ArrowLength,
-                        verticies = AETHR.math.ensureConvex(envZone.verticies),
-                        ownedBy = 0,    -- Default to neutral
-                        oldOwnedBy = 0, -- Default to neutral
-                        markID = 0,     -- Default to no mark ID
-                        readOnly = true,
-                        BorderingZones = {},
-                        Airbases = {},
-                        LinesVec2 = {},
-                    }
-                    self.MIZ_ZONES[zoneName].LinesVec2 = AETHR.math.convertZoneToLines(self.MIZ_ZONES[zoneName]
-                    .verticies)
-                    break
-                end
+function AETHR:initMizZoneData()
+    -- local configData = self.fileOps.loadData(
+    --     self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+    --     self.CONFIG.STORAGE.FILENAMES.MIZ_ZONES_FILE
+    -- )
+    -- if configData then
+    --     for k, v in pairs(configData) do
+    --         self.MIZ_ZONES[v.name] = v
+    --     end
+    -- else
+    --     if self.CONFIG.MIZ_ZONES.ALL == nil or #self.CONFIG.MIZ_ZONES.ALL == 0 then return self end
+    --     local envZones_ = env.mission.triggers.zones
+    --     for _, zoneName in ipairs(self.CONFIG.MIZ_ZONES.ALL) do
+    --         for __, envZone in ipairs(envZones_) do
+    --             if envZone.name == zoneName then
+    --                 self.MIZ_ZONES[zoneName] = {
+    --                     name = envZone.name,
+    --                     zoneId = envZone.zoneId,
+    --                     type = envZone.type,
+    --                     BorderOffsetThreshold = self.CONFIG.Zone.BorderOffsetThreshold,
+    --                     ArrowLength = self.CONFIG.Zone.ArrowLength,
+    --                     verticies = AETHR.math.ensureConvex(envZone.verticies),
+    --                     ownedBy = 0,    -- Default to neutral
+    --                     oldOwnedBy = 0, -- Default to neutral
+    --                     markID = 0,     -- Default to no mark ID
+    --                     readOnly = true,
+    --                     BorderingZones = {},
+    --                     Airbases = {},
+    --                     LinesVec2 = {},
+    --                 }
+    --                 self.MIZ_ZONES[zoneName].LinesVec2 = AETHR.math.convertZoneToLines(self.MIZ_ZONES[zoneName]
+    --                 .verticies)
+    --                 break
+    --             end
+    --         end
+    --     end
+    --     self.MIZ_ZONES = AETHR.ZONE_MANAGER.determineBorderingZones(self.MIZ_ZONES)
+    --     self.fileOps.saveData(
+    --         self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
+    --         self.CONFIG.STORAGE.FILENAMES.MIZ_ZONES_FILE,
+    --         self.MIZ_ZONES
+    --     )
+    -- end
+    return self
+end
+
+function AETHR:loadMizZoneData()
+    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
+    local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
+    local data = self.fileOps.loadData(mapPath, saveFile)
+    if data then
+        return data
+    end
+    return nil
+end
+
+function AETHR:saveMizZoneData()
+    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
+    local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
+    self.fileOps.saveData(mapPath, saveFile, self.LEARNED_DATA.saveDivisions)
+end
+
+function AETHR:generateMizZoneData()
+        -- Compute active flags by intersection
+        local updated = self.AUTOSAVE.checkDivisionsInZones(
+            self.LEARNED_DATA.worldDivisions,
+            self.CONFIG.MIZ_ZONES.ALL
+        )
+        for _, div in ipairs(updated) do
+            if div.active then
+                self.LEARNED_DATA.saveDivisions[div.ID] = div
             end
         end
-        self.MIZ_ZONES = AETHR.ZONE_MANAGER.determineBorderingZones(self.MIZ_ZONES)
-        self.fileOps.saveTableAsPrettyJSON(
-            self.CONFIG.STORAGE.PATHS.MAP_FOLDER,
-            self.CONFIG.STORAGE.FILENAMES.MIZ_ZONES_FILE,
-            self.MIZ_ZONES
-        )
-    end
     return self
 end

@@ -15,8 +15,9 @@ AETHR = {
         saveDivisions     = {}, -- Active divisions keyed by ID.
         divisionObjects   = {}, -- Loaded objects per division.
     },
+    MIZ_ZONES      = {},     -- Mission trigger zones keyed by name.
     AIRBASES       = {},     -- Airbase descriptors keyed by displayName.
-    MIZ_ZONES      = {},     -- Mission trigger zones keyed by zone name.
+    ROOT_DIR = "",
 }
 
 --- Creates a new AETHR instance with optional mission ID override.
@@ -48,6 +49,8 @@ function AETHR:New(mission_id)
     -- compute the config folder path under DCS writable directory
     local lfs     = require("lfs")
     local rt_path = lfs.writedir()
+    AETHR.ROOT_DIR = rt_path
+    instance.ROOT_DIR = rt_path
     instance.CONFIG.STORAGE.PATHS.CONFIG_FOLDER = AETHR.fileOps.joinPaths(
         rt_path,
         instance.CONFIG.STORAGE.ROOT_FOLDER,
@@ -64,13 +67,10 @@ end
 --- @function AETHR:Init
 --- @return AETHR self Initialized framework instance.
 function AETHR:Init()
-    local lfs     = require("lfs")           -- LuaFileSystem for directory checks.
-    local rt_path = lfs.writedir()           -- Base writable path.
-
     -- Ensure storage subdirectories exist and cache their full paths.
     for folderName, folderPath in pairs(self.CONFIG.STORAGE.SUB_FOLDERS) do
         local fullPath = AETHR.fileOps.joinPaths(
-            rt_path,
+            self.ROOT_DIR,
             self.CONFIG.STORAGE.ROOT_FOLDER,
             self.CONFIG.MISSION_ID,
             folderPath
@@ -80,17 +80,19 @@ function AETHR:Init()
     end
 
     -- Load or generate core configuration and data structures.
-    self:loadExistingData()     -- Load config JSON or write defaults.
-    self:loadWorldDivisions()   -- Generate or load world division grid.
-    self:loadUSERSTORAGE()      -- Load per-user storage data.
-    self:SaveUSERSTORAGE()      -- Persist current user storage data.
+    self:initConfig()     -- Load config JSON or write defaults.
+    self:initMizZoneData()       -- Load or generate mission trigger zones.
+    self:initWorldDivisions()   -- Generate or load world division grid.
+    self:initActiveDivisions()  -- Identify active divisions in mission.
+    -- self:initUSERSTORAGE()      -- Load per-user storage data.
+    -- self:SaveUSERSTORAGE()      -- Persist current user storage data.
 
-    -- Prepare map and trigger zone datasets.
-    self:loadAirbases()         -- Load or generate airbases information.
-    self:getMizZoneData()       -- Load or generate mission trigger zones.
+    -- -- Prepare map and trigger zone datasets.
+    -- self:loadAirbases()         -- Load or generate airbases information.
+   
 
-    -- Persist the final configuration back to JSON.
-    self:SaveConfig()
+    -- -- Persist the final configuration back to JSON.
+    -- self:SaveConfig()
 
     -- Return self for chaining.
     return self

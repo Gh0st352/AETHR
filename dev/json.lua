@@ -6,8 +6,8 @@
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of
 -- this software and associated documentation files (the "Software"), to deal in
 -- the Software without restriction, including without limitation the rights to
--- use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
--- of the Software, and to permit persons to whom the Software is furnished to do
+-- use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+-- the Software, and to permit persons to whom the Software is furnished to do
 -- so, subject to the following conditions:
 --
 -- The above copyright notice and this permission notice shall be included in all
@@ -24,156 +24,109 @@
 -- Modified by Gh0st352 for AETHR project.
 
 --- @module AETHR.json
---- @brief JSON serialization and parsing utilities.
+--- @brief JSON pretty serialization and parsing utilities.
 AETHR.json = {}
 
--------------------------------------------------------------------------------
--- Encode
--------------------------------------------------------------------------------
-
---- @table AETHR.json.escape_char_map
---- @brief Maps special characters to their JSON escape codes.
+-- Map of characters to their JSON escape codes
 AETHR.json.escape_char_map = {
-  [ "\\" ] = "\\",
-  [ "\"" ] = "\"",
-  [ "\b" ] = "b",
-  [ "\f" ] = "f",
-  [ "\n" ] = "n",
-  [ "\r" ] = "r",
-  [ "\t" ] = "t",
+  ["\\"] = "\\",
+  ["\""] = "\"",
+  ["\b"] = "b",
+  ["\f"] = "f",
+  ["\n"] = "n",
+  ["\r"] = "r",
+  ["\t"] = "t",
 }
 
---- @table AETHR.json.escape_char_map_inv
---- @brief Inverse mapping from JSON escape codes back to literal characters.
-AETHR.json.escape_char_map_inv = { [ "/" ] = "/" }
+-- Inverse escape map for parsing
+AETHR.json.escape_char_map_inv = { ["/"] = "/" }
 for k, v in pairs(AETHR.json.escape_char_map) do
   AETHR.json.escape_char_map_inv[v] = k
 end
 
-
---- @function AETHR.json.escape_char
---- @brief Returns the JSON escape sequence for a given character.
---- @param c string Character to escape (may use unicode if not in map).
---- @return string JSON escape sequence, prefixed with backslash.
+--- @brief Returns the JSON escape sequence for a given character
 function AETHR.json.escape_char(c)
   return "\\" .. (AETHR.json.escape_char_map[c] or string.format("u%04x", c:byte()))
 end
 
-
---- @function AETHR.json.encode_nil
---- @brief Encodes Lua nil as JSON null.
---- @param val any Ignored input.
---- @return string "null"
-function AETHR.json.encode_nil(val)
-  return "null"
-end
-
-
---- @function AETHR.json.encode_table
---- @brief Recursively encodes a Lua table (array or object) into JSON.
---- @param val table Input Lua table (array or hash) to encode.
---- @param stack table Internal stack for circular reference detection.
---- @return string JSON string representation of the table.
-function AETHR.json.encode_table(val, stack)
-  local res = {}
-  stack = stack or {}
-
-  -- Circular reference?
-  if stack[val] then error("circular reference") end
-
-  stack[val] = true
-
-  if rawget(val, 1) ~= nil or next(val) == nil then
-    -- Treat as array -- check keys are valid and it is not sparse
-    local n = 0
-    for k in pairs(val) do
-      if type(k) ~= "number" then
-        error("invalid table: mixed or invalid key types")
-      end
-      n = n + 1
-    end
-    if n ~= #val then
-      error("invalid table: sparse array")
-    end
-    -- Encode
-    for i, v in ipairs(val) do
-      table.insert(res, AETHR.json.encode(v, stack))
-    end
-    stack[val] = nil
-    return "[" .. table.concat(res, ",") .. "]"
-
-  else
-    -- Treat as an object
-    for k, v in pairs(val) do
-      if type(k) ~= "string" then
-        error("invalid table: mixed or invalid key types")
-      end
-      table.insert(res, AETHR.json.encode(k, stack) .. ":" .. AETHR.json.encode(v, stack))
-    end
-    stack[val] = nil
-    return "{" .. table.concat(res, ",") .. "}"
-  end
-end
-
-
---- @function AETHR.json.encode_string
---- @brief Encodes a Lua string by escaping special characters and wrapping in quotes.
---- @param val string Input Lua string.
---- @return string JSON-encoded string with surrounding double quotes.
+--- @brief Encodes a Lua string as a JSON string
 function AETHR.json.encode_string(val)
   return '"' .. val:gsub('[%z\1-\31\\"]', AETHR.json.escape_char) .. '"'
 end
 
-
---- @function AETHR.json.encode_number
---- @brief Encodes a Lua number into a JSON numeric literal.
---- @param val number Numeric value to encode.
---- @return string JSON-formatted number string.
+--- @brief Encodes a Lua number as a JSON numeric literal
 function AETHR.json.encode_number(val)
-  -- Check for NaN, -inf and inf
   if val ~= val or val <= -math.huge or val >= math.huge then
     error("unexpected number value '" .. tostring(val) .. "'")
   end
   return string.format("%.14g", val)
 end
 
-
---- @table AETHR.json.type_func_map
---- @brief Mapping of Lua types to their respective JSON encoding functions.
-AETHR.json.type_func_map = {
-  [ "nil"     ] = AETHR.json.encode_nil,
-  [ "table"   ] = AETHR.json.encode_table,
-  [ "string"  ] = AETHR.json.encode_string,
-  [ "number"  ] = AETHR.json.encode_number,
-  [ "boolean" ] = AETHR.json.tostring,
-}
-
-
---- @function AETHR.json.encode
---- @brief Encodes a Lua value (nil, number, boolean, string, or table) into a JSON string.
---- @param val any Value to serialize to JSON.
---- @param stack table Internal recursion stack to detect circular references.
---- @return string JSON-formatted string representing the value.
-AETHR.json.encode = function(val, stack)
+--- @brief Pretty-formats a Lua value into human-readable JSON with indentation
+function AETHR.json.prettyEncode(val, indent)
+  indent = indent or 0
   local t = type(val)
-  local f = AETHR.json.type_func_map[t]
-  if f then
-    return f(val, stack)
+  if t == "table" then
+    -- Detect array vs object
+    local isArray = true
+    local maxIndex = 0
+    local keyCount = 0
+    for k, v in pairs(val) do
+      keyCount = keyCount + 1
+      if type(k) ~= "number" or k ~= math.floor(k) or k < 1 then
+        isArray = false
+        break
+      end
+      if k > maxIndex then maxIndex = k end
+    end
+    if isArray and keyCount > 0 and maxIndex ~= keyCount then
+      isArray = false
+    end
+    if keyCount == 0 then
+      isArray = true
+    end
+
+    local items = {}
+    if isArray then
+      for i = 1, maxIndex do
+        table.insert(items, AETHR.json.prettyEncode(val[i], indent + 2))
+      end
+      if #items == 0 then
+        return "[]"
+      end
+      local pad = string.rep(" ", indent + 2)
+      return "[\n" .. pad .. table.concat(items, ",\n" .. pad) .. "\n" .. string.rep(" ", indent) .. "]"
+    else
+      for k, v in pairs(val) do
+        local key   = AETHR.json.encode_string(k)
+        local value = AETHR.json.prettyEncode(v, indent + 2)
+        table.insert(items, key .. ": " .. value)
+      end
+      if #items == 0 then
+        return "{}"
+      end
+      local pad = string.rep(" ", indent + 2)
+      return "{\n" .. pad .. table.concat(items, ",\n" .. pad) .. "\n" .. string.rep(" ", indent) .. "}"
+    end
+
+  elseif t == "string" then
+    return AETHR.json.encode_string(val)
+  elseif t == "number" then
+    return AETHR.json.encode_number(val)
+  elseif t == "boolean" then
+    return tostring(val)
+  elseif t == "nil" then
+    return "null"
   end
-  error("unexpected type '" .. t .. "'")
+  error("Cannot prettyEncode type '" .. t .. "'")
 end
 
-
--------------------------------------------------------------------------------
--- Decode
--------------------------------------------------------------------------------
-
-
+-- Parsing utilities ----------------------------------------------------------
 
 function AETHR.json.create_set(...)
   local res = {}
   for i = 1, select("#", ...) do
-    res[ select(i, ...) ] = true
+    res[select(i, ...)] = true
   end
   return res
 end
@@ -182,13 +135,7 @@ AETHR.json.space_chars   = AETHR.json.create_set(" ", "\t", "\r", "\n")
 AETHR.json.delim_chars   = AETHR.json.create_set(" ", "\t", "\r", "\n", "]", "}", ",")
 AETHR.json.escape_chars  = AETHR.json.create_set("\\", "/", '"', "b", "f", "n", "r", "t", "u")
 AETHR.json.literals      = AETHR.json.create_set("true", "false", "null")
-
-AETHR.json.literal_map = {
-  [ "true"  ] = true,
-  [ "false" ] = false,
-  [ "null"  ] = nil,
-}
-
+AETHR.json.literal_map   = { ["true"] = true, ["false"] = false, ["null"] = nil }
 
 function AETHR.json.next_char(str, idx, set, negate)
   for i = idx, #str do
@@ -199,62 +146,58 @@ function AETHR.json.next_char(str, idx, set, negate)
   return #str + 1
 end
 
-
 function AETHR.json.decode_error(str, idx, msg)
-  local line_count = 1
-  local col_count = 1
+  local line, col = 1, 1
   for i = 1, idx - 1 do
-    col_count = col_count + 1
+    col = col + 1
     if str:sub(i, i) == "\n" then
-      line_count = line_count + 1
-      col_count = 1
+      line = line + 1
+      col  = 1
     end
   end
-  error( string.format("%s at line %d col %d", msg, line_count, col_count) )
+  error(string.format("%s at line %d col %d", msg, line, col))
 end
 
-
 function AETHR.json.codepoint_to_utf8(n)
-  -- http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=iws-appendixa
   local f = math.floor
   if n <= 0x7f then
     return string.char(n)
   elseif n <= 0x7ff then
     return string.char(f(n / 64) + 192, n % 64 + 128)
   elseif n <= 0xffff then
-    return string.char(f(n / 4096) + 224, f(n % 4096 / 64) + 128, n % 64 + 128)
+    return string.char(
+      f(n / 4096) + 224,
+      f(n % 4096 / 64) + 128,
+      n % 64 + 128
+    )
   elseif n <= 0x10ffff then
-    return string.char(f(n / 262144) + 240, f(n % 262144 / 4096) + 128,
-                       f(n % 4096 / 64) + 128, n % 64 + 128)
+    return string.char(
+      f(n / 262144) + 240,
+      f(n % 262144 / 4096) + 128,
+      f(n % 4096 / 64) + 128,
+      n % 64 + 128
+    )
   end
-  error( string.format("invalid unicode codepoint '%x'", n) )
+  error(string.format("invalid unicode codepoint '%x'", n))
 end
 
-
 function AETHR.json.parse_unicode_escape(s)
-  local n1 = tonumber( s:sub(1, 4),  16 )
-  local n2 = tonumber( s:sub(7, 10), 16 )
-   -- Surrogate pair?
+  local n1 = tonumber(s:sub(1,4), 16)
+  local n2 = tonumber(s:sub(7,10),16)
   if n2 then
-    return AETHR.json.codepoint_to_utf8((n1 - 0xd800) * 0x400 + (n2 - 0xdc00) + 0x10000)
+    return AETHR.json.codepoint_to_utf8((n1-0xd800)*0x400 + (n2-0xdc00) + 0x10000)
   else
     return AETHR.json.codepoint_to_utf8(n1)
   end
 end
 
-
 function AETHR.json.parse_string(str, i)
-  local res = ""
-  local j = i + 1
-  local k = j
-
+  local res, j, k = "", i + 1, i + 1
   while j <= #str do
-    local x = str:byte(j)
-
-    if x < 32 then
+    local xc = str:byte(j)
+    if xc < 32 then
       AETHR.json.decode_error(str, j, "control character in string")
-
-    elseif x == 92 then -- `\`: Escape
+    elseif xc == 92 then
       res = res .. str:sub(k, j - 1)
       j = j + 1
       local c = str:sub(j, j)
@@ -271,18 +214,14 @@ function AETHR.json.parse_string(str, i)
         res = res .. AETHR.json.escape_char_map_inv[c]
       end
       k = j + 1
-
-    elseif x == 34 then -- `"`: End of string
+    elseif xc == 34 then
       res = res .. str:sub(k, j - 1)
       return res, j + 1
     end
-
     j = j + 1
   end
-
   AETHR.json.decode_error(str, i, "expected closing quote for string")
 end
-
 
 function AETHR.json.parse_number(str, i)
   local x = AETHR.json.next_char(str, i, AETHR.json.delim_chars)
@@ -294,7 +233,6 @@ function AETHR.json.parse_number(str, i)
   return n, x
 end
 
-
 function AETHR.json.parse_literal(str, i)
   local x = AETHR.json.next_char(str, i, AETHR.json.delim_chars)
   local word = str:sub(i, x - 1)
@@ -304,187 +242,98 @@ function AETHR.json.parse_literal(str, i)
   return AETHR.json.literal_map[word], x
 end
 
-
 function AETHR.json.parse_array(str, i)
-  local res = {}
-  local n = 1
+  local res, n = {}, 1
   i = i + 1
-  while 1 do
-    local x
+  while true do
     i = AETHR.json.next_char(str, i, AETHR.json.space_chars, true)
-    -- Empty / end of array?
     if str:sub(i, i) == "]" then
-      i = i + 1
-      break
+      return res, i + 1
     end
-    -- Read token
-    x, i = AETHR.json.parse(str, i)
-    res[n] = x
-    n = n + 1
-    -- Next token
+    local val
+    val, i = AETHR.json.parse(str, i)
+    res[n], n = val, n + 1
     i = AETHR.json.next_char(str, i, AETHR.json.space_chars, true)
     local chr = str:sub(i, i)
+    if chr == "]" then
+      return res, i + 1
+    elseif chr ~= "," then
+      AETHR.json.decode_error(str, i, "expected ']' or ','")
+    end
     i = i + 1
-    if chr == "]" then break end
-    if chr ~= "," then AETHR.json.decode_error(str, i, "expected ']' or ','") end
   end
-  return res, i
 end
-
 
 function AETHR.json.parse_object(str, i)
   local res = {}
   i = i + 1
-  while 1 do
-    local key, val
+  while true do
     i = AETHR.json.next_char(str, i, AETHR.json.space_chars, true)
-    -- Empty / end of object?
     if str:sub(i, i) == "}" then
-      i = i + 1
-      break
+      return res, i + 1
     end
-    -- Read key
     if str:sub(i, i) ~= '"' then
       AETHR.json.decode_error(str, i, "expected string for key")
     end
+    local key, val
     key, i = AETHR.json.parse(str, i)
-    -- Read ':' delimiter
     i = AETHR.json.next_char(str, i, AETHR.json.space_chars, true)
     if str:sub(i, i) ~= ":" then
       AETHR.json.decode_error(str, i, "expected ':' after key")
     end
     i = AETHR.json.next_char(str, i + 1, AETHR.json.space_chars, true)
-    -- Read value
     val, i = AETHR.json.parse(str, i)
-    -- Set
     res[key] = val
-    -- Next token
     i = AETHR.json.next_char(str, i, AETHR.json.space_chars, true)
     local chr = str:sub(i, i)
+    if chr == "}" then
+      return res, i + 1
+    elseif chr ~= "," then
+      AETHR.json.decode_error(str, i, "expected '}' or ','")
+    end
     i = i + 1
-    if chr == "}" then break end
-    if chr ~= "," then AETHR.json.decode_error(str, i, "expected '}' or ','") end
   end
-  return res, i
 end
-
 
 AETHR.json.char_func_map = {
-  [ '"' ] = AETHR.json.parse_string,
-  [ "0" ] = AETHR.json.parse_number,
-  [ "1" ] = AETHR.json.parse_number,
-  [ "2" ] = AETHR.json.parse_number,
-  [ "3" ] = AETHR.json.parse_number,
-  [ "4" ] = AETHR.json.parse_number,
-  [ "5" ] = AETHR.json.parse_number,
-  [ "6" ] = AETHR.json.parse_number,
-  [ "7" ] = AETHR.json.parse_number,
-  [ "8" ] = AETHR.json.parse_number,
-  [ "9" ] = AETHR.json.parse_number,
-  [ "-" ] = AETHR.json.parse_number,
-  [ "t" ] = AETHR.json.parse_literal,
-  [ "f" ] = AETHR.json.parse_literal,
-  [ "n" ] = AETHR.json.parse_literal,
-  [ "[" ] = AETHR.json.parse_array,
-  [ "{" ] = AETHR.json.parse_object,
+  ['"'] = AETHR.json.parse_string,
+  ['-'] = AETHR.json.parse_number,
+  ['0'] = AETHR.json.parse_number,
+  ['1'] = AETHR.json.parse_number,
+  ['2'] = AETHR.json.parse_number,
+  ['3'] = AETHR.json.parse_number,
+  ['4'] = AETHR.json.parse_number,
+  ['5'] = AETHR.json.parse_number,
+  ['6'] = AETHR.json.parse_number,
+  ['7'] = AETHR.json.parse_number,
+  ['8'] = AETHR.json.parse_number,
+  ['9'] = AETHR.json.parse_number,
+  ['t'] = AETHR.json.parse_literal,
+  ['f'] = AETHR.json.parse_literal,
+  ['n'] = AETHR.json.parse_literal,
+  ['['] = AETHR.json.parse_array,
+  ['{'] = AETHR.json.parse_object,
 }
 
-
-AETHR.json.parse = function(str, idx)
-  local chr = str:sub(idx, idx)
+function AETHR.json.parse(str, idx)
+  local i = idx or AETHR.json.next_char(str, 1, AETHR.json.space_chars, true)
+  local chr = str:sub(i, i)
   local f = AETHR.json.char_func_map[chr]
   if f then
-    return f(str, idx)
+    return f(str, i)
   end
-  AETHR.json.decode_error(str, idx, "unexpected character '" .. chr .. "'")
+  AETHR.json.decode_error(str, i, "unexpected character '" .. chr .. "'")
 end
 
-
---- @function AETHR.json.decode
---- @brief Parses a JSON string into the corresponding Lua value.
---- @param str string JSON text to decode.
---- @return any Lua value (table, string, number, boolean, or nil).
+--- @brief Parses a JSON string into the corresponding Lua value
 function AETHR.json.decode(str)
   if type(str) ~= "string" then
     error("expected argument of type string, got " .. type(str))
   end
-  local res, idx = AETHR.json.parse(str, AETHR.json.next_char(str, 1, AETHR.json.space_chars, true))
+  local res, idx = AETHR.json.parse(str)
   idx = AETHR.json.next_char(str, idx, AETHR.json.space_chars, true)
   if idx <= #str then
     AETHR.json.decode_error(str, idx, "trailing garbage")
   end
   return res
-end
-
---- @function AETHR.json.prettyEncode
---- @brief Pretty-formats a Lua value into human-readable JSON with indentation.
---- @param val any Lua value to format (table, string, number, boolean, or nil).
---- @param indent number Current indentation level (internal use).
---- @return string Indented JSON string.
-function AETHR.json.prettyEncode(val, indent)
-	indent = indent or 0
-	local t = type(val)
-	if t == "table" then
-		-- Better array detection: check if all keys are consecutive integers starting from 1
-		local isArray = true
-		local maxIndex = 0
-		local keyCount = 0
-		
-		for k, v in pairs(val) do
-			keyCount = keyCount + 1
-			if type(k) ~= "number" or k ~= math.floor(k) or k < 1 then
-				isArray = false
-				break
-			end
-			if k > maxIndex then
-				maxIndex = k
-			end
-		end
-		
-		-- If it's not empty and has gaps or doesn't start at 1, it's not an array
-		if isArray and keyCount > 0 and maxIndex ~= keyCount then
-			isArray = false
-		end
-		
-		-- Empty table is treated as array
-		if keyCount == 0 then
-			isArray = true
-		end
-		
-		local items = {}
-		if isArray then
-			-- Handle as array
-			for i = 1, maxIndex do
-				table.insert(items, AETHR.json.prettyEncode(val[i], indent + 2))
-			end
-			if #items == 0 then
-				return "[]"
-			end
-			return "[\n" .. string.rep(" ", indent + 2) ..
-				table.concat(items, ",\n" .. string.rep(" ", indent + 2)) .. "\n" ..
-				string.rep(" ", indent) .. "]"
-		else
-			-- Handle as object
-			for k, v in pairs(val) do
-				local key = AETHR.json.prettyEncode(k, 0) -- Keys don't need indentation
-				local value = AETHR.json.prettyEncode(v, indent + 2)
-				table.insert(items, key .. ": " .. value)
-			end
-			if #items == 0 then
-				return "{}"
-			end
-			return "{\n" .. string.rep(" ", indent + 2) ..
-				table.concat(items, ",\n" .. string.rep(" ", indent + 2)) .. "\n" ..
-				string.rep(" ", indent) .. "}"
-		end
-	elseif t == "string" then
-		return AETHR.json.encode_string(val)
-	elseif t == "number" then
-		return AETHR.json.encode_number(val)
-	elseif t == "boolean" then
-		return tostring(val)
-	elseif t == "nil" then
-		return "null"
-	end
-	error("Cannot prettyEncode type '" .. t .. "'")
 end

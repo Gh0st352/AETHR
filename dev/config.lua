@@ -17,41 +17,41 @@
 --- @field Zone table Default rendering and arrow settings for zones.
 
 AETHR.CONFIG = {
-    VERSION = "0.1.0",             -- Library version.
-    AUTHOR = "Gh0st352",           -- Package author.
+    VERSION = "0.1.0",                      -- Library version.
+    AUTHOR = "Gh0st352",                    -- Package author.
     GITHUB = "https://github.com/Gh0st352", -- Repository URL.
-    THEATER = "",                  -- Mission theater name, populated at runtime.
-    DESCRIPTION = {                -- Human-readable framework description.
+    THEATER = "",                           -- Mission theater name, populated at runtime.
+    DESCRIPTION = {                         -- Human-readable framework description.
         "Autonomous Environment for Theater Realism",
         "AETHR is a framework designed to enhance the realism and immersion of DCS World missions.",
         "It provides a set of tools and libraries to create dynamic and engaging scenarios.",
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
-    MISSION_ID = "1",              -- Default mission identifier.
-    MIZ_ZONES = {                  -- Lists of mission trigger zone names.
+    MISSION_ID = "1", -- Default mission identifier.
+    MIZ_ZONES = {     -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},
         BLUESTART = {},
     },
-    FLAGS = {                      -- Runtime feature flags.
+    FLAGS = {                        -- Runtime feature flags.
         AETHR_FIRST_RUN     = true,  -- True on first mission run.
         AETHR_LEARNING_MODE = false, -- Enable learning mode.
         AETHR_DEBUG_MODE    = false, -- Enable debug mode.
     },
-    COUNTERS = {                   -- Counters for generating unique IDs.
-        MARKERS = 352352352,          -- Base ID for zone markers.
+    COUNTERS = {                     -- Counters for generating unique IDs.
+        MARKERS = 352352352,         -- Base ID for zone markers.
     },
-    STORAGE = {                    -- Filesystem storage configuration.
-        ROOT_FOLDER   = "AETHR",       -- Root directory under writable path.
-        CONFIG_FOLDER = "CONFIG",      -- Subdirectory for config files.
-        SUB_FOLDERS = {                -- Additional subdirectories.
+    STORAGE = {                      -- Filesystem storage configuration.
+        ROOT_FOLDER   = "AETHR",     -- Root directory under writable path.
+        CONFIG_FOLDER = "CONFIG",    -- Subdirectory for config files.
+        SUB_FOLDERS   = {            -- Additional subdirectories.
             LEARNING_FOLDER = "LEARNING",
             MAP_FOLDER      = "MAP",
             UNITS_FOLDER    = "UNITS",
             OBJECTS_FOLDER  = "OBJECTS",
             USER_FOLDER     = "USER",
         },
-        PATHS = {                     -- Populated at runtime with full paths.
+        PATHS         = { -- Populated at runtime with full paths.
             LEARNING_FOLDER = "",
             CONFIG_FOLDER   = "",
             MAP_FOLDER      = "",
@@ -59,14 +59,14 @@ AETHR.CONFIG = {
             OBJECTS_FOLDER  = "",
             USER_FOLDER     = "",
         },
-        FILENAMES = {                -- JSON filenames for data persistence.
-            AETHER_CONFIG_FILE   = "AETHR_Config.json",
-            WORLD_DIVISIONS_FILE = "worldDivisions.json",
-            USER_STORAGE_FILE    = "userStorage.json",
-            AIRBASES_FILE        = "airbases.json",
-            MIZ_ZONES_FILE       = "mizZones.json",
-            SAVE_DIVS_FILE       = "saveDivs.json",
-            OBJECTS_FILE         = "objects.json",
+        FILENAMES     = { -- lua filenames for data persistence.
+            AETHER_CONFIG_FILE   = "AETHR_Config.lua",
+            WORLD_DIVISIONS_FILE = "worldDivisions.lua",
+            USER_STORAGE_FILE    = "userStorage.lua",
+            AIRBASES_FILE        = "airbases.lua",
+            MIZ_ZONES_FILE       = "mizZones.lua",
+            SAVE_DIVS_FILE       = "saveDivs.lua",
+            OBJECTS_FILE         = "objects.lua",
         },
     },
     worldDivisionArea = 1862500000, -- Desired area (m²) per world division.
@@ -120,14 +120,14 @@ AETHR.CONFIG = {
             Z = { min = -900000, max = 860000 },
         },
     },
-    Zone = {                       -- Default visualization settings for trigger zones.
-        paintColors = {
-            LineColors = {
+    Zone = { -- Default visualization settings for trigger zones.
+        paintColors           = {
+            LineColors  = {
                 [0] = { 0, 0, 0 },
                 [1] = { 1, 0, 0 },
                 [2] = { 0, 0, 1 },
             },
-            FillColors = {
+            FillColors  = {
                 [0] = { 0, 0, 0 },
                 [1] = { 1, 0, 0 },
                 [2] = { 0, 0, 1 },
@@ -137,68 +137,72 @@ AETHR.CONFIG = {
                 [1] = { 1, 0, 0, 0.80 },
                 [2] = { 0, 0, 1, 0.80 },
             },
-            FillAlpha = 0.20,    -- Transparency for filled zones.
-            LineAlpha = 0.80,    -- Transparency for zone borders.
-            lineType  = 4,       -- Default line style.
+            FillAlpha   = 0.20,        -- Transparency for filled zones.
+            LineAlpha   = 0.80,        -- Transparency for zone borders.
+            lineType    = 4,           -- Default line style.
         },
-        BorderOffsetThreshold = 800, -- Distance threshold for bordering detection.
+        BorderOffsetThreshold = 800,   -- Distance threshold for bordering detection.
         ArrowLength           = 20000, -- Length of directional arrows.
     },
 }
 
---- @function AETHR:loadExistingData
---- @brief Loads configuration from JSON or writes defaults if none exist.
---- @return AETHR self Framework instance for chaining.
-function AETHR:loadExistingData()
-    -- Load or create the AETHR configuration file.
-    self:loadConfig()
-    return self
-end
+-- --- @function AETHR:loadExistingData
+-- --- @brief Loads configuration from JSON or writes defaults if none exist.
+-- --- @return AETHR self Framework instance for chaining.
+-- function AETHR:loadExistingData()
+--     -- Load or create the AETHR configuration file.
+--     self:loadConfig()
+--     return self
+-- end
 
---- @function AETHR:loadConfig
+--- @function AETHR:initConfig
 --- @brief Reads config JSON and merges into `AETHR.CONFIG`; writes default if absent.
 --- @return AETHR self Framework instance for chaining.
-function AETHR:loadConfig()
-    -- Attempt to read existing config from JSON file.
-    local configData = self.fileOps.loadTableFromJSON(
-        self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE
-    )
+function AETHR:initConfig()
+    -- Attempt to read existing config from file.
+    local configData = self:loadConfig()
     if configData then
-        -- Merge JSON values into default config.
-        for k, v in pairs(configData) do
-            self.CONFIG[k] = v
-        end
+            self.CONFIG = configData
     else
-        -- Persist defaults to disk as JSON.
-        self.fileOps.saveTableAsPrettyJSON(
-            self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
-            self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
-            self.CONFIG
-        )
+        -- Persist defaults to disk.
+        self:saveConfig()
     end
     return self
 end
 
---- @function AETHR:SaveConfig
---- @brief Persists the `AETHR.CONFIG` table to JSON file.
---- @return AETHR self Framework instance for chaining.
-function AETHR:SaveConfig()
-    -- Write pretty-printed JSON to disk.
-    self.fileOps.saveTableAsPrettyJSON(
+--- @function AETHR:loadConfig
+--- @brief
+--- @return
+function AETHR:loadConfig()
+    -- Attempt to read existing config from JSON file.
+    local configData = self.fileOps.loadData(
+        self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
+        self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE
+    )
+    if configData then
+        return configData
+    end
+    return nil
+end
+
+--- @function AETHR:saveConfig
+--- @brief
+--- @return
+function AETHR:saveConfig()
+    -- Attempt to read existing config from JSON file.
+    self.fileOps.saveData(
         self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
         self.CONFIG
     )
-    return self
 end
 
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data from JSON if available.
 --- @return AETHR self Framework instance for chaining.
-function AETHR:loadUSERSTORAGE()
+function AETHR:initUSERSTORAGE()
     -- Attempt to load userStorage JSON file.
-    local userData = self.fileOps.loadTableFromJSON(
+    local userData = self.fileOps.loadData(
         self.CONFIG.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.USER_STORAGE_FILE
     )
@@ -213,7 +217,7 @@ end
 --- @return AETHR self Framework instance for chaining.
 function AETHR:SaveUSERSTORAGE()
     -- Write pretty-printed user storage JSON to disk.
-    self.fileOps.saveTableAsPrettyJSON(
+    self.fileOps.saveData(
         self.CONFIG.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.STORAGE.FILENAMES.USER_STORAGE_FILE,
         self.USERSTORAGE
