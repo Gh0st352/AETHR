@@ -21,6 +21,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 -- _version = "0.1.2"
+-- Modified by Gh0st352 for AETHR project.
 
 --- @module AETHR.json
 --- @brief JSON serialization and parsing utilities.

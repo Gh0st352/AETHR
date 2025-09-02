@@ -5,6 +5,7 @@ __AETHR.Include( AETHR_LIBRARIES_FOLDER ..'/MIST/mist.lua' )
 
 --- AETHER 
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/AETHR.lua' )
+__AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/ENUMS.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/config.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/json.lua' )
 __AETHR.Include( AETHR_DEVELOPMENT_FOLDER ..'/fileOps.lua' )

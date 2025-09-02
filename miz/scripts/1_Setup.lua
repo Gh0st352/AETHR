@@ -31,5 +31,5 @@ G_AETHR.worldLearning._markWorldDivisions(G_AETHR)
 --       }
 -- }
 -- AETHR.worldLearning.searchObjectsBox(Object.Category.SCENERY, corners, 2000)
-
+AETHR.fileOps.saveTableAsPrettyJSON("C:\\Users\\Administrator\\Saved Games\\DevServer", "countries.lua", country)
 local pause = ""

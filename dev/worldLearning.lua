@@ -226,7 +226,7 @@ function AETHR:getActiveObjectsInDivisions(objectCategory)
     for id, _ in pairs(self.LEARNED_DATA.saveDivisions) do
         local dir = self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
         local file = objectCategory .. "_" .. self.CONFIG.STORAGE.FILENAMES.OBJECTS_FILE
-        local objs = self.fileOps.loadTableFromJSON(dir, file)
+        local objs = self.fileOps.loadTableFromPrettyJSON(dir, file)
 
         if not objs then
             objs = self:objectsInDivision(id, objectCategory)
