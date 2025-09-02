@@ -1,5 +1,6 @@
 --- @module AETHR.worldLearning
 --- @brief Provides functions to load and manage learning data for world divisions.
+---@diagnostic disable: undefined-global
 
 AETHR.worldLearning = {}
 
@@ -55,7 +56,7 @@ function AETHR:loadWorldDivisions()
 end
 
 --- Displays active world divisions on the map with randomized colors.
---- @param AETHR Instance containing learned world divisions.
+--- @param AETHR AETHR containing learned world divisions.
 function AETHR.worldLearning._markWorldDivisions(AETHR)
     local divisions = AETHR.LEARNED_DATA.worldDivisions
     local shapeID = 352352352      -- Base marker ID
@@ -131,7 +132,7 @@ function AETHR:loadAirbases()
 end
 
 --- Searches for objects of a given category within a 3D box volume.
---- @param objectCategory Object.Category Category filter for search
+--- @param objectCategory any Category filter for search
 --- @param corners table Array of base corner points (x,z)
 --- @param height number Height of the search volume
 --- @return table Found objects keyed by object ID
@@ -177,7 +178,7 @@ function AETHR.worldLearning.getBoxPoints(corners, height)
 end
 
 --- Determines active world divisions via saved data or spatial intersection.
---- @return AETHR Instance
+--- @return AETHR self
 function AETHR:determineActiveDivisions()
     local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
@@ -210,7 +211,7 @@ end
 
 --- Retrieves objects of a specific category within a division.
 --- @param divisionID number ID of the division
---- @param objectCategory Object.Category Category filter
+--- @param objectCategory any Category filter
 --- @return table Found objects
 function AETHR:objectsInDivision(divisionID, objectCategory)
     local div = self.LEARNED_DATA.worldDivisions[divisionID]
@@ -219,8 +220,8 @@ function AETHR:objectsInDivision(divisionID, objectCategory)
 end
 
 --- Loads or collects objects for all active divisions and saves them.
---- @param objectCategory string Category (e.g., "SCENERY", "STATIC", "UNIT")
---- @return self Instance
+--- @param objectCategory any Category (e.g., "SCENERY", "STATIC", "UNIT")
+--- @return AETHR self
 function AETHR:getActiveObjectsInDivisions(objectCategory)
     for id, _ in pairs(self.LEARNED_DATA.saveDivisions) do
         local dir = self.CONFIG.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id

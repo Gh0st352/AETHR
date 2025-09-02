@@ -21,29 +21,42 @@ AETHR = {
 
 --- Creates a new AETHR instance with optional mission ID override.
 --- @function AETHR:New
---- @param MISSION_ID string|nil Optional mission identifier (defaults to configured ID).
---- @return AETHR New instance inheriting AETHR methods.
-function AETHR:New(MISSION_ID)
-    -- Determine mission ID to use (override or default).
-    MISSION_ID = MISSION_ID or self.MISSION_ID
+--- @param mission_id string|nil Optional mission identifier (defaults to configured ID).
+--- @return AETHR instance New instance inheriting AETHR methods.
+function AETHR:New(mission_id)
+    -- choose or default mission ID
+    local id = mission_id or self.CONFIG.MISSION_ID
 
-    -- Instantiate a new object and set inheritance from prototype.
+    -- shallow‐clone prototype to avoid mutating shared tables
+    ---@type AETHR
     local instance = {}
+    for k, v in pairs(self) do
+        instance[k] = v
+    end
     setmetatable(instance, { __index = self })
 
-    -- Compute and store the configuration path under DCS writable directory.
-    local lfs     = require("lfs")           -- LuaFileSystem for filesystem operations.
-    local rt_path = lfs.writedir()           -- Base writable path provided by DCS.
-    self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER = AETHR.fileOps.joinPaths(
+    -- assign instance‐specific fields
+    instance.CONFIG.MISSION_ID = id
+
+    -- ensure STORAGE.PATHS is a clone so it's safe to modify per instance
+    local basePaths = self.CONFIG.STORAGE.PATHS or {}
+    instance.CONFIG.STORAGE.PATHS = {}
+    for name, path in pairs(basePaths) do
+        instance.CONFIG.STORAGE.PATHS[name] = path
+    end
+
+    -- compute the config folder path under DCS writable directory
+    local lfs     = require("lfs")
+    local rt_path = lfs.writedir()
+    instance.CONFIG.STORAGE.PATHS.CONFIG_FOLDER = AETHR.fileOps.joinPaths(
         rt_path,
-        self.CONFIG.STORAGE.ROOT_FOLDER,
-        self.CONFIG.STORAGE.CONFIG_FOLDER
+        instance.CONFIG.STORAGE.ROOT_FOLDER,
+        instance.CONFIG.STORAGE.CONFIG_FOLDER
     )
 
-    -- Capture the current theater name for environment-specific behavior.
-    self.CONFIG.THEATER = env.mission.theatre
+    -- capture the current theater for this instance
+    instance.CONFIG.THEATER = env.mission.theatre
 
-    -- Return the new AETHR instance.
     return instance
 end
 
@@ -59,7 +72,7 @@ function AETHR:Init()
         local fullPath = AETHR.fileOps.joinPaths(
             rt_path,
             self.CONFIG.STORAGE.ROOT_FOLDER,
-            self.MISSION_ID,
+            self.CONFIG.MISSION_ID,
             folderPath
         )
         self.CONFIG.STORAGE.PATHS[folderName] = fullPath -- Cache path.
