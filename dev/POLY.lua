@@ -1,9 +1,10 @@
---- @module AETHR.POLY
---- @brief Polygon, Lines, Geometry
+--- @class AETHR.POLY
+--- @brief Manages mission trigger zones and computes bordering relationships.
 ---@diagnostic disable: undefined-global
-
----
----@class AETHR.POLY
+--- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field worldLearning AETHR.worldLearning World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.POLY = {}
 
 --- @function AETHR.POLY.segmentsIntersect

@@ -1,25 +1,37 @@
---- @module AETHR
---- @brief Core AETHR framework for DCS World mission management.
---- @author Gh0st352
----@diagnostic disable: undefined-global
-
 --- Top-level prototype table for the framework. Mutable per-instance tables are created
 --- inside :New to avoid accidental shared-state mutation between instances.
 --- @class AETHR
+--- @brief Core AETHR framework for DCS World mission management.
+--- @author Gh0st352
+--- @diagnostic disable: undefined-global
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field worldLearning AETHR.worldLearning World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+--- @field MODULES string[] Names of module tables on the prototype which will be auto-wired into instances.
 --- @field USERSTORAGE table Container for per-user saved data.
 --- @field LEARNED_DATA table Holds learned data: worldDivisions, saveDivisions, divisionObjects.
 --- @field AIRBASES table Collected airbase information.
 --- @field MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
 --- @field ROOT_DIR string Absolute path to the DCS savegame writable directory root.
 AETHR = {
-    USERSTORAGE  = {},          -- Holds per-user saved data tables.
-    LEARNED_DATA = {            -- Stores learned datasets for world and divisions.
-        worldDivisions  = {},   -- Grid division definitions keyed by ID.
-        saveDivisions   = {},   -- Active divisions keyed by ID.
-        divisionObjects = {},   -- Loaded objects per division.
+    MODULES      = {
+        "AUTOSAVE",
+        "ZONE_MANAGER",
+        "worldLearning",
+        "fileOps",
+        "POLY",
+        "math",
+        "ENUMS",
+        "CONFIG",
     },
-    MIZ_ZONES    = {},          -- Mission trigger zones keyed by name.
-    AIRBASES     = {},          -- Airbase descriptors keyed by displayName.
+    USERSTORAGE  = {},        -- Holds per-user saved data tables.
+    LEARNED_DATA = {          -- Stores learned datasets for world and divisions.
+        worldDivisions  = {}, -- Grid division definitions keyed by ID.
+        saveDivisions   = {}, -- Active divisions keyed by ID.
+        divisionObjects = {}, -- Loaded objects per division.
+    },
+    MIZ_ZONES    = {},        -- Mission trigger zones keyed by name.
+    AIRBASES     = {},        -- Airbase descriptors keyed by displayName.
     ROOT_DIR     = "",
 }
 
@@ -34,6 +46,7 @@ function AETHR:New(mission_id)
 
     -- Instance inherits methods/values via metatable; we'll provide instance-specific
     -- copies of mutable tables (CONFIG.STORAGE.PATHS, MIZ_ZONES, USERSTORAGE, etc).
+    ---@type AETHR
     local instance = setmetatable({}, { __index = self })
 
     -- Helper: shallow clone a table (one level). Defined inside function per constraints.
@@ -87,6 +100,51 @@ function AETHR:New(mission_id)
         instance.CONFIG.THEATER = env.mission.theatre
     end
 
+    -- Attach instance-scoped helpers/submodules so submodules can reference parent resources.
+    -- Use the master AETHR.MODULES list so new modules can be registered by updating that list only.
+    local modulesList = {}
+    if type(self.MODULES) == "table" then
+        for _, modName in ipairs(self.MODULES) do
+            table.insert(modulesList, modName)
+        end
+    end
+
+    -- Phase 1: Construct instance-scoped submodules (call :New(instance) where present).
+    for _, name in ipairs(modulesList) do
+        local mod = self[name]
+        if instance[name] == nil and type(mod) == "table" then
+            if type(mod.New) == "function" then
+                local ok, sub = pcall(function() return mod:New(instance) end)
+                if ok and type(sub) == "table" then
+                    instance[name] = sub
+                else
+                    instance[name] = mod
+                end
+            else
+                instance[name] = mod
+            end
+        end
+    end
+
+    -- Phase 2: Ensure each constructed submodule has direct back-references to the parent AETHR
+    -- and convenient references to sibling submodules (so submodules can call each other via self.<module>).
+    for _, name in ipairs(modulesList) do
+        local sub = instance[name]
+        if type(sub) == "table" then
+            -- Ensure parent reference exists
+            if sub.AETHR == nil then sub.AETHR = instance end
+
+            -- Copy sibling module references into the submodule for direct access (shallow references only)
+            for _, siblingName in ipairs(modulesList) do
+                if siblingName ~= name and type(instance[siblingName]) == "table" then
+                    if sub[siblingName] == nil then
+                        sub[siblingName] = instance[siblingName]
+                    end
+                end
+            end
+        end
+    end
+
     return instance
 end
 
@@ -102,7 +160,7 @@ function AETHR:Init()
     local subFolders = self.CONFIG.STORAGE.SUB_FOLDERS or {}
     local joinPaths = (self.fileOps and self.fileOps.joinPaths) or (AETHR.fileOps and AETHR.fileOps.joinPaths)
     local ensureDirectory = (self.fileOps and self.fileOps.ensureDirectory) or
-    (AETHR.fileOps and AETHR.fileOps.ensureDirectory)
+        (AETHR.fileOps and AETHR.fileOps.ensureDirectory)
 
     -- Ensure storage subdirectories exist and cache their full paths.
     for folderName, folderPath in pairs(subFolders) do
@@ -117,12 +175,14 @@ function AETHR:Init()
     self:initMizZoneData()     -- Load or generate mission trigger zones.
     self:initWorldDivisions()  -- Generate or load world division grid.
     self:initActiveDivisions() -- Identify active divisions in mission.
-    self:getAirbases()        -- Collect airbase data.
 
-     self:initUSERSTORAGE()      -- Load per-user storage data.
-    -- self:SaveUSERSTORAGE()      -- Persist current user storage data.
+    self.worldLearning:getAirbases()         -- Collect airbase data.
+    self:loadUSERSTORAGE()     -- Load per-user storage data.
 
-    -- self:SaveConfig()
+
+
+    self:saveUSERSTORAGE() -- Persist current user storage data.
+    self:saveConfig()
     return self
 end
 
@@ -219,7 +279,7 @@ function AETHR:generateMizZoneData()
             end
         end
     end
-    self.MIZ_ZONES = self.ZONE_MANAGER.determineBorderingZones(self.MIZ_ZONES)
+    self.MIZ_ZONES = self.ZONE_MANAGER:determineBorderingZones(self.MIZ_ZONES)
     return self
 end
 
@@ -290,11 +350,11 @@ function AETHR:saveWorldDivisions()
         self.CONFIG.STORAGE.ROOT_FOLDER,
         self.CONFIG.STORAGE.CONFIG_FOLDER
     )
-        self.fileOps.saveData(
-            fullPath,
-            self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
-            self.LEARNED_DATA.worldDivisions
-        )
+    self.fileOps.saveData(
+        fullPath,
+        self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
+        self.LEARNED_DATA.worldDivisions
+    )
 end
 
 function AETHR:generateWorldDivisions()
@@ -307,8 +367,8 @@ function AETHR:generateWorldDivisions()
         self.CONFIG.worldDivisionArea
     )
     for i, div in ipairs(worldDivs) do
-        div.ID = i             -- Assign unique ID
-        div.active = false     -- Initial active flag
+        div.ID = i         -- Assign unique ID
+        div.active = false -- Initial active flag
         self.LEARNED_DATA.worldDivisions[i] = div
     end
     return self
@@ -329,31 +389,7 @@ function AETHR:initWorldDivisions()
     return self
 end
 
---- Retrieves all airbases in the world and stores their data.
---- @return AETHR Instance
-function AETHR:getAirbases()
-    local bases = world.getAirbases() -- Array of airbase objects
-    for _, ab in ipairs(bases) do
-        local desc = ab:getDesc()
-        local pos = ab:getPosition().p
-        local data = {
-            id = ab:getID(),
-            id_ = ab.id_,
-            coordinates = { x = pos.x, y = pos.y, z = pos.z },
-            description = desc,
-        }
-        -- Map numeric category to text
-        if desc.category == 0 then
-            data.categoryText = "AIRDROME"
-        elseif desc.category == 1 then
-            data.categoryText = "HELIPAD"
-        elseif desc.category == 2 then
-            data.categoryText = "SHIP"
-        end
-        self.AIRBASES[desc.displayName] = data
-    end
-    return self
-end
+
 
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data if available.

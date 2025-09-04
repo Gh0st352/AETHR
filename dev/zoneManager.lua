@@ -1,17 +1,30 @@
---- @module AETHR.ZONE_MANAGER
+--- @class AETHR.ZONE_MANAGER
 --- @brief Manages mission trigger zones and computes bordering relationships.
 ---@diagnostic disable: undefined-global
+--- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field worldLearning AETHR.worldLearning World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.ZONE_MANAGER = {}
 
 
 
-function AETHR.ZONE_MANAGER:New(AETHR)
-    local instance = { AETHR = AETHR }
+function AETHR.ZONE_MANAGER:New(parent)
+    local instance = {
+        AETHR = parent,
+        -- submodule-local caches/state can be initialized here
+        _cache = {},
+    }
     setmetatable(instance, { __index = self })
     return instance
 end
 
-function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
+--- Determine bordering zones.
+--- @param MIZ_ZONES table<string, _MIZ_ZONE> Map of mission trigger zones.
+--- @return table Updated MIZ_ZONES with .BorderingZones populated.
+function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
+    --- @type AETHR.POLY
+    local POLY = self.POLY
     for zoneName1, zone1 in pairs(MIZ_ZONES) do
         for zoneName2, zone2 in pairs(MIZ_ZONES) do
             -- Ensure we're not comparing a zone with itself
@@ -22,7 +35,7 @@ function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
                 for _, lineA in ipairs(zone1.LinesVec2) do
                     for _, lineB in ipairs(zone2.LinesVec2) do
                         -- Check if two lines are close enough to be considered bordering
-                        if AETHR.POLY.isWithinOffset(lineA, lineB, zone1.BorderOffsetThreshold) then
+                        if self.POLY.isWithinOffset(lineA, lineB, zone1.BorderOffsetThreshold) then
                             borderIndex = borderIndex + 1 -- Increment the index for borders found
 
                             -- Initialize border data structure if it doesn't exist
@@ -33,14 +46,14 @@ function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
                             local currentBorder = zoneBorder[borderIndex]
                             currentBorder.OwnedByCoalition = 0
                             currentBorder.ZoneLine = lineA
-                            currentBorder.ZoneLineLen = AETHR.POLY.lineLength(lineA)
-                            currentBorder.ZoneLineMidP = AETHR.POLY.getMidpoint(lineA)
-                            currentBorder.ZoneLineSlope = AETHR.POLY.calculateLineSlope(lineA)
+                            currentBorder.ZoneLineLen = POLY.lineLength(lineA)
+                            currentBorder.ZoneLineMidP = POLY.getMidpoint(lineA)
+                            currentBorder.ZoneLineSlope = POLY.calculateLineSlope(lineA)
                             currentBorder.ZoneLinePerpendicularPoint = {}
                             currentBorder.NeighborLine = lineB
-                            currentBorder.NeighborLineLen = AETHR.POLY.lineLength(lineB)
-                            currentBorder.NeighborLineMidP = AETHR.POLY.getMidpoint(lineB)
-                            currentBorder.NeighborLineSlope = AETHR.POLY.calculateLineSlope(lineB)
+                            currentBorder.NeighborLineLen = POLY.lineLength(lineB)
+                            currentBorder.NeighborLineMidP = POLY.getMidpoint(lineB)
+                            currentBorder.NeighborLineSlope = POLY.calculateLineSlope(lineB)
                             currentBorder.NeighborLinePerpendicularPoint = {}
                             currentBorder.MarkID = {
                                 [0] = 0,
@@ -64,22 +77,22 @@ function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
                                 NeighborLength_ = -(length_)
                             end
 
-                            local _ZoneLinePerpendicularPoint = AETHR.POLY.findPerpendicularEndpoints(ArrowMP, line_,
+                            local _ZoneLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP, line_,
                                 length_)
-                            local _NeighborLinePerpendicularPoint = AETHR.POLY.findPerpendicularEndpoints(ArrowMP,
+                            local _NeighborLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP,
                                 NeighborLine_, NeighborLength_)
 
                             -- Adjust perpendicular points if needed to ensure they are within the zone shape
-                            if AETHR.POLY.PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].verticies) then
-                                currentBorder.ZoneLinePerpendicularPoint = AETHR.POLY.findPerpendicularEndpoints(ArrowMP,
+                            if POLY.PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].verticies) then
+                                currentBorder.ZoneLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP,
                                     line_, length_)
-                                currentBorder.NeighborLinePerpendicularPoint = AETHR.POLY.findPerpendicularEndpoints(
-                                ArrowMP, NeighborLine_, NeighborLength_)
+                                currentBorder.NeighborLinePerpendicularPoint = POLY.findPerpendicularEndpoints(
+                                    ArrowMP, NeighborLine_, NeighborLength_)
                             else
-                                currentBorder.ZoneLinePerpendicularPoint = AETHR.POLY.findPerpendicularEndpoints(ArrowMP,
+                                currentBorder.ZoneLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP,
                                     NeighborLine_, NeighborLength_)
-                                currentBorder.NeighborLinePerpendicularPoint = AETHR.POLY.findPerpendicularEndpoints(
-                                ArrowMP, line_, length_)
+                                currentBorder.NeighborLinePerpendicularPoint = POLY.findPerpendicularEndpoints(
+                                    ArrowMP, line_, length_)
                             end
 
                             -- Save back the updated border data
@@ -90,7 +103,5 @@ function AETHR.ZONE_MANAGER.determineBorderingZones(MIZ_ZONES)
             end
         end
     end
-
     return MIZ_ZONES
 end
-

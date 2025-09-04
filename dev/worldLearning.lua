@@ -1,9 +1,22 @@
---- @module AETHR.worldLearning
---- @brief Provides functions to load and manage learning data for world divisions.
+--- @class AETHR.worldLearning
+--- @brief Manages mission trigger zones and computes bordering relationships.
 ---@diagnostic disable: undefined-global
-
+--- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field worldLearning AETHR.worldLearning World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.worldLearning = {}
 
+
+function AETHR.worldLearning:New(parent)
+    local instance = {
+        AETHR = parent,
+        -- submodule-local caches/state can be initialized here
+        _cache = {},
+    }
+    setmetatable(instance, { __index = self })
+    return instance
+end
 
 --- Displays active world divisions on the map with randomized colors.
 --- @param AETHR AETHR containing learned world divisions.
@@ -60,6 +73,54 @@ function AETHR.worldLearning.searchObjectsBox(objectCategory, corners, height)
     world.searchObjects(objectCategory, vol, ifFound)
     return found
 end
+
+
+--- Retrieves all airbases in the world and stores their data.
+--- @return AETHR.worldLearning Instance
+function AETHR.worldLearning:getAirbases()
+    local bases = world.getAirbases() -- Array of airbase objects
+    for _, ab in ipairs(bases) do
+        local desc = ab:getDesc()
+        local pos = ab:getPosition().p
+        local data = {
+            id = ab:getID(),
+            id_ = ab.id_,
+            coordinates = { x = pos.x, y = pos.y, z = pos.z },
+            description = desc,
+        }
+        -- Map numeric category to text
+        if desc.category == 0 then
+            data.categoryText = "AIRDROME"
+        elseif desc.category == 1 then
+            data.categoryText = "HELIPAD"
+        elseif desc.category == 2 then
+            data.categoryText = "SHIP"
+        end
+        self.AETHR.AIRBASES[desc.displayName] = data
+    end
+    return self
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 --- Retrieves objects of a specific category within a division.
 --- @param divisionID number ID of the division
