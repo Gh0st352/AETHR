@@ -1,7 +1,13 @@
---- @module AETHR.CONFIG
---- @brief Default configuration and storage settings for AETHR framework.
---- @author Gh0st352
 --- @class AETHR.CONFIG
+--- @brief
+---@diagnostic disable: undefined-global
+--- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
+--- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
+--- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field VERSION string Framework version identifier.
 --- @field AUTHOR string Package author.
 --- @field GITHUB string GitHub repository URL.
@@ -15,8 +21,9 @@
 --- @field worldDivisionArea number Target area in square meters for grid divisions.
 --- @field worldBounds table Coordinate bounds for supported theaters.
 --- @field Zone table Default rendering and arrow settings for zones.
-
-AETHR.CONFIG = {
+--- @field MAIN table General Config Data Table.
+AETHR.CONFIG = {}
+AETHR.CONFIG.MAIN = {
     VERSION = "0.1.0",                      -- Library version.
     AUTHOR = "Gh0st352",                    -- Package author.
     GITHUB = "https://github.com/Gh0st352", -- Repository URL.
@@ -42,7 +49,8 @@ AETHR.CONFIG = {
         MARKERS = 352352352,         -- Base ID for zone markers.
     },
     STORAGE = {                      -- Filesystem storage configuration.
-        ROOT_FOLDER   = "AETHR",     -- Root directory under writable path.
+        SAVEGAME_DIR     = "",       -- Absolute path to the DCS savegame writable directory root.
+        ROOT_FOLDER   = "AETHR",     -- Root AETHR directory under writable path.
         CONFIG_FOLDER = "CONFIG",    -- Subdirectory for config files.
         SUB_FOLDERS   = {            -- Additional subdirectories.
             LEARNING_FOLDER = "LEARNING",
@@ -146,23 +154,25 @@ AETHR.CONFIG = {
     },
 }
 
--- --- @function AETHR:loadExistingData
--- --- @brief Loads configuration from JSON or writes defaults if none exist.
--- --- @return AETHR self Framework instance for chaining.
--- function AETHR:loadExistingData()
---     -- Load or create the AETHR configuration file.
---     self:loadConfig()
---     return self
--- end
+function AETHR.CONFIG:New(parent)
+    local instance = {
+        AETHR = parent,
+        -- submodule-local caches/state can be initialized here
+        _cache = {},
+    }
+    setmetatable(instance, { __index = self })
+    return instance
+end
+
 
 --- @function AETHR:initConfig
 --- @brief Reads config JSON and merges into `AETHR.CONFIG`; writes default if absent.
---- @return AETHR self Framework instance for chaining.
-function AETHR:initConfig()
+--- @return AETHR.CONFIG self Framework instance for chaining.
+function AETHR.CONFIG:initConfig()
     -- Attempt to read existing config from file.
     local configData = self:loadConfig()
     if configData then
-            self.CONFIG = configData
+        self.MAIN = configData
     else
         -- Persist defaults to disk.
         self:saveConfig()
@@ -170,14 +180,11 @@ function AETHR:initConfig()
     return self
 end
 
---- @function AETHR:loadConfig
---- @brief
---- @return
-function AETHR:loadConfig()
+function AETHR.CONFIG:loadConfig()
     -- Attempt to read existing config from JSON file.
-    local configData = self.fileOps.loadData(
-        self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE
+    local configData = self.FILEOPS.loadData(
+        self.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
+        self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE
     )
     if configData then
         return configData
@@ -185,15 +192,11 @@ function AETHR:loadConfig()
     return nil
 end
 
---- @function AETHR:saveConfig
---- @brief
---- @return
-function AETHR:saveConfig()
+function AETHR.CONFIG:saveConfig()
     -- Attempt to read existing config from JSON file.
-    self.fileOps.saveData(
-        self.CONFIG.STORAGE.PATHS.CONFIG_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
-        self.CONFIG
+    self.FILEOPS.saveData(
+        self.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
+        self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
+        self.MAIN
     )
 end
-

@@ -5,8 +5,8 @@ G_AETHR.USERSTORAGE = {
     BlueStartZones = { "Zone_ECHO", },
 }
 
-G_AETHR:setMizZones(G_AETHR.USERSTORAGE.missionZones, G_AETHR.USERSTORAGE.RedStartZones, G_AETHR.USERSTORAGE.BlueStartZones)
-    :Init()
+G_AETHR.ZONE_MANAGER:setMizZones(G_AETHR.USERSTORAGE.missionZones, G_AETHR.USERSTORAGE.RedStartZones, G_AETHR.USERSTORAGE.BlueStartZones)
+G_AETHR:Init()
     --:determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
 
 

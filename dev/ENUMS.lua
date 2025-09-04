@@ -1,4 +1,4 @@
---- @module AETHR.ENUMS
+--- @class AETHR.ENUMS
 --- @brief ENUMS for AETHR
 ---@diagnostic disable: undefined-global
 AETHR.ENUMS = {

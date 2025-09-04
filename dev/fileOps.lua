@@ -1,14 +1,29 @@
---- @module AETHR.fileOps
---- @brief Provides functions for file and directory operations: ensure, read, write, existence checks.
---- @author Gh0st352
+--- @class AETHR.FILEOPS
+--- @brief 
+---@diagnostic disable: undefined-global
+--- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
+--- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
+--- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+AETHR.FILEOPS = {}
 
-AETHR.fileOps = {}
+function AETHR.FILEOPS:New(parent)
+    local instance = {
+        AETHR = parent,
+        -- submodule-local caches/state can be initialized here
+        _cache = {},
+    }
+    setmetatable(instance, { __index = self })
+    return instance
+end
 
 --- @function joinPaths
 --- @brief Joins multiple path segments using the system path separator.
 --- @param ... string Path segments to join.
 --- @return string Joined path
-function AETHR.fileOps.joinPaths(...)
+function AETHR.FILEOPS.joinPaths(...)
     local sep = package.config:sub(1,1)
     return table.concat({ ... }, sep)
 end
@@ -17,7 +32,7 @@ end
 --- @brief Ensures a directory path exists, recursively creating missing segments.
 --- @param path string Directory path.
 --- @return boolean success True if exists or created, false on error.
-function AETHR.fileOps.ensureDirectory(path)
+function AETHR.FILEOPS.ensureDirectory(path)
     if not path or path == "" then
         return false
     end
@@ -53,11 +68,11 @@ end
 --- @param directory string Directory path.
 --- @param filename string Filename.
 --- @return boolean success True on success, false on error.
-function AETHR.fileOps.ensureFile(directory, filename)
-    if not AETHR.fileOps.ensureDirectory(directory) then
+function AETHR.FILEOPS.ensureFile(directory, filename)
+    if not AETHR.FILEOPS.ensureDirectory(directory) then
         return false
     end
-    local filepath = AETHR.fileOps.joinPaths(directory, filename)
+    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
     local lfs = require("lfs")
     local attr = lfs.attributes(filepath)
     if attr and attr.mode == "file" then
@@ -79,11 +94,11 @@ end
 --- @param filename string JSON filename.
 --- @param data any Lua table to encode.
 --- @return boolean success True on success, false on error.
-function AETHR.fileOps.saveData(directory, filename, data)
-    if not AETHR.fileOps.ensureDirectory(directory) then
+function AETHR.FILEOPS.saveData(directory, filename, data)
+    if not AETHR.FILEOPS.ensureDirectory(directory) then
         return false
     end
-    local filepath = AETHR.fileOps.joinPaths(directory, filename)
+    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
     local ok, err = pcall(AETHR.IO.store, filepath, data)
     if not ok then
         print("Failed to store data: " .. tostring(err))
@@ -97,8 +112,8 @@ end
 --- @param directory string Directory path.
 --- @param filename string JSON filename.
 --- @return any|nil data Decoded table or nil on failure.
-function AETHR.fileOps.loadData(directory, filename)
-    local filepath = AETHR.fileOps.joinPaths(directory, filename)
+function AETHR.FILEOPS.loadData(directory, filename)
+    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
     local ok, data = pcall(AETHR.IO.load, filepath)
     if not ok then
         print("Failed to load data: " .. tostring(data))
@@ -113,8 +128,8 @@ end
 --- @param directory string Directory path.
 --- @param filename string Filename to check.
 --- @return boolean exists True if file exists, false otherwise.
-function AETHR.fileOps.fileExists(directory, filename)
-    local filepath = AETHR.fileOps.joinPaths(directory, filename)
+function AETHR.FILEOPS.fileExists(directory, filename)
+    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
     local lfs = require("lfs")
     local attr = lfs.attributes(filepath)
     return attr and attr.mode == "file"
@@ -124,14 +139,14 @@ end
 --- @brief Performs a deep copy of a value or table, including nested tables and metatables.
 --- @param orig any Source value or table to copy.
 --- @return any copy Deep copied value.
-function AETHR.fileOps.deepcopy(orig)
+function AETHR.FILEOPS.deepcopy(orig)
     if type(orig) ~= "table" then
         return orig
     end
     local copy = {}
     for k, v in pairs(orig) do
-        copy[AETHR.fileOps.deepcopy(k)] = AETHR.fileOps.deepcopy(v)
+        copy[AETHR.FILEOPS.deepcopy(k)] = AETHR.FILEOPS.deepcopy(v)
     end
-    setmetatable(copy, AETHR.fileOps.deepcopy(getmetatable(orig)))
+    setmetatable(copy, AETHR.FILEOPS.deepcopy(getmetatable(orig)))
     return copy
 end

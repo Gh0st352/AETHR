@@ -2,8 +2,12 @@
 --- @brief Manages mission trigger zones and computes bordering relationships.
 ---@diagnostic disable: undefined-global
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
+--- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
+--- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
---- @field worldLearning AETHR.worldLearning World learning submodule attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.POLY = {}
 
@@ -14,17 +18,17 @@ AETHR.POLY = {}
 --- @param q1 table Second segment endpoint `{x, y}`.
 --- @param q2 table Second segment endpoint `{x, y}`.
 --- @return boolean True if segments intersect or touch.
-function AETHR.POLY.segmentsIntersect(p1, p2, q1, q2)
-    local o1 = AETHR.POLY.orientation(p1, p2, q1)
-    local o2 = AETHR.POLY.orientation(p1, p2, q2)
-    local o3 = AETHR.POLY.orientation(q1, q2, p1)
-    local o4 = AETHR.POLY.orientation(q1, q2, p2)
+function AETHR.POLY:segmentsIntersect(p1, p2, q1, q2)
+    local o1 = self:orientation(p1, p2, q1)
+    local o2 = self:orientation(p1, p2, q2)
+    local o3 = self:orientation(q1, q2, p1)
+    local o4 = self:orientation(q1, q2, p2)
 
     -- Colinear and on-segment checks.
-    if o1 == 0 and AETHR.POLY.onSegment(p1, q1, p2) then return true end
-    if o2 == 0 and AETHR.POLY.onSegment(p1, q2, p2) then return true end
-    if o3 == 0 and AETHR.POLY.onSegment(q1, p1, q2) then return true end
-    if o4 == 0 and AETHR.POLY.onSegment(q1, p2, q2) then return true end
+    if o1 == 0 and self:onSegment(p1, q1, p2) then return true end
+    if o2 == 0 and self:onSegment(p1, q2, p2) then return true end
+    if o3 == 0 and self:onSegment(q1, p1, q2) then return true end
+    if o4 == 0 and self:onSegment(q1, p2, q2) then return true end
 
     -- General intersection case.
     return (o1 > 0 and o2 < 0 or o1 < 0 and o2 > 0)
@@ -63,21 +67,21 @@ end
 --- @param A table Array of vertices `{x, y}` for polygon A.
 --- @param B table Array of vertices `{x, y}` for polygon B.
 --- @return boolean True if any overlap detected.
-function AETHR.POLY.polygonsOverlap(A, B)
+function AETHR.POLY:polygonsOverlap(A, B)
     -- Check if any A vertex lies in B.
     for _, v in ipairs(A) do
-        if AETHR.POLY.pointInPolygon(v, B) then return true end
+        if self:pointInPolygon(v, B) then return true end
     end
     -- Check if any B vertex lies in A.
     for _, v in ipairs(B) do
-        if AETHR.POLY.pointInPolygon(v, A) then return true end
+        if self:pointInPolygon(v, A) then return true end
     end
     -- Check edge intersections.
     for i = 1, #A do
         local a1, a2 = A[i], A[i % #A + 1]
         for j = 1, #B do
             local b1, b2 = B[j], B[j % #B + 1]
-            if AETHR.POLY.segmentsIntersect(a1, a2, b1, b2) then
+            if self:segmentsIntersect(a1, a2, b1, b2) then
                 return true
             end
         end
@@ -91,7 +95,7 @@ end
 --- @param b table Point `{x, y}`.
 --- @param c table Point `{x, y}`.
 --- @return number >0 if counter-clockwise, <0 if clockwise, 0 if colinear.
-function AETHR.POLY.orientation(a, b, c)
+function AETHR.POLY:orientation(a, b, c)
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
 end
 
@@ -101,7 +105,7 @@ end
 --- @param c table Point to test `{x, y}`.
 --- @param b table Endpoint `{x, y}`.
 --- @return boolean True if c lies on segment, false otherwise.
-function AETHR.POLY.onSegment(a, c, b)
+function AETHR.POLY:onSegment(a, c, b)
     return c.x >= math.min(a.x, b.x) and c.x <= math.max(a.x, b.x)
        and c.y >= math.min(a.y, b.y) and c.y <= math.max(a.y, b.y)
 end
@@ -144,7 +148,7 @@ end
 --- @param P table Point to test; expects numeric x and y (or z) field.
 --- @param Polygon table Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
 --- @return boolean True if P is inside the polygon (or on an edge when onLine returns true), false otherwise.
-function AETHR.POLY.PointWithinShape(P, Polygon)
+function AETHR.POLY:PointWithinShape(P, Polygon)
     local n = #Polygon
     
     -- Get the appropriate vertical coordinate from P
@@ -181,10 +185,10 @@ function AETHR.POLY.PointWithinShape(P, Polygon)
         local normalizedP = { x = P.x, y = vertCoord }
 
         -- Check if the line segment formed by P and extreme intersects with the side of the polygon
-        if AETHR.POLY.isIntersect(side, { p1 = normalizedP, p2 = extreme }) then
+        if self:isIntersect(side, { p1 = normalizedP, p2 = extreme }) then
             -- If the point P is collinear with the side of the polygon, check if it lies on the segment
-            if AETHR.math.direction(side.p1, normalizedP, side.p2) == 0 then
-                return AETHR.POLY.onLine(side, normalizedP)
+            if self.MATH:direction(side.p1, normalizedP, side.p2) == 0 then
+                return self:onLine(side, normalizedP)
             end
 
             -- Increment the count of intersections
@@ -210,7 +214,7 @@ end
 --- @param WS_Vec3 table Minimum corner vector (table with numeric x,y,z or equivalent fields).
 --- @param EN_Vec3 table Maximum corner vector (table with numeric x,y,z or equivalent fields).
 --- @return table Volume descriptor in the form { id = world.VolumeType.BOX, params = { min = WS_Vec3, max = EN_Vec3 } }.
-function AETHR.POLY.createBox(WS_Vec3, EN_Vec3)
+function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     local box = {
         id =  world.VolumeType.BOX,
         params = {
@@ -225,7 +229,7 @@ end
 --- @function convertZoneToLines
 --- @param zone table Array of points `{x,y}` or `{x,z}`
 --- @return table Array of segments `{{x,y},{x,y}}`
-function AETHR.POLY.convertPolygonToLines(zone)
+function AETHR.POLY:convertPolygonToLines(zone)
     local lines = {}
     for i = 1, #zone do
         local j = (i % #zone) + 1
@@ -241,8 +245,8 @@ end
 --- @param polygon table Array of `{x,z}` four corners
 --- @param targetArea number Desired area per sub-polygon
 --- @return table Array of division tables `{ corners = {pt1,pt2,pt3,pt4} }`
-function AETHR.POLY.dividePolygon(polygon, targetArea)
-    local total = AETHR.POLY.polygonArea(polygon)
+function AETHR.POLY:dividePolygon(polygon, targetArea)
+    local total = self:polygonArea(polygon)
     local count = math.max(1, math.floor(total / targetArea + 0.5))
 
     -- Define left and right edges
@@ -298,7 +302,7 @@ end
 --- @function polygonArea
 --- @param polygon table Array of `{x,z}` vertices
 --- @return number Absolute area value
-function AETHR.POLY.polygonArea(polygon)
+function AETHR.POLY:polygonArea(polygon)
     local n = #polygon
     if n < 3 then return 0 end
     local sum = 0
@@ -314,12 +318,12 @@ end
 --- @function ensureConvex
 --- @param coords table Array of four `{x,z}` points
 --- @return table Possibly reordered convex polygon
-function AETHR.POLY.ensureConvex(coords)
+function AETHR.POLY:ensureConvex(coords)
     local signs = {
-        AETHR.math.crossProduct(coords[1], coords[2], coords[3]) >= 0,
-        AETHR.math.crossProduct(coords[2], coords[3], coords[4]) >= 0,
-        AETHR.math.crossProduct(coords[3], coords[4], coords[1]) >= 0,
-        AETHR.math.crossProduct(coords[4], coords[1], coords[2]) >= 0,
+        self.MATH:crossProduct(coords[1], coords[2], coords[3]) >= 0,
+        self.MATH:crossProduct(coords[2], coords[3], coords[4]) >= 0,
+        self.MATH:crossProduct(coords[3], coords[4], coords[1]) >= 0,
+        self.MATH:crossProduct(coords[4], coords[1], coords[2]) >= 0,
     }
     -- If any sign differs, swap to reorder vertices
     if not (signs[1] and signs[2] and signs[3] and signs[4]) then
@@ -334,7 +338,7 @@ end
 --- @brief Converts world bounds into a convex quadrilateral polygon.
 --- @param bounds table Structure with `X.min`, `X.max`, `Z.min`, `Z.max` coordinates.
 --- @return table Array of four corner points `{x=number, z=number}` in clockwise order.
-function AETHR.POLY.convertBoundsToPolygon(bounds)
+function AETHR.POLY:convertBoundsToPolygon(bounds)
     -- Create initial polygon corners: bottom-left, bottom-right, top-right, top-left
     local polygon = {
         { x = bounds.X.min, z = bounds.Z.min },
@@ -344,14 +348,14 @@ function AETHR.POLY.convertBoundsToPolygon(bounds)
     }
 
     -- Ensure polygon is convex by swapping vertices if needed
-    return AETHR.POLY.ensureConvex(polygon)
+    return self:ensureConvex(polygon)
 end
 
 --- Calculates the Euclidean length of a line segment.
 --- @function lineLength
 --- @param line table Two points `{ {x,y},{x,y} }`
 --- @return number Length of the segment
-function AETHR.POLY.lineLength(line)
+function AETHR.POLY:lineLength(line)
     local dx = line[2].x - line[1].x
     local dy = line[2].y - line[1].y
     return math.sqrt(dx*dx + dy*dy)
@@ -369,7 +373,7 @@ end
 --- @param InputLine table Two-element array of endpoints, each endpoint is a table with numeric x and y fields.
 --- @param DesiredPoints integer Number of points to sample along the segment (interior points).
 --- @return table OutputPoints Array of sampled points, each point being a table with x and y numeric fields.
-function AETHR.POLY.getEquallySpacedPoints(InputLine, DesiredPoints)
+function AETHR.POLY:getEquallySpacedPoints(InputLine, DesiredPoints)
     local P1, P2 = InputLine[1], InputLine[2]
     local OutputPoints = {}
     -- Iterate from 1 to DesiredPoints to compute each equally spaced point
@@ -391,7 +395,7 @@ end
 --- Behavior and notes:
 --- - For robustness against different line lengths, this routine samples a fixed number of interior points
 ---   along each line (default 11) and computes a "confirmation rate" using a ratio of line lengths
----   (via computeRatio and lineLength helpers expected elsewhere in AETHR.math).
+---   (via computeRatio and lineLength helpers expected elsewhere in AETHR.MATH).
 --- - A sampled point is considered close to the other line if the point-to-segment distance <= Offset.
 --- - The function checks both directions: sampling LineA against LineB and LineB against LineA,
 ---   returning true if either direction has enough sample points within the offset threshold.
@@ -401,20 +405,20 @@ end
 --- @param LineB table Two-element array of endpoints for second line.
 --- @param Offset number Distance threshold to consider a sampled point "within" the other line.
 --- @return boolean bool True if lines are considered within Offset of each other (approximate via sampling), false otherwise.
-function AETHR.POLY.isWithinOffset(LineA, LineB, Offset)
+function AETHR.POLY:isWithinOffset(LineA, LineB, Offset)
     local DesiredPoints = 11
     -- Compute the ratio of the lengths of LineA and LineB
-    local PointConfirmRate = AETHR.math.computeRatio(AETHR.POLY.lineLength(LineA), AETHR.POLY.lineLength(LineB))
+    local PointConfirmRate = self.MATH:computeRatio(self:lineLength(LineA), self:lineLength(LineB))
     -- Compute the number of confirmation points needed based on the desired points and the computed ratio
     local threshold = DesiredPoints * PointConfirmRate
     -- Nested function to check if the sampled points on one line are within the offset of the other line
     local function checkPointsWithinOffset(lineToSample, lineToCheckAgainst)
         local ticker = 0
         -- Sample equally spaced points from the line
-        local points = AETHR.POLY.getEquallySpacedPoints(lineToSample, DesiredPoints)
+        local points = self:getEquallySpacedPoints(lineToSample, DesiredPoints)
         -- Check each sampled point against the other line to determine proximity
         for _, point in ipairs(points) do
-            if math.sqrt(AETHR.POLY.pointToSegmentSquared(point.x, point.y, lineToCheckAgainst[1].x, lineToCheckAgainst[1].y, lineToCheckAgainst[2].x, lineToCheckAgainst[2].y)) <= Offset then
+            if math.sqrt(self:pointToSegmentSquared(point.x, point.y, lineToCheckAgainst[1].x, lineToCheckAgainst[1].y, lineToCheckAgainst[2].x, lineToCheckAgainst[2].y)) <= Offset then
                 ticker = ticker + 1
                 if ticker >= threshold then
                     return true
@@ -444,22 +448,22 @@ end
 --- @param bx number X coordinate of segment endpoint B.
 --- @param by number Y coordinate of segment endpoint B.
 --- @return number Squared distance from (px,py) to the closest point on segment AB.
-function AETHR.POLY.pointToSegmentSquared(px, py, ax, ay, bx, by)
+function AETHR.POLY:pointToSegmentSquared(px, py, ax, ay, bx, by)
     -- Calculate the squared distance between the endpoints of the segment
-    local l2 = AETHR.math.distanceSquared(ax, ay, bx, by)
+    local l2 = self.MATH:distanceSquared(ax, ay, bx, by)
 
     -- If the segment is a point, return the squared distance to the point
-    if l2 == 0 then return AETHR.math.distanceSquared(px, py, ax, ay) end
+    if l2 == 0 then return self.MATH:distanceSquared(px, py, ax, ay) end
 
     -- Project the point onto the line segment and find the parameter t
-    local t = AETHR.math.dot(px - ax, py - ay, bx - ax, by - ay) / l2
+    local t = self.MATH:dot(px - ax, py - ay, bx - ax, by - ay) / l2
 
     -- If t is outside [0, 1], the point lies outside the segment, so return the squared distance to the nearest endpoint
-    if t < 0 then return AETHR.math.distanceSquared(px, py, ax, ay) end
-    if t > 1 then return AETHR.math.distanceSquared(px, py, bx, by) end
+    if t < 0 then return self.MATH:distanceSquared(px, py, ax, ay) end
+    if t > 1 then return self.MATH:distanceSquared(px, py, bx, by) end
 
     -- Compute the squared distance from the point to its projection on the segment
-    return AETHR.math.distanceSquared(px, py, ax + t * (bx - ax), ay + t * (by - ay))
+    return self.MATH:distanceSquared(px, py, ax + t * (bx - ax), ay + t * (by - ay))
 end
 
 
@@ -469,7 +473,7 @@ end
 --- @function AETHR.POLY.getMidpoint
 --- @param line table Two-element array of endpoints, each with numeric x and y fields.
 --- @return table A point with numeric fields x and y representing the midpoint of the segment.
-function AETHR.POLY.getMidpoint(line)
+function AETHR.POLY:getMidpoint(line)
     -- Calculate the x and y coordinates of the midpoint using the average of the endpoints' coordinates
     return {
         x = (line[1].x + line[2].x) / 2,
@@ -486,7 +490,7 @@ end
 --- @function AETHR.POLY.calculateLineSlope
 --- @param line table Two-element array of endpoints, each with numeric x and y fields.
 --- @return number Slope of the line (dy/dx), or math.huge for a vertical line.
-function AETHR.POLY.calculateLineSlope(line)
+function AETHR.POLY:calculateLineSlope(line)
     -- Calculate the differences in x and y coordinates between the two points of the line
     local dx = line[2].x - line[1].x
     local dy = line[2].y - line[1].y
@@ -516,7 +520,7 @@ end
 --- @param line table Two-element array of endpoints defining the reference line, each with numeric x and y fields.
 --- @param length number Desired length of the perpendicular from Point to the endpoint.
 --- @return table Endpoint point with numeric fields x and y located `length` away from Point along a perpendicular.
-function AETHR.POLY.findPerpendicularEndpoints(Point, line, length)
+function AETHR.POLY:findPerpendicularEndpoints(Point, line, length)
     -- Calculate the differences in x and y coordinates between the two points of the line
     local dx = line[2].x - line[1].x
     local dy = line[2].y - line[1].y
@@ -551,27 +555,27 @@ end
 --- @param l1 table First line, with fields p1 and p2 (points with x and y).
 --- @param l2 table Second line, with fields p1 and p2 (points with x and y).
 --- @return boolean True if the segments intersect or touch, false otherwise.
-function AETHR.POLY.isIntersect(l1, l2)
+function AETHR.POLY:isIntersect(l1, l2)
     -- Calculate orientation values for each pair of points from the two lines
-    local dir1 = AETHR.math.direction(l1.p1, l1.p2, l2.p1)
-    local dir2 = AETHR.math.direction(l1.p1, l1.p2, l2.p2)
-    local dir3 = AETHR.math.direction(l2.p1, l2.p2, l1.p1)
-    local dir4 = AETHR.math.direction(l2.p1, l2.p2, l1.p2)
+    local dir1 = self.MATH:direction(l1.p1, l1.p2, l2.p1)
+    local dir2 = self.MATH:direction(l1.p1, l1.p2, l2.p2)
+    local dir3 = self.MATH:direction(l2.p1, l2.p2, l1.p1)
+    local dir4 = self.MATH:direction(l2.p1, l2.p2, l1.p2)
     -- If orientations of the endpoints with respect to each line are different, the lines intersect
     if dir1 ~= dir2 and dir3 ~= dir4 then
         return true
     end
     -- Check for colinearity and if a point of one line lies on the other line
-    if dir1 == 0 and AETHR.POLY.onLine(l1, l2.p1) then
+    if dir1 == 0 and self:onLine(l1, l2.p1) then
         return true
     end
-    if dir2 == 0 and AETHR.POLY.onLine(l1, l2.p2) then
+    if dir2 == 0 and self:onLine(l1, l2.p2) then
         return true
     end
-    if dir3 == 0 and AETHR.POLY.onLine(l2, l1.p1) then
+    if dir3 == 0 and self:onLine(l2, l1.p1) then
         return true
     end
-    if dir4 == 0 and AETHR.POLY.onLine(l2, l1.p2) then
+    if dir4 == 0 and self:onLine(l2, l1.p2) then
         return true
     end
     -- If none of the above conditions are met, lines do not intersect
@@ -588,7 +592,7 @@ end
 --- @param l1 table Line with fields p1 and p2 (points with numeric x and y).
 --- @param p table Point to test, with numeric x and y.
 --- @return boolean True if p lies on the segment [l1.p1, l1.p2], false otherwise.
-function AETHR.POLY.onLine(l1, p)
+function AETHR.POLY:onLine(l1, p)
     -- Check if the x and y coordinates of the point are within the bounds of the line segment's endpoints
     if (p.x >= math.min(l1.p1.x, l1.p2.x) and p.x <= math.max(l1.p1.x, l1.p2.x)
             and p.y >= math.min(l1.p1.y, l1.p2.y) and p.y <= math.max(l1.p1.y, l1.p2.y)) then
