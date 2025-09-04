@@ -4,66 +4,6 @@
 
 AETHR.worldLearning = {}
 
-function AETHR:loadWorldDivisions()
-    local fullPath = AETHR.fileOps.joinPaths(
-        self.ROOT_DIR,
-        self.CONFIG.STORAGE.ROOT_FOLDER,
-        self.CONFIG.STORAGE.CONFIG_FOLDER
-    )
-    local data = self.fileOps.loadData(
-        fullPath,
-        self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE
-    )
-    if data then
-        return data
-    end
-    return nil
-end
-
-function AETHR:saveWorldDivisions()
-    local fullPath = AETHR.fileOps.joinPaths(
-        self.ROOT_DIR,
-        self.CONFIG.STORAGE.ROOT_FOLDER,
-        self.CONFIG.STORAGE.CONFIG_FOLDER
-    )
-        self.fileOps.saveData(
-            fullPath,
-            self.CONFIG.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
-            self.LEARNED_DATA.worldDivisions
-        )
-end
-
-function AETHR:generateWorldDivisions()
-    -- Generate new divisions based on theater bounds and division area
-    local boundsPoly = self.math.convertBoundsToPolygon(
-        self.CONFIG.worldBounds[self.CONFIG.THEATER]
-    )
-    local worldDivs = self.math.dividePolygon(
-        boundsPoly,
-        self.CONFIG.worldDivisionArea
-    )
-    for i, div in ipairs(worldDivs) do
-        div.ID = i             -- Assign unique ID
-        div.active = false     -- Initial active flag
-        self.LEARNED_DATA.worldDivisions[i] = div
-    end
-    return self
-end
-
---- Loads existing world divisions if available; otherwise generates and saves new divisions.
---- @return AETHR Instance
-function AETHR:initWorldDivisions()
-    -- Attempt to read existing config from file.
-    local data = self:loadWorldDivisions()
-    if data then
-        self.LEARNED_DATA.worldDivisions = data
-    else
-        self:generateWorldDivisions()
-        -- Persist defaults to disk.
-        self:saveWorldDivisions()
-    end
-    return self
-end
 
 --- Displays active world divisions on the map with randomized colors.
 --- @param AETHR AETHR containing learned world divisions.
@@ -95,51 +35,7 @@ function AETHR.worldLearning._markWorldDivisions(AETHR)
     end
 end
 
---- Retrieves all airbases in the world and stores their data.
---- @return AETHR Instance
-function AETHR:getAirbases()
-    local bases = world.getAirbases() -- Array of airbase objects
-    for _, ab in ipairs(bases) do
-        local desc = ab:getDesc()
-        local pos = ab:getPosition().p
-        local data = {
-            id = ab:getID(),
-            id_ = ab.id_,
-            coordinates = { x = pos.x, y = pos.y, z = pos.z },
-            description = desc,
-        }
-        -- Map numeric category to text
-        if desc.category == 0 then
-            data.categoryText = "AIRDROME"
-        elseif desc.category == 1 then
-            data.categoryText = "HELIPAD"
-        elseif desc.category == 2 then
-            data.categoryText = "SHIP"
-        end
-        self.AIRBASES[desc.displayName] = data
-    end
-    return self
-end
 
---- Loads airbase data from JSON or collects and saves new data.
---- @return AETHR Instance
-function AETHR:loadAirbases()
-    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
-    local fileName = self.CONFIG.STORAGE.FILENAMES.AIRBASES_FILE
-    local data = self.fileOps.loadData(mapPath, fileName)
-
-    if data then
-        -- Populate from existing JSON
-        for name, info in pairs(data) do
-            self.AIRBASES[name] = info
-        end
-    else
-        -- Gather and persist new data
-        self:getAirbases()
-        self.fileOps.saveData(mapPath, fileName, self.AIRBASES)
-    end
-    return self
-end
 
 --- Searches for objects of a given category within a 3D box volume.
 --- @param objectCategory any Category filter for search
@@ -148,8 +44,8 @@ end
 --- @return table Found objects keyed by object ID
 function AETHR.worldLearning.searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
-    local box = AETHR.worldLearning.getBoxPoints(corners, height)
-    local vol = AETHR.math.createBox(box.min, box.max)
+    local box = AETHR.POLY.getBoxPoints(corners, height)
+    local vol = AETHR.POLY.createBox(box.min, box.max)
     local found = {}
 
     -- Callback for world.searchObjects
@@ -163,105 +59,6 @@ function AETHR.worldLearning.searchObjectsBox(objectCategory, corners, height)
 
     world.searchObjects(objectCategory, vol, ifFound)
     return found
-end
-
---- Calculates bounding box min/max points for a set of corners and height.
---- @param corners table Array of corner points (x,z)
---- @param height number Vertical extent
---- @return table { min={x,y,z}, max={x,y,z} }
-function AETHR.worldLearning.getBoxPoints(corners, height)
-    local minPt = { x = math.huge, y = 0, z = math.huge }
-    local maxPt = { x = -math.huge, y = height, z = -math.huge }
-
-    -- Determine min/max X,Z
-    for _, c in ipairs(corners) do
-        if c.x < minPt.x then minPt.x = c.x end
-        if c.z < minPt.z then minPt.z = c.z end
-        if c.x > maxPt.x then maxPt.x = c.x end
-        if c.z > maxPt.z then maxPt.z = c.z end
-    end
-
-    -- Set Y extents
-    minPt.y = 0
-    maxPt.y = height
-    return { min = minPt, max = maxPt }
-end
-
--- --- Determines active world divisions via saved data or spatial intersection.
--- --- @return AETHR self
--- function AETHR:determineActiveDivisions()
---     local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
---     local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
---     local data = self.fileOps.loadData(mapPath, saveFile)
-
---     if data then
---         -- Use saved active flags
---         self.LEARNED_DATA.saveDivisions = {}
---         for _, div in ipairs(data) do
---             if div.active then
---                 self.LEARNED_DATA.saveDivisions[div.ID] = div
---             end
---         end
---     else
---         -- Compute active flags by intersection
---         local updated = self.AUTOSAVE.checkDivisionsInZones(
---             self.LEARNED_DATA.worldDivisions,
---             self.MIZ_ZONES
---         )
---         for _, div in ipairs(updated) do
---             if div.active then
---                 self.LEARNED_DATA.saveDivisions[div.ID] = div
---             end
---         end
---         self.fileOps.saveData(mapPath, saveFile, self.LEARNED_DATA.saveDivisions)
---     end
-
---     return self
--- end
-
-function AETHR:loadActiveDivisions()
-    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
-    local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
-    local data = self.fileOps.loadData(mapPath, saveFile)
-    if data then
-        return data
-    end
-    return nil
-end
-
-function AETHR:saveActiveDivisions()
-    local mapPath = self.CONFIG.STORAGE.PATHS.MAP_FOLDER
-    local saveFile = self.CONFIG.STORAGE.FILENAMES.SAVE_DIVS_FILE
-    self.fileOps.saveData(mapPath, saveFile, self.LEARNED_DATA.saveDivisions)
-end
-
-function AETHR:generateActiveDivisions()
-        -- Compute active flags by intersection
-        local updated = self.AUTOSAVE.checkDivisionsInZones(
-            self.LEARNED_DATA.worldDivisions,
-            self.CONFIG.MIZ_ZONES.ALL
-        )
-        for _, div in ipairs(updated) do
-            if div.active then
-                self.LEARNED_DATA.saveDivisions[div.ID] = div
-            end
-        end
-    return self
-end
-
---- Loads existing world divisions if available; otherwise generates and saves new divisions.
---- @return AETHR Instance
-function AETHR:initActiveDivisions()
-    -- Attempt to read existing config from file.
-    local data = self:loadActiveDivisions()
-    if data then
-        self.LEARNED_DATA.saveDivisions = data
-    else
-        self:generateActiveDivisions()
-        -- Persist defaults to disk.
-        self:saveActiveDivisions()
-    end
-    return self
 end
 
 --- Retrieves objects of a specific category within a division.
@@ -295,4 +92,3 @@ function AETHR:getActiveObjectsInDivisions(objectCategory)
     end
     return self
 end
-

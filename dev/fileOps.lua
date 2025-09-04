@@ -77,7 +77,7 @@ end
 --- @brief Saves a Lua table as pretty-printed JSON to a file.
 --- @param directory string Directory path.
 --- @param filename string JSON filename.
---- @param data table Lua table to encode.
+--- @param data any Lua table to encode.
 --- @return boolean success True on success, false on error.
 function AETHR.fileOps.saveData(directory, filename, data)
     if not AETHR.fileOps.ensureDirectory(directory) then
@@ -96,7 +96,7 @@ end
 --- @brief Loads and decodes JSON data from a file into a Lua table.
 --- @param directory string Directory path.
 --- @param filename string JSON filename.
---- @return string|nil data Decoded table or nil on failure.
+--- @return any|nil data Decoded table or nil on failure.
 function AETHR.fileOps.loadData(directory, filename)
     local filepath = AETHR.fileOps.joinPaths(directory, filename)
     local ok, data = pcall(AETHR.IO.load, filepath)

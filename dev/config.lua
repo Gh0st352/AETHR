@@ -197,30 +197,3 @@ function AETHR:saveConfig()
     )
 end
 
---- @function AETHR:loadUSERSTORAGE
---- @brief Loads user-specific data from JSON if available.
---- @return AETHR self Framework instance for chaining.
-function AETHR:initUSERSTORAGE()
-    -- Attempt to load userStorage JSON file.
-    local userData = self.fileOps.loadData(
-        self.CONFIG.STORAGE.PATHS.USER_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.USER_STORAGE_FILE
-    )
-    if userData then
-        self.USERSTORAGE = userData -- Update in-memory storage.
-    end
-    return self
-end
-
---- @function AETHR:SaveUSERSTORAGE
---- @brief Saves the `USERSTORAGE` table to JSON file.
---- @return AETHR self Framework instance for chaining.
-function AETHR:SaveUSERSTORAGE()
-    -- Write pretty-printed user storage JSON to disk.
-    self.fileOps.saveData(
-        self.CONFIG.STORAGE.PATHS.USER_FOLDER,
-        self.CONFIG.STORAGE.FILENAMES.USER_STORAGE_FILE,
-        self.USERSTORAGE
-    )
-    return self
-end
