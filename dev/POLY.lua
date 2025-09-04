@@ -320,10 +320,10 @@ end
 --- @return table Possibly reordered convex polygon
 function AETHR.POLY:ensureConvex(coords)
     local signs = {
-        self.MATH:crossProduct(coords[1], coords[2], coords[3]) >= 0,
-        self.MATH:crossProduct(coords[2], coords[3], coords[4]) >= 0,
-        self.MATH:crossProduct(coords[3], coords[4], coords[1]) >= 0,
-        self.MATH:crossProduct(coords[4], coords[1], coords[2]) >= 0,
+        self.MATH:___crossProduct(coords[1], coords[2], coords[3]) >= 0,
+        self.MATH:___crossProduct(coords[2], coords[3], coords[4]) >= 0,
+        self.MATH:___crossProduct(coords[3], coords[4], coords[1]) >= 0,
+        self.MATH:___crossProduct(coords[4], coords[1], coords[2]) >= 0,
     }
     -- If any sign differs, swap to reorder vertices
     if not (signs[1] and signs[2] and signs[3] and signs[4]) then

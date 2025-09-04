@@ -1,5 +1,5 @@
 --- @class AETHR.FILEOPS
---- @brief 
+--- @brief  
 ---@diagnostic disable: undefined-global
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
@@ -23,7 +23,7 @@ end
 --- @brief Joins multiple path segments using the system path separator.
 --- @param ... string Path segments to join.
 --- @return string Joined path
-function AETHR.FILEOPS.joinPaths(...)
+function AETHR.FILEOPS:joinPaths(...)
     local sep = package.config:sub(1,1)
     return table.concat({ ... }, sep)
 end
@@ -32,7 +32,7 @@ end
 --- @brief Ensures a directory path exists, recursively creating missing segments.
 --- @param path string Directory path.
 --- @return boolean success True if exists or created, false on error.
-function AETHR.FILEOPS.ensureDirectory(path)
+function AETHR.FILEOPS:ensureDirectory(path)
     if not path or path == "" then
         return false
     end
@@ -68,11 +68,11 @@ end
 --- @param directory string Directory path.
 --- @param filename string Filename.
 --- @return boolean success True on success, false on error.
-function AETHR.FILEOPS.ensureFile(directory, filename)
-    if not AETHR.FILEOPS.ensureDirectory(directory) then
+function AETHR.FILEOPS:ensureFile(directory, filename)
+    if not AETHR.FILEOPS:ensureDirectory(directory) then
         return false
     end
-    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
+    local filepath = self.FILEOPS:joinPaths(directory, filename)
     local lfs = require("lfs")
     local attr = lfs.attributes(filepath)
     if attr and attr.mode == "file" then
@@ -94,8 +94,8 @@ end
 --- @param filename string JSON filename.
 --- @param data any Lua table to encode.
 --- @return boolean success True on success, false on error.
-function AETHR.FILEOPS.saveData(directory, filename, data)
-    if not AETHR.FILEOPS.ensureDirectory(directory) then
+function AETHR.FILEOPS:saveData(directory, filename, data)
+    if not self.ensureDirectory(directory) then
         return false
     end
     local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
@@ -112,8 +112,8 @@ end
 --- @param directory string Directory path.
 --- @param filename string JSON filename.
 --- @return any|nil data Decoded table or nil on failure.
-function AETHR.FILEOPS.loadData(directory, filename)
-    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
+function AETHR.FILEOPS:loadData(directory, filename)
+    local filepath = self:joinPaths(directory, filename)
     local ok, data = pcall(AETHR.IO.load, filepath)
     if not ok then
         print("Failed to load data: " .. tostring(data))
@@ -128,8 +128,8 @@ end
 --- @param directory string Directory path.
 --- @param filename string Filename to check.
 --- @return boolean exists True if file exists, false otherwise.
-function AETHR.FILEOPS.fileExists(directory, filename)
-    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
+function AETHR.FILEOPS:fileExists(directory, filename)
+    local filepath = self:joinPaths(directory, filename)
     local lfs = require("lfs")
     local attr = lfs.attributes(filepath)
     return attr and attr.mode == "file"
@@ -139,7 +139,7 @@ end
 --- @brief Performs a deep copy of a value or table, including nested tables and metatables.
 --- @param orig any Source value or table to copy.
 --- @return any copy Deep copied value.
-function AETHR.FILEOPS.deepcopy(orig)
+function AETHR.FILEOPS:deepcopy(orig)
     if type(orig) ~= "table" then
         return orig
     end

@@ -38,7 +38,7 @@ function AETHR._MIZ_ZONE:New(envZone)
         type = envZone.type,
         BorderOffsetThreshold = AETHR.CONFIG.Zone.BorderOffsetThreshold,
         ArrowLength = AETHR.CONFIG.Zone.ArrowLength,
-        verticies = AETHR.POLY.ensureConvex(envZone.verticies),
+        verticies = AETHR.POLY:ensureConvex(envZone.verticies),
         ownedBy = 0,
         oldOwnedBy = 0,
         markID = 0,
@@ -47,7 +47,7 @@ function AETHR._MIZ_ZONE:New(envZone)
         Airbases = {},
         LinesVec2 = {},
     }
-    instance.LinesVec2 = AETHR.POLY.convertPolygonToLines(instance.verticies)
+    instance.LinesVec2 = AETHR.POLY:convertPolygonToLines(instance.verticies)
     
     return instance
 end
