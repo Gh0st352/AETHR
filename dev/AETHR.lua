@@ -39,28 +39,28 @@ function AETHR:New(mission_id)
     ---@type AETHR
     local instance = setmetatable({}, { __index = self })
 
-    -- Helper: shallow clone a table (one level). Defined inside function per constraints.
-    local function shallowClone(tbl)
-        if type(tbl) ~= "table" then return tbl end
-        local out = {}
-        for k, v in pairs(tbl) do
-            out[k] = v
-        end
-        return out
-    end
+    -- -- Helper: shallow clone a table (one level). Defined inside function per constraints.
+    -- local function shallowClone(tbl)
+    --     if type(tbl) ~= "table" then return tbl end
+    --     local out = {}
+    --     for k, v in pairs(tbl) do
+    --         out[k] = v
+    --     end
+    --     return out
+    -- end
 
-    -- Ensure instance-specific containers.
-    instance.USERSTORAGE = shallowClone(self.USERSTORAGE)
+    -- -- Ensure instance-specific containers.
+    -- instance.USERSTORAGE = shallowClone(self.USERSTORAGE)
 
 
-    -- Clone CONFIG shallowly and ensure STORAGE/PATHS are separate tables for the instance.
-    instance.CONFIG.MAIN = shallowClone(self.CONFIG.MAIN or {})
-    if instance.CONFIG.MAIN.STORAGE then
-        instance.CONFIG.MAIN.STORAGE = shallowClone(self.CONFIG.MAIN.STORAGE)
-        instance.CONFIG.MAIN.STORAGE.PATHS = shallowClone(self.CONFIG.MAIN.STORAGE.PATHS or {})
-    else
-        instance.CONFIG.MAIN.STORAGE = { PATHS = {} }
-    end
+    -- -- Clone CONFIG shallowly and ensure STORAGE/PATHS are separate tables for the instance.
+    -- instance.CONFIG.MAIN = shallowClone(self.CONFIG.MAIN or {})
+    -- if instance.CONFIG.MAIN.STORAGE then
+    --     instance.CONFIG.MAIN.STORAGE = shallowClone(self.CONFIG.MAIN.STORAGE)
+    --     instance.CONFIG.MAIN.STORAGE.PATHS = shallowClone(self.CONFIG.MAIN.STORAGE.PATHS or {})
+    -- else
+    --     instance.CONFIG.MAIN.STORAGE = { PATHS = {} }
+    -- end
 
     -- Apply mission id for this instance.
     instance.CONFIG.MAIN.MISSION_ID = id
@@ -70,10 +70,8 @@ function AETHR:New(mission_id)
     local rt_path = lfs.writedir()
     AETHR.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
     instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
-
-    -- Compute config folder path safely, prefer instance.FILEOPS if present.
-    local joinPaths = (instance.FILEOPS and instance.FILEOPS.joinPaths) or (AETHR.FILEOPS and AETHR.FILEOPS.joinPaths)
-    instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = joinPaths(
+  
+    instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = instance.FILEOPS:joinPaths(
         rt_path,
         instance.CONFIG.MAIN.STORAGE.ROOT_FOLDER,
         instance.CONFIG.MAIN.STORAGE.CONFIG_FOLDER
@@ -157,7 +155,9 @@ function AETHR:Init()
     self.WORLD:initWorldDivisions()  -- Generate or load world division grid.
     self.WORLD:initActiveDivisions() -- Identify active divisions in mission.
     self.WORLD:getAirbases()         -- Collect airbase data.
-
+    self.WORLD:initSceneryInDivisions()
+    self.WORLD:initBaseInDivisions()
+    self.WORLD:initStaticInDivisions()
 
     self:loadUSERSTORAGE()     -- Load per-user storage data.
     self:saveUSERSTORAGE() -- Persist current user storage data.

@@ -12,10 +12,12 @@
 --- @field DATA.AIRBASES table -- Airbase descriptors keyed by displayName.
 AETHR.WORLD = {} ---@diagnostic disable-line
 AETHR.WORLD.DATA = {
-        AIRBASES     = {},        -- Airbase descriptors keyed by displayName.
-        worldDivisions  = {},     -- Grid division definitions keyed by ID.
-        saveDivisions   = {},     -- Active divisions keyed by ID.
-        divisionObjects = {},     -- Loaded objects per division.
+    AIRBASES               = {},     -- Airbase descriptors keyed by displayName.
+    worldDivisions         = {},     -- Grid division definitions keyed by ID.
+    saveDivisions          = {},     -- Active divisions keyed by ID.
+    divisionSceneryObjects = {},     -- Loaded scenery per division.
+    divisionStaticObjects  = {},     -- Loaded statics per division.
+    divisionBaseObjects    = {},     -- Loaded Base per division.
 }
 
 
@@ -58,8 +60,6 @@ function AETHR.WORLD:_markWorldDivisions()
     end
 end
 
-
-
 --- Searches for objects of a given category within a 3D box volume.
 --- @param objectCategory any Category filter for search
 --- @param corners table Array of base corner points (x,z)
@@ -83,7 +83,6 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     world.searchObjects(objectCategory, vol, ifFound)
     return found
 end
-
 
 --- Retrieves all airbases in the world and stores their data.
 --- @return AETHR.WORLD Instance
@@ -110,10 +109,6 @@ function AETHR.WORLD:getAirbases()
     end
     return self
 end
-
-
-
-
 
 function AETHR.WORLD:loadActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
@@ -182,7 +177,7 @@ end
 function AETHR.WORLD:generateWorldDivisions()
     -- Generate new divisions based on theater bounds and division area
     local boundsPoly = self.POLY:convertBoundsToPolygon(
-        self.CONFIG.MAIN.worldBounds[self.CONFIG.THEATER]
+        self.CONFIG.MAIN.worldBounds[self.CONFIG.MAIN.THEATER]
     )
     local worldDivs = self.POLY:dividePolygon(
         boundsPoly,
@@ -337,9 +332,6 @@ function AETHR.WORLD:checkDivisionsInZones(Divisions, Zones)
     return Divisions
 end
 
-
-
-
 --- Retrieves objects of a specific category within a division.
 --- @param divisionID number ID of the division
 --- @param objectCategory any Category filter
@@ -347,16 +339,14 @@ end
 function AETHR.WORLD:objectsInDivision(divisionID, objectCategory)
     local div = self.DATA.worldDivisions[divisionID]
     if not div then return {} end
-    return self.WORLD:searchObjectsBox(objectCategory, div.corners, div.height or 2000)
+    return self:searchObjectsBox(objectCategory, div.corners, div.height or 2000)
 end
 
---- Loads or collects objects for all active divisions and saves them.
---- @param objectCategory any Category (e.g., "SCENERY", "STATIC", "UNIT")
---- @return AETHR.WORLD self
-function AETHR.WORLD:getActiveObjectsInDivisions(objectCategory)
+function AETHR.WORLD:initSceneryInDivisions()
+    local objectCategory = self.AETHR.ENUMS.ObjectCategory.SCENERY
     for id, _ in pairs(self.DATA.saveDivisions) do
         local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
-        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.OBJECTS_FILE
+        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.SCENERY_OBJECTS_FILE
         local objs = self.FILEOPS:loadData(dir, file)
 
         if not objs then
@@ -366,9 +356,107 @@ function AETHR.WORLD:getActiveObjectsInDivisions(objectCategory)
             end
         end
 
-        self.DATA.divisionObjects[id] = self.DATA.divisionObjects[id] or {}
-        self.DATA.divisionObjects[id][objectCategory] = objs
+        self.DATA.divisionSceneryObjects[id] = self.DATA.divisionSceneryObjects[id] or {}
+        self.DATA.divisionSceneryObjects[id] = objs
     end
     return self
 end
 
+function AETHR.WORLD:initBaseInDivisions()
+    local objectCategory = self.AETHR.ENUMS.ObjectCategory.BASE
+    for id, _ in pairs(self.DATA.saveDivisions) do
+        local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
+        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.BASE_OBJECTS_FILE
+        local objs = self.FILEOPS:loadData(dir, file)
+
+        if not objs then
+            objs = self:objectsInDivision(id, objectCategory)
+            if next(objs) then
+                self.FILEOPS:saveData(dir, file, objs)
+            end
+        end
+
+        self.DATA.divisionBaseObjects[id] = self.DATA.divisionBaseObjects[id] or {}
+        self.DATA.divisionBaseObjects[id] = objs
+    end
+    return self
+end
+
+function AETHR.WORLD:initStaticInDivisions()
+    local objectCategory = self.AETHR.ENUMS.ObjectCategory.STATIC
+    for id, _ in pairs(self.DATA.saveDivisions) do
+        local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
+        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.STATIC_OBJECTS_FILE
+        local objs = self.FILEOPS:loadData(dir, file)
+
+        if not objs then
+            objs = self:objectsInDivision(id, objectCategory)
+            if next(objs) then
+                self.FILEOPS:saveData(dir, file, objs)
+            end
+        end
+
+        self.DATA.divisionStaticObjects[id] = self.DATA.divisionStaticObjects[id] or {}
+        self.DATA.divisionStaticObjects[id] = objs
+    end
+    return self
+end
+
+
+-- function AETHR.WORLD:initObjectsInDivisions(objectCategory)
+
+--     local data = self:getObjectsInDivisions()
+--     if data then
+--         self.DATA.MIZ_ZONES = data
+--     else
+--         --self:objectsInDivision()
+--         self:saveObjectsInDivisions()
+--     end
+
+
+
+--     return self
+-- end
+
+-- --- Loads mission trigger zone data from storage file if available.
+-- --- @function AETHR:getStoredMizZoneData
+-- --- @return table<string, _MIZ_ZONE>|nil Data table of mission trigger zones or nil if not found.
+-- function AETHR.WORLD:getObjectsInDivisions()
+--     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
+--     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
+--     local data = self.FILEOPS:loadData(mapPath, saveFile)
+--     if data then return data end
+--     return nil
+-- end
+
+-- --- Saves current mission trigger zone data to storage file.
+-- --- @function AETHR:saveMizZoneData
+-- --- @return nil
+-- function AETHR.WORLD:saveObjectsInDivisions()
+--     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
+--     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
+--     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
+-- end
+
+
+-- --- Loads or collects objects for all active divisions and saves them.
+-- --- @param objectCategory any Category (e.g., "SCENERY", "STATIC", "UNIT")
+-- --- @return AETHR.WORLD self
+-- function AETHR.WORLD:getActiveObjectsInDivisions(objectCategory)
+--     for id, _ in pairs(self.DATA.saveDivisions) do
+--         local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
+--         local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.OBJECTS_FILE
+--         local objs = self.FILEOPS:loadData(dir, file)
+
+--         if not objs then
+--             objs = self:objectsInDivision(id, objectCategory)
+--             if next(objs) then
+--                 self.FILEOPS:saveData(dir, file, objs)
+--             end
+--         end
+
+--         self.DATA.divisionObjects[id] = self.DATA.divisionObjects[id] or {}
+--         self.DATA.divisionObjects[id][objectCategory] = objs
+--     end
+--     return self
+-- end

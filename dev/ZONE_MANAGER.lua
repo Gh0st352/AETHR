@@ -46,7 +46,6 @@ end
 --- @param zoneNames string[] List of Red start mission trigger zone names.
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:setRedStartMizZones(zoneNames)
-    if not self.CONFIG.MAIN.MIZ_ZONES then self.CONFIG.MAIN.MIZ_ZONES = { ALL = {}, REDSTART = {}, BLUESTART = {} } end
     self.CONFIG.MAIN.MIZ_ZONES.REDSTART = zoneNames or {}
     return self
 end
@@ -56,7 +55,6 @@ end
 --- @param zoneNames string[] List of Blue start mission trigger zone names.
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:setBlueStartMizZones(zoneNames)
-    if not self.CONFIG.MAIN.MIZ_ZONES then self.CONFIG.MAIN.MIZ_ZONES = { ALL = {}, REDSTART = {}, BLUESTART = {} } end
     self.CONFIG.MAIN.MIZ_ZONES.BLUESTART = zoneNames or {}
     return self
 end
@@ -66,7 +64,7 @@ end
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initMizZoneData()
     local data = self:getStoredMizZoneData()
-    if data and type(data) == "table" then
+    if data then
         self.DATA.MIZ_ZONES = data
     else
         self:generateMizZoneData()
@@ -80,7 +78,7 @@ end
 --- @return table<string, _MIZ_ZONE>|nil Data table of mission trigger zones or nil if not found.
 function AETHR.ZONE_MANAGER:getStoredMizZoneData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
-    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES and self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
+    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
     local data = self.FILEOPS:loadData(mapPath, saveFile)
     if data then return data end
     return nil
@@ -91,7 +89,7 @@ end
 --- @return nil
 function AETHR.ZONE_MANAGER:saveMizZoneData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
-    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES and self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
+    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
 end
 
@@ -99,8 +97,8 @@ end
 --- Guards against missing env structures and missing constructors.
 --- @function AETHR:generateMizZoneData
 --- @return AETHR.ZONE_MANAGER self
-function AETHR.ZONE_MANAGER:generateMizZoneData()
-    local zoneNames = (self.CONFIG and self.CONFIG.MIZ_ZONES and self.CONFIG.MIZ_ZONES.ALL) or {}
+function AETHR.ZONE_MANAGER:generateMizZoneData(allZoneNames)
+    local zoneNames = allZoneNames or self.CONFIG.MAIN.MIZ_ZONES.ALL 
     if not zoneNames or #zoneNames == 0 then
         return self
     end

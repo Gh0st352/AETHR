@@ -115,7 +115,7 @@ end
 --- @param corners table Array of corner points (x,z)
 --- @param height number Vertical extent
 --- @return table { min={x,y,z}, max={x,y,z} }
-function AETHR.POLY.getBoxPoints(corners, height)
+function AETHR.POLY:getBoxPoints(corners, height)
     local minPt = { x = math.huge, y = 0, z = math.huge }
     local maxPt = { x = -math.huge, y = height, z = -math.huge }
 

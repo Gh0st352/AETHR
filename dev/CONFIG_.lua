@@ -75,6 +75,9 @@ AETHR.CONFIG.MAIN = {
             MIZ_ZONES_FILE       = "mizZones.lua",
             SAVE_DIVS_FILE       = "saveDivs.lua",
             OBJECTS_FILE         = "objects.lua",
+            SCENERY_OBJECTS_FILE = "sceneryObjects.lua",
+            STATIC_OBJECTS_FILE  = "staticObjects.lua",
+            BASE_OBJECTS_FILE    = "baseObjects.lua",
         },
     },
     worldDivisionArea = 1862500000, -- Desired area (m²) per world division.
