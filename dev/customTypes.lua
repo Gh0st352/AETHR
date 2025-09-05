@@ -1,6 +1,6 @@
 --- @class __template
 --- @field minX number
-AETHR.__template = {}
+AETHR.__template = {} ---@diagnostic disable-line
 --- 
 --- @param c table 
 --- @return __template instance
@@ -8,7 +8,7 @@ function AETHR.__template:New(c)
     local instance = {
 
     }
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 
@@ -49,7 +49,7 @@ function AETHR._MIZ_ZONE:New(envZone)
     }
     instance.LinesVec2 = AETHR.POLY:convertPolygonToLines(instance.verticies)
     
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 --- @class _Grid
@@ -78,5 +78,5 @@ function AETHR._Grid:New(c, minX, maxZ, dx, dz)
         invDz = 1 / dz,            -- Inverse heights for index computation.
     }
     
-    return instance
+    return instance ---@diagnostic disable-line
 end

@@ -1,4 +1,5 @@
 ---HERE THERE BE DRAGONS. PROCEED WITH CAUTION. 
+---@diagnostic disable
 AETHR.IO = {}
 
 

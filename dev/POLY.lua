@@ -9,7 +9,7 @@
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
-AETHR.POLY = {}
+AETHR.POLY = {} ---@diagnostic disable-line
 
 --- @function AETHR.POLY.segmentsIntersect
 --- @brief Determines if two line segments intersect or touch.
@@ -308,7 +308,7 @@ function AETHR.POLY:polygonArea(polygon)
     local sum = 0
     for i = 1, n do
         local j = (i % n) + 1
-        sum = sum + (polygon[i].x * polygon[j].z - polygon[j].x * polygon[i].z)
+        sum = sum + (polygon[i].x * polygon[j].z - polygon[j].x * polygon[i].z) ---@diagnostic disable-line
     end
     return math.abs(sum) / 2
 end

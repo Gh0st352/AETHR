@@ -10,7 +10,7 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA table Container for zone management data.
 --- @field DATA.AIRBASES table -- Airbase descriptors keyed by displayName.
-AETHR.WORLD = {}
+AETHR.WORLD = {} ---@diagnostic disable-line
 AETHR.WORLD.DATA = {
         AIRBASES     = {},        -- Airbase descriptors keyed by displayName.
         worldDivisions  = {},     -- Grid division definitions keyed by ID.
@@ -67,7 +67,7 @@ end
 --- @return table Found objects keyed by object ID
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
-    local box = self.POLY:getBoxPoints(corners, height)
+    local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
     local vol = self.POLY:createBox(box.min, box.max)
     local found = {}
 
@@ -128,7 +128,7 @@ end
 function AETHR.WORLD:saveActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
-    self.FILEOPS.saveData(mapPath, saveFile, self.DATA.saveDivisions)
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.saveDivisions)
 end
 
 function AETHR.WORLD:generateActiveDivisions()
@@ -172,7 +172,7 @@ function AETHR.WORLD:loadWorldDivisions()
 end
 
 function AETHR.WORLD:saveWorldDivisions()
-    self.FILEOPS.saveData(
+    self.FILEOPS:saveData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
         self.DATA.worldDivisions

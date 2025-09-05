@@ -9,7 +9,7 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA table Container for zone management data.
 --- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
-AETHR.ZONE_MANAGER = {}
+AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 AETHR.ZONE_MANAGER.DATA = {
     MIZ_ZONES    = {},        -- Mission trigger zones keyed by name.
@@ -92,7 +92,7 @@ end
 function AETHR.ZONE_MANAGER:saveMizZoneData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES and self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
-    self.FILEOPS.saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
 end
 
 --- Generates mission trigger zone data based on configured zone names and environment data.

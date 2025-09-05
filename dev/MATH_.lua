@@ -8,7 +8,7 @@
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
-AETHR.MATH = {}
+AETHR.MATH = {} ---@diagnostic disable-line
 
 function AETHR.MATH:New(c)
     local instance = {

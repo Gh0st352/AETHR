@@ -10,7 +10,7 @@ G_AETHR:Init()
     --:determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
 
 
-G_AETHR.worldLearning._markWorldDivisions(G_AETHR)
+G_AETHR.WORLD:_markWorldDivisions()
 -- local corners = {
 --     {
 --         x = -58333.333333333,
