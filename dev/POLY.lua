@@ -41,7 +41,7 @@ end
 --- @param pt table Point `{x, y}` to test.
 --- @param poly table Array of polygon vertices `{x, y}`.
 --- @return boolean True if inside, false otherwise.
-function AETHR.POLY.pointInPolygon(pt, poly)
+function AETHR.POLY:pointInPolygon(pt, poly)
     local inside = false
     local j = #poly
 
@@ -301,7 +301,7 @@ end
 --- Computes the area of a polygon using the Shoelace formula.
 --- @function polygonArea
 --- @param polygon table Array of `{x,z}` vertices
---- @return number Absolute area value
+--- @return any abs area value
 function AETHR.POLY:polygonArea(polygon)
     local n = #polygon
     if n < 3 then return 0 end
@@ -320,10 +320,10 @@ end
 --- @return table Possibly reordered convex polygon
 function AETHR.POLY:ensureConvex(coords)
     local signs = {
-        self.MATH:___crossProduct(coords[1], coords[2], coords[3]) >= 0,
-        self.MATH:___crossProduct(coords[2], coords[3], coords[4]) >= 0,
-        self.MATH:___crossProduct(coords[3], coords[4], coords[1]) >= 0,
-        self.MATH:___crossProduct(coords[4], coords[1], coords[2]) >= 0,
+        self.MATH:crossProduct(coords[1], coords[2], coords[3]) >= 0,
+        self.MATH:crossProduct(coords[2], coords[3], coords[4]) >= 0,
+        self.MATH:crossProduct(coords[3], coords[4], coords[1]) >= 0,
+        self.MATH:crossProduct(coords[4], coords[1], coords[2]) >= 0,
     }
     -- If any sign differs, swap to reorder vertices
     if not (signs[1] and signs[2] and signs[3] and signs[4]) then

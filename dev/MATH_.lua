@@ -3,7 +3,7 @@
 ---@diagnostic disable: undefined-global
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
---- @field fileOps AETHR.fileOps File operations helper table attached per-instance.
+--- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.

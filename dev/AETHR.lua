@@ -142,16 +142,13 @@ function AETHR:Init()
     end
 
     local subFolders = self.CONFIG.MAIN.STORAGE.SUB_FOLDERS or {}
-    local joinPaths = (self.FILEOPS and self.FILEOPS.joinPaths) or (AETHR.FILEOPS and AETHR.FILEOPS.joinPaths)
-    local ensureDirectory = (self.FILEOPS and self.FILEOPS.ensureDirectory) or
-        (AETHR.FILEOPS and AETHR.FILEOPS.ensureDirectory)
 
     -- Ensure storage subdirectories exist and cache their full paths.
     for folderName, folderPath in pairs(subFolders) do
-        local fullPath = joinPaths(self.CONFIG.MAIN.STORAGE.SAVEGAME_DIR, self.CONFIG.MAIN.STORAGE.ROOT_FOLDER, self.CONFIG.MAIN.MISSION_ID, folderPath)
+        local fullPath = self.FILEOPS:joinPaths(self.CONFIG.MAIN.STORAGE.SAVEGAME_DIR, self.CONFIG.MAIN.STORAGE.ROOT_FOLDER, self.CONFIG.MAIN.MISSION_ID, folderPath)
 
         self.CONFIG.MAIN.STORAGE.PATHS[folderName] = fullPath -- Cache path.
-        ensureDirectory(fullPath)                        -- Create directory if missing (best-effort).
+        self.FILEOPS:ensureDirectory(fullPath)                        -- Create directory if missing (best-effort).
     end
 
     -- Load or generate core configuration and data structures.
@@ -177,7 +174,7 @@ end
 --- @return AETHR self Framework instance for chaining.
 function AETHR:loadUSERSTORAGE()
     -- Attempt to load userStorage JSON file.
-    local userData = self.FILEOPS.loadData(
+    local userData = self.FILEOPS:loadData(
         self.CONFIG.MAIN.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.USER_STORAGE_FILE
     )
@@ -191,7 +188,7 @@ end
 --- @brief Saves the `USERSTORAGE` table to file.
 --- @return AETHR self Framework instance for chaining.
 function AETHR:saveUSERSTORAGE()
-    self.FILEOPS.saveData(
+    self.FILEOPS:saveData(
         self.CONFIG.MAIN.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.USER_STORAGE_FILE,
         self.USERSTORAGE

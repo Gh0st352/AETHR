@@ -81,7 +81,7 @@ end
 function AETHR.ZONE_MANAGER:getStoredMizZoneData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES and self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
-    local data = self.FILEOPS.loadData(mapPath, saveFile)
+    local data = self.FILEOPS:loadData(mapPath, saveFile)
     if data then return data end
     return nil
 end
@@ -137,7 +137,7 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                 for _, lineA in ipairs(zone1.LinesVec2) do
                     for _, lineB in ipairs(zone2.LinesVec2) do
                         -- Check if two lines are close enough to be considered bordering
-                        if self.POLY.isWithinOffset(lineA, lineB, zone1.BorderOffsetThreshold) then
+                        if self.POLY:isWithinOffset(lineA, lineB, zone1.BorderOffsetThreshold) then
                             borderIndex = borderIndex + 1 -- Increment the index for borders found
 
                             -- Initialize border data structure if it doesn't exist
@@ -148,14 +148,14 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                             local currentBorder = zoneBorder[borderIndex]
                             currentBorder.OwnedByCoalition = 0
                             currentBorder.ZoneLine = lineA
-                            currentBorder.ZoneLineLen = POLY.lineLength(lineA)
-                            currentBorder.ZoneLineMidP = POLY.getMidpoint(lineA)
-                            currentBorder.ZoneLineSlope = POLY.calculateLineSlope(lineA)
+                            currentBorder.ZoneLineLen = POLY:lineLength(lineA)
+                            currentBorder.ZoneLineMidP = POLY:getMidpoint(lineA)
+                            currentBorder.ZoneLineSlope = POLY:calculateLineSlope(lineA)
                             currentBorder.ZoneLinePerpendicularPoint = {}
                             currentBorder.NeighborLine = lineB
-                            currentBorder.NeighborLineLen = POLY.lineLength(lineB)
-                            currentBorder.NeighborLineMidP = POLY.getMidpoint(lineB)
-                            currentBorder.NeighborLineSlope = POLY.calculateLineSlope(lineB)
+                            currentBorder.NeighborLineLen = POLY:lineLength(lineB)
+                            currentBorder.NeighborLineMidP = POLY:getMidpoint(lineB)
+                            currentBorder.NeighborLineSlope = POLY:calculateLineSlope(lineB)
                             currentBorder.NeighborLinePerpendicularPoint = {}
                             currentBorder.MarkID = {
                                 [0] = 0,
@@ -179,21 +179,21 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                                 NeighborLength_ = -(length_)
                             end
 
-                            local _ZoneLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP, line_,
+                            local _ZoneLinePerpendicularPoint = POLY:findPerpendicularEndpoints(ArrowMP, line_,
                                 length_)
-                            local _NeighborLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP,
+                            local _NeighborLinePerpendicularPoint = POLY:findPerpendicularEndpoints(ArrowMP,
                                 NeighborLine_, NeighborLength_)
 
                             -- Adjust perpendicular points if needed to ensure they are within the zone shape
-                            if POLY.PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].verticies) then
-                                currentBorder.ZoneLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP,
+                            if POLY:PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].verticies) then
+                                currentBorder.ZoneLinePerpendicularPoint = POLY:findPerpendicularEndpoints(ArrowMP,
                                     line_, length_)
-                                currentBorder.NeighborLinePerpendicularPoint = POLY.findPerpendicularEndpoints(
+                                currentBorder.NeighborLinePerpendicularPoint = POLY:findPerpendicularEndpoints(
                                     ArrowMP, NeighborLine_, NeighborLength_)
                             else
-                                currentBorder.ZoneLinePerpendicularPoint = POLY.findPerpendicularEndpoints(ArrowMP,
+                                currentBorder.ZoneLinePerpendicularPoint = POLY:findPerpendicularEndpoints(ArrowMP,
                                     NeighborLine_, NeighborLength_)
-                                currentBorder.NeighborLinePerpendicularPoint = POLY.findPerpendicularEndpoints(
+                                currentBorder.NeighborLinePerpendicularPoint = POLY:findPerpendicularEndpoints(
                                     ArrowMP, line_, length_)
                             end
 

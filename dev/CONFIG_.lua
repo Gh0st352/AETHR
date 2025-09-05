@@ -182,7 +182,7 @@ end
 
 function AETHR.CONFIG:loadConfig()
     -- Attempt to read existing config from JSON file.
-    local configData = self.FILEOPS.loadData(
+    local configData = self.FILEOPS:loadData(
         self.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE
     )
@@ -194,7 +194,7 @@ end
 
 function AETHR.CONFIG:saveConfig()
     -- Attempt to read existing config from JSON file.
-    self.FILEOPS.saveData(
+    self.FILEOPS:saveData(
         self.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
         self.MAIN

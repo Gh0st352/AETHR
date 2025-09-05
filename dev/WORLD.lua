@@ -67,8 +67,8 @@ end
 --- @return table Found objects keyed by object ID
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
-    local box = self.POLY.getBoxPoints(corners, height)
-    local vol = self.POLY.createBox(box.min, box.max)
+    local box = self.POLY:getBoxPoints(corners, height)
+    local vol = self.POLY:createBox(box.min, box.max)
     local found = {}
 
     -- Callback for world.searchObjects
@@ -118,7 +118,7 @@ end
 function AETHR.WORLD:loadActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
-    local data = self.FILEOPS.loadData(mapPath, saveFile)
+    local data = self.FILEOPS:loadData(mapPath, saveFile)
     if data then
         return data
     end
@@ -161,7 +161,7 @@ function AETHR.WORLD:initActiveDivisions()
 end
 
 function AETHR.WORLD:loadWorldDivisions()
-    local data = self.FILEOPS.loadData(
+    local data = self.FILEOPS:loadData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE
     )
@@ -181,10 +181,10 @@ end
 
 function AETHR.WORLD:generateWorldDivisions()
     -- Generate new divisions based on theater bounds and division area
-    local boundsPoly = self.POLY.convertBoundsToPolygon(
+    local boundsPoly = self.POLY:convertBoundsToPolygon(
         self.CONFIG.MAIN.worldBounds[self.CONFIG.THEATER]
     )
-    local worldDivs = self.POLY.dividePolygon(
+    local worldDivs = self.POLY:dividePolygon(
         boundsPoly,
         self.CONFIG.MAIN.worldDivisionArea
     )
@@ -326,7 +326,7 @@ function AETHR.WORLD:checkDivisionsInZones(Divisions, Zones)
             if not (divBBox.maxx < bz.minx or divBBox.minx > bz.maxx
                     or divBBox.maxy < bz.miny or divBBox.miny > bz.maxy) then
                 -- Polygon overlap test.
-                if self.POLY.polygonsOverlap(divPoly, entry.poly) then
+                if self.POLY:polygonsOverlap(divPoly, entry.poly) then
                     div.active = true
                     break
                 end
@@ -357,12 +357,12 @@ function AETHR.WORLD:getActiveObjectsInDivisions(objectCategory)
     for id, _ in pairs(self.DATA.saveDivisions) do
         local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
         local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.OBJECTS_FILE
-        local objs = self.FILEOPS.loadData(dir, file)
+        local objs = self.FILEOPS:loadData(dir, file)
 
         if not objs then
             objs = self:objectsInDivision(id, objectCategory)
             if next(objs) then
-                self.FILEOPS.saveData(dir, file, objs)
+                self.FILEOPS:saveData(dir, file, objs)
             end
         end
 

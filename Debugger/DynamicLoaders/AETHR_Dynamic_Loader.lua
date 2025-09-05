@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-global
+
 env.info( '*** AETHR DYNAMIC INCLUDE START *** ' )
 
 local base = _G

@@ -69,7 +69,7 @@ end
 --- @param filename string Filename.
 --- @return boolean success True on success, false on error.
 function AETHR.FILEOPS:ensureFile(directory, filename)
-    if not AETHR.FILEOPS:ensureDirectory(directory) then
+    if not self:ensureDirectory(directory) then
         return false
     end
     local filepath = self.FILEOPS:joinPaths(directory, filename)
@@ -95,10 +95,10 @@ end
 --- @param data any Lua table to encode.
 --- @return boolean success True on success, false on error.
 function AETHR.FILEOPS:saveData(directory, filename, data)
-    if not self.ensureDirectory(directory) then
+    if not self:ensureDirectory(directory) then
         return false
     end
-    local filepath = AETHR.FILEOPS.joinPaths(directory, filename)
+    local filepath = self:joinPaths(directory, filename)
     local ok, err = pcall(AETHR.IO.store, filepath, data)
     if not ok then
         print("Failed to store data: " .. tostring(err))
@@ -145,8 +145,8 @@ function AETHR.FILEOPS:deepcopy(orig)
     end
     local copy = {}
     for k, v in pairs(orig) do
-        copy[AETHR.FILEOPS.deepcopy(k)] = AETHR.FILEOPS.deepcopy(v)
+        copy[self:deepcopy(k)] = self:deepcopy(v)
     end
-    setmetatable(copy, AETHR.FILEOPS.deepcopy(getmetatable(orig)))
+    setmetatable(copy, self:deepcopy(getmetatable(orig)))
     return copy
 end
