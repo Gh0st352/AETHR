@@ -225,13 +225,84 @@ function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     return box
 end
 
+--- Convert unordered line segments into an ordered polygon chain without mutating coordinates.
+--- Behavior:
+--- - Endpoints within `vertOffset` are considered connected (consecutive) but original coordinates are preserved.
+--- - Walk the chain by following connected segments; if the chain closes, return the ordered list.
+--- - Accepts vertices using `y` or `z` (prefers `y`).
+--- Example:
+--- local poly = AETHR.POLY:convertLinesToPolygon(masterPolyLines, 0.1)
 function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
-local polygonVerts = {}
+    local offset = vertOffset or 0.1
+    local offset2 = offset * offset
+    local function getY(pt)
+        return pt.y or pt.z
+    end
+    local function pointNear(a, b)
+        return self.MATH:distanceSquared(a.x, getY(a), b.x, getY(b)) <= offset2
+    end
 
+    local visited = {}
+    local polygonVerts = {}
 
+    -- determine starting point (smallest x, then smallest y)
+    local startIdx, startEnd
+    local startPt, startY
+    for i, line in ipairs(lines) do
+        for j = 1, 2 do
+            local pt = line[j]
+            local y = getY(pt)
+            if not startPt or pt.x < startPt.x or (pt.x == startPt.x and y < startY) then
+                startPt = pt
+                startY = y
+                startIdx = i
+                startEnd = j
+            end
+        end
+    end
 
+    if not startIdx then
+        return polygonVerts
+    end
 
-return polygonVerts
+    -- initialize polygon with first segment
+    local firstPt = startPt
+    local secondPt = lines[startIdx][3 - startEnd]
+    visited[startIdx] = true
+    table.insert(polygonVerts, firstPt)
+    table.insert(polygonVerts, secondPt)
+
+    local current = secondPt
+
+    -- walk the chain
+    while true do
+        local foundIdx, nextPt
+        for i, line in ipairs(lines) do
+            if not visited[i] then
+                if pointNear(line[1], current) then
+                    foundIdx = i
+                    nextPt = line[2]
+                    break
+                elseif pointNear(line[2], current) then
+                    foundIdx = i
+                    nextPt = line[1]
+                    break
+                end
+            end
+        end
+        if not foundIdx then
+            break
+        end
+        visited[foundIdx] = true
+        -- check for closure
+        if pointNear(nextPt, polygonVerts[1]) and #polygonVerts >= 3 then
+            break
+        end
+        table.insert(polygonVerts, nextPt)
+        current = nextPt
+    end
+
+    return polygonVerts
 end
 
 
