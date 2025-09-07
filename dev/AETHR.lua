@@ -20,6 +20,7 @@ AETHR = {
         "MATH",
         "ENUMS",
         "CONFIG",
+        "UTILS",
     },
     USERSTORAGE  = {},        -- Holds per-user saved data tables.
     
@@ -155,7 +156,7 @@ function AETHR:Init()
     self.WORLD:initWorldDivisions()  -- Generate or load world division grid.
     self.WORLD:initActiveDivisions() -- Identify active divisions in mission.
     self.WORLD:getAirbases()         -- Collect airbase data.
-    
+
     -- self.WORLD:initSceneryInDivisions()
     -- self.WORLD:initBaseInDivisions()
     -- self.WORLD:initStaticInDivisions()

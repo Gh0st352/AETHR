@@ -8,6 +8,7 @@
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
+--- @field UTILS AETHR.UTILS Utils submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.POLY = {} ---@diagnostic disable-line
 
@@ -231,7 +232,6 @@ end
 --- Example:
 --- local poly = AETHR.POLY:convertLinesToPolygon(masterPolyLines, 0.1)
 function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
-
     if type(lines) ~= "table" or #lines == 0 then
         return nil
     end
@@ -254,7 +254,58 @@ function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
         local dy = ay - by
         return dx * dx + dy * dy
     end
+    -- remove_duplicate_vertices(vertices, opts)
+    -- vertices: table with numeric keys e.g. vertices = { [1] = {x=..., y=...}, ... }
+    -- opts (optional):
+    --   inplace   (boolean) - default true. If true, original table is modified and returned.
+    --   precision (number)  - number of decimals to format coordinates for comparison (optional).
+    local function remove_duplicate_vertices(vertices, opts)
+        opts = opts or {}
+        local inplace = (opts.inplace == nil) and true or not not opts.inplace
+        local precision = opts.precision
 
+        local seen = {}
+        local result = {}
+
+        -- collect numeric keys and sort to preserve order
+        local indices = {}
+        for k in pairs(vertices) do
+            if type(k) == "number" then
+                indices[#indices + 1] = k
+            end
+        end
+        table.sort(indices)
+
+        -- helper to build comparison key
+        local function build_key(x, y)
+            if precision then
+                return string.format("%." .. tostring(precision) .. "f:%." .. tostring(precision) .. "f", x, y)
+            else
+                return tostring(x) .. ":" .. tostring(y)
+            end
+        end
+
+        for _, k in ipairs(indices) do
+            local v = vertices[k]
+            if type(v) == "table" and v.x ~= nil and v.y ~= nil then
+                local key = build_key(v.x, v.y)
+                if not seen[key] then
+                    seen[key] = true
+                    result[#result + 1] = v
+                end
+            end
+        end
+
+        if inplace then
+            -- clear original table
+            for k in pairs(vertices) do vertices[k] = nil end
+            -- write back unique entries starting at 1
+            for i = 1, #result do vertices[i] = result[i] end
+            return vertices
+        else
+            return result
+        end
+    end
     local totalLines = #lines
 
     -- Try every line as a starting segment, both orientations.
@@ -290,16 +341,18 @@ function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
                             if a and b then
                                 if dist2(curPt, a) <= offset2 then
                                     used[i] = true
-                                    table.insert(polygonVerts, b)
                                     table.insert(polygonVerts, a)
+                                    table.insert(polygonVerts, b)
+
                                     curPt = b
                                     usedCount = usedCount + 1
                                     found = true
                                     break
                                 elseif dist2(curPt, b) <= offset2 then
                                     used[i] = true
-                                    table.insert(polygonVerts, a)
                                     table.insert(polygonVerts, b)
+                                    table.insert(polygonVerts, a)
+
                                     curPt = a
                                     usedCount = usedCount + 1
                                     found = true
@@ -319,7 +372,8 @@ function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
                 if not failed and dist2(polygonVerts[1], curPt) <= offset2 then
                     -- Explicitly close the polygon by appending the starting vertex (preserve original object)
                     --table.insert(polygonVerts, polygonVerts[1])
-                    return polygonVerts
+                    local dedup = remove_duplicate_vertices(polygonVerts, { precision = 3, inplace = false })
+                    return dedup
                 end
             end
         end
@@ -450,6 +504,283 @@ function AETHR.POLY:ensureConvex(coords)
     end
     return coords
 end
+
+function AETHR.POLY:ensureConvexN(coords)
+    local n = #coords
+    if n < 3 then return coords end
+    local function getY(p) return p.y or p.z or 0 end
+
+    local function signedArea2(tbl)
+        local area = 0
+        for i = 1, #tbl do
+            local j = (i % #tbl) + 1
+            local xi = tbl[i].x or 0
+            local yi = getY(tbl[i])
+            local xj = tbl[j].x or 0
+            local yj = getY(tbl[j])
+            area = area + (xi * yj - xj * yi)
+        end
+        return area
+    end
+
+    local function isConsistentlyOriented(tbl)
+        local hasPos, hasNeg = false, false
+        local m = #tbl
+        for i = 1, m do
+            local i2 = (i % m) + 1
+            local i3 = ((i + 1) % m) + 1
+            local cp = self.MATH:crossProduct(tbl[i], tbl[i2], tbl[i3])
+            if cp > 0 then hasPos = true end
+            if cp < 0 then hasNeg = true end
+            if hasPos and hasNeg then
+                return false
+            end
+        end
+        return true
+    end
+
+    -- If already consistently oriented, just ensure CCW and return
+    if isConsistentlyOriented(coords) then
+        if signedArea2(coords) < 0 then
+            local a, b = 1, n
+            while a < b do
+                coords[a], coords[b] = coords[b], coords[a]
+                a = a + 1
+                b = b - 1
+            end
+        end
+        return coords
+    end
+
+    -- Build centroid-ordered polygon (preserves all points)
+    local cx, cy = self.MATH:centroid(coords)
+    local items = {}
+    for i = 1, n do
+        local p = coords[i]
+        local x = p.x or 0
+        local y = getY(p)
+        items[i] = {
+            pt = p,
+            ang = math.atan2(y - cy, x - cx),
+            r2 = (x - cx) * (x - cx) + (y - cy) * (y - cy)
+        }
+    end
+
+    table.sort(items, function(a, b)
+        if a.ang == b.ang then
+            return a.r2 < b.r2
+        end
+        return a.ang < b.ang
+    end)
+
+    local order = {}
+    for i = 1, n do order[i] = items[i].pt end
+
+    -- Ensure CCW
+    if signedArea2(order) < 0 then
+        local a, b = 1, n
+        while a < b do
+            order[a], order[b] = order[b], order[a]
+            a = a + 1
+            b = b - 1
+        end
+    end
+
+    -- If this ordering is already consistently oriented, return it
+    if isConsistentlyOriented(order) then
+        return order
+    end
+
+    -- Helper: on-segment test (works with .y or .z)
+    local function onSegment(a, b, c)
+        local ax, ay = a.x or 0, getY(a)
+        local bx, by = b.x or 0, getY(b)
+        local cx2, cy2 = c.x or 0, getY(c)
+        if bx >= math.min(ax, cx2) and bx <= math.max(ax, cx2) and
+            by >= math.min(ay, cy2) and by <= math.max(ay, cy2) then
+            return true
+        end
+        return false
+    end
+
+    -- Helper: segment intersection test using crossProduct (ignores adjacent edges sharing endpoints)
+    local function segmentsIntersect(p1, q1, p2, q2)
+        -- treat shared endpoints as non-intersecting (we only want true crossings)
+        if p1 == p2 or p1 == q2 or q1 == p2 or q1 == q2 then return false end
+
+
+        local o1 = self.MATH:crossProduct(p1, q1, p2)
+        local o2 = self.MATH:crossProduct(p1, q1, q2)
+        local o3 = self.MATH:crossProduct(p2, q2, p1)
+        local o4 = self.MATH:crossProduct(p2, q2, q1)
+
+        local function sgn(v)
+            if v > 0 then return 1 elseif v < 0 then return -1 else return 0 end
+        end
+
+        local s1, s2, s3, s4 = sgn(o1), sgn(o2), sgn(o3), sgn(o4)
+        if s1 ~= s2 and s3 ~= s4 then
+            return true
+        end
+        if s1 == 0 and onSegment(p1, p2, q1) then return true end
+        if s2 == 0 and onSegment(p1, q2, q1) then return true end
+        if s3 == 0 and onSegment(p2, p1, q2) then return true end
+        if s4 == 0 and onSegment(p2, q1, q2) then return true end
+        return false
+    end
+
+    -- 2-opt untangling: find crossing edges and reverse the subsequence between them
+    local m = #order
+    local maxIter = m * m
+    local iter = 0
+    local changed = true
+    while changed and iter < maxIter do
+        iter = iter + 1
+        changed = false
+        m = #order
+        for i = 1, m do
+            local i2 = (i % m) + 1
+            for j = i + 2, m do
+                local j2 = (j % m) + 1
+                -- skip adjacent edges (including wrap-around)
+                if not (i == j2 or i2 == j) then
+                    if segmentsIntersect(order[i], order[i2], order[j], order[j2]) then
+                        -- reverse vertices between i2 and j (inclusive) to remove crossing
+                        local a, b = i2, j
+                        while a < b do
+                            order[a], order[b] = order[b], order[a]
+                            a = a + 1
+                            b = b - 1
+                        end
+                        changed = true
+                        break
+                    end
+                end
+            end
+            if changed then break end
+        end
+    end
+
+    -- Ensure CCW for the final result
+    if signedArea2(order) < 0 then
+        local a, b = 1, #order
+        while a < b do
+            order[a], order[b] = order[b], order[a]
+            a = a + 1
+            b = b - 1
+        end
+    end
+
+    -- Return best-effort ordering that preserves all original vertices (does not remove collinear points)
+    return order
+end
+
+-- --- Ensures a polygon (N vertices) is convex.
+-- --- If the polygon is already consistently oriented it will be returned (forced to CCW).
+-- --- If the polygon is not convex it returns the convex hull (CCW) of the input points.
+-- --- @function ensureConvex
+-- --- @param coords table Array of points { x = number, y = number } or { x = number, z = number }
+-- --- @return table Array of points forming a convex polygon (CCW). May have fewer points than input if some were interior.
+-- function AETHR.POLY:ensureConvexN(coords)
+--     local n = #coords
+--     if n < 3 then
+--         return coords
+--     end
+
+--     local getY = function(p) return p.y or p.z or 0 end
+
+--     -- quick check: detect whether all cross products have the same sign
+--     local hasPos, hasNeg = false, false
+--     for i = 1, n do
+--         local i2 = (i % n) + 1
+--         local i3 = ((i + 1) % n) + 1
+--         local cp = self.MATH:crossProduct(coords[i], coords[i2], coords[i3])
+--         if cp > 0 then hasPos = true end
+--         if cp < 0 then hasNeg = true end
+--         if hasPos and hasNeg then break end
+--     end
+
+--     -- If all turns are of the same sign (or all zero) the polygon is consistently oriented.
+--     if not (hasPos and hasNeg) then
+--         -- Ensure CCW orientation by checking signed area (shoelace)
+--         local area2 = 0
+--         for i = 1, n do
+--             local j = (i % n) + 1
+--             local xi = coords[i].x or 0
+--             local yi = coords[i].y or coords[i].z or 0
+--             local xj = coords[j].x or 0
+--             local yj = coords[j].y or coords[j].z or 0
+--             area2 = area2 + (xi * yj - xj * yi)
+--         end
+--         if area2 < 0 then
+--             -- reverse order in-place to make CCW
+--             local a, b = 1, n
+--             while a < b do
+--                 coords[a], coords[b] = coords[b], coords[a]
+--                 a = a + 1
+--                 b = b - 1
+--             end
+--         end
+--         return coords
+--     end
+
+--     -- Mixed signs -> not convex. Compute convex hull using monotone chain (Andrew).
+--     -- Copy points so we don't mutate input order
+--     local pts = {}
+--     for i = 1, n do pts[i] = coords[i] end
+
+--     table.sort(pts, function(a, b)
+--         local ax, bx = a.x or 0, b.x or 0
+--         if ax == bx then
+--             local ay = a.y or a.z or 0
+--             local by = b.y or b.z or 0
+--             return ay < by
+--         end
+--         return ax < bx
+--     end)
+
+--     -- remove exact duplicates (same x and same y/z)
+--     local unique = {}
+--     for i = 1, #pts do
+--         if i == 1 or pts[i].x ~= pts[i - 1].x or (pts[i].y or pts[i].z) ~= (pts[i - 1].y or pts[i - 1].z) then
+--             unique[#unique + 1] = pts[i]
+--         end
+--     end
+
+--     if #unique < 3 then
+--         return unique
+--     end
+
+--     local function cross(o, a, b)
+--         return self.MATH:crossProduct(o, a, b)
+--     end
+
+--     local lower = {}
+--     for i = 1, #unique do
+--         -- use < 0 so collinear hull-edge points are preserved
+--         while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], unique[i]) < 0 do
+--             table.remove(lower)
+--         end
+--         table.insert(lower, unique[i])
+--     end
+
+--     local upper = {}
+--     for i = #unique, 1, -1 do
+--         while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], unique[i]) < 0 do
+--             table.remove(upper)
+--         end
+--         table.insert(upper, unique[i])
+--     end
+
+--     -- Concatenate lower + upper, removing the last element of each (it's the start of the other)
+--     table.remove(lower) -- remove duplicate endpoint
+--     table.remove(upper)
+--     for i = 1, #upper do
+--         table.insert(lower, upper[i])
+--     end
+
+--     return lower -- hull in CCW order
+-- end
 
 --- Converts axis-aligned world bounds into a 4-point polygon.
 --- Ensures convexity of the resulting polygon.
@@ -1028,4 +1359,85 @@ function AETHR.POLY:densifyHullEdges(hull, polygons, samplesPerEdge, snapDistanc
     end
 
     return newHull
+end
+
+function AETHR.POLY:findOverlaidPolygonGaps(smallerPolygon, largerPolygon, offset)
+    offset = offset or 1
+
+    local offset2 = offset * offset
+
+    local function getY(pt)
+        if not pt then return nil end
+        if pt.y ~= nil then return pt.y end
+        return pt.z
+    end
+
+    local function dist2(a, b)
+        local ax = (a and a.x) or 0
+        local ay = getY(a) or 0
+        local bx = (b and b.x) or 0
+        local by = getY(b) or 0
+        local dx = ax - bx
+        local dy = ay - by
+        return dx * dx + dy * dy
+    end
+
+
+    local polygonGaps = {}
+    local largerPolygonLines = self:convertPolygonToLines(largerPolygon)
+    local smallIndexes = {}
+
+    for i, LargePolyLine in ipairs(largerPolygonLines) do
+        local largeA = LargePolyLine[1]
+        local largeB = LargePolyLine[2]
+        smallIndexes[i] = {}
+        for j = #smallerPolygon, 1, -1 do
+            if dist2(largeA, smallerPolygon[j]) <= offset2 or dist2(largeB, smallerPolygon[j]) <= offset2 then --smallPolyVert == largeA or smallPolyVert == largeB then
+                smallIndexes[i][#smallIndexes[i] + 1] = j
+            end
+        end
+    end
+    local sanitizedSmallIndexes = {}
+    for index, value in ipairs(smallIndexes) do
+        if #value >= 2 then
+            local _max = math.max(unpack(value))
+            local _min = math.min(unpack(value))
+            if _max - _min >= 2 then
+                local checkCW = {}
+                local checkCCW = {}
+
+                for i = _max, _min, -1 do
+                    checkCCW[#checkCCW + 1] = i
+                end
+
+                for i = _max, #smallerPolygon do
+                    checkCW[#checkCW + 1] = i
+                end
+                for i = 1, _min do
+                    checkCW[#checkCW + 1] = i
+                end
+
+                if #checkCCW <= #checkCW then
+                    sanitizedSmallIndexes[index] = checkCCW
+                else
+                    sanitizedSmallIndexes[index] = checkCW
+                end
+            end
+        end
+    end
+    for bigLineNumber, val in pairs(sanitizedSmallIndexes) do
+        local assembledGap = {}
+        for __, _val in ipairs(val) do
+            assembledGap[#assembledGap + 1] = smallerPolygon[_val]
+        end
+
+
+
+
+
+
+        
+        polygonGaps[#polygonGaps + 1] = assembledGap
+    end
+    return polygonGaps
 end

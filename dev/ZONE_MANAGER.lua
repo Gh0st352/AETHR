@@ -22,6 +22,7 @@ AETHR.ZONE_MANAGER.DATA = {
         masterPolyLines = {},
         masterPolyVerts = {},
     },
+    boundsGaps = {},
 
 }
 
@@ -804,3 +805,4 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
 
     return self
 end
+
