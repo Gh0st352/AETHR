@@ -297,7 +297,7 @@ end
 --- @param markerID number|nil Marker id
 --- @param zoneVertices table|nil Array of vec2 vertices ({x,y} or {x,z}). If nil, pulled from self.DATA.MIZ_ZONES.
 --- @param worldBounds table|nil Bounds structure with X.min/X.max and Z.min/Z.max. If nil, uses CONFIG.MAIN.worldBounds.Caucasus.
---- @param opts table|nil Options: { samplesPerEdge = int, useHoleSinglePolygon = bool }
+--- @param opts table|nil Options: { samplesPerEdge = int, useHoleSinglePolygon = bool, snapDistance = number } Optional: snapDistance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity. Default 0.1.
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, linetype, markerID, zoneVertices, worldBounds, opts)
     opts = opts or {}
@@ -686,14 +686,57 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
 
         -- Optionally densify hull edges
         if samplesPerEdge and samplesPerEdge > 0 then
+            local origLines = nil
             local densified = {}
             for i = 1, #hull do
                 local j = (i % #hull) + 1
                 table.insert(densified, hull[i])
                 local line = { { x = hull[i].x, y = hull[i].y }, { x = hull[j].x, y = hull[j].y } }
                 local samples = self.POLY:getEquallySpacedPoints(line, samplesPerEdge)
+                -- Attempt to snap each sample to the nearest original polygon segment, if within tolerance.
                 for _, s in ipairs(samples) do
-                    table.insert(densified, { x = s.x, y = s.y })
+                    -- build origLines on first use
+                    if not origLines then
+                        origLines = {}
+                        for _, poly in ipairs(polygons) do
+                            local segs = self.POLY:convertPolygonToLines(poly)
+                            for _, seg in ipairs(segs) do table.insert(origLines, seg) end
+                        end
+                    end
+
+                    local bestLine = nil
+                    local bestDist2 = math.huge
+                    for _, ln in ipairs(origLines) do
+                        local ax, ay = ln[1].x, ln[1].y
+                        local bx, by = ln[2].x, ln[2].y
+                        local d2 = self.POLY:pointToSegmentSquared(s.x, s.y, ax, ay, bx, by)
+                        if d2 < bestDist2 then
+                            bestDist2 = d2
+                            bestLine = ln
+                        end
+                    end
+
+                    -- tolerance (meters) under which we snap samples to original polygon segments
+                    local snapDistance = (opts and opts.snapDistance) and opts.snapDistance or 0.1
+                    local snapThreshold2 = snapDistance * snapDistance
+
+                    if bestLine and bestDist2 <= snapThreshold2 then
+                        -- project sample onto bestLine
+                        local ax, ay = bestLine[1].x, bestLine[1].y
+                        local bx, by = bestLine[2].x, bestLine[2].y
+                        local l2 = self.MATH:distanceSquared(ax, ay, bx, by)
+                        local t = 0
+                        if l2 > 0 then
+                            t = self.MATH:dot(s.x - ax, s.y - ay, bx - ax, by - ay) / l2
+                            if t < 0 then t = 0 end
+                            if t > 1 then t = 1 end
+                        end
+                        local projx = ax + t * (bx - ax)
+                        local projy = ay + t * (by - ay)
+                        table.insert(densified, { x = projx, y = projy })
+                    else
+                        table.insert(densified, { x = s.x, y = s.y })
+                    end
                 end
             end
             hull = densified
@@ -763,4 +806,3 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
 
     return self
 end
-

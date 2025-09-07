@@ -52,7 +52,7 @@ G_AETHR.ENUMS.LineTypes.Dashed,
 G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
 nil, --zoneVerts,
 G_AETHR.CONFIG.MAIN.worldBounds.Caucasus,
-{samplesPerEdge = 20}
+{samplesPerEdge = 100, snapDistance = 60000}
 )
 
 G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
