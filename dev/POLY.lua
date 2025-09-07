@@ -32,9 +32,8 @@ function AETHR.POLY:segmentsIntersect(p1, p2, q1, q2)
 
     -- General intersection case.
     return (o1 > 0 and o2 < 0 or o1 < 0 and o2 > 0)
-       and (o3 > 0 and o4 < 0 or o3 < 0 and o4 > 0)
+        and (o3 > 0 and o4 < 0 or o3 < 0 and o4 > 0)
 end
-
 
 --- @function AETHR.POLY.pointInPolygon
 --- @brief Tests if point lies inside polygon using ray-casting algorithm.
@@ -107,7 +106,7 @@ end
 --- @return boolean True if c lies on segment, false otherwise.
 function AETHR.POLY:onSegment(a, c, b)
     return c.x >= math.min(a.x, b.x) and c.x <= math.max(a.x, b.x)
-       and c.y >= math.min(a.y, b.y) and c.y <= math.max(a.y, b.y)
+        and c.y >= math.min(a.y, b.y) and c.y <= math.max(a.y, b.y)
 end
 
 --- @function AETHR.POLY.getBoxPoints
@@ -150,7 +149,7 @@ end
 --- @return boolean True if P is inside the polygon (or on an edge when onLine returns true), false otherwise.
 function AETHR.POLY:PointWithinShape(P, Polygon)
     local n = #Polygon
-    
+
     -- Get the appropriate vertical coordinate from P
     local vertCoord = P.y or P.z
 
@@ -169,18 +168,18 @@ function AETHR.POLY:PointWithinShape(P, Polygon)
     -- Use a loop to iterate through all sides of the polygon
     repeat
         local next = (i % n) + 1
-        
+
         -- Create normalized points with consistent coordinate naming
-        local p1 = { 
-            x = Polygon[i].x, 
-            y = Polygon[i].y or Polygon[i].z 
+        local p1 = {
+            x = Polygon[i].x,
+            y = Polygon[i].y or Polygon[i].z
         }
-        
-        local p2 = { 
-            x = Polygon[next].x, 
-            y = Polygon[next].y or Polygon[next].z 
+
+        local p2 = {
+            x = Polygon[next].x,
+            y = Polygon[next].y or Polygon[next].z
         }
-        
+
         local side = { p1 = p1, p2 = p2 }
         local normalizedP = { x = P.x, y = vertCoord }
 
@@ -202,7 +201,6 @@ function AETHR.POLY:PointWithinShape(P, Polygon)
     return (count % 2) == 1
 end
 
-
 --------------------------------------------------------------------------------
 --- Constructs a volume descriptor representing an axis-aligned box used by the runtime/world layer.
 ---
@@ -216,7 +214,7 @@ end
 --- @return table Volume descriptor in the form { id = world.VolumeType.BOX, params = { min = WS_Vec3, max = EN_Vec3 } }.
 function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     local box = {
-        id =  world.VolumeType.BOX,
+        id = world.VolumeType.BOX,
         params = {
             min = WS_Vec3,
             max = EN_Vec3
@@ -225,7 +223,7 @@ function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     return box
 end
 
---- Convert unordered line segments into an ordered polygon chain without mutating coordinates.
+--- Convert unordered line segments into an ordered polygon vertex chain without mutating coordinates.
 --- Behavior:
 --- - Endpoints within `vertOffset` are considered connected (consecutive) but original coordinates are preserved.
 --- - Walk the chain by following connected segments; if the chain closes, return the ordered list.
@@ -233,78 +231,102 @@ end
 --- Example:
 --- local poly = AETHR.POLY:convertLinesToPolygon(masterPolyLines, 0.1)
 function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
-    local offset = vertOffset or 0.1
+
+    if type(lines) ~= "table" or #lines == 0 then
+        return nil
+    end
+
+    local offset = vertOffset or 0
     local offset2 = offset * offset
+
     local function getY(pt)
-        return pt.y or pt.z
-    end
-    local function pointNear(a, b)
-        return self.MATH:distanceSquared(a.x, getY(a), b.x, getY(b)) <= offset2
+        if not pt then return nil end
+        if pt.y ~= nil then return pt.y end
+        return pt.z
     end
 
-    local visited = {}
-    local polygonVerts = {}
+    local function dist2(a, b)
+        local ax = (a and a.x) or 0
+        local ay = getY(a) or 0
+        local bx = (b and b.x) or 0
+        local by = getY(b) or 0
+        local dx = ax - bx
+        local dy = ay - by
+        return dx * dx + dy * dy
+    end
 
-    -- determine starting point (smallest x, then smallest y)
-    local startIdx, startEnd
-    local startPt, startY
-    for i, line in ipairs(lines) do
-        for j = 1, 2 do
-            local pt = line[j]
-            local y = getY(pt)
-            if not startPt or pt.x < startPt.x or (pt.x == startPt.x and y < startY) then
-                startPt = pt
-                startY = y
-                startIdx = i
-                startEnd = j
+    local totalLines = #lines
+
+    -- Try every line as a starting segment, both orientations.
+    for startIdx = 1, totalLines do
+        for orient = 1, 2 do
+            -- used array tracks which segments we've consumed; do NOT mutate `lines`.
+            local used = {}
+            for i = 1, totalLines do used[i] = false end
+            used[startIdx] = true
+
+            local startPt, curPt
+            if orient == 1 then
+                startPt = lines[startIdx][1]
+                curPt   = lines[startIdx][2]
+            else
+                startPt = lines[startIdx][2]
+                curPt   = lines[startIdx][1]
             end
-        end
-    end
 
-    if not startIdx then
-        return polygonVerts
-    end
+            if not startPt or not curPt then
+                -- malformed segment, skip this orientation
+            else
+                local polygonVerts = { startPt, curPt }
+                local usedCount = 1
+                local failed = false
 
-    -- initialize polygon with first segment
-    local firstPt = startPt
-    local secondPt = lines[startIdx][3 - startEnd]
-    visited[startIdx] = true
-    table.insert(polygonVerts, firstPt)
-    table.insert(polygonVerts, secondPt)
+                while usedCount < totalLines do
+                    local found = false
+                    for i = 1, totalLines do
+                        if not used[i] then
+                            local a = lines[i][1]
+                            local b = lines[i][2]
+                            if a and b then
+                                if dist2(curPt, a) <= offset2 then
+                                    used[i] = true
+                                    table.insert(polygonVerts, b)
+                                    table.insert(polygonVerts, a)
+                                    curPt = b
+                                    usedCount = usedCount + 1
+                                    found = true
+                                    break
+                                elseif dist2(curPt, b) <= offset2 then
+                                    used[i] = true
+                                    table.insert(polygonVerts, a)
+                                    table.insert(polygonVerts, b)
+                                    curPt = a
+                                    usedCount = usedCount + 1
+                                    found = true
+                                    break
+                                end
+                            end
+                        end
+                    end
 
-    local current = secondPt
+                    if not found then
+                        failed = true
+                        break
+                    end
+                end
 
-    -- walk the chain
-    while true do
-        local foundIdx, nextPt
-        for i, line in ipairs(lines) do
-            if not visited[i] then
-                if pointNear(line[1], current) then
-                    foundIdx = i
-                    nextPt = line[2]
-                    break
-                elseif pointNear(line[2], current) then
-                    foundIdx = i
-                    nextPt = line[1]
-                    break
+                -- If we used all segments and current point connects back to start, return polygon
+                if not failed and dist2(polygonVerts[1], curPt) <= offset2 then
+                    -- Explicitly close the polygon by appending the starting vertex (preserve original object)
+                    --table.insert(polygonVerts, polygonVerts[1])
+                    return polygonVerts
                 end
             end
         end
-        if not foundIdx then
-            break
-        end
-        visited[foundIdx] = true
-        -- check for closure
-        if pointNear(nextPt, polygonVerts[1]) and #polygonVerts >= 3 then
-            break
-        end
-        table.insert(polygonVerts, nextPt)
-        current = nextPt
     end
 
-    return polygonVerts
+    return nil
 end
-
 
 --- Converts a polygon (list of points) into an array of line segments.
 --- @function convertZoneToLines
@@ -315,7 +337,7 @@ function AETHR.POLY:convertPolygonToLines(zone)
     for i = 1, #zone do
         local j = (i % #zone) + 1
         table.insert(lines, { { x = zone[i].x, y = zone[i].y or zone[i].z },
-                              { x = zone[j].x, y = zone[j].y or zone[j].z } })
+            { x = zone[j].x, y = zone[j].y or zone[j].z } })
     end
     return lines
 end
@@ -327,20 +349,20 @@ end
 --- @param targetArea number Desired area per sub-polygon
 --- @return table Array of division tables `{ corners = {pt1,pt2,pt3,pt4} }`
 function AETHR.POLY:dividePolygon(polygon, targetArea)
-    local total = self:polygonArea(polygon)
-    local count = math.max(1, math.floor(total / targetArea + 0.5))
+    local total     = self:polygonArea(polygon)
+    local count     = math.max(1, math.floor(total / targetArea + 0.5))
 
     -- Define left and right edges
     local leftEdge  = { polygon[1], polygon[4] }
     local rightEdge = { polygon[2], polygon[3] }
 
     -- Determine grid shape by aspect ratio
-    local width  = math.sqrt((polygon[2].x - polygon[1].x)^2 + (polygon[2].z - polygon[1].z)^2)
-    local height = math.sqrt((polygon[4].x - polygon[1].x)^2 + (polygon[4].z - polygon[1].z)^2)
-    local ratio  = width / height
+    local width     = math.sqrt((polygon[2].x - polygon[1].x) ^ 2 + (polygon[2].z - polygon[1].z) ^ 2)
+    local height    = math.sqrt((polygon[4].x - polygon[1].x) ^ 2 + (polygon[4].z - polygon[1].z) ^ 2)
+    local ratio     = width / height
 
-    local cols = math.ceil(math.sqrt(count * ratio))
-    local rows = math.ceil(count / cols)
+    local cols      = math.ceil(math.sqrt(count * ratio))
+    local rows      = math.ceil(count / cols)
     -- Adjust if grid smaller than needed
     while rows * cols < count do
         if width > height then cols = cols + 1 else rows = rows + 1 end
@@ -349,28 +371,44 @@ function AETHR.POLY:dividePolygon(polygon, targetArea)
     local divisions = {}
     -- Generate grid divisions
     for r = 0, rows - 1 do
-        local tFrac, bFrac = (r+1)/rows, r/rows
-        local bottomLeft  = { x = leftEdge[1].x  + bFrac*(leftEdge[2].x - leftEdge[1].x),
-                              z = leftEdge[1].z  + bFrac*(leftEdge[2].z - leftEdge[1].z)}
-        local bottomRight = { x = rightEdge[1].x + bFrac*(rightEdge[2].x - rightEdge[1].x),
-                              z = rightEdge[1].z + bFrac*(rightEdge[2].z - rightEdge[1].z)}
-        local topLeft     = { x = leftEdge[1].x  + tFrac*(leftEdge[2].x - leftEdge[1].x),
-                              z = leftEdge[1].z  + tFrac*(leftEdge[2].z - leftEdge[1].z)}
-        local topRight    = { x = rightEdge[1].x + tFrac*(rightEdge[2].x - rightEdge[1].x),
-                              z = rightEdge[1].z + tFrac*(rightEdge[2].z - rightEdge[1].z)}
+        local tFrac, bFrac = (r + 1) / rows, r / rows
+        local bottomLeft   = {
+            x = leftEdge[1].x + bFrac * (leftEdge[2].x - leftEdge[1].x),
+            z = leftEdge[1].z + bFrac * (leftEdge[2].z - leftEdge[1].z)
+        }
+        local bottomRight  = {
+            x = rightEdge[1].x + bFrac * (rightEdge[2].x - rightEdge[1].x),
+            z = rightEdge[1].z + bFrac * (rightEdge[2].z - rightEdge[1].z)
+        }
+        local topLeft      = {
+            x = leftEdge[1].x + tFrac * (leftEdge[2].x - leftEdge[1].x),
+            z = leftEdge[1].z + tFrac * (leftEdge[2].z - leftEdge[1].z)
+        }
+        local topRight     = {
+            x = rightEdge[1].x + tFrac * (rightEdge[2].x - rightEdge[1].x),
+            z = rightEdge[1].z + tFrac * (rightEdge[2].z - rightEdge[1].z)
+        }
 
         for c = 0, cols - 1 do
-            local lFrac, rFrac = c/cols, (c+1)/cols
+            local lFrac, rFrac = c / cols, (c + 1) / cols
             -- Interpolate four corners
             local poly = {
-                { x = bottomLeft.x  + lFrac*(bottomRight.x - bottomLeft.x),
-                  z = bottomLeft.z  + lFrac*(bottomRight.z - bottomLeft.z)},
-                { x = bottomLeft.x  + rFrac*(bottomRight.x - bottomLeft.x),
-                  z = bottomLeft.z  + rFrac*(bottomRight.z - bottomLeft.z)},
-                { x = topLeft.x     + rFrac*(topRight.x     - topLeft.x),
-                  z = topLeft.z     + rFrac*(topRight.z     - topLeft.z)},
-                { x = topLeft.x     + lFrac*(topRight.x     - topLeft.x),
-                  z = topLeft.z     + lFrac*(topRight.z     - topLeft.z)},
+                {
+                    x = bottomLeft.x + lFrac * (bottomRight.x - bottomLeft.x),
+                    z = bottomLeft.z + lFrac * (bottomRight.z - bottomLeft.z)
+                },
+                {
+                    x = bottomLeft.x + rFrac * (bottomRight.x - bottomLeft.x),
+                    z = bottomLeft.z + rFrac * (bottomRight.z - bottomLeft.z)
+                },
+                {
+                    x = topLeft.x + rFrac * (topRight.x - topLeft.x),
+                    z = topLeft.z + rFrac * (topRight.z - topLeft.z)
+                },
+                {
+                    x = topLeft.x + lFrac * (topRight.x - topLeft.x),
+                    z = topLeft.z + lFrac * (topRight.z - topLeft.z)
+                },
             }
             table.insert(divisions, { corners = poly })
         end
@@ -439,7 +477,7 @@ end
 function AETHR.POLY:lineLength(line)
     local dx = line[2].x - line[1].x
     local dy = line[2].y - line[1].y
-    return math.sqrt(dx*dx + dy*dy)
+    return math.sqrt(dx * dx + dy * dy)
 end
 
 --------------------------------------------------------------------------------
@@ -512,7 +550,6 @@ function AETHR.POLY:isWithinOffset(LineA, LineB, Offset)
     return checkPointsWithinOffset(LineA, LineB) or checkPointsWithinOffset(LineB, LineA)
 end
 
-
 --------------------------------------------------------------------------------
 --- Computes the squared distance from a point to a segment in 2D.
 ---
@@ -546,8 +583,6 @@ function AETHR.POLY:pointToSegmentSquared(px, py, ax, ay, bx, by)
     -- Compute the squared distance from the point to its projection on the segment
     return self.MATH:distanceSquared(px, py, ax + t * (bx - ax), ay + t * (by - ay))
 end
-
-
 
 --------------------------------------------------------------------------------
 --- Returns the midpoint of a line segment.
@@ -619,10 +654,6 @@ function AETHR.POLY:findPerpendicularEndpoints(Point, line, length)
     local y = Point.y + m_perpendicular * (x - Point.x)
     return { x = x, y = y }
 end
-
-
-
-
 
 --------------------------------------------------------------------------------
 --- Tests whether two line segments intersect.
@@ -716,7 +747,7 @@ function AETHR.POLY:concaveHull(pts, opts)
             if not ptEqual(p, pt) then
                 local dx = p.x - pt.x
                 local dy = p.y - pt.y
-                table.insert(list, { p = p, d = dx*dx + dy*dy })
+                table.insert(list, { p = p, d = dx * dx + dy * dy })
             end
         end
         table.sort(list, function(a, b) return a.d < b.d end)
@@ -787,12 +818,16 @@ function AETHR.POLY:concaveHull(pts, opts)
             local found = nil
             for _, cand in ipairs(neighbors) do
                 if ptEqual(cand, hull[1]) and step >= 3 then
-                    if not segmentIntersectsExisting(current, cand, hull) then found = cand; break end
+                    if not segmentIntersectsExisting(current, cand, hull) then
+                        found = cand; break
+                    end
                 elseif not (function()
-                    for _, q in ipairs(hull) do if ptEqual(q, cand) then return true end end
-                    return false
-                end)() then
-                    if not segmentIntersectsExisting(current, cand, hull) then found = cand; break end
+                        for _, q in ipairs(hull) do if ptEqual(q, cand) then return true end end
+                        return false
+                    end)() then
+                    if not segmentIntersectsExisting(current, cand, hull) then
+                        found = cand; break
+                    end
                 end
             end
 
@@ -846,7 +881,10 @@ function AETHR.POLY:convexHull(points)
     if not points or #points < 3 then return nil end
     local pts = {}
     for _, p in ipairs(points) do table.insert(pts, { x = p.x, y = p.y }) end
-    table.sort(pts, function(a, b) if a.x == b.x then return a.y < b.y end return a.x < b.x end)
+    table.sort(pts, function(a, b)
+        if a.x == b.x then return a.y < b.y end
+        return a.x < b.x
+    end)
     local function cross(a, b, c) return self.MATH:crossProduct(a, b, { x = c.x, y = c.y }) end
     local lower, upper = {}, {}
     for i = 1, #pts do
