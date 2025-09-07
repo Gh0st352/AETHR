@@ -19,7 +19,7 @@ AETHR_DYNAMIC_LOADER     = AETHR_DYNAMIC_LOADER_FOLDER .. "/AETHR_Dynamic_Loader
 dofile('Scripts/ScriptingSystem.lua')
 
 
-package.cpath = package.cpath .. ';C:/Users/Administrator/.vscode/extensions/tangzx.emmylua-0.9.22-win32-x64/debugger/emmy/windows/x64/?.dll'
+package.cpath = package.cpath .. ';C:/Users/Administrator/.vscode/extensions/tangzx.emmylua-0.9.28-win32-x64/debugger/emmy/windows/x64/?.dll'
 local dbg = require('emmy_core')
 dbg.tcpConnect('localhost', 9966)
 

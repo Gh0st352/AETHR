@@ -32,23 +32,35 @@ function AETHR.WORLD:New(parent)
 end
 
 --- Displays active world divisions on the map with randomized colors.
-function AETHR.WORLD:_markWorldDivisions()
-    local divisions = self.DATA.worldDivisions
-    local shapeID = 352352352     -- Base marker ID
+function AETHR.WORLD:markWorldDivisions()
+    local divisions = self.DATA.saveDivisions
+    local shapeID = self.CONFIG.MAIN.COUNTERS.MARKERS -- 352352352     -- Base marker ID
     local r, g, b = 0.1, 0.1, 0.1 -- Initial RGB components
+    local alpha1 = 0.8
+    local alpha2 = 0.3
+    local linetype = 4 -- Dot Dash
 
-    for _, div in ipairs(divisions) do
-        if div.active then
+    for _, div in pairs(divisions) do
+
+        local shapeTypeID = 7 -- Polygon shape type
+        local coalition = -1 -- All coalitions
+        local vec3_1 = { x = div.corners[4].x, y = 0, z = div.corners[4].z }
+        local vec3_2 = { x = div.corners[3].x, y = 0, z = div.corners[3].z }
+        local vec3_3 = { x = div.corners[2].x, y = 0, z = div.corners[2].z }
+        local vec3_4 = { x = div.corners[1].x, y = 0, z = div.corners[1].z }
+
+
+       -- if div.active then
             -- Draw polygon on map
             trigger.action.markupToAll(
-                7, -1, shapeID,
-                { x = div.corners[4].x, y = 0, z = div.corners[4].z },
-                { x = div.corners[3].x, y = 0, z = div.corners[3].z },
-                { x = div.corners[2].x, y = 0, z = div.corners[2].z },
-                { x = div.corners[1].x, y = 0, z = div.corners[1].z },
-                { r, g, b, 0.8 },                   -- Fill color
-                { r + 0.2, g + 0.4, b + 0.8, 0.3 }, -- Border color
-                4, true
+                shapeTypeID, coalition, shapeID,
+                vec3_1,
+                vec3_2,
+                vec3_3,
+                vec3_4,
+                { r, g, b, alpha1 },                   -- Fill color
+                { r + 0.2, g + 0.4, b + 0.8, alpha2 }, -- Border color
+                linetype, true
             )
             shapeID = shapeID + 1 -- Increment marker ID
 
@@ -56,8 +68,10 @@ function AETHR.WORLD:_markWorldDivisions()
             r = (r + math.random()) % 1
             g = (g + math.random()) % 1
             b = (b + math.random()) % 1
-        end
+      --  end
     end
+    self.CONFIG.MAIN.COUNTERS.MARKERS = shapeID
+    return self
 end
 
 --- Searches for objects of a given category within a 3D box volume.
@@ -342,11 +356,19 @@ function AETHR.WORLD:objectsInDivision(divisionID, objectCategory)
     return self:searchObjectsBox(objectCategory, div.corners, div.height or 2000)
 end
 
-function AETHR.WORLD:initSceneryInDivisions()
-    local objectCategory = self.AETHR.ENUMS.ObjectCategory.SCENERY
-    for id, _ in pairs(self.DATA.saveDivisions) do
-        local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
-        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.SCENERY_OBJECTS_FILE
+-- Internal helper to initialize objects for any category across active divisions.
+-- Reduces duplication across initSceneryInDivisions, initBaseInDivisions, initStaticInDivisions.
+function AETHR.WORLD:_initObjectsInDivisions(objectCategory, filename, targetField)
+    local storage = self.CONFIG.MAIN.STORAGE
+    local root = storage.PATHS.OBJECTS_FOLDER
+    local saveDivs = self.DATA.saveDivisions
+
+    -- Ensure target container exists
+    self.DATA[targetField] = self.DATA[targetField] or {}
+
+    for id, _ in pairs(saveDivs) do
+        local dir = root .. "/" .. id
+        local file = objectCategory .. "_" .. filename
         local objs = self.FILEOPS:loadData(dir, file)
 
         if not objs then
@@ -356,50 +378,35 @@ function AETHR.WORLD:initSceneryInDivisions()
             end
         end
 
-        self.DATA.divisionSceneryObjects[id] = self.DATA.divisionSceneryObjects[id] or {}
-        self.DATA.divisionSceneryObjects[id] = objs
+        -- Always assign a table (prevents nil lookups later)
+        self.DATA[targetField][id] = objs or {}
     end
+
     return self
+end
+
+function AETHR.WORLD:initSceneryInDivisions()
+    return self:_initObjectsInDivisions(
+        self.AETHR.ENUMS.ObjectCategory.SCENERY,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.SCENERY_OBJECTS_FILE,
+        "divisionSceneryObjects"
+    )
 end
 
 function AETHR.WORLD:initBaseInDivisions()
-    local objectCategory = self.AETHR.ENUMS.ObjectCategory.BASE
-    for id, _ in pairs(self.DATA.saveDivisions) do
-        local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
-        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.BASE_OBJECTS_FILE
-        local objs = self.FILEOPS:loadData(dir, file)
-
-        if not objs then
-            objs = self:objectsInDivision(id, objectCategory)
-            if next(objs) then
-                self.FILEOPS:saveData(dir, file, objs)
-            end
-        end
-
-        self.DATA.divisionBaseObjects[id] = self.DATA.divisionBaseObjects[id] or {}
-        self.DATA.divisionBaseObjects[id] = objs
-    end
-    return self
+    return self:_initObjectsInDivisions(
+        self.AETHR.ENUMS.ObjectCategory.BASE,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.BASE_OBJECTS_FILE,
+        "divisionBaseObjects"
+    )
 end
 
 function AETHR.WORLD:initStaticInDivisions()
-    local objectCategory = self.AETHR.ENUMS.ObjectCategory.STATIC
-    for id, _ in pairs(self.DATA.saveDivisions) do
-        local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
-        local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.STATIC_OBJECTS_FILE
-        local objs = self.FILEOPS:loadData(dir, file)
-
-        if not objs then
-            objs = self:objectsInDivision(id, objectCategory)
-            if next(objs) then
-                self.FILEOPS:saveData(dir, file, objs)
-            end
-        end
-
-        self.DATA.divisionStaticObjects[id] = self.DATA.divisionStaticObjects[id] or {}
-        self.DATA.divisionStaticObjects[id] = objs
-    end
-    return self
+    return self:_initObjectsInDivisions(
+        self.AETHR.ENUMS.ObjectCategory.STATIC,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.STATIC_OBJECTS_FILE,
+        "divisionStaticObjects"
+    )
 end
 
 

@@ -12,7 +12,7 @@
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 AETHR.ZONE_MANAGER.DATA = {
-    MIZ_ZONES    = {},        -- Mission trigger zones keyed by name.
+    MIZ_ZONES = {},    -- Mission trigger zones keyed by name.
 }
 
 
@@ -25,7 +25,6 @@ function AETHR.ZONE_MANAGER:New(parent)
     setmetatable(instance, { __index = self })
     return instance
 end
-
 
 --- Sets mission trigger zone names (all, red and blue start).
 --- @function AETHR:setMizZones
@@ -98,7 +97,7 @@ end
 --- @function AETHR:generateMizZoneData
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:generateMizZoneData(allZoneNames)
-    local zoneNames = allZoneNames or self.CONFIG.MAIN.MIZ_ZONES.ALL 
+    local zoneNames = allZoneNames or self.CONFIG.MAIN.MIZ_ZONES.ALL
     if not zoneNames or #zoneNames == 0 then
         return self
     end
@@ -204,4 +203,27 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
         end
     end
     return MIZ_ZONES
+end
+
+function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype, cornerVec2s,markerID)
+    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a          --  RGBA components Fill
+    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a  --  RGBA components Fill
+    local shapeTypeID    = 7                                                           --  Polygon shape type
+    local vec3_1         = { x = cornerVec2s[4].x, y = 0, z = cornerVec2s[4].y }
+    local vec3_2         = { x = cornerVec2s[3].x, y = 0, z = cornerVec2s[3].y }
+    local vec3_3         = { x = cornerVec2s[2].x, y = 0, z = cornerVec2s[2].y }
+    local vec3_4         = { x = cornerVec2s[1].x, y = 0, z = cornerVec2s[1].y }
+
+    -- Draw polygon on map
+    trigger.action.markupToAll(
+        shapeTypeID, coalition, markerID,
+        vec3_1,
+        vec3_2,
+        vec3_3,
+        vec3_4,
+        { r2, g2, b2, a2 },     -- Border color
+        { r1, g1, b1, a1 },     -- Fill color
+        linetype, true
+    )
+    return self
 end

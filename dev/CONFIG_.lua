@@ -46,7 +46,7 @@ AETHR.CONFIG.MAIN = {
         AETHR_DEBUG_MODE    = false, -- Enable debug mode.
     },
     COUNTERS = {                     -- Counters for generating unique IDs.
-        MARKERS = 352352352,         -- Base ID for zone markers.
+        MARKERS = 3523523,         -- Base ID for zone markers.
     },
     STORAGE = {                      -- Filesystem storage configuration.
         SAVEGAME_DIR     = "",       -- Absolute path to the DCS savegame writable directory root.

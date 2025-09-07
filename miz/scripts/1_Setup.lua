@@ -10,7 +10,22 @@ G_AETHR:Init()
     --:determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
 
 
-G_AETHR.WORLD:_markWorldDivisions()
+G_AETHR.WORLD:markWorldDivisions()
+
+local fillColor_ = { r = 0.6, g = 0.6, b = 0.6, a = 0.3 }
+local lineColor = { r = 0, g = 0, b = 0, a = 0.6 }
+
+for _, _zone in pairs(G_AETHR.ZONE_MANAGER.DATA.MIZ_ZONES) do
+    G_AETHR.ZONE_MANAGER:drawZone(
+        -1,
+        fillColor_,
+        lineColor,
+        5,
+        _zone.verticies
+    )
+end
+
+
 -- local corners = {
 --     {
 --         x = -58333.333333333,

@@ -38,7 +38,7 @@ function AETHR._MIZ_ZONE:New(envZone)
         type = envZone.type,
         BorderOffsetThreshold = AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
         ArrowLength = AETHR.CONFIG.MAIN.Zone.ArrowLength,
-        verticies = AETHR.POLY:ensureConvex(envZone.verticies),
+        verticies = envZone.verticies,--AETHR.POLY:ensureConvex(envZone.verticies),
         ownedBy = 0,
         oldOwnedBy = 0,
         markID = 0,
