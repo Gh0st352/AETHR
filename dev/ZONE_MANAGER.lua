@@ -311,123 +311,225 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
         return self
     end
 
-    -- Gather zone vertices if not provided
-    -- Accept either:
-    --  * nil -> gather from self.DATA.MIZ_ZONES
-    --  * flat array of vec2s -> { {x=..,y=..}, ... }
+    -- Gather zone vertices into polygons list and support the three accepted input forms:
+    --  * nil -> gather polygons from self.DATA.MIZ_ZONES
+    --  * flat array of vec2s -> { {x=..,y=..}, ... }  (treated as single polygon)
     --  * array of polygons -> { { {x=..,y=..}, ... }, { ... } }
-    local points = {}
+    local polygons = {}
     if not zoneVertices then
         for _, mz in pairs(self.DATA.MIZ_ZONES or {}) do
             local verts = mz.verticies or mz.vertices or mz.Vertices or mz.Verticies
             if verts and #verts > 0 then
+                local poly = {}
                 for _, v in ipairs(verts) do
-                    table.insert(points, { x = v.x, y = v.z or v.y })
+                    table.insert(poly, { x = v.x, y = v.z or v.y })
                 end
+                table.insert(polygons, poly)
             end
         end
     else
-        -- Detect whether zoneVertices is a list of polygons (each entry is a table of points)
         if #zoneVertices > 0 and type(zoneVertices[1]) == "table" and zoneVertices[1][1] and type(zoneVertices[1][1]) == "table" then
-            -- zoneVertices is an array of polygons; flatten all polygon points
+            -- array of polygons already
             for _, poly in ipairs(zoneVertices) do
-                if poly and type(poly) == "table" then
-                    for _, v in ipairs(poly) do
-                        if v and (v.x or v.y or v.z) then
-                            table.insert(points, { x = v.x, y = v.y or v.z })
-                        end
-                    end
+                local pcopy = {}
+                for _, v in ipairs(poly) do
+                    table.insert(pcopy, { x = v.x, y = v.y or v.z })
                 end
+                table.insert(polygons, pcopy)
             end
         else
-            -- zoneVertices is a flat array of vec2s
+            -- flat array of vec2s -> treat as single polygon
+            local pcopy = {}
             for _, v in ipairs(zoneVertices) do
-                if v and (v.x or v.y or v.z) then
-                    table.insert(points, { x = v.x, y = v.y or v.z })
+                table.insert(pcopy, { x = v.x, y = v.y or v.z })
+            end
+            table.insert(polygons, pcopy)
+        end
+    end
+
+    -- Need at least one polygon with >=3 points
+    local validPolyCount = 0
+    for _, poly in ipairs(polygons) do
+        if poly and #poly >= 3 then validPolyCount = validPolyCount + 1 end
+    end
+    if validPolyCount == 0 then return self end
+
+    -- Build a concave "shrinkwrap" (k-nearest heuristic) around all polygon vertices.
+    -- Flatten unique points from all polygons
+    local allPoints = {}
+    local uniqp = {}
+    for _, poly in ipairs(polygons) do
+        for _, p in ipairs(poly) do
+            local key = string.format("%.6f,%.6f", p.x, p.y)
+            if not uniqp[key] then
+                uniqp[key] = true
+                table.insert(allPoints, { x = p.x, y = p.y })
+            end
+        end
+    end
+
+    if #allPoints < 3 then return self end
+
+    -- Helpers
+    local function ptEqual(a, b)
+        return math.abs(a.x - b.x) < 1e-9 and math.abs(a.y - b.y) < 1e-9
+    end
+
+    local function pointInArray(pt, arr)
+        for _, q in ipairs(arr) do if ptEqual(pt, q) then return true end end
+        return false
+    end
+
+    local function kNearest(pt, pts, k)
+        local list = {}
+        for _, p in ipairs(pts) do
+            if not ptEqual(p, pt) then
+                local dx = p.x - pt.x
+                local dy = p.y - pt.y
+                table.insert(list, { p = p, d = dx*dx + dy*dy })
+            end
+        end
+        table.sort(list, function(a, b) return a.d < b.d end)
+        local res = {}
+        for i = 1, math.min(k, #list) do table.insert(res, list[i].p) end
+        return res
+    end
+
+    local function angle(prev, cur, cand)
+        local v1x = cur.x - prev.x; local v1y = cur.y - prev.y
+        local v2x = cand.x - cur.x; local v2y = cand.y - cur.y
+        local a1 = math.atan2(v1y, v1x); local a2 = math.atan2(v2y, v2x)
+        local d = a2 - a1
+        if d <= -math.pi then d = d + 2 * math.pi end
+        if d > math.pi then d = d - 2 * math.pi end
+        if d < 0 then d = d + 2 * math.pi end
+        return d
+    end
+
+    local function segmentIntersectsExisting(a, b, hull)
+        for i = 1, #hull - 1 do
+            local c = hull[i]; local d = hull[i + 1]
+            if not (ptEqual(c, a) or ptEqual(d, a) or ptEqual(c, b) or ptEqual(d, b)) then
+                if self.POLY:segmentsIntersect(a, b, c, d) then return true end
+            end
+        end
+        return false
+    end
+
+    -- Build concave hull using k-nearest heuristic. If it fails or does not enclose all points,
+    -- increase k and retry. Returns hull array or nil.
+    local function buildConcave(pts, k)
+        local N = #pts
+        if N < 3 then return nil end
+        k = math.max(3, k or 3)
+        if k > N - 1 then k = N - 1 end
+
+        while true do
+            local hull = {}
+            -- starting point: leftmost, then lowest y
+            local startIdx = 1
+            for i = 2, N do
+                if pts[i].x < pts[startIdx].x or (pts[i].x == pts[startIdx].x and pts[i].y < pts[startIdx].y) then
+                    startIdx = i
                 end
             end
-        end
-    end
 
-    if #points < 3 then
-        return self
-    end
+            local current = { x = pts[startIdx].x, y = pts[startIdx].y }
+            table.insert(hull, current)
+            local prev = { x = current.x - 1, y = current.y } -- initial heading to the right (east)
+            local step = 1
+            local finished = false
+            local safety = 0
 
-    -- Deduplicate points (string-key based)
-    local uniq = {}
-    local clean = {}
-    for _, p in ipairs(points) do
-        local key = tostring(p.x) .. "," .. tostring(p.y)
-        if not uniq[key] then
-            uniq[key] = true
-            table.insert(clean, { x = p.x, y = p.y })
-        end
-    end
-    points = clean
+            while not finished do
+                safety = safety + 1
+                if safety > 10000 then return nil end
 
-    -- Convex hull (Monotone chain / Andrew)
-    local function cross(a, b, c)
-        -- use MATH:crossProduct which accepts .x and .y/.z
-        return self.MATH:crossProduct(a, b, { x = c.x, y = c.y })
-    end
+                local neighbors = kNearest(current, pts, k)
+                table.sort(neighbors, function(a, b) return angle(prev, current, a) < angle(prev, current, b) end)
 
-    table.sort(points, function(a, b)
-        if a.x == b.x then return a.y < b.y end
-        return a.x < b.x
-    end)
+                local found = nil
+                for _, cand in ipairs(neighbors) do
+                    if ptEqual(cand, hull[1]) and step >= 3 then
+                        if not segmentIntersectsExisting(current, cand, hull) then found = cand; break end
+                    elseif not pointInArray(cand, hull) then
+                        if not segmentIntersectsExisting(current, cand, hull) then found = cand; break end
+                    end
+                end
 
-    local lower, upper = {}, {}
-    for i = 1, #points do
-        while #lower >= 2 and cross(lower[#lower-1], lower[#lower], points[i]) <= 0 do
-            table.remove(lower)
-        end
-        table.insert(lower, points[i])
-    end
-    for i = #points, 1, -1 do
-        while #upper >= 2 and cross(upper[#upper-1], upper[#upper], points[i]) <= 0 do
-            table.remove(upper)
-        end
-        table.insert(upper, points[i])
-    end
+                if not found then
+                    -- increase k and restart attempt
+                    k = k + 1
+                    if k > N - 1 then return nil end
+                    break
+                end
 
-    -- Concatenate lower and upper to get full hull, removing duplicate endpoints
-    local hull = {}
-    for i = 1, #lower do table.insert(hull, lower[i]) end
-    for i = 2, #upper-1 do table.insert(hull, upper[i]) end
-
-    if #hull < 3 then
-        return self
-    end
-
-    -- Optionally densify hull edges
-    if samplesPerEdge and samplesPerEdge > 0 then
-        local densified = {}
-        for i = 1, #hull do
-            local j = (i % #hull) + 1
-            table.insert(densified, hull[i])
-            local line = { { x = hull[i].x, y = hull[i].y }, { x = hull[j].x, y = hull[j].y } }
-            local samples = self.POLY:getEquallySpacedPoints(line, samplesPerEdge)
-            for _, s in ipairs(samples) do
-                table.insert(densified, { x = s.x, y = s.y })
+                if ptEqual(found, hull[1]) then
+                    table.insert(hull, found)
+                    finished = true
+                    break
+                else
+                    table.insert(hull, found)
+                    prev = current
+                    current = found
+                    step = step + 1
+                end
             end
+
+            if finished then
+                -- remove duplicate trailing point if present
+                if #hull > 1 and ptEqual(hull[1], hull[#hull]) then table.remove(hull) end
+
+                -- verify all points are inside the hull
+                local allInside = true
+                for _, p in ipairs(pts) do
+                    if not self.POLY:pointInPolygon(p, hull) then
+                        allInside = false
+                        break
+                    end
+                end
+                if allInside then
+                    return hull
+                else
+                    k = k + 1
+                    if k > N - 1 then return nil end
+                end
+            end
+            if k > N - 1 then return nil end
         end
-        hull = densified
     end
 
-    -- Compute centroid of hull
-    local cx, cy = 0, 0
-    for _, v in ipairs(hull) do
-        cx = cx + v.x
-        cy = cy + v.y
-    end
-    cx = cx / #hull
-    cy = cy / #hull
+    -- initial k: from opts.k or opts.concavity or 10% of points (bounded)
+    local initial_k = opts.k or opts.concavity or math.max(3, math.floor(#allPoints * 0.1))
+    local hull = buildConcave(allPoints, initial_k)
 
+    if not hull then
+        -- fallback to convex hull (monotone chain)
+        local points = {}
+        for _, p in ipairs(allPoints) do table.insert(points, { x = p.x, y = p.y }) end
+        table.sort(points, function(a, b) if a.x == b.x then return a.y < b.y end return a.x < b.x end)
+        local function cross(a, b, c) return self.MATH:crossProduct(a, b, { x = c.x, y = c.y }) end
+        local lower, upper = {}, {}
+        for i = 1, #points do
+            while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0 do table.remove(lower) end
+            table.insert(lower, points[i])
+        end
+        for i = #points, 1, -1 do
+            while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0 do table.remove(upper) end
+            table.insert(upper, points[i])
+        end
+        local ch = {}
+        for i = 1, #lower do table.insert(ch, lower[i]) end
+        for i = 2, #upper - 1 do table.insert(ch, upper[i]) end
+        hull = ch
+    end
+
+    -- Expose hull as the single loop to process (shrinkwrap)
     -- Intersect ray from point in direction (point - centroid) against world bounds rectangle
     local function intersectRayToBounds(pt, dir, bounds)
         local candidates = {}
-
         local eps = 1e-12
+
         -- X edges
         if math.abs(dir.x) > eps then
             for _, edgeX in ipairs({ bounds.X.min, bounds.X.max }) do
@@ -459,56 +561,95 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
         return { x = candidates[1].x, y = candidates[1].y }
     end
 
-    -- For each hull vertex compute outward intersection point
-    local outPoints = {}
-    for _, v in ipairs(hull) do
-        local dx = v.x - cx
-        local dy = v.y - cy
-        local len = math.sqrt(dx*dx + dy*dy)
-        if len == 0 then
-            -- fallback: push to middle of world bounds
-            table.insert(outPoints, { x = (worldBounds.X.min + worldBounds.X.max)/2, y = (worldBounds.Z.min + worldBounds.Z.max)/2 })
-        else
-            local dir = { x = dx / len, y = dy / len }
-            local ip = intersectRayToBounds(v, dir, worldBounds)
-            if not ip then
-                -- try opposite direction (shouldn't happen often)
-                ip = intersectRayToBounds(v, { x = -dir.x, y = -dir.y }, worldBounds)
+    local loops = {}
+    if hull and #hull >= 3 then
+        table.insert(loops, hull)
+    else
+        return self
+    end
+
+    -- Process each stitched loop (there may be multiple disjoint loops).
+    local function processLoop(loop)
+        -- Build hull from the loop's points
+        local hull = {}
+        for _, p in ipairs(loop) do table.insert(hull, { x = p.x, y = p.y }) end
+        if #hull < 3 then return end
+
+        -- Optionally densify hull edges
+        if samplesPerEdge and samplesPerEdge > 0 then
+            local densified = {}
+            for i = 1, #hull do
+                local j = (i % #hull) + 1
+                table.insert(densified, hull[i])
+                local line = { { x = hull[i].x, y = hull[i].y }, { x = hull[j].x, y = hull[j].y } }
+                local samples = self.POLY:getEquallySpacedPoints(line, samplesPerEdge)
+                for _, s in ipairs(samples) do
+                    table.insert(densified, { x = s.x, y = s.y })
+                end
             end
-            if ip then
-                table.insert(outPoints, ip)
+            hull = densified
+        end
+
+        -- Compute centroid of this hull
+        local cx, cy = 0, 0
+        for _, v in ipairs(hull) do
+            cx = cx + v.x
+            cy = cy + v.y
+        end
+        cx = cx / #hull
+        cy = cy / #hull
+
+        -- For each hull vertex compute outward intersection point
+        local outPoints = {}
+        for _, v in ipairs(hull) do
+            local dx = v.x - cx
+            local dy = v.y - cy
+            local len = math.sqrt(dx*dx + dy*dy)
+            if len == 0 then
+                -- fallback: push to middle of world bounds
+                table.insert(outPoints, { x = (worldBounds.X.min + worldBounds.X.max)/2, y = (worldBounds.Z.min + worldBounds.Z.max)/2 })
             else
-                -- as a last resort clamp to nearest bound box corner
-                local clampX = (dir.x >= 0) and worldBounds.X.max or worldBounds.X.min
-                local clampY = (dir.y >= 0) and worldBounds.Z.max or worldBounds.Z.min
-                table.insert(outPoints, { x = clampX, y = clampY })
+                local dir = { x = dx / len, y = dy / len }
+                local ip = intersectRayToBounds(v, dir, worldBounds)
+                if not ip then
+                    ip = intersectRayToBounds(v, { x = -dir.x, y = -dir.y }, worldBounds)
+                end
+                if ip then
+                    table.insert(outPoints, ip)
+                else
+                    local clampX = (dir.x >= 0) and worldBounds.X.max or worldBounds.X.min
+                    local clampY = (dir.y >= 0) and worldBounds.Z.max or worldBounds.Z.min
+                    table.insert(outPoints, { x = clampX, y = clampY })
+                end
+            end
+        end
+
+        -- Build and draw quads between hull edges and their outer intersections
+        for i = 1, #hull do
+            local j = (i % #hull) + 1
+            local vi = hull[i]
+            local vj = hull[j]
+            local oi = outPoints[i]
+            local oj = outPoints[j]
+
+            if oi and oj then
+                if not (math.abs(oi.x - oj.x) < 1e-6 and math.abs(oi.y - oj.y) < 1e-6) then
+                    local poly = {
+                        { x = vi.x, y = vi.y },
+                        { x = vj.x, y = vj.y },
+                        { x = oj.x, y = oj.y },
+                        { x = oi.x, y = oi.y },
+                    }
+                    self:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, poly)
+                    markerID = markerID + 1
+                end
             end
         end
     end
 
-    -- Build and draw quads between hull edges and their outer intersections
-    for i = 1, #hull do
-        local j = (i % #hull) + 1
-        local vi = hull[i]
-        local vj = hull[j]
-        local oi = outPoints[i]
-        local oj = outPoints[j]
-
-        -- Validate uniqueness and area to avoid degenerate polygons
-        if oi and oj then
-            -- Skip if any two consecutive outer points are identical
-            if not (math.abs(oi.x - oj.x) < 1e-6 and math.abs(oi.y - oj.y) < 1e-6) then
-                local poly = {
-                    { x = vi.x, y = vi.y },
-                    { x = vj.x, y = vj.y },
-                    { x = oj.x, y = oj.y },
-                    { x = oi.x, y = oi.y },
-                }
-                -- Convert to expected vec2 form (x,y) is fine; drawPolygon will convert to vec3
-                self:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, poly)
-                markerID = markerID + 1
-            end
-        end
+    -- Process all loops so every provided zone contributes to the inner hole(s)
+    for _, loop in ipairs(loops) do
+        processLoop(loop)
     end
 
     return self

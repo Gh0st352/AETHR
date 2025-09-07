@@ -36,7 +36,7 @@ for _, _zone in pairs(G_AETHR.ZONE_MANAGER.DATA.MIZ_ZONES) do
     G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
 end
  fillColor_ = { r = 0.1, g = 0.1, b = 0.1, a = 0.4 }
- lineColor = { r = 0, g = 0, b = 0, a = 0 }
+ lineColor = { r = 0, g = 0, b = 0, a = 0.1 }
 
 local zoneVerts = {}
 
@@ -48,7 +48,7 @@ G_AETHR.ZONE_MANAGER:drawOutOfBounds(
 G_AETHR.ENUMS.Coalition.ALL,
 fillColor_,
 lineColor,
-G_AETHR.ENUMS.LineTypes.NoLine,
+G_AETHR.ENUMS.LineTypes.Dashed,
 G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
 zoneVerts,
 G_AETHR.CONFIG.MAIN.worldBounds.Caucasus,
