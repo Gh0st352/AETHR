@@ -5,9 +5,10 @@ G_AETHR.USERSTORAGE = {
     BlueStartZones = { "Zone_ECHO", },
 }
 
-G_AETHR.ZONE_MANAGER:setMizZones(G_AETHR.USERSTORAGE.missionZones, G_AETHR.USERSTORAGE.RedStartZones, G_AETHR.USERSTORAGE.BlueStartZones)
+G_AETHR.ZONE_MANAGER:setMizZones(G_AETHR.USERSTORAGE.missionZones, G_AETHR.USERSTORAGE.RedStartZones,
+    G_AETHR.USERSTORAGE.BlueStartZones)
 G_AETHR:Init()
-    --:determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
+--:determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
 
 
 G_AETHR.WORLD:markWorldDivisions()
@@ -15,14 +16,24 @@ G_AETHR.WORLD:markWorldDivisions()
 local fillColor_ = { r = 0.6, g = 0.6, b = 0.6, a = 0.3 }
 local lineColor = { r = 0, g = 0, b = 0, a = 0.6 }
 
+
 for _, _zone in pairs(G_AETHR.ZONE_MANAGER.DATA.MIZ_ZONES) do
-    G_AETHR.ZONE_MANAGER:drawZone(
-        -1,
+    -- G_AETHR.ZONE_MANAGER:drawZone(
+    --     -1,
+    --     fillColor_,
+    --     lineColor,
+    --     5,
+    --     _zone.verticies
+    -- )
+    G_AETHR.ZONE_MANAGER:drawPolygon(
+        G_AETHR.ENUMS.Coalition.ALL,
         fillColor_,
         lineColor,
-        5,
+        G_AETHR.ENUMS.LineTypes.LongDash,
+        G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
         _zone.verticies
     )
+    G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
 end
 
 

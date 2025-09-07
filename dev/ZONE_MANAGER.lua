@@ -227,3 +227,59 @@ function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype
     )
     return self
 end
+
+--- Draws a polygon with an arbitrary number of vec2 vertices.
+--- Supported call forms:
+---   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, {v1, v2, v3, ...})
+---   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, v1, v2, v3, ...)
+--- markerID may be nil (defaults to 0).
+function AETHR.ZONE_MANAGER:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, ...)
+    local varargs = { ... }
+    -- If no vertices provided, nothing to draw
+    if not varargs or #varargs == 0 then
+        return self
+    end
+
+    -- Normalize corners: support either a single array/table of vec2s or multiple vec2 args
+    local corners = {}
+    if #varargs == 1 and type(varargs[1]) == "table" and not (varargs[1].x and varargs[1].y) then
+        -- single array-like table of vec2s
+        corners = varargs[1]
+    else
+        corners = varargs
+    end
+
+    -- Need at least 3 vertices to draw a polygon
+    if not corners or #corners < 3 then
+        return self
+    end
+
+    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a          -- Fill color RGBA
+    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a  -- Border color RGBA
+    local shapeTypeID    = 7                                                           -- Polygon shape type
+    markerID = markerID or 0
+
+    -- Build argument list for trigger.action.markupToAll:
+    -- shapeTypeID, coalition, markerID, <vec3 points...>, borderColor, fillColor, linetype, true
+    local margs = { shapeTypeID, coalition, markerID }
+
+    -- Preserve original drawZone orientation by reversing corner order
+    for i = #corners, 1, -1 do
+        local v = corners[i]
+        table.insert(margs, { x = v.x, y = 0, z = v.y })
+    end
+
+    table.insert(margs, { r2, g2, b2, a2 })     -- Border color
+    table.insert(margs, { r1, g1, b1, a1 })     -- Fill color
+    table.insert(margs, linetype)
+    table.insert(margs, true)
+
+    -- Call markupToAll with the constructed argument list (support both table.unpack and unpack)
+    -- if table.unpack then
+    --     trigger.action.markupToAll(table.unpack(margs))
+    -- else
+        trigger.action.markupToAll(unpack(margs))
+    -- end
+
+    return self
+end

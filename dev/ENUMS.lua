@@ -82,6 +82,7 @@ AETHR.ENUMS = {
         NEUTRAL = coalition.side.NEUTRAL,
         RED = coalition.side.RED,
         BLUE = coalition.side.BLUE,
+        ALL = -1,
     },
     Phonetic = {
         A = 'Alpha',
@@ -110,5 +111,14 @@ AETHR.ENUMS = {
         X = 'Xray',
         Y = 'Yankee',
         Z = 'Zulu',
+    },
+    LineTypes = {
+        NoLine = 0,
+        Solid = 1,
+        Dashed = 2,
+        Dotted = 3,
+        DashDot = 4,
+        LongDash = 5,
+        TwoDash = 6
     },
 }
