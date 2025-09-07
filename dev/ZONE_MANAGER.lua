@@ -398,7 +398,7 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts, 
             end
         end
     end
-
+local hullPolys = {}
     -- draw quads
     for i = 1, #hull do
         local j = (i % #hull) + 1
@@ -412,14 +412,252 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts, 
                     { x = oj.x, y = oj.y },
                     { x = oi.x, y = oi.y },
                 }
+                table.insert(hullPolys, poly)
                 self:drawPolygon(drawParams.coalition, drawParams.fillColor, drawParams.borderColor, drawParams.linetype, drawParams.markerID, poly)
                 drawParams.markerID = drawParams.markerID + 1
             end
         end
     end
 
+
+
+
+
+local centerPoly = self:getPolygonCutout(hullPolys)
+
+
+-- self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
+--                 drawParams.markerID = drawParams.markerID + 1
+
     return drawParams.markerID
 end
+
+function AETHR.ZONE_MANAGER:getMasterPolygon(ChildPolygonTables, gapDistance)
+end
+
+function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
+    -- Returns the inner "hole" polygon constructed from a list of contributing polygons.
+    -- PolyTable is expected to be an array of polygons where each polygon is an array of points { x = number, y = number }.
+    -- Algorithm:
+    -- 1. Normalize input points and build a map of undirected edges.
+    -- 2. Any edge that occurs only once is a boundary edge. Collect those.
+    -- 3. Walk the boundary edges to construct closed loops (there may be more than one).
+    -- 4. Identify the outer loop (largest area). Any remaining loop whose centroid lies inside the outer loop
+    --    is considered a hole. Return the largest such hole (or second-largest loop if containment test fails).
+    --
+    -- Returns: table|nil Array of points { x = number, y = number } describing the inner hollow polygon, or nil.
+    if not PolyTable or type(PolyTable) ~= "table" then return nil end
+
+    -- helpers
+    local function toXY(p)
+        if not p then return nil end
+        return { x = tonumber(p.x) or 0, y = tonumber(p.y or p.z) or 0 }
+    end
+
+    local function keyFor(p)
+        return string.format("%.6f,%.6f", p.x, p.y)
+    end
+
+    local function polygonArea(pts)
+        local n = #pts
+        if n < 3 then return 0 end
+        local sum = 0
+        for i = 1, n do
+            local j = (i % n) + 1
+            sum = sum + (pts[i].x * pts[j].y - pts[j].x * pts[i].y)
+        end
+        return math.abs(sum) * 0.5
+    end
+
+    local function polygonCentroid(pts)
+        local n = #pts
+        if n < 1 then return { x = 0, y = 0 } end
+        local A = 0
+        local cx = 0
+        local cy = 0
+        for i = 1, n do
+            local j = (i % n) + 1
+            local cross = pts[i].x * pts[j].y - pts[j].x * pts[i].y
+            A = A + cross
+            cx = cx + (pts[i].x + pts[j].x) * cross
+            cy = cy + (pts[i].y + pts[j].y) * cross
+        end
+        A = A * 0.5
+        if math.abs(A) < 1e-12 then
+            -- fallback to simple average
+            local sx, sy = 0, 0
+            for _, p in ipairs(pts) do sx = sx + p.x; sy = sy + p.y end
+            return { x = sx / #pts, y = sy / #pts }
+        end
+        return { x = cx / (6 * A), y = cy / (6 * A) }
+    end
+
+    -- Normalize input polygons and collect edges
+    local pointsByKey = {}
+    local undirectedCount = {}           -- key: "A|B" (sorted) -> count
+    local anyOriented = {}               -- store one oriented occurrence { from = keyA, to = keyB }
+    local polygons = {}
+
+    for _, poly in ipairs(PolyTable) do
+        if type(poly) == "table" and #poly >= 3 then
+            local pnorm = {}
+            for _, v in ipairs(poly) do
+                local pt = toXY(v)
+                table.insert(pnorm, pt)
+            end
+            if #pnorm >= 3 then table.insert(polygons, pnorm) end
+        end
+    end
+
+    if #polygons == 0 then return nil end
+
+    for _, poly in ipairs(polygons) do
+        for i = 1, #poly do
+            local j = (i % #poly) + 1
+            local a = poly[i]; local b = poly[j]
+            local ka = keyFor(a); local kb = keyFor(b)
+            pointsByKey[ka] = { x = a.x, y = a.y }
+            pointsByKey[kb] = { x = b.x, y = b.y }
+            local ukey = (ka < kb) and (ka .. "|" .. kb) or (kb .. "|" .. ka)
+            undirectedCount[ukey] = (undirectedCount[ukey] or 0) + 1
+            if not anyOriented[ukey] then anyOriented[ukey] = { from = ka, to = kb } end
+        end
+    end
+
+    -- Boundary edges are undirected edges that occur only once
+    local boundaryEdgeSet = {}
+    local adjacency = {} -- adjacency list keyed by point-key -> { neighborKey, ... }
+    for ukey, cnt in pairs(undirectedCount) do
+        if cnt == 1 then
+            boundaryEdgeSet[ukey] = true
+            -- parse the two endpoints
+            local a,b = ukey:match("([^|]+)|([^|]+)")
+            if a and b then
+                adjacency[a] = adjacency[a] or {}
+                adjacency[b] = adjacency[b] or {}
+                table.insert(adjacency[a], b)
+                table.insert(adjacency[b], a)
+            end
+        end
+    end
+
+    if not next(boundaryEdgeSet) then
+        -- no boundary edges -> no cutout
+        return nil
+    end
+
+    -- Walk boundary edges to form closed loops
+    local usedEdge = {}
+    local loops = {}
+
+    for edgeKey, _ in pairs(boundaryEdgeSet) do
+        if not usedEdge[edgeKey] then
+            local a, b = edgeKey:match("([^|]+)|([^|]+)")
+            if a and b then
+                -- prefer starting at the endpoint that still has unused adjacent edges
+                local start = a
+                if not adjacency[start] or #adjacency[start] == 0 then start = b end
+
+                -- mark the starting undirected edge as used (if present)
+                usedEdge[edgeKey] = true
+
+                local pathKeys = { start }
+                local curr = start
+                local safety = 0
+                while true do
+                    safety = safety + 1
+                    if safety > 20000 then break end
+                    local neighs = adjacency[curr] or {}
+                    local nextKey = nil
+                    for _, nk in ipairs(neighs) do
+                        local cand = (curr < nk) and (curr .. "|" .. nk) or (nk .. "|" .. curr)
+                        if boundaryEdgeSet[cand] and not usedEdge[cand] then
+                            nextKey = nk
+                            usedEdge[cand] = true
+                            break
+                        end
+                    end
+
+                    if not nextKey then
+                        -- attempt to close the loop by checking if there's an adjacent neighbor that's the start
+                        local closed = false
+                        for _, nk in ipairs(neighs) do
+                            if nk == pathKeys[1] then
+                                closed = true
+                                break
+                            end
+                        end
+                        break
+                    end
+
+                    table.insert(pathKeys, nextKey)
+                    curr = nextKey
+                    if curr == pathKeys[1] then break end
+                end
+
+                -- build points array from keys
+                if #pathKeys >= 3 then
+                    local pts = {}
+                    -- ensure unique sequential points (do not duplicate last==first)
+                    for _, k in ipairs(pathKeys) do
+                        local p = pointsByKey[k]
+                        if p then table.insert(pts, { x = p.x, y = p.y }) end
+                    end
+                    -- If last point equals first, remove duplicate last
+                    if #pts >= 2 and math.abs(pts[1].x - pts[#pts].x) < 1e-9 and math.abs(pts[1].y - pts[#pts].y) < 1e-9 then
+                        table.remove(pts, #pts)
+                    end
+                    if #pts >= 3 then
+                        table.insert(loops, { points = pts, area = polygonArea(pts), centroid = polygonCentroid(pts) })
+                    end
+                end
+            end
+        end
+    end
+
+    if #loops == 0 then return nil end
+
+    -- Sort loops by area descending (largest first)
+    table.sort(loops, function(a, b) return (a.area or 0) > (b.area or 0) end)
+
+    -- Outer loop is assumed to be the largest by area
+    local outer = loops[1]
+
+    -- Find hole loops whose centroid is inside the outer loop
+    local holeCandidates = {}
+    for i = 2, #loops do
+        local L = loops[i]
+        if L and L.centroid and outer and outer.points and #outer.points >= 3 then
+            -- use POLY:pointInPolygon which expects {x,y} points
+            local inside = false
+            if self.POLY and self.POLY.pointInPolygon then
+                inside = self.POLY:pointInPolygon(L.centroid, outer.points)
+            else
+                -- fallback simple winding check via centroid-in-outer using our polygonArea-based ray-cast
+                inside = self.POLY and self.POLY:PointWithinShape(L.centroid, outer.points) or false
+            end
+            if inside then table.insert(holeCandidates, L) end
+        end
+    end
+
+    local chosen = nil
+    if #holeCandidates > 0 then
+        -- choose largest hole candidate by area
+        table.sort(holeCandidates, function(a, b) return (a.area or 0) > (b.area or 0) end)
+        chosen = holeCandidates[1]
+    else
+        -- containment test failed; fallback to second largest loop if exists
+        if #loops >= 2 then chosen = loops[2] end
+    end
+
+    if not chosen then return nil end
+
+    -- return a copy of vertices (x,y)
+    local out = {}
+    for _, p in ipairs(chosen.points) do table.insert(out, { x = p.x, y = p.y }) end
+    return out
+end
+
 
 --- Draws an out-of-bounds convex ring surrounding provided zone vertices.
 --- The routine computes a convex hull of the input zone vertices, shoots outward
