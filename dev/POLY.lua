@@ -601,3 +601,312 @@ function AETHR.POLY:onLine(l1, p)
 
     return false
 end
+
+--------------------------------------------------------------------------------
+--- High-level geometry helpers extracted from ZONE_MANAGER:drawOutOfBounds
+--- to keep zone management small and focused.
+--- These include concave hull construction, convex hull fallback,
+--- ray-vs-bounds intersection, and hull edge densification/snap logic.
+--------------------------------------------------------------------------------
+
+--- Build a concave hull using a k-nearest heuristic.
+--- @function AETHR.POLY:concaveHull
+--- @param pts table Array of {x,y} points
+--- @param opts table Optional parameters { k = int, concavity = int }
+--- @return table|nil hull array or nil on failure
+function AETHR.POLY:concaveHull(pts, opts)
+    if not pts or #pts < 3 then return nil end
+    opts = opts or {}
+    local N = #pts
+    local k = opts.k or opts.concavity or math.max(3, math.floor(#pts * 0.1))
+    if k > N - 1 then k = N - 1 end
+
+    -- helper: point equality using MATH:pointsEqual (falls back to direct compare)
+    local function ptEqual(a, b)
+        if self.MATH and self.MATH.pointsEqual then
+            return self.MATH:pointsEqual(a, b)
+        end
+        return math.abs(a.x - b.x) < 1e-9 and math.abs(a.y - b.y) < 1e-9
+    end
+
+    local function kNearest(pt, points, kk)
+        local list = {}
+        for _, p in ipairs(points) do
+            if not ptEqual(p, pt) then
+                local dx = p.x - pt.x
+                local dy = p.y - pt.y
+                table.insert(list, { p = p, d = dx*dx + dy*dy })
+            end
+        end
+        table.sort(list, function(a, b) return a.d < b.d end)
+        local res = {}
+        for i = 1, math.min(kk, #list) do table.insert(res, list[i].p) end
+        return res
+    end
+
+    local function segmentIntersectsExisting(a, b, hull)
+        for i = 1, #hull - 1 do
+            local c = hull[i]; local d = hull[i + 1]
+            if not (ptEqual(c, a) or ptEqual(d, a) or ptEqual(c, b) or ptEqual(d, b)) then
+                if self:segmentsIntersect(a, b, c, d) then return true end
+            end
+        end
+        return false
+    end
+
+    -- Main loop: attempt increasing k until success
+    while true do
+        local hull = {}
+        -- starting point: leftmost then lowest y
+        local startIdx = 1
+        for i = 2, N do
+            if pts[i].x < pts[startIdx].x or (pts[i].x == pts[startIdx].x and pts[i].y < pts[startIdx].y) then
+                startIdx = i
+            end
+        end
+
+        local current = { x = pts[startIdx].x, y = pts[startIdx].y }
+        table.insert(hull, current)
+        local prev = { x = current.x - 1, y = current.y }
+        local step = 1
+        local finished = false
+        local safety = 0
+
+        while not finished do
+            safety = safety + 1
+            if safety > 10000 then return nil end
+
+            local neighbors = kNearest(current, pts, k)
+            table.sort(neighbors, function(a, b)
+                -- use MATH:turnAngle if available
+                if self.MATH and self.MATH.turnAngle then
+                    return self.MATH:turnAngle(prev, current, a) < self.MATH:turnAngle(prev, current, b)
+                end
+                -- fallback angle computation
+                local v1x = current.x - prev.x; local v1y = current.y - prev.y
+                local a1 = math.atan2(v1y, v1x)
+                local v2x = a.x - current.x; local v2y = a.y - current.y
+                local aa = math.atan2(v2y, v2x)
+                local d1 = aa - a1
+                if d1 <= -math.pi then d1 = d1 + 2 * math.pi end
+                if d1 > math.pi then d1 = d1 - 2 * math.pi end
+                if d1 < 0 then d1 = d1 + 2 * math.pi end
+
+                local v3x = current.x - prev.x; local v3y = current.y - prev.y
+                local a2 = math.atan2(v3y, v3x)
+                local v4x = b.x - current.x; local v4y = b.y - current.y
+                local ab = math.atan2(v4y, v4x)
+                local d2 = ab - a2
+                if d2 <= -math.pi then d2 = d2 + 2 * math.pi end
+                if d2 > math.pi then d2 = d2 - 2 * math.pi end
+                if d2 < 0 then d2 = d2 + 2 * math.pi end
+                return d1 < d2
+            end)
+
+            local found = nil
+            for _, cand in ipairs(neighbors) do
+                if ptEqual(cand, hull[1]) and step >= 3 then
+                    if not segmentIntersectsExisting(current, cand, hull) then found = cand; break end
+                elseif not (function()
+                    for _, q in ipairs(hull) do if ptEqual(q, cand) then return true end end
+                    return false
+                end)() then
+                    if not segmentIntersectsExisting(current, cand, hull) then found = cand; break end
+                end
+            end
+
+            if not found then
+                k = k + 1
+                if k > N - 1 then return nil end
+                break
+            end
+
+            if ptEqual(found, hull[1]) then
+                table.insert(hull, found)
+                finished = true
+                break
+            else
+                table.insert(hull, found)
+                prev = current
+                current = found
+                step = step + 1
+            end
+        end
+
+        if finished then
+            if #hull > 1 and ptEqual(hull[1], hull[#hull]) then table.remove(hull) end
+
+            -- verify all points inside hull
+            local allInside = true
+            for _, p in ipairs(pts) do
+                if not self:pointInPolygon(p, hull) then
+                    allInside = false
+                    break
+                end
+            end
+            if allInside then
+                return hull
+            else
+                k = k + 1
+                if k > N - 1 then return nil end
+            end
+        end
+
+        if k > N - 1 then return nil end
+    end
+end
+
+--------------------------------------------------------------------------------
+--- Monotone-chain convex hull (fallback for concave hull failure)
+--- @function AETHR.POLY:convexHull
+--- @param points table Array of {x,y}
+--- @return table hull array
+function AETHR.POLY:convexHull(points)
+    if not points or #points < 3 then return nil end
+    local pts = {}
+    for _, p in ipairs(points) do table.insert(pts, { x = p.x, y = p.y }) end
+    table.sort(pts, function(a, b) if a.x == b.x then return a.y < b.y end return a.x < b.x end)
+    local function cross(a, b, c) return self.MATH:crossProduct(a, b, { x = c.x, y = c.y }) end
+    local lower, upper = {}, {}
+    for i = 1, #pts do
+        while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], pts[i]) <= 0 do table.remove(lower) end
+        table.insert(lower, pts[i])
+    end
+    for i = #pts, 1, -1 do
+        while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], pts[i]) <= 0 do table.remove(upper) end
+        table.insert(upper, pts[i])
+    end
+    local ch = {}
+    for i = 1, #lower do table.insert(ch, lower[i]) end
+    for i = 2, #upper - 1 do table.insert(ch, upper[i]) end
+    return ch
+end
+
+--------------------------------------------------------------------------------
+--- Intersect a ray from pt in direction dir against axis-aligned bounds.
+--- @function AETHR.POLY:intersectRayToBounds
+--- @param pt table {x,y}
+--- @param dir table {x,y} normalized direction
+--- @param bounds table { X={min,max}, Z={min,max} }
+--- @return table|nil intersection {x,y} or nil
+function AETHR.POLY:intersectRayToBounds(pt, dir, bounds)
+    local candidates = {}
+    local eps = 1e-12
+
+    -- X edges
+    if math.abs(dir.x) > eps then
+        for _, edgeX in ipairs({ bounds.X.min, bounds.X.max }) do
+            local t = (edgeX - pt.x) / dir.x
+            if t > 0 then
+                local y = pt.y + t * dir.y
+                if y >= bounds.Z.min - eps and y <= bounds.Z.max + eps then
+                    table.insert(candidates, { t = t, x = edgeX, y = y })
+                end
+            end
+        end
+    end
+
+    -- Z edges
+    if math.abs(dir.y) > eps then
+        for _, edgeZ in ipairs({ bounds.Z.min, bounds.Z.max }) do
+            local t = (edgeZ - pt.y) / dir.y
+            if t > 0 then
+                local x = pt.x + t * dir.x
+                if x >= bounds.X.min - eps and x <= bounds.X.max + eps then
+                    table.insert(candidates, { t = t, x = x, y = edgeZ })
+                end
+            end
+        end
+    end
+
+    if #candidates == 0 then return nil end
+    table.sort(candidates, function(a, b) return a.t < b.t end)
+    return { x = candidates[1].x, y = candidates[1].y }
+end
+
+--------------------------------------------------------------------------------
+--- Check whether segment (a,b) intersects any consecutive segment of hull.
+--- @function AETHR.POLY:segmentIntersectsAny
+--- @param a table point
+--- @param b table point
+--- @param hull table array of points (closed or open)
+--- @return boolean
+function AETHR.POLY:segmentIntersectsAny(a, b, hull)
+    for i = 1, #hull - 1 do
+        local c = hull[i]; local d = hull[i + 1]
+        if not ((math.abs(c.x - a.x) < 1e-9 and math.abs(c.y - a.y) < 1e-9) or
+                (math.abs(d.x - a.x) < 1e-9 and math.abs(d.y - a.y) < 1e-9) or
+                (math.abs(c.x - b.x) < 1e-9 and math.abs(c.y - b.y) < 1e-9) or
+                (math.abs(d.x - b.x) < 1e-9 and math.abs(d.y - b.y) < 1e-9)) then
+            if self:segmentsIntersect(a, b, c, d) then return true end
+        end
+    end
+    return false
+end
+
+--------------------------------------------------------------------------------
+--- Densify hull edges by sampling equally spaced interior points and optionally snapping
+--- those samples to the nearest original polygon segment when within snapDistance.
+--- Returns a new hull array with additional points inserted.
+--- @function AETHR.POLY:densifyHullEdges
+--- @param hull table Array of {x,y} points (closed loop)
+--- @param polygons table Array of polygons (each polygon = array of points)
+--- @param samplesPerEdge integer Number of interior samples to generate per edge
+--- @param snapDistance number Tolerance for snapping samples to original polygon segments
+--- @return table newHull
+function AETHR.POLY:densifyHullEdges(hull, polygons, samplesPerEdge, snapDistance)
+    if not samplesPerEdge or samplesPerEdge <= 0 then return hull end
+    local newHull = {}
+    local origLines = nil
+    snapDistance = snapDistance or 0.1
+    local snapThreshold2 = snapDistance * snapDistance
+
+    for i = 1, #hull do
+        local j = (i % #hull) + 1
+        table.insert(newHull, hull[i])
+        local line = { { x = hull[i].x, y = hull[i].y }, { x = hull[j].x, y = hull[j].y } }
+        local samples = self:getEquallySpacedPoints(line, samplesPerEdge)
+        if samples and #samples > 0 then
+            if not origLines then
+                origLines = {}
+                for _, poly in ipairs(polygons) do
+                    local segs = self:convertPolygonToLines(poly)
+                    for _, seg in ipairs(segs) do table.insert(origLines, seg) end
+                end
+            end
+
+            for _, s in ipairs(samples) do
+                local bestLine = nil
+                local bestDist2 = math.huge
+                for _, ln in ipairs(origLines) do
+                    local ax, ay = ln[1].x, ln[1].y
+                    local bx, by = ln[2].x, ln[2].y
+                    local d2 = self:pointToSegmentSquared(s.x, s.y, ax, ay, bx, by)
+                    if d2 < bestDist2 then
+                        bestDist2 = d2
+                        bestLine = ln
+                    end
+                end
+
+                if bestLine and bestDist2 <= snapThreshold2 then
+                    local ax, ay = bestLine[1].x, bestLine[1].y
+                    local bx, by = bestLine[2].x, bestLine[2].y
+                    local l2 = self.MATH:distanceSquared(ax, ay, bx, by)
+                    local t = 0
+                    if l2 > 0 then
+                        t = self.MATH:dot(s.x - ax, s.y - ay, bx - ax, by - ay) / l2
+                        if t < 0 then t = 0 end
+                        if t > 1 then t = 1 end
+                    end
+                    local projx = ax + t * (bx - ax)
+                    local projy = ay + t * (by - ay)
+                    table.insert(newHull, { x = projx, y = projy })
+                else
+                    table.insert(newHull, { x = s.x, y = s.y })
+                end
+            end
+        end
+    end
+
+    return newHull
+end

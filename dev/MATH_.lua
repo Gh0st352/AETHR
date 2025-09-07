@@ -106,3 +106,58 @@ function AETHR.MATH:direction(a, b, c)
     end
 end
 
+--------------------------------------------------------------------------------
+--- Numeric and small-vector helpers added to support ZONE_MANAGER refactor.
+--- @function AETHR.MATH:almostEqual
+--- @param a number
+--- @param b number
+--- @param eps number|nil
+--- @return boolean
+function AETHR.MATH:almostEqual(a, b, eps)
+    eps = eps or 1e-9
+    return math.abs(a - b) <= eps
+end
+
+--- Compare 2D points with tolerance.
+--- @function AETHR.MATH:pointsEqual
+--- @param p1 table {x,y}
+--- @param p2 table {x,y}
+--- @param eps number|nil
+--- @return boolean
+function AETHR.MATH:pointsEqual(p1, p2, eps)
+    eps = eps or 1e-9
+    if not p1 or not p2 then return false end
+    return self:almostEqual(p1.x, p2.x, eps) and self:almostEqual(p1.y, p2.y, eps)
+end
+
+--- Compute a positive normalized turn angle from (prev->cur) to (cur->cand).
+--- Returns angle in radians between 0 and 2*pi.
+--- @function AETHR.MATH:turnAngle
+--- @param prev table
+--- @param cur table
+--- @param cand table
+--- @return number
+function AETHR.MATH:turnAngle(prev, cur, cand)
+    local v1x = cur.x - prev.x; local v1y = cur.y - prev.y
+    local v2x = cand.x - cur.x; local v2y = cand.y - cur.y
+    local a1 = math.atan2(v1y, v1x); local a2 = math.atan2(v2y, v2x)
+    local d = a2 - a1
+    if d <= -math.pi then d = d + 2 * math.pi end
+    if d > math.pi then d = d - 2 * math.pi end
+    if d < 0 then d = d + 2 * math.pi end
+    return d
+end
+
+--- Compute arithmetic centroid (average) of an array of {x,y} points.
+--- @function AETHR.MATH:centroid
+--- @param pts table Array of points
+--- @return number x, number y
+function AETHR.MATH:centroid(pts)
+    local cx, cy = 0, 0
+    if not pts or #pts == 0 then return 0, 0 end
+    for _, p in ipairs(pts) do
+        cx = cx + p.x
+        cy = cy + p.y
+    end
+    return cx / #pts, cy / #pts
+end
