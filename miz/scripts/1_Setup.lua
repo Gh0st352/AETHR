@@ -11,7 +11,7 @@ G_AETHR:Init()
 --:determineActiveDivisions():getActiveObjectsInDivisions(Object.Category.SCENERY)
 
 
-G_AETHR.WORLD:markWorldDivisions()
+--G_AETHR.WORLD:markWorldDivisions()
 
 local fillColor_ = { r = 0.6, g = 0.6, b = 0.6, a = 0.3 }
 local lineColor = { r = 0, g = 0, b = 0, a = 0.6 }

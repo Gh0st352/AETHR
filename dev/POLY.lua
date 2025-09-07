@@ -675,113 +675,6 @@ function AETHR.POLY:ensureConvexN(coords)
     return order
 end
 
--- --- Ensures a polygon (N vertices) is convex.
--- --- If the polygon is already consistently oriented it will be returned (forced to CCW).
--- --- If the polygon is not convex it returns the convex hull (CCW) of the input points.
--- --- @function ensureConvex
--- --- @param coords table Array of points { x = number, y = number } or { x = number, z = number }
--- --- @return table Array of points forming a convex polygon (CCW). May have fewer points than input if some were interior.
--- function AETHR.POLY:ensureConvexN(coords)
---     local n = #coords
---     if n < 3 then
---         return coords
---     end
-
---     local getY = function(p) return p.y or p.z or 0 end
-
---     -- quick check: detect whether all cross products have the same sign
---     local hasPos, hasNeg = false, false
---     for i = 1, n do
---         local i2 = (i % n) + 1
---         local i3 = ((i + 1) % n) + 1
---         local cp = self.MATH:crossProduct(coords[i], coords[i2], coords[i3])
---         if cp > 0 then hasPos = true end
---         if cp < 0 then hasNeg = true end
---         if hasPos and hasNeg then break end
---     end
-
---     -- If all turns are of the same sign (or all zero) the polygon is consistently oriented.
---     if not (hasPos and hasNeg) then
---         -- Ensure CCW orientation by checking signed area (shoelace)
---         local area2 = 0
---         for i = 1, n do
---             local j = (i % n) + 1
---             local xi = coords[i].x or 0
---             local yi = coords[i].y or coords[i].z or 0
---             local xj = coords[j].x or 0
---             local yj = coords[j].y or coords[j].z or 0
---             area2 = area2 + (xi * yj - xj * yi)
---         end
---         if area2 < 0 then
---             -- reverse order in-place to make CCW
---             local a, b = 1, n
---             while a < b do
---                 coords[a], coords[b] = coords[b], coords[a]
---                 a = a + 1
---                 b = b - 1
---             end
---         end
---         return coords
---     end
-
---     -- Mixed signs -> not convex. Compute convex hull using monotone chain (Andrew).
---     -- Copy points so we don't mutate input order
---     local pts = {}
---     for i = 1, n do pts[i] = coords[i] end
-
---     table.sort(pts, function(a, b)
---         local ax, bx = a.x or 0, b.x or 0
---         if ax == bx then
---             local ay = a.y or a.z or 0
---             local by = b.y or b.z or 0
---             return ay < by
---         end
---         return ax < bx
---     end)
-
---     -- remove exact duplicates (same x and same y/z)
---     local unique = {}
---     for i = 1, #pts do
---         if i == 1 or pts[i].x ~= pts[i - 1].x or (pts[i].y or pts[i].z) ~= (pts[i - 1].y or pts[i - 1].z) then
---             unique[#unique + 1] = pts[i]
---         end
---     end
-
---     if #unique < 3 then
---         return unique
---     end
-
---     local function cross(o, a, b)
---         return self.MATH:crossProduct(o, a, b)
---     end
-
---     local lower = {}
---     for i = 1, #unique do
---         -- use < 0 so collinear hull-edge points are preserved
---         while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], unique[i]) < 0 do
---             table.remove(lower)
---         end
---         table.insert(lower, unique[i])
---     end
-
---     local upper = {}
---     for i = #unique, 1, -1 do
---         while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], unique[i]) < 0 do
---             table.remove(upper)
---         end
---         table.insert(upper, unique[i])
---     end
-
---     -- Concatenate lower + upper, removing the last element of each (it's the start of the other)
---     table.remove(lower) -- remove duplicate endpoint
---     table.remove(upper)
---     for i = 1, #upper do
---         table.insert(lower, upper[i])
---     end
-
---     return lower -- hull in CCW order
--- end
-
 --- Converts axis-aligned world bounds into a 4-point polygon.
 --- Ensures convexity of the resulting polygon.
 --- @function AETHR.POLY.convertBoundsToPolygon
@@ -1436,8 +1329,75 @@ function AETHR.POLY:findOverlaidPolygonGaps(smallerPolygon, largerPolygon, offse
 
 
 
-        
-        polygonGaps[#polygonGaps + 1] = assembledGap
+
+        polygonGaps[#polygonGaps + 1] = self:reorderSlaveToMaster(assembledGap, smallerPolygon) --assembledGap
     end
     return polygonGaps
+end
+
+-- Reorders slaveVertTable to match the order of corresponding entries in masterVertTable.
+-- Matching is done by x/y field equality (exact matches).
+-- Behavior:
+--   - Only entries in slave that also exist in master (by x,y) are included in the output.
+--   - Duplicates are handled in the order they appear in master.
+--   - Time complexity: O(#master + #slave)
+function AETHR.POLY:reorderSlaveToMaster(slaveVertTable, masterVertTable)
+    -- Reorders entries from `slaveVertTable` to match the order they appear in `masterVertTable`.
+    -- Matching uses rounded coordinates (x,y) to `precision` decimals to allow near-equality.
+    -- Returns a new array containing slave vertices ordered by their first match in master.
+    if type(slaveVertTable) ~= "table" or type(masterVertTable) ~= "table" then
+        return {}
+    end
+
+    -- Number of decimal places to consider when comparing coordinates.
+    -- Adjust as needed; using 3 decimals for typical spatial data is a reasonable default.
+    local precision = 3
+    local fmt = "%." .. tostring(precision) .. "f"
+
+    local function keyOf(v)
+        if not v then return nil end
+        local x = v.x or 0
+        local y = v.y or v.z or 0
+        return string.format(fmt, x) .. ":" .. string.format(fmt, y)
+    end
+
+    -- Build buckets of slave vertices keyed by rounded coords.
+    -- Each bucket keeps a list and a read index to avoid expensive table.remove at front.
+    local buckets = {}
+    for i = 1, #slaveVertTable do
+        local v = slaveVertTable[i]
+        if type(v) == "table" and (v.x ~= nil or v.y ~= nil or v.z ~= nil) then
+            local k = keyOf(v)
+            if k then
+                if not buckets[k] then buckets[k] = { items = {}, pos = 1 } end
+                buckets[k].items[#buckets[k].items + 1] = v
+            end
+        end
+    end
+
+    -- Walk master in order and pull a matching slave entry (if any) from the corresponding bucket.
+    local out = {}
+    local outIdx = 1
+    for i = 1, #masterVertTable do
+        local mv = masterVertTable[i]
+        if type(mv) == "table" and (mv.x ~= nil or mv.y ~= nil or mv.z ~= nil) then
+            local k = keyOf(mv)
+            local b = buckets[k]
+            if b and b.pos <= #b.items then
+                out[outIdx] = b.items[b.pos]
+                outIdx = outIdx + 1
+                b.pos = b.pos + 1
+            end
+        end
+    end
+
+    return out
+end
+
+function AETHR.POLY:reverseVertOrder(vertTable)
+    local reverseVertTable = {}
+    for i = #vertTable, 1, -1 do
+        reverseVertTable[#reverseVertTable + 1] = vertTable[i]
+    end
+    return reverseVertTable
 end

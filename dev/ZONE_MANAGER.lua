@@ -23,6 +23,7 @@ AETHR.ZONE_MANAGER.DATA = {
         masterPolyVerts = {},
     },
     boundsGaps = {},
+    reverseBoundsGaps = {},
 
 }
 
