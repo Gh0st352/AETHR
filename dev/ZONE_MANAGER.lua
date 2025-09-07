@@ -283,3 +283,233 @@ function AETHR.ZONE_MANAGER:drawPolygon(coalition, fillColor, borderColor, linet
 
     return self
 end
+
+--- Draws an out-of-bounds convex ring surrounding provided zone vertices.
+--- The routine computes a convex hull of the input zone vertices, shoots outward
+--- rays from the hull centroid to the world bounds, and constructs quads between
+--- each hull edge and its corresponding intersections on the world bounds.
+--- This tiles the ring with convex quads and avoids overlapping the inner zone.
+--- @function AETHR.ZONE_MANAGER:drawOutOfBounds
+--- @param coalition number Coalition id for markup
+--- @param fillColor table {r,g,b,a}
+--- @param borderColor table {r,g,b,a}
+--- @param linetype number Line style id
+--- @param markerID number|nil Marker id
+--- @param zoneVertices table|nil Array of vec2 vertices ({x,y} or {x,z}). If nil, pulled from self.DATA.MIZ_ZONES.
+--- @param worldBounds table|nil Bounds structure with X.min/X.max and Z.min/Z.max. If nil, uses CONFIG.MAIN.worldBounds.Caucasus.
+--- @param opts table|nil Options: { samplesPerEdge = int, useHoleSinglePolygon = bool }
+--- @return AETHR.ZONE_MANAGER self
+function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, linetype, markerID, zoneVertices, worldBounds, opts)
+    opts = opts or {}
+    local samplesPerEdge = opts.samplesPerEdge or 0
+    markerID = markerID or 0
+
+    -- Resolve world bounds
+    worldBounds = worldBounds or (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.worldBounds and self.CONFIG.MAIN.worldBounds.Caucasus)
+    if not worldBounds then
+        -- Nothing to draw without bounds
+        return self
+    end
+
+    -- Gather zone vertices if not provided
+    -- Accept either:
+    --  * nil -> gather from self.DATA.MIZ_ZONES
+    --  * flat array of vec2s -> { {x=..,y=..}, ... }
+    --  * array of polygons -> { { {x=..,y=..}, ... }, { ... } }
+    local points = {}
+    if not zoneVertices then
+        for _, mz in pairs(self.DATA.MIZ_ZONES or {}) do
+            local verts = mz.verticies or mz.vertices or mz.Vertices or mz.Verticies
+            if verts and #verts > 0 then
+                for _, v in ipairs(verts) do
+                    table.insert(points, { x = v.x, y = v.z or v.y })
+                end
+            end
+        end
+    else
+        -- Detect whether zoneVertices is a list of polygons (each entry is a table of points)
+        if #zoneVertices > 0 and type(zoneVertices[1]) == "table" and zoneVertices[1][1] and type(zoneVertices[1][1]) == "table" then
+            -- zoneVertices is an array of polygons; flatten all polygon points
+            for _, poly in ipairs(zoneVertices) do
+                if poly and type(poly) == "table" then
+                    for _, v in ipairs(poly) do
+                        if v and (v.x or v.y or v.z) then
+                            table.insert(points, { x = v.x, y = v.y or v.z })
+                        end
+                    end
+                end
+            end
+        else
+            -- zoneVertices is a flat array of vec2s
+            for _, v in ipairs(zoneVertices) do
+                if v and (v.x or v.y or v.z) then
+                    table.insert(points, { x = v.x, y = v.y or v.z })
+                end
+            end
+        end
+    end
+
+    if #points < 3 then
+        return self
+    end
+
+    -- Deduplicate points (string-key based)
+    local uniq = {}
+    local clean = {}
+    for _, p in ipairs(points) do
+        local key = tostring(p.x) .. "," .. tostring(p.y)
+        if not uniq[key] then
+            uniq[key] = true
+            table.insert(clean, { x = p.x, y = p.y })
+        end
+    end
+    points = clean
+
+    -- Convex hull (Monotone chain / Andrew)
+    local function cross(a, b, c)
+        -- use MATH:crossProduct which accepts .x and .y/.z
+        return self.MATH:crossProduct(a, b, { x = c.x, y = c.y })
+    end
+
+    table.sort(points, function(a, b)
+        if a.x == b.x then return a.y < b.y end
+        return a.x < b.x
+    end)
+
+    local lower, upper = {}, {}
+    for i = 1, #points do
+        while #lower >= 2 and cross(lower[#lower-1], lower[#lower], points[i]) <= 0 do
+            table.remove(lower)
+        end
+        table.insert(lower, points[i])
+    end
+    for i = #points, 1, -1 do
+        while #upper >= 2 and cross(upper[#upper-1], upper[#upper], points[i]) <= 0 do
+            table.remove(upper)
+        end
+        table.insert(upper, points[i])
+    end
+
+    -- Concatenate lower and upper to get full hull, removing duplicate endpoints
+    local hull = {}
+    for i = 1, #lower do table.insert(hull, lower[i]) end
+    for i = 2, #upper-1 do table.insert(hull, upper[i]) end
+
+    if #hull < 3 then
+        return self
+    end
+
+    -- Optionally densify hull edges
+    if samplesPerEdge and samplesPerEdge > 0 then
+        local densified = {}
+        for i = 1, #hull do
+            local j = (i % #hull) + 1
+            table.insert(densified, hull[i])
+            local line = { { x = hull[i].x, y = hull[i].y }, { x = hull[j].x, y = hull[j].y } }
+            local samples = self.POLY:getEquallySpacedPoints(line, samplesPerEdge)
+            for _, s in ipairs(samples) do
+                table.insert(densified, { x = s.x, y = s.y })
+            end
+        end
+        hull = densified
+    end
+
+    -- Compute centroid of hull
+    local cx, cy = 0, 0
+    for _, v in ipairs(hull) do
+        cx = cx + v.x
+        cy = cy + v.y
+    end
+    cx = cx / #hull
+    cy = cy / #hull
+
+    -- Intersect ray from point in direction (point - centroid) against world bounds rectangle
+    local function intersectRayToBounds(pt, dir, bounds)
+        local candidates = {}
+
+        local eps = 1e-12
+        -- X edges
+        if math.abs(dir.x) > eps then
+            for _, edgeX in ipairs({ bounds.X.min, bounds.X.max }) do
+                local t = (edgeX - pt.x) / dir.x
+                if t > 0 then
+                    local y = pt.y + t * dir.y
+                    if y >= bounds.Z.min - eps and y <= bounds.Z.max + eps then
+                        table.insert(candidates, { t = t, x = edgeX, y = y })
+                    end
+                end
+            end
+        end
+
+        -- Z edges (mapped to y)
+        if math.abs(dir.y) > eps then
+            for _, edgeZ in ipairs({ bounds.Z.min, bounds.Z.max }) do
+                local t = (edgeZ - pt.y) / dir.y
+                if t > 0 then
+                    local x = pt.x + t * dir.x
+                    if x >= bounds.X.min - eps and x <= bounds.X.max + eps then
+                        table.insert(candidates, { t = t, x = x, y = edgeZ })
+                    end
+                end
+            end
+        end
+
+        if #candidates == 0 then return nil end
+        table.sort(candidates, function(a, b) return a.t < b.t end)
+        return { x = candidates[1].x, y = candidates[1].y }
+    end
+
+    -- For each hull vertex compute outward intersection point
+    local outPoints = {}
+    for _, v in ipairs(hull) do
+        local dx = v.x - cx
+        local dy = v.y - cy
+        local len = math.sqrt(dx*dx + dy*dy)
+        if len == 0 then
+            -- fallback: push to middle of world bounds
+            table.insert(outPoints, { x = (worldBounds.X.min + worldBounds.X.max)/2, y = (worldBounds.Z.min + worldBounds.Z.max)/2 })
+        else
+            local dir = { x = dx / len, y = dy / len }
+            local ip = intersectRayToBounds(v, dir, worldBounds)
+            if not ip then
+                -- try opposite direction (shouldn't happen often)
+                ip = intersectRayToBounds(v, { x = -dir.x, y = -dir.y }, worldBounds)
+            end
+            if ip then
+                table.insert(outPoints, ip)
+            else
+                -- as a last resort clamp to nearest bound box corner
+                local clampX = (dir.x >= 0) and worldBounds.X.max or worldBounds.X.min
+                local clampY = (dir.y >= 0) and worldBounds.Z.max or worldBounds.Z.min
+                table.insert(outPoints, { x = clampX, y = clampY })
+            end
+        end
+    end
+
+    -- Build and draw quads between hull edges and their outer intersections
+    for i = 1, #hull do
+        local j = (i % #hull) + 1
+        local vi = hull[i]
+        local vj = hull[j]
+        local oi = outPoints[i]
+        local oj = outPoints[j]
+
+        -- Validate uniqueness and area to avoid degenerate polygons
+        if oi and oj then
+            -- Skip if any two consecutive outer points are identical
+            if not (math.abs(oi.x - oj.x) < 1e-6 and math.abs(oi.y - oj.y) < 1e-6) then
+                local poly = {
+                    { x = vi.x, y = vi.y },
+                    { x = vj.x, y = vj.y },
+                    { x = oj.x, y = oj.y },
+                    { x = oi.x, y = oi.y },
+                }
+                -- Convert to expected vec2 form (x,y) is fine; drawPolygon will convert to vec3
+                self:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, poly)
+                markerID = markerID + 1
+            end
+        end
+    end
+
+    return self
+end
