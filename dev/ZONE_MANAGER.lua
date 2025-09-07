@@ -311,39 +311,89 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
         return self
     end
 
-    -- Gather zone vertices into polygons list and support the three accepted input forms:
-    --  * nil -> gather polygons from self.DATA.MIZ_ZONES
-    --  * flat array of vec2s -> { {x=..,y=..}, ... }  (treated as single polygon)
-    --  * array of polygons -> { { {x=..,y=..}, ... }, { ... } }
+    -- Gather zone vertices into polygons list.
+    -- Supported inputs:
+    --  * nil -> use self.DATA.MIZ_ZONES (zone objects)
+    --  * zone table mapping (zoneName -> zone object) -> use provided MIZ_ZONES-like table
+    --  * array of polygons -> { { {x=..,y=..}, ... }, ... }
+    --  * flat array of vec2s -> { {x=..,y=..}, ... } (treated as single polygon)
     local polygons = {}
-    if not zoneVertices then
-        for _, mz in pairs(self.DATA.MIZ_ZONES or {}) do
+
+    local function isZoneObjectTable(t)
+        if type(t) ~= "table" then return false end
+        for _, v in pairs(t) do
+            if type(v) == "table" and (v.verticies or v.vertices or v.LinesVec2 or v.BorderingZones) then
+                return true
+            end
+            break
+        end
+        return false
+    end
+
+    local zonesTable = self.DATA.MIZ_ZONES
+    -- if not zoneVertices then
+    --     zonesTable = self.DATA.MIZ_ZONES or {}
+    -- elseif isZoneObjectTable(zoneVertices) then
+    --     zonesTable = zoneVertices
+    -- else
+    --     -- zoneVertices is either an array of polygons or a flat array of vec2s
+    --     if #zoneVertices > 0 and type(zoneVertices[1]) == "table" and zoneVertices[1][1] and type(zoneVertices[1][1]) == "table" then
+    --         -- array of polygons already
+    --         for _, poly in ipairs(zoneVertices) do
+    --             local pcopy = {}
+    --             for _, v in ipairs(poly) do
+    --                 table.insert(pcopy, { x = v.x, y = v.y or v.z })
+    --             end
+    --             table.insert(polygons, pcopy)
+    --         end
+    --     else
+    --         -- flat array of vec2s -> treat as single polygon
+    --         local pcopy = {}
+    --         for _, v in ipairs(zoneVertices) do
+    --             table.insert(pcopy, { x = v.x, y = v.y or v.z })
+    --         end
+    --         table.insert(polygons, pcopy)
+    --     end
+    -- end
+
+    -- If we have zone objects (zonesTable), build an exclude set from any BorderingZones
+    if zonesTable then
+        local function keyFor(p) return string.format("%.6f,%.6f", p.x, p.y or p.z) end
+
+        local exclude = {}
+        for zname, mz in pairs(zonesTable) do
+            if mz and mz.BorderingZones then
+                for neighborName, zoneBorders in pairs(mz.BorderingZones) do
+                    for _, border in ipairs(zoneBorders or {}) do
+                        if border.ZoneLine then
+                            local l = border.ZoneLine
+                            if l[1] then exclude[keyFor(l[1])] = true end
+                            if l[2] then exclude[keyFor(l[2])] = true end
+                        end
+                        if border.NeighborLine then
+                            local l = border.NeighborLine
+                            if l[1] then exclude[keyFor(l[1])] = true end
+                            if l[2] then exclude[keyFor(l[2])] = true end
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Collect vertices from all zones but exclude any vertex that is part of a bordering edge
+        for zname, mz in pairs(zonesTable) do
             local verts = mz.verticies or mz.vertices or mz.Vertices or mz.Verticies
             if verts and #verts > 0 then
                 local poly = {}
                 for _, v in ipairs(verts) do
-                    table.insert(poly, { x = v.x, y = v.z or v.y })
+                    local x = v.x
+                    local y = v.y or v.z
+                    if not exclude[keyFor({ x = x, y = y })] then
+                        table.insert(poly, { x = x, y = y })
+                    end
                 end
-                table.insert(polygons, poly)
+                if #poly >= 3 then table.insert(polygons, poly) end
             end
-        end
-    else
-        if #zoneVertices > 0 and type(zoneVertices[1]) == "table" and zoneVertices[1][1] and type(zoneVertices[1][1]) == "table" then
-            -- array of polygons already
-            for _, poly in ipairs(zoneVertices) do
-                local pcopy = {}
-                for _, v in ipairs(poly) do
-                    table.insert(pcopy, { x = v.x, y = v.y or v.z })
-                end
-                table.insert(polygons, pcopy)
-            end
-        else
-            -- flat array of vec2s -> treat as single polygon
-            local pcopy = {}
-            for _, v in ipairs(zoneVertices) do
-                table.insert(pcopy, { x = v.x, y = v.y or v.z })
-            end
-            table.insert(polygons, pcopy)
         end
     end
 
@@ -352,7 +402,38 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
     for _, poly in ipairs(polygons) do
         if poly and #poly >= 3 then validPolyCount = validPolyCount + 1 end
     end
-    if validPolyCount == 0 then return self end
+    if validPolyCount == 0 then
+        -- Fallback: collect vertices from zonesTable ignoring excluded border points so we always have geometry to work with.
+        local flat = {}
+        if zonesTable then
+            for zname, mz in pairs(zonesTable) do
+                local verts = mz.verticies or mz.vertices or mz.Vertices or mz.Verticies
+                if verts and #verts > 0 then
+                    for _, v in ipairs(verts) do
+                        local x = v.x
+                        local y = v.y or v.z
+                        table.insert(flat, { x = x, y = y })
+                    end
+                end
+            end
+        end
+
+        -- If still empty, try flattening any polygons that might exist (defensive)
+        if #flat == 0 then
+            for _, poly in ipairs(polygons) do
+                for _, p in ipairs(poly) do
+                    table.insert(flat, { x = p.x, y = p.y })
+                end
+            end
+        end
+
+        if #flat >= 3 then
+            table.insert(polygons, flat)
+        else
+            -- Nothing usable to draw
+            return self
+        end
+    end
 
     -- Build a concave "shrinkwrap" (k-nearest heuristic) around all polygon vertices.
     -- Flatten unique points from all polygons
@@ -368,7 +449,35 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
         end
     end
 
-    if #allPoints < 3 then return self end
+    -- If not enough points after removing bordering vertices, fall back to using all zone vertices (ignoring exclude)
+    if #allPoints < 3 then
+        local fallback = {}
+        for zname, mz in pairs(zonesTable or {}) do
+            local verts = mz and (mz.verticies or mz.vertices or mz.Vertices or mz.Verticies) or nil
+            if verts then
+                for _, v in ipairs(verts) do
+                    local key = string.format("%.6f,%.6f", v.x, v.y or v.z)
+                    if not uniqp[key] then
+                        uniqp[key] = true
+                        table.insert(fallback, { x = v.x, y = v.y or v.z })
+                    end
+                end
+            end
+        end
+        for _, p in ipairs(fallback) do table.insert(allPoints, p) end
+    end
+
+    -- If still insufficient points, draw world bounds rectangle as a visible fallback
+    if #allPoints < 3 then
+        local boundsPoly = self.POLY:convertBoundsToPolygon(worldBounds)
+        if boundsPoly and #boundsPoly == 4 then
+            local vp = {}
+            for _, c in ipairs(boundsPoly) do table.insert(vp, { x = c.x, y = c.z }) end
+            self:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, vp)
+            return self
+        end
+        return self
+    end
 
     -- Helpers
     local function ptEqual(a, b)
@@ -654,3 +763,4 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
 
     return self
 end
+

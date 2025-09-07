@@ -50,10 +50,13 @@ fillColor_,
 lineColor,
 G_AETHR.ENUMS.LineTypes.Dashed,
 G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
-zoneVerts,
+nil, --zoneVerts,
 G_AETHR.CONFIG.MAIN.worldBounds.Caucasus,
 {samplesPerEdge = 20}
 )
+
+G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
+
 
 
 -- local corners = {
