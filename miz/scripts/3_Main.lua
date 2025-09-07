@@ -11,3 +11,5 @@ G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
 G_AETHR.CONFIG.MAIN.worldBounds.Caucasus -- ,{samplesPerEdge = 10, snapDistance = 70000}
 )
 end
+
+G_AETHR.ZONE_MANAGER:getMasterZonePolygon()

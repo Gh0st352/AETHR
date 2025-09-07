@@ -12,13 +12,17 @@
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 AETHR.ZONE_MANAGER.DATA = {
-    MIZ_ZONES = {},    -- Mission trigger zones keyed by name.
+    MIZ_ZONES = {}, -- Mission trigger zones keyed by name.
     outOfBounds = {
         oobHullPolys = {},
         oobCenterPoly = {},
         masterPoly = {},
     },
-    inBoundsPolys = {},
+    inBounds = {
+        masterPolyLines = {},
+        masterPolyVerts = {},
+    },
+
 }
 
 
@@ -211,10 +215,10 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
     return MIZ_ZONES
 end
 
-function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype, cornerVec2s,markerID)
-    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a          --  RGBA components Fill
-    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a  --  RGBA components Fill
-    local shapeTypeID    = 7                                                           --  Polygon shape type
+function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype, cornerVec2s, markerID)
+    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         --  RGBA components Fill
+    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a --  RGBA components Fill
+    local shapeTypeID    = 7                                                          --  Polygon shape type
     local vec3_1         = { x = cornerVec2s[4].x, y = 0, z = cornerVec2s[4].y }
     local vec3_2         = { x = cornerVec2s[3].x, y = 0, z = cornerVec2s[3].y }
     local vec3_3         = { x = cornerVec2s[2].x, y = 0, z = cornerVec2s[2].y }
@@ -227,8 +231,8 @@ function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype
         vec3_2,
         vec3_3,
         vec3_4,
-        { r2, g2, b2, a2 },     -- Border color
-        { r1, g1, b1, a1 },     -- Fill color
+        { r2, g2, b2, a2 }, -- Border color
+        { r1, g1, b1, a1 }, -- Fill color
         linetype, true
     )
     return self
@@ -260,14 +264,14 @@ function AETHR.ZONE_MANAGER:drawPolygon(coalition, fillColor, borderColor, linet
         return self
     end
 
-    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a          -- Fill color RGBA
-    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a  -- Border color RGBA
-    local shapeTypeID    = 7                                                           -- Polygon shape type
-    markerID = markerID or 0
+    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
+    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
+    local shapeTypeID    = 7                                                          -- Polygon shape type
+    markerID             = markerID or 0
 
     -- Build argument list for trigger.action.markupToAll:
     -- shapeTypeID, coalition, markerID, <vec3 points...>, borderColor, fillColor, linetype, true
-    local margs = { shapeTypeID, coalition, markerID }
+    local margs          = { shapeTypeID, coalition, markerID }
 
     -- Preserve original drawZone orientation by reversing corner order
     for i = #corners, 1, -1 do
@@ -275,8 +279,8 @@ function AETHR.ZONE_MANAGER:drawPolygon(coalition, fillColor, borderColor, linet
         table.insert(margs, { x = v.x, y = 0, z = v.y })
     end
 
-    table.insert(margs, { r2, g2, b2, a2 })     -- Border color
-    table.insert(margs, { r1, g1, b1, a1 })     -- Fill color
+    table.insert(margs, { r2, g2, b2, a2 }) -- Border color
+    table.insert(margs, { r1, g1, b1, a1 }) -- Fill color
     table.insert(margs, linetype)
     table.insert(margs, true)
 
@@ -284,12 +288,11 @@ function AETHR.ZONE_MANAGER:drawPolygon(coalition, fillColor, borderColor, linet
     -- if table.unpack then
     --     trigger.action.markupToAll(table.unpack(margs))
     -- else
-        trigger.action.markupToAll(unpack(margs))
+    trigger.action.markupToAll(unpack(margs))
     -- end
 
     return self
 end
-
 
 function AETHR.ZONE_MANAGER:_buildBorderExclude(zonesTable)
     local function keyFor(p) return string.format("%.6f,%.6f", p.x, p.y or p.z) end
@@ -386,9 +389,10 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts, 
     for _, v in ipairs(hull) do
         local dx = v.x - cx
         local dy = v.y - cy
-        local len = math.sqrt(dx*dx + dy*dy)
+        local len = math.sqrt(dx * dx + dy * dy)
         if len == 0 then
-            table.insert(outPoints, { x = (worldBounds.X.min + worldBounds.X.max)/2, y = (worldBounds.Z.min + worldBounds.Z.max)/2 })
+            table.insert(outPoints,
+                { x = (worldBounds.X.min + worldBounds.X.max) / 2, y = (worldBounds.Z.min + worldBounds.Z.max) / 2 })
         else
             local dir = { x = dx / len, y = dy / len }
             local ip = POLY:intersectRayToBounds(v, dir, worldBounds)
@@ -404,7 +408,7 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts, 
             end
         end
     end
-local hullPolys = {}
+    local hullPolys = {}
     -- draw quads
     for i = 1, #hull do
         local j = (i % #hull) + 1
@@ -419,312 +423,378 @@ local hullPolys = {}
                     { x = oi.x, y = oi.y },
                 }
                 table.insert(hullPolys, poly)
-                self:drawPolygon(drawParams.coalition, drawParams.fillColor, drawParams.borderColor, drawParams.linetype, drawParams.markerID, poly)
+                self:drawPolygon(drawParams.coalition, drawParams.fillColor, drawParams.borderColor, drawParams.linetype,
+                    drawParams.markerID, poly)
                 drawParams.markerID = drawParams.markerID + 1
             end
         end
     end
 
-self.DATA.outOfBounds.oobHullPolys = hullPolys
+    self.DATA.outOfBounds.oobHullPolys = hullPolys
 
     return drawParams.markerID
 end
 
 
 
-function AETHR.ZONE_MANAGER:getMasterPolygon(ChildPolygonTables, gapDistance)
-    -- Returns a single polygon (array of {x,y}) representing the union/master outline
-    -- of the provided child polygons. Attempts to consider small gaps between
-    -- adjacent polygons using POLY:isWithinOffset when gapDistance > 0.
-    --
-    -- ChildPolygonTables: array of polygons; each polygon is array of points { x = number, y = number }.
-    -- gapDistance: numeric distance (meters) to consider two edges as bordering/identical.
-    if not ChildPolygonTables or type(ChildPolygonTables) ~= "table" then return nil end
-    local POLY = self.POLY
-    gapDistance = tonumber(gapDistance) or 0
 
-    -- Normalize input polygons
-    local polygons = {}
-    for _, poly in ipairs(ChildPolygonTables) do
-        if type(poly) == "table" and #poly >= 3 then
-            local pnorm = {}
-            for _, v in ipairs(poly) do
-                if v and (v.x or v.y or v.z) then
-                    local x = tonumber(v.x) or 0
-                    local y = tonumber(v.y) or tonumber(v.z) or 0
-                    table.insert(pnorm, { x = x, y = y })
-                end
-            end
-            if #pnorm >= 3 then table.insert(polygons, pnorm) end
-        end
-    end
+function AETHR.ZONE_MANAGER:getMasterZonePolygon()
+    -- New logic flow implementing user's specification:
+    -- 1) Determine bordering polygons (edges within offset)
+    -- 2) Exclude those bordering edges from the master perimeter
+    -- 3) Walk remaining perimeter edges, cluster/snap nearby endpoints and create joining edges for gaps
+    -- 4) Return the largest closed perimeter loop as the Master Polygon (array of {x,y})
 
-    if #polygons == 0 then return nil end
 
-    -- Collect all edges from polygons
-    local edges = {}
-    for pi, poly in ipairs(polygons) do
-        for i = 1, #poly do
-            local j = (i % #poly) + 1
-            local a = poly[i]; local b = poly[j]
-            table.insert(edges, {
-                a = { x = a.x, y = a.y },
-                b = { x = b.x, y = b.y },
-                polyIndex = pi,
-                idx = i,
-                matched = false
-            })
-        end
-    end
+    local ChildZoneTables = self.DATA.MIZ_ZONES
+    local zoneOffset = self.CONFIG.MAIN.Zone.BorderOffsetThreshold
 
-    -- Mark edges that have a matching neighbor edge (shared border).
-    -- If gapDistance > 0 we use POLY:isWithinOffset to detect near-equality.
-    if gapDistance and gapDistance > 0 and POLY and POLY.isWithinOffset then
-        for i = 1, #edges - 1 do
-            local ei = edges[i]
-            if not ei.matched then
-                local lineA = { { x = ei.a.x, y = ei.a.y }, { x = ei.b.x, y = ei.b.y } }
-                for j = i + 1, #edges do
-                    local ej = edges[j]
-                    if not ej.matched then
-                        -- quick bounding-box early-out (optional, small perf win)
-                        local minAx = math.min(lineA[1].x, lineA[2].x)
-                        local maxAx = math.max(lineA[1].x, lineA[2].x)
-                        local minAy = math.min(lineA[1].y, lineA[2].y)
-                        local maxAy = math.max(lineA[1].y, lineA[2].y)
 
-                        local lineB = { { x = ej.a.x, y = ej.a.y }, { x = ej.b.x, y = ej.b.y } }
-                        local minBx = math.min(lineB[1].x, lineB[2].x)
-                        local maxBx = math.max(lineB[1].x, lineB[2].x)
-                        local minBy = math.min(lineB[1].y, lineB[2].y)
-                        local maxBy = math.max(lineB[1].y, lineB[2].y)
+    local masterPolyLines = {}
 
-                        local expanded = gapDistance
-                        if not (maxAx + expanded < minBx - 1e-9 or maxBx + expanded < minAx - 1e-9
-                                or maxAy + expanded < minBy - 1e-9 or maxBy + expanded < minAy - 1e-9) then
-                            if POLY:isWithinOffset(lineA, lineB, gapDistance) then
-                                ei.matched = true
-                                ej.matched = true
-                            end
+    for _, _zone in pairs(ChildZoneTables) do
+        local lines = _zone.LinesVec2
+        local BorderingZones = _zone.BorderingZones
+        for _, line in ipairs(lines or {}) do
+            local isBorder = false
+                for _, borderZone in pairs(BorderingZones or {}) do
+                    for _, _arr in pairs(borderZone or {}) do
+                        local _zoneLine = _arr.ZoneLine
+                        if _zoneLine and (_zoneLine == line) then
+                            isBorder = true
+                            break
                         end
+                        if isBorder then break end
                     end
+                    if isBorder then break end
                 end
-            end
-        end
-    else
-        -- Exact-match case (gapDistance == 0): mark perfectly reversed edges as matched
-        local function eq(p, q) return math.abs(p.x - q.x) < 1e-9 and math.abs(p.y - q.y) < 1e-9 end
-        for i = 1, #edges - 1 do
-            for j = i + 1, #edges do
-                if not edges[i].matched and not edges[j].matched then
-                    if eq(edges[i].a, edges[j].b) and eq(edges[i].b, edges[j].a) then
-                        edges[i].matched = true
-                        edges[j].matched = true
-                    end
-                end
-            end
+            if not isBorder then table.insert(masterPolyLines, line) end
         end
     end
 
-    -- Build list of boundary edges (those not matched)
-    local boundary = {}
-    for _, e in ipairs(edges) do
-        if not e.matched then
-            table.insert(boundary, { { x = e.a.x, y = e.a.y }, { x = e.b.x, y = e.b.y } })
-        end
-    end
+self.DATA.inBounds.masterPolyLines = masterPolyLines
+return self
 
-    -- If no explicit boundary edges found, fallback to hull of all unique points
-    local function fallbackHullFromPoints(points)
-        if not points or #points < 3 then return nil end
-        -- deduplicate
-        local uniq = {}
-        local pts = {}
-        for _, p in ipairs(points) do
-            local key = string.format("%.6f,%.6f", p.x, p.y)
-            if not uniq[key] then
-                uniq[key] = true
-                table.insert(pts, { x = p.x, y = p.y })
-            end
-        end
-        if #pts < 3 then return nil end
-        if POLY and POLY.concaveHull then
-            local k = math.max(3, math.floor(#pts * 0.1))
-            local h = POLY:concaveHull(pts, { k = k })
-            if h and #h >= 3 then return h end
-        end
-        if POLY and POLY.convexHull then
-            return POLY:convexHull(pts)
-        end
-        return nil
-    end
+    -- if not ChildPolygonTables or type(ChildPolygonTables) ~= "table" then return nil end
+    -- local POLY = self.POLY
+    -- local MATH = self.MATH
+    -- gapDistance = tonumber(gapDistance) or 0
 
-    if #boundary == 0 then
-        -- collect all vertices
-        local allPts = {}
-        for _, poly in ipairs(polygons) do
-            for _, p in ipairs(poly) do table.insert(allPts, { x = p.x, y = p.y }) end
-        end
-        return fallbackHullFromPoints(allPts)
-    end
+    -- -- Normalize input polygons
+    -- local polygons = {}
+    -- for _, poly in ipairs(ChildPolygonTables) do
+    --     if type(poly) == "table" and #poly >= 3 then
+    --         local pnorm = {}
+    --         for _, v in ipairs(poly) do
+    --             if v and (v.x or v.y or v.z) then
+    --                 local x = tonumber(v.x) or 0
+    --                 local y = tonumber(v.y) or tonumber(v.z) or 0
+    --                 table.insert(pnorm, { x = x, y = y })
+    --             end
+    --         end
+    --         if #pnorm >= 3 then table.insert(polygons, pnorm) end
+    --     end
+    -- end
+    -- if #polygons == 0 then return nil end
 
-    -- Collect endpoints for clustering (to snap nearby endpoints together)
-    local nodes = {}
-    for ei, be in ipairs(boundary) do
-        table.insert(nodes, { x = be[1].x, y = be[1].y, edgeIndex = ei, which = 1 })
-        table.insert(nodes, { x = be[2].x, y = be[2].y, edgeIndex = ei, which = 2 })
-    end
+    -- -- Build per-polygon edge lists
+    -- local polyEdges = {}
+    -- for pi, poly in ipairs(polygons) do
+    --     polyEdges[pi] = {}
+    --     for i = 1, #poly do
+    --         local j = (i % #poly) + 1
+    --         table.insert(polyEdges[pi], {
+    --             a = { x = poly[i].x, y = poly[i].y },
+    --             b = { x = poly[j].x, y = poly[j].y },
+    --             matched = false,
+    --             idx = i
+    --         })
+    --     end
+    -- end
 
-    -- Union-Find to cluster nodes that are within gapDistance of each other (or identical if gapDistance==0)
-    local nNodes = #nodes
-    local parent = {}
-    for i = 1, nNodes do parent[i] = i end
-    local function find(i) while parent[i] ~= i do parent[i] = parent[parent[i]]; i = parent[i] end; return i end
-    local function union(i, j) local ri, rj = find(i), find(j); if ri ~= rj then parent[rj] = ri end end
+    -- -- Helper: fallback hull generator (dedupe -> concave -> convex)
+    -- local function fallbackHullFromPoints(points)
+    --     if not points or #points < 3 then return nil end
+    --     local uniq = {}
+    --     local pts = {}
+    --     for _, p in ipairs(points) do
+    --         local key = string.format("%.6f,%.6f", p.x, p.y)
+    --         if not uniq[key] then
+    --             uniq[key] = true
+    --             table.insert(pts, { x = p.x, y = p.y })
+    --         end
+    --     end
+    --     if #pts < 3 then return nil end
+    --     if POLY and POLY.concaveHull then
+    --         local k = math.max(3, math.floor(#pts * 0.1))
+    --         local h = POLY:concaveHull(pts, { k = k })
+    --         if h and #h >= 3 then return h end
+    --     end
+    --     if POLY and POLY.convexHull then
+    --         return POLY:convexHull(pts)
+    --     end
+    --     return nil
+    -- end
 
-    if nNodes >= 2 then
-        if gapDistance and gapDistance > 0 then
-            local gd2 = gapDistance * gapDistance
-            for i = 1, nNodes - 1 do
-                local ni = nodes[i]
-                for j = i + 1, nNodes do
-                    local nj = nodes[j]
-                    local dx = ni.x - nj.x; local dy = ni.y - nj.y
-                    if dx * dx + dy * dy <= gd2 + 1e-12 then union(i, j) end
-                end
-            end
-        else
-            for i = 1, nNodes - 1 do
-                local ni = nodes[i]
-                for j = i + 1, nNodes do
-                    local nj = nodes[j]
-                    if math.abs(ni.x - nj.x) < 1e-9 and math.abs(ni.y - nj.y) < 1e-9 then union(i, j) end
-                end
-            end
-        end
-    end
+    -- -- 1) Determine bordering polygons: mark edges that have a neighbor within gapDistance
+    -- for i = 1, #polyEdges - 1 do
+    --     for j = i + 1, #polyEdges do
+    --         local edgesA = polyEdges[i]
+    --         local edgesB = polyEdges[j]
+    --         for ia = 1, #edgesA do
+    --             local ea = edgesA[ia]
+    --             local lineA = { { x = ea.a.x, y = ea.a.y }, { x = ea.b.x, y = ea.b.y } }
+    --             for ib = 1, #edgesB do
+    --                 local eb = edgesB[ib]
+    --                 local lineB = { { x = eb.a.x, y = eb.a.y }, { x = eb.b.x, y = eb.b.y } }
 
-    -- Build groups and representative coordinates
-    local groups = {}
-    for i = 1, nNodes do
-        local r = find(i)
-        groups[r] = groups[r] or { idxs = {}, sumx = 0, sumy = 0 }
-        table.insert(groups[r].idxs, i)
-        groups[r].sumx = groups[r].sumx + nodes[i].x
-        groups[r].sumy = groups[r].sumy + nodes[i].y
-    end
+    --                 -- quick bbox early-out expanded by gapDistance
+    --                 local minAx = math.min(lineA[1].x, lineA[2].x)
+    --                 local maxAx = math.max(lineA[1].x, lineA[2].x)
+    --                 local minAy = math.min(lineA[1].y, lineA[2].y)
+    --                 local maxAy = math.max(lineA[1].y, lineA[2].y)
+    --                 local minBx = math.min(lineB[1].x, lineB[2].x)
+    --                 local maxBx = math.max(lineB[1].x, lineB[2].x)
+    --                 local minBy = math.min(lineB[1].y, lineB[2].y)
+    --                 local maxBy = math.max(lineB[1].y, lineB[2].y)
 
-    local groupIdForNode = {}
-    local groupCoord = {}
-    local gid = 0
-    for root, g in pairs(groups) do
-        gid = gid + 1
-        local count = #g.idxs
-        local rx = g.sumx / count
-        local ry = g.sumy / count
-        groupCoord[gid] = { x = rx, y = ry }
-        for _, idx in ipairs(g.idxs) do groupIdForNode[idx] = gid end
-    end
+    --                 local expanded = gapDistance or 0
+    --                 if not (maxAx + expanded < minBx - 1e-9 or maxBx + expanded < minAx - 1e-9
+    --                         or maxAy + expanded < minBy - 1e-9 or maxBy + expanded < minAy - 1e-9) then
+    --                     local isNear = false
+    --                     if gapDistance > 0 and POLY and POLY.isWithinOffset then
+    --                         if POLY:isWithinOffset(lineA, lineB, gapDistance) then isNear = true end
+    --                     else
+    --                         -- exact-match reversed edge detection
+    --                         local function eq(p, q) return math.abs(p.x - q.x) < 1e-9 and math.abs(p.y - q.y) < 1e-9 end
+    --                         if eq(lineA[1], lineB[2]) and eq(lineA[2], lineB[1]) then isNear = true end
+    --                     end
+    --                     if isNear then
+    --                         ea.matched = true
+    --                         eb.matched = true
+    --                     end
+    --                 end
+    --             end
+    --         end
+    --     end
+    -- end
 
-    -- Build graph edges between groups (undirected), deduplicate
-    local adjacency = {} -- gid -> { neighborGid, ... }
-    local undirectedSeen = {}
-    local groupEdgeList = {}
-    for ei, be in ipairs(boundary) do
-        local n1i = (ei - 1) * 2 + 1
-        local n2i = n1i + 1
-        local g1 = groupIdForNode[n1i]
-        local g2 = groupIdForNode[n2i]
-        if g1 and g2 and g1 ~= g2 then
-            local key = (g1 < g2) and (g1 .. "|" .. g2) or (g2 .. "|" .. g1)
-            if not undirectedSeen[key] then
-                undirectedSeen[key] = true
-                adjacency[g1] = adjacency[g1] or {}
-                adjacency[g2] = adjacency[g2] or {}
-                table.insert(adjacency[g1], g2)
-                table.insert(adjacency[g2], g1)
-                table.insert(groupEdgeList, { a = g1, b = g2 })
-            end
-        end
-    end
+    -- -- 2) Exclude lines that were marked matched -> collect remaining boundary edges
+    -- local boundary = {}
+    -- for _, edges in ipairs(polyEdges) do
+    --     for _, e in ipairs(edges) do
+    --         if not e.matched then
+    --             table.insert(boundary, { { x = e.a.x, y = e.a.y }, { x = e.b.x, y = e.b.y } })
+    --         end
+    --     end
+    -- end
 
-    -- Walk adjacency to form closed loops
-    local usedEdge = {}
-    local loops = {}
-    local function edgeKey(a, b) return (a < b) and (a .. "|" .. b) or (b .. "|" .. a) end
+    -- if #boundary == 0 then
+    --     -- everything was matched/inner: fall back to hull of all points
+    --     local allPts = {}
+    --     for _, poly in ipairs(polygons) do
+    --         for _, p in ipairs(poly) do table.insert(allPts, { x = p.x, y = p.y }) end
+    --     end
+    --     return fallbackHullFromPoints(allPts)
+    -- end
 
-    for _, ge in ipairs(groupEdgeList) do
-        local k = edgeKey(ge.a, ge.b)
-        if not usedEdge[k] then
-            local start = ge.a
-            local curr = start
-            local path = { curr }
-            usedEdge[k] = true
+    -- -- 3) Walk remaining perimeter lines, cluster/snap nearby endpoints and create joining lines for gaps
 
-            local safety = 0
-            while true do
-                safety = safety + 1
-                if safety > 20000 then break end
-                local neighs = adjacency[curr] or {}
-                local nextNode = nil
-                for _, n in ipairs(neighs) do
-                    local nk = edgeKey(curr, n)
-                    if not usedEdge[nk] then
-                        nextNode = n
-                        usedEdge[nk] = true
-                        break
-                    end
-                end
-                if not nextNode then
-                    break
-                end
-                table.insert(path, nextNode)
-                curr = nextNode
-                if curr == start then break end
-            end
+    -- -- Build nodes (endpoints)
+    -- local nodes = {}
+    -- for ei, be in ipairs(boundary) do
+    --     table.insert(nodes, { x = be[1].x, y = be[1].y, edgeIndex = ei, which = 1 })
+    --     table.insert(nodes, { x = be[2].x, y = be[2].y, edgeIndex = ei, which = 2 })
+    -- end
 
-            -- ensure closed and at least 3 vertices
-            if #path >= 3 and path[1] == path[#path] then
-                table.remove(path, #path) -- remove duplicate end/start
-            end
-            if #path >= 3 then
-                local pts = {}
-                for _, gidv in ipairs(path) do
-                    local c = groupCoord[gidv]
-                    table.insert(pts, { x = c.x, y = c.y })
-                end
-                table.insert(loops, pts)
-            end
-        end
-    end
+    -- -- Union-Find clustering of nodes within gapDistance (snap endpoints)
+    -- local nNodes = #nodes
+    -- local parent = {}
+    -- for i = 1, nNodes do parent[i] = i end
+    -- local function find(i) while parent[i] ~= i do parent[i] = parent[parent[i]]; i = parent[i] end; return i end
+    -- local function union(i, j) local ri, rj = find(i), find(j); if ri ~= rj then parent[rj] = ri end end
 
-    -- If no loops constructed, fallback to hull from all boundary endpoints
-    if #loops == 0 then
-        local pts = {}
-        for _, n in ipairs(nodes) do table.insert(pts, { x = n.x, y = n.y }) end
-        return fallbackHullFromPoints(pts)
-    end
+    -- if nNodes >= 2 then
+    --     if gapDistance and gapDistance > 0 then
+    --         local gd2 = (gapDistance * gapDistance) + 1e-12
+    --         for i = 1, nNodes - 1 do
+    --             for j = i + 1, nNodes do
+    --                 local dx = nodes[i].x - nodes[j].x
+    --                 local dy = nodes[i].y - nodes[j].y
+    --                 if dx * dx + dy * dy <= gd2 then union(i, j) end
+    --             end
+    --         end
+    --     else
+    --         for i = 1, nNodes - 1 do
+    --             for j = i + 1, nNodes do
+    --                 if math.abs(nodes[i].x - nodes[j].x) < 1e-9 and math.abs(nodes[i].y - nodes[j].y) < 1e-9 then
+    --                     union(i, j)
+    --                 end
+    --             end
+    --         end
+    --     end
+    -- end
 
-    -- pick the largest loop by area
-    local function polygonAreaXY(pts)
-        local n = #pts
-        if n < 3 then return 0 end
-        local s = 0
-        for i = 1, n do
-            local j = (i % n) + 1
-            s = s + (pts[i].x * pts[j].y - pts[j].x * pts[i].y)
-        end
-        return math.abs(s) * 0.5
-    end
+    -- -- Build groups (cluster roots) and representative coordinates
+    -- local groups = {}
+    -- for i = 1, nNodes do
+    --     local r = find(i)
+    --     groups[r] = groups[r] or { idxs = {}, sumx = 0, sumy = 0 }
+    --     table.insert(groups[r].idxs, i)
+    --     groups[r].sumx = groups[r].sumx + nodes[i].x
+    --     groups[r].sumy = groups[r].sumy + nodes[i].y
+    -- end
 
-    local best = nil
-    local bestA = -1
-    for _, loop in ipairs(loops) do
-        local a = polygonAreaXY(loop)
-        if a > bestA then bestA = a; best = loop end
-    end
+    -- local groupIdForNode = {}
+    -- local groupCoord = {}
+    -- local gid = 0
+    -- for root, g in pairs(groups) do
+    --     gid = gid + 1
+    --     local count = #g.idxs
+    --     local rx = g.sumx / count
+    --     local ry = g.sumy / count
+    --     groupCoord[gid] = { x = rx, y = ry }
+    --     for _, idx in ipairs(g.idxs) do groupIdForNode[idx] = gid end
+    -- end
 
-    return best
+    -- -- Build adjacency from boundary edges (groups)
+    -- local adjacency = {}
+    -- local undirectedSeen = {}
+    -- local groupEdgeList = {}
+    -- for ei, be in ipairs(boundary) do
+    --     local n1i = (ei - 1) * 2 + 1
+    --     local n2i = n1i + 1
+    --     local g1 = groupIdForNode[n1i]
+    --     local g2 = groupIdForNode[n2i]
+    --     if g1 and g2 and g1 ~= g2 then
+    --         local key = (g1 < g2) and (g1 .. "|" .. g2) or (g2 .. "|" .. g1)
+    --         if not undirectedSeen[key] then
+    --             undirectedSeen[key] = true
+    --             adjacency[g1] = adjacency[g1] or {}
+    --             adjacency[g2] = adjacency[g2] or {}
+    --             table.insert(adjacency[g1], g2)
+    --             table.insert(adjacency[g2], g1)
+    --             table.insert(groupEdgeList, { a = g1, b = g2 })
+    --         end
+    --     end
+    -- end
+
+    -- -- Fill gaps by connecting endpoint groups (degree != 2) whose distance is within threshold (gapDistance)
+    -- local function degree(gid) local t = adjacency[gid]; return t and #t or 0 end
+    -- local eps = 1e-9
+    -- local threshold2 = (gapDistance and gapDistance > 0) and (gapDistance * gapDistance * 1.21) or (eps)
+
+    -- local changed = true
+    -- while changed do
+    --     changed = false
+    --     -- collect endpoints (degree ~= 2)
+    --     local endpoints = {}
+    --     for gidv, _ in pairs(groupCoord) do
+    --         if degree(gidv) ~= 2 then table.insert(endpoints, gidv) end
+    --     end
+    --     if #endpoints < 2 then break end
+
+    --     -- find best pair to connect (closest pair not already connected)
+    --     local bestA, bestB, bestD2 = nil, nil, math.huge
+    --     for i = 1, #endpoints - 1 do
+    --         for j = i + 1, #endpoints do
+    --             local a = endpoints[i]; local b = endpoints[j]
+    --             local key = (a < b) and (a .. "|" .. b) or (b .. "|" .. a)
+    --             if not undirectedSeen[key] then
+    --                 local dx = groupCoord[a].x - groupCoord[b].x
+    --                 local dy = groupCoord[a].y - groupCoord[b].y
+    --                 local d2 = dx * dx + dy * dy
+    --                 if d2 < bestD2 then bestD2 = d2; bestA = a; bestB = b end
+    --             end
+    --         end
+    --     end
+
+    --     if bestA and bestB and bestD2 <= threshold2 then
+    --         local a = bestA; local b = bestB
+    --         local k = (a < b) and (a .. "|" .. b) or (b .. "|" .. a)
+    --         undirectedSeen[k] = true
+    --         adjacency[a] = adjacency[a] or {}
+    --         adjacency[b] = adjacency[b] or {}
+    --         table.insert(adjacency[a], b)
+    --         table.insert(adjacency[b], a)
+    --         table.insert(groupEdgeList, { a = a, b = b })
+    --         changed = true
+    --     else
+    --         break
+    --     end
+    -- end
+
+    -- -- 4) Walk remaining graph edges to build closed loops
+    -- local usedEdge = {}
+    -- local loops = {}
+    -- local function edgeKey(a, b) return (a < b) and (a .. "|" .. b) or (b .. "|" .. a) end
+
+    -- for _, ge in ipairs(groupEdgeList) do
+    --     local k = edgeKey(ge.a, ge.b)
+    --     if not usedEdge[k] then
+    --         local start = ge.a
+    --         local curr = start
+    --         local path = { curr }
+    --         usedEdge[k] = true
+    --         local safety = 0
+    --         while true do
+    --             safety = safety + 1
+    --             if safety > 20000 then break end
+    --             local neighs = adjacency[curr] or {}
+    --             local nextNode = nil
+    --             for _, n in ipairs(neighs) do
+    --                 local nk = edgeKey(curr, n)
+    --                 if not usedEdge[nk] then
+    --                     nextNode = n
+    --                     usedEdge[nk] = true
+    --                     break
+    --                 end
+    --             end
+    --             if not nextNode then break end
+    --             table.insert(path, nextNode)
+    --             curr = nextNode
+    --             if curr == start then break end
+    --         end
+
+    --         if #path >= 3 and path[1] == path[#path] then table.remove(path, #path) end
+    --         if #path >= 3 then
+    --             local pts = {}
+    --             for _, gidv in ipairs(path) do
+    --                 local c = groupCoord[gidv]
+    --                 table.insert(pts, { x = c.x, y = c.y })
+    --             end
+    --             table.insert(loops, pts)
+    --         end
+    --     end
+    -- end
+
+    -- if #loops == 0 then
+    --     -- fallback
+    --     local pts = {}
+    --     for _, c in pairs(groupCoord) do table.insert(pts, { x = c.x, y = c.y }) end
+    --     return fallbackHullFromPoints(pts)
+    -- end
+
+    -- -- pick the largest loop by area
+    -- local function polygonAreaXY(pts)
+    --     local n = #pts
+    --     if n < 3 then return 0 end
+    --     local s = 0
+    --     for i = 1, n do
+    --         local j = (i % n) + 1
+    --         s = s + (pts[i].x * pts[j].y - pts[j].x * pts[i].y)
+    --     end
+    --     return math.abs(s) * 0.5
+    -- end
+
+    -- local best = nil
+    -- local bestA = -1
+    -- for _, loop in ipairs(loops) do
+    --     local a = polygonAreaXY(loop)
+    --     if a > bestA then bestA = a; best = loop end
+    -- end
+
+    -- return best
 end
 
 function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
@@ -778,7 +848,9 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
         if math.abs(A) < 1e-12 then
             -- fallback to simple average
             local sx, sy = 0, 0
-            for _, p in ipairs(pts) do sx = sx + p.x; sy = sy + p.y end
+            for _, p in ipairs(pts) do
+                sx = sx + p.x; sy = sy + p.y
+            end
             return { x = sx / #pts, y = sy / #pts }
         end
         return { x = cx / (6 * A), y = cy / (6 * A) }
@@ -786,8 +858,8 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
 
     -- Normalize input polygons and collect edges
     local pointsByKey = {}
-    local undirectedCount = {}           -- key: "A|B" (sorted) -> count
-    local anyOriented = {}               -- store one oriented occurrence { from = keyA, to = keyB }
+    local undirectedCount = {} -- key: "A|B" (sorted) -> count
+    local anyOriented = {}     -- store one oriented occurrence { from = keyA, to = keyB }
     local polygons = {}
 
     for _, poly in ipairs(PolyTable) do
@@ -823,7 +895,7 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
         if cnt == 1 then
             boundaryEdgeSet[ukey] = true
             -- parse the two endpoints
-            local a,b = ukey:match("([^|]+)|([^|]+)")
+            local a, b = ukey:match("([^|]+)|([^|]+)")
             if a and b then
                 adjacency[a] = adjacency[a] or {}
                 adjacency[b] = adjacency[b] or {}
@@ -950,7 +1022,6 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
     return out
 end
 
-
 --- Draws an out-of-bounds convex ring surrounding provided zone vertices.
 --- The routine computes a convex hull of the input zone vertices, shoots outward
 --- rays from the hull centroid to the world bounds, and constructs quads between
@@ -972,7 +1043,8 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
     markerID = markerID or 0
 
     -- Resolve world bounds (preserve original lookup)
-    worldBounds = worldBounds or (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.worldBounds and self.CONFIG.MAIN.worldBounds.Caucasus)
+    worldBounds = worldBounds or
+        (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.worldBounds and self.CONFIG.MAIN.worldBounds.Caucasus)
     if not worldBounds then return self end
 
     -- Use zones from stored data by default
@@ -1023,24 +1095,31 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
     if not hull or #hull < 3 then return self end
 
     -- Process the hull (single loop)
-    local drawParams = { coalition = coalition, fillColor = fillColor, borderColor = borderColor, linetype = linetype, markerID = markerID }
+    local drawParams = {
+        coalition = coalition,
+        fillColor = fillColor,
+        borderColor = borderColor,
+        linetype = linetype,
+        markerID =
+            markerID
+    }
     markerID = self:_processHullLoop(hull, polygons, worldBounds, opts, drawParams)
 
 
 
 
 
-local centerPoly = self:getPolygonCutout(self.DATA.outOfBounds.oobHullPolys)
-self.DATA.outOfBounds.oobCenterPoly = centerPoly
-self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
-                drawParams.markerID = drawParams.markerID + 1
-local masterPoly = self:getMasterPolygon(polygons, self.CONFIG.MAIN.Zone.BorderOffsetThreshold)
-self:drawPolygon(drawParams.coalition, { r = 1, g = 0, b = 0, a = 0.3 }, { r = 1, g = 0, b = 0, a = 0.6 }, drawParams.linetype, drawParams.markerID, masterPoly)
-                drawParams.markerID = drawParams.markerID + 1
+    local centerPoly = self:getPolygonCutout(self.DATA.outOfBounds.oobHullPolys)
+    self.DATA.outOfBounds.oobCenterPoly = centerPoly
+    -- self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
+    --                 drawParams.markerID = drawParams.markerID + 1
+    -- local masterPoly = self:getMasterPolygon(polygons, self.CONFIG.MAIN.Zone.BorderOffsetThreshold)
+    -- self:drawPolygon(drawParams.coalition, { r = 1, g = 0, b = 0, a = 0.3 }, { r = 1, g = 0, b = 0, a = 0.6 }, drawParams.linetype, drawParams.markerID, masterPoly)
+    --                 drawParams.markerID = drawParams.markerID + 1
 
 
--- self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
---                 drawParams.markerID = drawParams.markerID + 1
+    -- self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
+    --                 drawParams.markerID = drawParams.markerID + 1
 
     return self
 end

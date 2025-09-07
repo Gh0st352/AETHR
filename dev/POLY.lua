@@ -225,6 +225,16 @@ function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     return box
 end
 
+function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
+local polygonVerts = {}
+
+
+
+
+return polygonVerts
+end
+
+
 --- Converts a polygon (list of points) into an array of line segments.
 --- @function convertZoneToLines
 --- @param zone table Array of points `{x,y}` or `{x,z}`
