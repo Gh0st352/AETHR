@@ -10,7 +10,7 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.MATH = {} ---@diagnostic disable-line
 
-function AETHR.MATH:New(c)
+function AETHR.MATH:New()
     local instance = {
 
     }

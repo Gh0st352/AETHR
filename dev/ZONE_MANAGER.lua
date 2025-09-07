@@ -7,24 +7,31 @@
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+--- @field MARKERS AETHR.MARKERS
 --- @field DATA table Container for zone management data.
 --- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 AETHR.ZONE_MANAGER.DATA = {
+    --- @type _MIZ_ZONE[]
     MIZ_ZONES = {}, -- Mission trigger zones keyed by name.
-    outOfBounds = {
-        oobHullPolys = {},
-        oobCenterPoly = {},
-        masterPoly = {},
+    GAME_BOUNDS = {
+        outOfBounds = {
+            HullPolysNoSample = {},
+            HullPolysWithSample = {},
+            centerPoly = {},
+            masterPoly = {},
+        },
+        inBounds = {
+            polyLines = {},
+            polyVerts = {},
+        },
+        inOutBoundsGaps = {
+            overlaid = {},
+            convex = {},
+            concave = {},
+        },
     },
-    inBounds = {
-        masterPolyLines = {},
-        masterPolyVerts = {},
-    },
-    boundsGaps = {},
-    reverseBoundsGaps = {},
-
 }
 
 
@@ -240,62 +247,6 @@ function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype
     return self
 end
 
---- Draws a polygon with an arbitrary number of vec2 vertices.
---- Supported call forms:
----   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, {v1, v2, v3, ...})
----   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, v1, v2, v3, ...)
---- markerID may be nil (defaults to 0).
-function AETHR.ZONE_MANAGER:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, ...)
-    local varargs = { ... }
-    -- If no vertices provided, nothing to draw
-    if not varargs or #varargs == 0 then
-        return self
-    end
-
-    -- Normalize corners: support either a single array/table of vec2s or multiple vec2 args
-    local corners = {}
-    if #varargs == 1 and type(varargs[1]) == "table" and not (varargs[1].x and varargs[1].y) then
-        -- single array-like table of vec2s
-        corners = varargs[1]
-    else
-        corners = varargs
-    end
-
-    -- Need at least 3 vertices to draw a polygon
-    if not corners or #corners < 3 then
-        return self
-    end
-
-    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
-    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
-    local shapeTypeID    = 7                                                          -- Polygon shape type
-    markerID             = markerID or 0
-
-    -- Build argument list for trigger.action.markupToAll:
-    -- shapeTypeID, coalition, markerID, <vec3 points...>, borderColor, fillColor, linetype, true
-    local margs          = { shapeTypeID, coalition, markerID }
-
-    -- Preserve original drawZone orientation by reversing corner order
-    for i = #corners, 1, -1 do
-        local v = corners[i]
-        table.insert(margs, { x = v.x, y = 0, z = v.y })
-    end
-
-    table.insert(margs, { r2, g2, b2, a2 }) -- Border color
-    table.insert(margs, { r1, g1, b1, a1 }) -- Fill color
-    table.insert(margs, linetype)
-    table.insert(margs, true)
-
-    -- Call markupToAll with the constructed argument list (support both table.unpack and unpack)
-    -- if table.unpack then
-    --     trigger.action.markupToAll(table.unpack(margs))
-    -- else
-    trigger.action.markupToAll(unpack(margs))
-    -- end
-
-    return self
-end
-
 function AETHR.ZONE_MANAGER:_buildBorderExclude(zonesTable)
     local function keyFor(p) return string.format("%.6f,%.6f", p.x, p.y or p.z) end
     local exclude = {}
@@ -371,8 +322,8 @@ function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
     return allPoints
 end
 
-function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts, drawParams)
-    if not hull or #hull < 3 then return drawParams.markerID end
+function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts)
+    if not hull or #hull < 3 then return self end
     local samplesPerEdge = opts.samplesPerEdge or 0
     local snapDistance = (opts and opts.snapDistance) and opts.snapDistance or 0.1
     local POLY = self.POLY
@@ -425,16 +376,17 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts, 
                     { x = oi.x, y = oi.y },
                 }
                 table.insert(hullPolys, poly)
-                self:drawPolygon(drawParams.coalition, drawParams.fillColor, drawParams.borderColor, drawParams.linetype,
-                    drawParams.markerID, poly)
-                drawParams.markerID = drawParams.markerID + 1
             end
         end
     end
+    if samplesPerEdge and samplesPerEdge > 0 then
+        self.DATA.GAME_BOUNDS.outOfBounds.HullPolysWithSample = hullPolys
+    else
+        self.DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample = hullPolys
+    end
+    ---self.DATA.GAME_BOUNDS.outOfBounds.HullPolys = hullPolys
 
-    self.DATA.outOfBounds.oobHullPolys = hullPolys
-
-    return drawParams.markerID
+    return self
 end
 
 function AETHR.ZONE_MANAGER:getMasterZonePolygon()
@@ -471,8 +423,8 @@ function AETHR.ZONE_MANAGER:getMasterZonePolygon()
         end
     end
 
-    self.DATA.inBounds.masterPolyLines = masterPolyLines
-    self.DATA.inBounds.masterPolyVerts = self.POLY:convertLinesToPolygon(
+    self.DATA.GAME_BOUNDS.inBounds.polyLines = masterPolyLines
+    self.DATA.GAME_BOUNDS.inBounds.polyVerts = self.POLY:convertLinesToPolygon(
         masterPolyLines,
         zoneOffset
     )
@@ -711,23 +663,15 @@ end
 --- each hull edge and its corresponding intersections on the world bounds.
 --- This tiles the ring with convex quads and avoids overlapping the inner zone.
 --- @function AETHR.ZONE_MANAGER:drawOutOfBounds
---- @param coalition number Coalition id for markup
---- @param fillColor table {r,g,b,a}
---- @param borderColor table {r,g,b,a}
---- @param linetype number Line style id
---- @param markerID number|nil Marker id
---- @param zoneVertices table|nil Array of vec2 vertices ({x,y} or {x,z}). If nil, pulled from self.DATA.MIZ_ZONES.
---- @param worldBounds table|nil Bounds structure with X.min/X.max and Z.min/Z.max. If nil, uses CONFIG.MAIN.worldBounds.Caucasus.
 --- @param opts table|nil Options: { samplesPerEdge = int, useHoleSinglePolygon = bool, snapDistance = number } Optional: snapDistance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity. Default 0.1.
 --- @return AETHR.ZONE_MANAGER self
-function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, linetype, markerID, worldBounds, opts)
+function AETHR.ZONE_MANAGER:getOutOfBounds(opts)
     opts = opts or {}
     local samplesPerEdge = opts.samplesPerEdge or 0
-    markerID = markerID or 0
 
     -- Resolve world bounds (preserve original lookup)
-    worldBounds = worldBounds or
-        (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.worldBounds and self.CONFIG.MAIN.worldBounds.Caucasus)
+    local worldBounds = (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.worldBounds and self.CONFIG.MAIN.worldBounds[self.CONFIG.MAIN.THEATER]) or
+        nil
     if not worldBounds then return self end
 
     -- Use zones from stored data by default
@@ -760,7 +704,6 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
         if boundsPoly and #boundsPoly == 4 then
             local vp = {}
             for _, c in ipairs(boundsPoly) do table.insert(vp, { x = c.x, y = c.z }) end
-            self:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, vp)
             return self
         end
         return self
@@ -776,34 +719,160 @@ function AETHR.ZONE_MANAGER:drawOutOfBounds(coalition, fillColor, borderColor, l
         hull = self.POLY:convexHull(allPoints) or nil
     end
     if not hull or #hull < 3 then return self end
+    self:_processHullLoop(hull, polygons, worldBounds, opts)
+    return self
+end
 
-    -- Process the hull (single loop)
-    local drawParams = {
-        coalition = coalition,
-        fillColor = fillColor,
-        borderColor = borderColor,
-        linetype = linetype,
-        markerID =
-            markerID
-    }
-    markerID = self:_processHullLoop(hull, polygons, worldBounds, opts, drawParams)
+function AETHR.ZONE_MANAGER:initGameZoneBoundaries()
+    local data = self:getStoredGameBoundData()
+    if data then
+        self.DATA.GAME_BOUNDS = data
+    else
+        self:generateGameBoundData()
+        self:saveGameBoundData()
+    end
+    return self
+end
+
+function AETHR.ZONE_MANAGER:getStoredGameBoundData()
+    local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
+    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.GAME_BOUNDS_FILE
+    local data = self.FILEOPS:loadData(mapPath, saveFile)
+    if data then return data end
+    return nil
+end
+
+function AETHR.ZONE_MANAGER:saveGameBoundData()
+    local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
+    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.GAME_BOUNDS_FILE
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.GAME_BOUNDS)
+end
+
+function AETHR.ZONE_MANAGER:generateGameBoundData()
+    self:getMasterZonePolygon()
+    self:getOutOfBounds({
+        samplesPerEdge = 0,
+        useHoleSinglePolygon = false,
+        snapDistance = 0,
+    })
+    self.DATA.GAME_BOUNDS.outOfBounds.centerPoly = self:getPolygonCutout(self.DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample)
+
+    self:getOutOfBounds({
+        samplesPerEdge = self.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.samplesPerEdge,
+        useHoleSinglePolygon = self.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.useHoleSinglePolygon,
+        snapDistance = self.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.snapDistance,
+    })
 
 
+    self.DATA.GAME_BOUNDS.inOutBoundsGaps.overlaid = G_AETHR.POLY:findOverlaidPolygonGaps(
+        self.DATA.GAME_BOUNDS.inBounds.polyVerts,
+        self.DATA.GAME_BOUNDS.outOfBounds.centerPoly
+    )
 
+    for _, val in ipairs(self.DATA.GAME_BOUNDS.inOutBoundsGaps.overlaid) do
+        self.DATA.GAME_BOUNDS.inOutBoundsGaps.convex[#self.DATA.GAME_BOUNDS.inOutBoundsGaps.convex + 1] = self.POLY
+            :ensureConvexN(val)
+    end
+    for _, val in ipairs(self.DATA.GAME_BOUNDS.inOutBoundsGaps.convex) do
+        self.DATA.GAME_BOUNDS.inOutBoundsGaps.concave[#self.DATA.GAME_BOUNDS.inOutBoundsGaps.concave + 1] = self.POLY
+            :reverseVertOrder(val)
+    end
+    return self
+end
 
+function AETHR.ZONE_MANAGER:drawGameBounds()
+    local function markerGen(poly)
+        local _Marker = self.AETHR._Marker:New(
+            self.CONFIG.MAIN.COUNTERS.MARKERS,
+            nil,
+            nil,
+            true,
+            nil,
+            self.ENUMS.MarkerTypes.Freeform,
+            -1, --_zone.ownedBy,
+            self.CONFIG.MAIN.Zone.gameBounds.lineType,
+            {
+                r = self.CONFIG.MAIN.Zone.gameBounds.LineColors.r,
+                g = self.CONFIG.MAIN.Zone.gameBounds.LineColors.g,
+                b = self.CONFIG.MAIN.Zone.gameBounds.LineColors.b,
+                a = self.CONFIG.MAIN.Zone.gameBounds.LineAlpha
+            },
+            {
+                r = self.CONFIG.MAIN.Zone.gameBounds.FillColors.r,
+                g = self.CONFIG.MAIN.Zone.gameBounds.FillColors.g,
+                b = self.CONFIG.MAIN.Zone.gameBounds.FillColors.b,
+                a = self.CONFIG.MAIN.Zone.gameBounds.FillAlpha
+            },
+            poly,
+            nil
+        )
+        self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+        return _Marker
+    end
 
-    local centerPoly = self:getPolygonCutout(self.DATA.outOfBounds.oobHullPolys)
-    self.DATA.outOfBounds.oobCenterPoly = centerPoly
-    -- self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
-    --                 drawParams.markerID = drawParams.markerID + 1
-    -- local masterPoly = self:getMasterPolygon(polygons, self.CONFIG.MAIN.Zone.BorderOffsetThreshold)
-    -- self:drawPolygon(drawParams.coalition, { r = 1, g = 0, b = 0, a = 0.3 }, { r = 1, g = 0, b = 0, a = 0.6 }, drawParams.linetype, drawParams.markerID, masterPoly)
-    --                 drawParams.markerID = drawParams.markerID + 1
-
-
-    -- self:drawPolygon(drawParams.coalition, { r = 0, g = 0, b = 1, a = 0.3 }, { r = 0, g = 0, b = 1, a = 0.6 }, drawParams.linetype, drawParams.markerID, centerPoly)
-    --                 drawParams.markerID = drawParams.markerID + 1
+    for _, poly in pairs(self.DATA.GAME_BOUNDS.outOfBounds.HullPolysWithSample or self.DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample ) do
+        local _Marker = markerGen(poly)
+        self.MARKERS:markFreeform(
+            _Marker,
+            self.MARKERS.DATA.ZONE_MANAGER.OutOfBounds
+        )
+    end
+    for _, poly in pairs(self.DATA.GAME_BOUNDS.inOutBoundsGaps.convex) do
+        local _Marker = markerGen(poly)
+        self.MARKERS:markFreeform(
+            _Marker,
+            self.MARKERS.DATA.ZONE_MANAGER.InOutBoundsGaps
+        )
+    end
+    -- for _, poly in pairs(self.DATA.GAME_BOUNDS.inOutBoundsGaps.concave) do
+    --     local _Marker = markerGen(poly)
+    --     self.MARKERS:markFreeform(
+    --         _Marker,
+    --         self.MARKERS.DATA.ZONE_MANAGER.InOutBoundsGaps
+    --     )
+    -- end
 
     return self
 end
 
+function AETHR.ZONE_MANAGER:drawMissionZones()
+    ---@param _ string
+    ---@param _zone _MIZ_ZONE
+    for _, _zone in pairs(self.DATA.MIZ_ZONES) do
+        --local tempMarkerID = self.CONFIG.MAIN.COUNTERS.MARKERS
+        local _Marker = self.AETHR._Marker:New(
+            self.CONFIG.MAIN.COUNTERS.MARKERS,
+            nil,
+            nil,
+            _zone.readOnly,
+            nil,
+            _zone.shapeID,
+            -1, --_zone.ownedBy,
+            self.CONFIG.MAIN.Zone.paintColors.lineType,
+            {
+                r = self.CONFIG.MAIN.Zone.paintColors.LineColors[_zone.ownedBy].r,
+                g = self.CONFIG.MAIN.Zone.paintColors.LineColors[_zone.ownedBy].g,
+                b = self.CONFIG.MAIN.Zone.paintColors.LineColors[_zone.ownedBy].b,
+                a = self.CONFIG.MAIN.Zone.paintColors.LineAlpha
+            },
+            {
+                r = self.CONFIG.MAIN.Zone.paintColors.FillColors[_zone.ownedBy].r,
+                g = self.CONFIG.MAIN.Zone.paintColors.FillColors[_zone.ownedBy].g,
+                b = self.CONFIG.MAIN.Zone.paintColors.FillColors[_zone.ownedBy].b,
+                a = self.CONFIG.MAIN.Zone.paintColors.FillAlpha
+            },
+            _zone.verticies,
+            nil
+        )
+        self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+
+        ---@type _Marker _Marker
+        _zone.markerObject = _Marker
+
+        self.MARKERS:markFreeform(
+            _Marker,
+            self.MARKERS.DATA.ZONE_MANAGER.MizZones
+        )
+    end
+    return self
+end

@@ -76,7 +76,7 @@ AETHR.ENUMS = {
         S_EVENT_FLIGHT_TIME = world.event.S_EVENT_FLIGHT_TIME,
         S_EVENT_PLAYER_SELF_KILL_PILOT = world.event.S_EVENT_PLAYER_SELF_KILL_PILOT,
         S_EVENT_PLAYER_CAPTURE_AIRFIELD = world.event.S_EVENT_PLAYER_CAPTURE_AIRFIELD,
-        S_EVENT_EMERGENCY_LANDING = world.event.S_EVENT_EMERGENCY_LANDING,  -- useful event to handle when a bot ditches, and "group dead" condition can't be met 
+        S_EVENT_EMERGENCY_LANDING = world.event.S_EVENT_EMERGENCY_LANDING, -- useful event to handle when a bot ditches, and "group dead" condition can't be met
     },
     Coalition = {
         NEUTRAL = coalition.side.NEUTRAL,
@@ -120,5 +120,15 @@ AETHR.ENUMS = {
         DashDot = 4,
         LongDash = 5,
         TwoDash = 6
+    },
+    MarkerTypes = {
+        Line = 1,
+        Circle = 2,
+        Rect = 3,
+        Arrow = 4,
+        Text = 5,
+        Quad = 6,
+        Freeform = 7,
+        MizMark = 8,
     },
 }

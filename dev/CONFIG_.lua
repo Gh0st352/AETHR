@@ -46,10 +46,10 @@ AETHR.CONFIG.MAIN = {
         AETHR_DEBUG_MODE    = false, -- Enable debug mode.
     },
     COUNTERS = {                     -- Counters for generating unique IDs.
-        MARKERS = 3523523,         -- Base ID for zone markers.
+        MARKERS = 3523523,           -- Base ID for zone markers.
     },
     STORAGE = {                      -- Filesystem storage configuration.
-        SAVEGAME_DIR     = "",       -- Absolute path to the DCS savegame writable directory root.
+        SAVEGAME_DIR  = "",          -- Absolute path to the DCS savegame writable directory root.
         ROOT_FOLDER   = "AETHR",     -- Root AETHR directory under writable path.
         CONFIG_FOLDER = "CONFIG",    -- Subdirectory for config files.
         SUB_FOLDERS   = {            -- Additional subdirectories.
@@ -78,6 +78,7 @@ AETHR.CONFIG.MAIN = {
             SCENERY_OBJECTS_FILE = "sceneryObjects.lua",
             STATIC_OBJECTS_FILE  = "staticObjects.lua",
             BASE_OBJECTS_FILE    = "baseObjects.lua",
+            GAME_BOUNDS_FILE     = "gameBounds.lua",
         },
     },
     worldDivisionArea = 1862500000, -- Desired area (m²) per world division.
@@ -134,23 +135,35 @@ AETHR.CONFIG.MAIN = {
     Zone = { -- Default visualization settings for trigger zones.
         paintColors           = {
             LineColors  = {
-                [0] = { 0, 0, 0 },
-                [1] = { 1, 0, 0 },
-                [2] = { 0, 0, 1 },
+                [0] = {r = 0, g = 0, b = 0 },
+                [1] = {r = 1, g = 0, b = 0 },
+                [2] = {r = 0, g = 0, b = 1 },
             },
             FillColors  = {
-                [0] = { 0, 0, 0 },
-                [1] = { 1, 0, 0 },
-                [2] = { 0, 0, 1 },
+                [0] = {r = 0, g = 0, b = 0 },
+                [1] = {r = 1, g = 0, b = 0 },
+                [2] = {r = 0, g = 0, b = 1 },
             },
             ArrowColors = {
-                [0] = { 0, 0, 0, 0.80 },
-                [1] = { 1, 0, 0, 0.80 },
-                [2] = { 0, 0, 1, 0.80 },
+                [0] = {r = 0, g = 0, b = 0, a = 0.8 },
+                [1] = {r = 1, g = 0, b = 0, a = 0.8 },
+                [2] = {r = 0, g = 0, b = 1, a = 0.8 },
             },
-            FillAlpha   = 0.20,        -- Transparency for filled zones.
-            LineAlpha   = 0.80,        -- Transparency for zone borders.
-            lineType    = 4,           -- Default line style.
+            FillAlpha   = 0.1, -- Transparency for filled zones.
+            LineAlpha   = 0.6, -- Transparency for zone borders.
+            lineType    = AETHR.ENUMS.LineTypes.DashDot,    -- Default line style.
+        },
+        gameBounds            = {
+            LineColors  = {r = 0.1, g = 0.1, b = 0.1 },
+            FillColors  = {r = 0.1, g = 0.1, b = 0.1 },
+            FillAlpha   = 0.30,        -- Transparency for filled zones.
+            LineAlpha   = 0.30,        -- Transparency for zone borders.
+            lineType    = AETHR.ENUMS.LineTypes.NoLine,           -- Default line style.
+            getOutOfBounds = {
+                samplesPerEdge      = 20,   -- Number of samples to generate per edge of the world bounds.
+                useHoleSinglePolygon = false, -- If true, generates a single polygon with a hole for the in-bounds area. Otherwise, generates multiple convex polygons.
+                snapDistance        = 0, -- Distance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity.
+            },
         },
         BorderOffsetThreshold = 800,   -- Distance threshold for bordering detection.
         ArrowLength           = 20000, -- Length of directional arrows.
@@ -166,7 +179,6 @@ function AETHR.CONFIG:New(parent)
     setmetatable(instance, { __index = self })
     return instance
 end
-
 
 --- @function AETHR:initConfig
 --- @brief Reads config JSON and merges into `AETHR.CONFIG`; writes default if absent.

@@ -6,12 +6,14 @@
 --- @diagnostic disable: undefined-global
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
+--- @field CONFIG AETHR.CONFIG World learning submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+--- @field MARKERS AETHR.MARKERS
 --- @field MODULES string[] Names of module tables on the prototype which will be auto-wired into instances.
 --- @field USERSTORAGE table Container for per-user saved data.
 AETHR = {
-    MODULES      = {
+    MODULES     = {
         "AUTOSAVE",
         "ZONE_MANAGER",
         "WORLD",
@@ -21,9 +23,10 @@ AETHR = {
         "ENUMS",
         "CONFIG",
         "UTILS",
+        "MARKERS",
     },
-    USERSTORAGE  = {},        -- Holds per-user saved data tables.
-    
+    USERSTORAGE = {}, -- Holds per-user saved data tables.
+
 }
 
 --- Creates a new AETHR instance with optional mission ID override.
@@ -71,7 +74,7 @@ function AETHR:New(mission_id)
     local rt_path = lfs.writedir()
     AETHR.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
     instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
-  
+
     instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = instance.FILEOPS:joinPaths(
         rt_path,
         instance.CONFIG.MAIN.STORAGE.ROOT_FOLDER,
@@ -144,32 +147,40 @@ function AETHR:Init()
 
     -- Ensure storage subdirectories exist and cache their full paths.
     for folderName, folderPath in pairs(subFolders) do
-        local fullPath = self.FILEOPS:joinPaths(self.CONFIG.MAIN.STORAGE.SAVEGAME_DIR, self.CONFIG.MAIN.STORAGE.ROOT_FOLDER, self.CONFIG.MAIN.MISSION_ID, folderPath)
+        local fullPath = self.FILEOPS:joinPaths(self.CONFIG.MAIN.STORAGE.SAVEGAME_DIR,
+            self.CONFIG.MAIN.STORAGE.ROOT_FOLDER, self.CONFIG.MAIN.MISSION_ID, folderPath)
 
         self.CONFIG.MAIN.STORAGE.PATHS[folderName] = fullPath -- Cache path.
-        self.FILEOPS:ensureDirectory(fullPath)                        -- Create directory if missing (best-effort).
+        self.FILEOPS:ensureDirectory(fullPath)                -- Create directory if missing (best-effort).
     end
 
     -- Load or generate core configuration and data structures.
-    self.CONFIG:initConfig()          -- Load config or write defaults.
+    self.CONFIG:initConfig()            -- Load or generate or config defaults.
     self.ZONE_MANAGER:initMizZoneData() -- Load or generate mission trigger zones.
-    self.WORLD:initWorldDivisions()  -- Generate or load world division grid.
-    self.WORLD:initActiveDivisions() -- Identify active divisions in mission.
-    self.WORLD:getAirbases()         -- Collect airbase data.
+    self.WORLD:initWorldDivisions()     -- Load or generate world division grid.
+    self.WORLD:initActiveDivisions()    -- Load or generate active divisions in mission.
+    self.WORLD:getAirbases()            -- Collect airbase data.
 
-    self.WORLD:initSceneryInDivisions()
-    self.WORLD:initBaseInDivisions()
-    self.WORLD:initStaticInDivisions()
+    -- self.WORLD:initSceneryInDivisions()
+    -- self.WORLD:initBaseInDivisions()
+    -- self.WORLD:initStaticInDivisions()
+    
+    self.ZONE_MANAGER:initGameZoneBoundaries() -- Load or generate out of bounds information.
 
-    self:loadUSERSTORAGE()     -- Load per-user storage data.
-    self:saveUSERSTORAGE() -- Persist current user storage data.
+    self:loadUSERSTORAGE()                     -- Load per-user storage data.
+    self:saveUSERSTORAGE()                     -- Persist current user storage data.
     self.CONFIG:saveConfig()
+
+
     return self
 end
 
+function AETHR:Start()
+    self.ZONE_MANAGER:drawMissionZones()
+    self.ZONE_MANAGER:drawGameBounds()
 
-
-
+    return self
+end
 
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data if available.

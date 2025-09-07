@@ -22,6 +22,8 @@ end
 --- @field ownedBy number
 --- @field oldOwnedBy number
 --- @field markID number
+--- @field shapeID number
+--- @field markerObject _Marker
 --- @field readOnly boolean
 --- @field BorderingZones table
 --- @field Airbases table
@@ -39,9 +41,11 @@ function AETHR._MIZ_ZONE:New(envZone)
         BorderOffsetThreshold = AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
         ArrowLength = AETHR.CONFIG.MAIN.Zone.ArrowLength,
         verticies = envZone.verticies,--AETHR.POLY:ensureConvex(envZone.verticies),
-        ownedBy = 0,
+        ownedBy = AETHR.ENUMS.Coalition.NEUTRAL,
         oldOwnedBy = 0,
         markID = 0,
+        shapeID = AETHR.ENUMS.MarkerTypes.Freeform,
+        markerObject = {},
         readOnly = true,
         BorderingZones = {},
         Airbases = {},
@@ -78,5 +82,45 @@ function AETHR._Grid:New(c, minX, maxZ, dx, dz)
         invDz = 1 / dz,            -- Inverse heights for index computation.
     }
     
+    return instance ---@diagnostic disable-line
+end
+
+
+--- @class _Marker
+--- @field markID number
+--- @field string string
+--- @field vec3Origin table Vec3 defining the marker origin.
+--- @field readOnly boolean
+--- @field message string
+--- @field shapeId number
+--- @field coalition number
+--- @field lineType number
+--- @field lineColor table
+--- @field fillColor table
+--- @field freeFormVec2Table table
+--- @field radius number
+AETHR._Marker = {} ---@diagnostic disable-line
+
+--- 
+--- @return _Marker instance
+function AETHR._Marker:New(
+    markID, markString, vec3Origin, readOnly, 
+    message, shapeId, coalition, 
+    lineType, lineColor, fillColor, 
+    freeFormVec2Table, radius)
+    local instance = {
+        markID = markID,
+        string = markString or "",
+        vec3Origin = vec3Origin or {},
+        readOnly = readOnly or true,
+        message = message or "",
+        shapeId = shapeId or 0,
+        lineType = lineType or 0,
+        coalition = coalition or -1,
+        lineColor = lineColor or {0,0,0,0}, --r,g,b,a
+        fillColor = fillColor or {0,0,0,0}, --r,g,b,a
+        freeFormVec2Table = freeFormVec2Table or {}, --ipair of vec2 for freeform or drawn shapes
+        radius = radius or 0, --radius for drawn circles
+    }
     return instance ---@diagnostic disable-line
 end
