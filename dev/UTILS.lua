@@ -35,3 +35,11 @@ function AETHR.UTILS:table_hasValue(tbl, val)
   end
   return false
 end
+
+function AETHR.UTILS.sumTable(t)
+  local sum = 0
+  for k, v in pairs(t) do
+    sum = sum + 1
+  end
+  return sum
+end

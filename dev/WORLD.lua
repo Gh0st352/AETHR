@@ -5,6 +5,7 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
@@ -12,12 +13,12 @@
 --- @field DATA.AIRBASES table -- Airbase descriptors keyed by displayName.
 AETHR.WORLD = {} ---@diagnostic disable-line
 AETHR.WORLD.DATA = {
-    AIRBASES               = {},     -- Airbase descriptors keyed by displayName.
-    worldDivisions         = {},     -- Grid division definitions keyed by ID.
-    saveDivisions          = {},     -- Active divisions keyed by ID.
-    divisionSceneryObjects = {},     -- Loaded scenery per division.
-    divisionStaticObjects  = {},     -- Loaded statics per division.
-    divisionBaseObjects    = {},     -- Loaded Base per division.
+    AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
+    worldDivisions         = {}, -- Grid division definitions keyed by ID.
+    saveDivisions          = {}, -- Active divisions keyed by ID.
+    divisionSceneryObjects = {}, -- Loaded scenery per division.
+    divisionStaticObjects  = {}, -- Loaded statics per division.
+    divisionBaseObjects    = {}, -- Loaded Base per division.
 }
 
 
@@ -35,40 +36,39 @@ end
 function AETHR.WORLD:markWorldDivisions()
     local divisions = self.DATA.saveDivisions
     local shapeID = self.CONFIG.MAIN.COUNTERS.MARKERS -- 352352352     -- Base marker ID
-    local r, g, b = 0.1, 0.1, 0.1 -- Initial RGB components
+    local r, g, b = 0.1, 0.1, 0.1                     -- Initial RGB components
     local alpha1 = 0.8
     local alpha2 = 0.3
     local linetype = 4 -- Dot Dash
 
     for _, div in pairs(divisions) do
-
         local shapeTypeID = 7 -- Polygon shape type
-        local coalition = -1 -- All coalitions
+        local coalition = -1  -- All coalitions
         local vec3_1 = { x = div.corners[4].x, y = 0, z = div.corners[4].z }
         local vec3_2 = { x = div.corners[3].x, y = 0, z = div.corners[3].z }
         local vec3_3 = { x = div.corners[2].x, y = 0, z = div.corners[2].z }
         local vec3_4 = { x = div.corners[1].x, y = 0, z = div.corners[1].z }
 
 
-       -- if div.active then
-            -- Draw polygon on map
-            trigger.action.markupToAll(
-                shapeTypeID, coalition, shapeID,
-                vec3_1,
-                vec3_2,
-                vec3_3,
-                vec3_4,
-                { r, g, b, alpha1 },                   -- Fill color
-                { r + 0.2, g + 0.4, b + 0.8, alpha2 }, -- Border color
-                linetype, true
-            )
-            shapeID = shapeID + 1 -- Increment marker ID
+        -- if div.active then
+        -- Draw polygon on map
+        trigger.action.markupToAll(
+            shapeTypeID, coalition, shapeID,
+            vec3_1,
+            vec3_2,
+            vec3_3,
+            vec3_4,
+            { r, g, b, alpha1 },                       -- Fill color
+            { r + 0.2, g + 0.4, b + 0.8, alpha2 },     -- Border color
+            linetype, true
+        )
+        shapeID = shapeID + 1     -- Increment marker ID
 
-            -- Randomize next color
-            r = (r + math.random()) % 1
-            g = (g + math.random()) % 1
-            b = (b + math.random()) % 1
-      --  end
+        -- Randomize next color
+        r = (r + math.random()) % 1
+        g = (g + math.random()) % 1
+        b = (b + math.random()) % 1
+        --  end
     end
     self.CONFIG.MAIN.COUNTERS.MARKERS = shapeID
     return self
@@ -110,6 +110,8 @@ function AETHR.WORLD:getAirbases()
             id_ = ab.id_,
             coordinates = { x = pos.x, y = pos.y, z = pos.z },
             description = desc,
+            zoneName = "",
+            zoneObject = {},
         }
         -- Map numeric category to text
         if desc.category == 0 then
@@ -119,7 +121,33 @@ function AETHR.WORLD:getAirbases()
         elseif desc.category == 2 then
             data.categoryText = "SHIP"
         end
-        self.DATA.AIRBASES[desc.displayName] = data
+
+
+        if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) >= 1 then
+            for zoneName, zone in pairs(self.ZONE_MANAGER.DATA.MIZ_ZONES) do
+                if self.POLY:PointWithinShape( --P, Polygon)
+                        { x = pos.x, y = pos.z },
+                        zone.verticies
+                    ) then
+                    data.zoneName = zoneName
+                    data.zoneObject = zone
+                    break
+                end
+            end
+        end
+
+        local _airbase = self.AETHR._airbase:New(
+            data.id, data.id_, data.coordinates,
+            data.description, data.zoneName, data.zoneObject,
+            desc.displayName, desc.category,
+            desc.categoryText, data.categoryText,
+            desc.coalition -- previousCoalition
+        )
+
+        if self.UTILS.sumTable(data.zoneObject) >= 1 then
+            data.zoneObject.Airbases[desc.displayName] = _airbase
+        end
+        self.DATA.AIRBASES[desc.displayName] = _airbase
     end
     return self
 end
@@ -408,62 +436,3 @@ function AETHR.WORLD:initStaticInDivisions()
         "divisionStaticObjects"
     )
 end
-
-
--- function AETHR.WORLD:initObjectsInDivisions(objectCategory)
-
---     local data = self:getObjectsInDivisions()
---     if data then
---         self.DATA.MIZ_ZONES = data
---     else
---         --self:objectsInDivision()
---         self:saveObjectsInDivisions()
---     end
-
-
-
---     return self
--- end
-
--- --- Loads mission trigger zone data from storage file if available.
--- --- @function AETHR:getStoredMizZoneData
--- --- @return table<string, _MIZ_ZONE>|nil Data table of mission trigger zones or nil if not found.
--- function AETHR.WORLD:getObjectsInDivisions()
---     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
---     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
---     local data = self.FILEOPS:loadData(mapPath, saveFile)
---     if data then return data end
---     return nil
--- end
-
--- --- Saves current mission trigger zone data to storage file.
--- --- @function AETHR:saveMizZoneData
--- --- @return nil
--- function AETHR.WORLD:saveObjectsInDivisions()
---     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
---     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_ZONES_FILE
---     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
--- end
-
-
--- --- Loads or collects objects for all active divisions and saves them.
--- --- @param objectCategory any Category (e.g., "SCENERY", "STATIC", "UNIT")
--- --- @return AETHR.WORLD self
--- function AETHR.WORLD:getActiveObjectsInDivisions(objectCategory)
---     for id, _ in pairs(self.DATA.saveDivisions) do
---         local dir = self.CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER .. "/" .. id
---         local file = objectCategory .. "_" .. self.CONFIG.MAIN.STORAGE.FILENAMES.OBJECTS_FILE
---         local objs = self.FILEOPS:loadData(dir, file)
-
---         if not objs then
---             objs = self:objectsInDivision(id, objectCategory)
---             if next(objs) then
---                 self.FILEOPS:saveData(dir, file, objs)
---             end
---         end
-
---         self.DATA.divisionObjects[id] = self.DATA.divisionObjects[id] or {}
---         self.DATA.divisionObjects[id][objectCategory] = objs
---     end
---     return self
--- end

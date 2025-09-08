@@ -159,7 +159,7 @@ function AETHR:Init()
     self.ZONE_MANAGER:initMizZoneData() -- Load or generate mission trigger zones.
     self.WORLD:initWorldDivisions()     -- Load or generate world division grid.
     self.WORLD:initActiveDivisions()    -- Load or generate active divisions in mission.
-    self.WORLD:getAirbases()            -- Collect airbase data.
+    --self.WORLD:getAirbases()            -- Collect airbase data.
 
     -- self.WORLD:initSceneryInDivisions()
     -- self.WORLD:initBaseInDivisions()

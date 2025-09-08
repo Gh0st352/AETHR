@@ -124,3 +124,36 @@ function AETHR._Marker:New(
     }
     return instance ---@diagnostic disable-line
 end
+
+--- @class _airbase
+--- @field id table
+--- @field id_ number
+--- @field coordinates table
+--- @field description table
+--- @field name string
+--- @field category number
+--- @field coalition number
+--- @field previousCoalition number
+--- @field categoryText string
+--- @field zoneName string
+--- @field zoneObject table
+AETHR._airbase = {} ---@diagnostic disable-line
+--- 
+--- @return _airbase instance
+function AETHR._airbase:New(id,id_,coordinates,description,zoneName,zoneObject,name,category,categoryText,coalition,previousCoalition)
+    local instance = {
+        id = id or {},
+        id_ = id_ or 0,
+        coordinates = coordinates or {x=0,y=0,z=0},
+        description = description or {},
+        zoneName = zoneName or "",
+        zoneObject = zoneObject or {},
+        name = name or "",
+        category = category or 0,
+        categoryText = categoryText or "",
+        coalition = coalition or 0,
+        previousCoalition = previousCoalition or 0,
+
+    }
+    return instance ---@diagnostic disable-line
+end

@@ -86,6 +86,7 @@ function AETHR.ZONE_MANAGER:initMizZoneData()
         self.DATA.MIZ_ZONES = data
     else
         self:generateMizZoneData()
+        self.WORLD:getAirbases()            -- Collect airbase data.
         self:saveMizZoneData()
     end
     return self
@@ -824,14 +825,6 @@ function AETHR.ZONE_MANAGER:drawGameBounds()
             self.MARKERS.DATA.ZONE_MANAGER.InOutBoundsGaps
         )
     end
-    -- for _, poly in pairs(self.DATA.GAME_BOUNDS.inOutBoundsGaps.concave) do
-    --     local _Marker = markerGen(poly)
-    --     self.MARKERS:markFreeform(
-    --         _Marker,
-    --         self.MARKERS.DATA.ZONE_MANAGER.InOutBoundsGaps
-    --     )
-    -- end
-
     return self
 end
 
