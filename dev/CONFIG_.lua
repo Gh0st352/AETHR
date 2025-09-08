@@ -35,6 +35,7 @@ AETHR.CONFIG.MAIN = {
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
     MISSION_ID = "1", -- Default mission identifier.
+    DEBUG_ENABLED = true, -- Enable debug logging to DCS log.
     MIZ_ZONES = {     -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},

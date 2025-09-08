@@ -158,14 +158,18 @@ function AETHR:Init()
 end
 
 function AETHR:Start()
+    self:BackgroundProcesses()
+    return self
+end
+
+function AETHR:BackgroundProcesses()
+    -- Schedule periodic execution of runScheduledTasks using a bound closure
     self.BRAIN:scheduleTask(
-        self.BRAIN.runScheduledTasks,
-        nil,
-        self.BRAIN.DATA.updateInterval,
-        nil,
-        nil,
-        { self }
+        function() self:BackgroundProcesses() end,
+        0,
+        self.BRAIN.DATA.mainScheduleLoopInterval
     )
+    -- Run once immediately
     self.BRAIN:runScheduledTasks()
     return self
 end

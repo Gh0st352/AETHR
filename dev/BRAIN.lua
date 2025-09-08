@@ -19,6 +19,7 @@ AETHR.BRAIN.DATA = {
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {}, -- Holds active coroutines for asynchronous tasks.
     updateInterval = 10, -- Default update interval in seconds.
+    mainScheduleLoopInterval = 0.1,
 
 }
 function AETHR.BRAIN:New(parent)
@@ -80,10 +81,13 @@ end
 function AETHR.BRAIN:scheduleTask(taskFunction, delay, repeatInterval, stopAfterTime, stopAfterIterations, ...)
     local schedulerID = self.DATA.SchedulerIDCounter
     self.DATA.SchedulerIDCounter = self.DATA.SchedulerIDCounter + 1
+
     delay = delay or 0
     repeatInterval = repeatInterval or nil
     stopAfterTime = stopAfterTime or nil
-    stopAfterIterations = stopAfterIterations or 1
+    -- Leave stopAfterIterations nil by default (meaning: no iteration limit) unless explicitly provided.
+
+    local args = { ... } -- Flatten varargs into a single table
 
     local scheduledTask = self.AETHR._task:New(
         stopAfterTime,
@@ -91,45 +95,57 @@ function AETHR.BRAIN:scheduleTask(taskFunction, delay, repeatInterval, stopAfter
         repeatInterval,
         delay,
         taskFunction,
-        { ... }, -- Capture extra arguments in a table
+        args, -- Pass flattened args table
         schedulerID
     )
 
     self.DATA.Schedulers[schedulerID] = scheduledTask
-    return scheduledTask
+    -- Return the scheduler ID as a stable handle for cancellation/inspection
+    return schedulerID
 end
 
 function AETHR.BRAIN:runScheduledTasks()
     local currentTime = self.AETHR.UTILS.getTime()
-    for id, _ in pairs(self.DATA.Schedulers) do
-        local task = self.DATA.Schedulers[id]
+    for id, task in pairs(self.DATA.Schedulers) do
         if task and task.active and not task.running and currentTime >= task.nextRun then
             task.running = true
             task.lastRun = currentTime
-            task.iterations = task.iterations + 1
+            task.iterations = (task.iterations or 0) + 1
 
-            -- Directly call the task function
-            local success, err = pcall(function()
-                task.taskFunction(unpack(task.functionArgs))
-            end)
+            -- Call the task function with protected call and flattened args
+            local ok, err = pcall(task.taskFunction, unpack(task.functionArgs or {}))
+            if not ok then
+                    AETHR.UTILS:debugInfo("Scheduled task error (id " .. tostring(id) .. "): " .. tostring(err))
+            end
 
-            -- Update nextRun for repeating tasks
+            -- Update nextRun for repeating tasks. Use previous nextRun to avoid schedule drift.
             if task.repeating then
                 if task.repeatInterval and task.repeatInterval > 0 then
-                    task.nextRun = currentTime + task.repeatInterval
+                    task.nextRun = (task.nextRun or currentTime) + task.repeatInterval
+                    -- If nextRun would be <= currentTime (e.g., long delay), push it forward
+                    if task.nextRun <= currentTime then
+                        task.nextRun = currentTime + task.repeatInterval
+                    end
                 else
                     task.nextRun = currentTime + (task.delay or 0)
                 end
+            else
+                -- Non-repeating tasks become inactive after one run
+                task.active = false
             end
 
-            -- Check stopping conditions
+            -- Check stopping conditions (only when explicit limits are provided)
             if (task.stopAfterTime and currentTime >= task.stopTime) or
                (task.stopAfterIterations and task.iterations >= task.stopAfterIterations) then
                 task.active = false -- Deactivate the task if stopping conditions are met
-                --self.DATA.Schedulers[id] = nil -- Remove from active schedulers
             end
 
             task.running = false
+
+            -- Remove inactive tasks to free memory
+            if not task.active then
+                self.DATA.Schedulers[id] = nil
+            end
         end
     end
     return self

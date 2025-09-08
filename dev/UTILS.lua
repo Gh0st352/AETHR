@@ -17,15 +17,14 @@ AETHR.UTILS.DATA = {
 
 
 function AETHR.UTILS:New(parent)
-    local instance = {
-        AETHR = parent,
-        -- submodule-local caches/state can be initialized here
-        _cache = {},
-    }
-    setmetatable(instance, { __index = self })
-    return instance
+  local instance = {
+    AETHR = parent,
+    -- submodule-local caches/state can be initialized here
+    _cache = {},
+  }
+  setmetatable(instance, { __index = self })
+  return instance
 end
-
 
 function AETHR.UTILS:table_hasValue(tbl, val)
   for index, value in pairs(tbl) do
@@ -45,5 +44,25 @@ function AETHR.UTILS.sumTable(t)
 end
 
 function AETHR.UTILS.getTime()
-  return os.time()
+  local seconds_part = os.time()
+  local fractional_seconds_part = os.clock() % 1 -- Get the fractional part of os.clock()
+
+  local time_in_milliseconds = (seconds_part + fractional_seconds_part) * 1000
+  return time_in_milliseconds
+  --return os.time()
+end
+
+--- Log debug information if debugging is enabled.
+---
+--- Logs a given message when the SPECTRE.DebugEnabled flag is set to 1.
+--- If additional data is provided, it's also logged.
+---
+--- @param message string The debug message to be logged.
+--- @param data any|nil Optional data to be logged.
+--- @usage AETHR.UTILS.debugInfo("Debug Message", {key="value"}) -- Logs the message and data if debugging is enabled.
+function AETHR.UTILS:debugInfo(message, data)
+  if self.CONFIG.MAIN.DEBUG_ENABLED then
+    env.info(message)
+    if data then BASE:E(data) end
+  end
 end

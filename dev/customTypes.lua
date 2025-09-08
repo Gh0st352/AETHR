@@ -183,23 +183,26 @@ AETHR._task = {} ---@diagnostic disable-line
 --- @return _task instance
 function AETHR._task:New(stopAfterTime, stopAfterIterations, repeatInterval, delay, taskFunction, functionArgs,
                          schedulerID)
+    local now = AETHR.UTILS.getTime()
     local instance = {
         stopAfterTime = stopAfterTime or nil,
-        stopAfterIterations = stopAfterIterations or 1,
+        -- Keep stopAfterIterations nil by default to mean "no iteration limit"
+        stopAfterIterations = stopAfterIterations,
         repeatInterval = repeatInterval or nil,
         delay = delay or 0,
         taskFunction = taskFunction or nil,
         functionArgs = functionArgs or {},
         iterations = 0,
         lastRun = 0,
-        nextRun = AETHR.UTILS.getTime() + (delay or 0),
-        stopTime = (stopAfterTime and (AETHR.UTILS.getTime() + stopAfterTime)) or nil,
+        nextRun = now + (delay or 0),
+        stopTime = (stopAfterTime and (now + stopAfterTime)) or nil,
         running = false,
         active = true,
         schedulerID = schedulerID or 0,
         repeating = false,
     }
-    if repeatInterval and repeatInterval > 0 or stopAfterIterations > 1 or stopAfterTime then
+
+    if (repeatInterval and repeatInterval > 0) or (stopAfterIterations and stopAfterIterations > 1) or stopAfterTime then
         instance.repeating = true
     end
     return instance ---@diagnostic disable-line
