@@ -1,8 +1,8 @@
 --- @class __template
 --- @field minX number
 AETHR.__template = {} ---@diagnostic disable-line
---- 
---- @param c table 
+---
+--- @param c table
 --- @return __template instance
 function AETHR.__template:New(c)
     local instance = {
@@ -10,7 +10,6 @@ function AETHR.__template:New(c)
     }
     return instance ---@diagnostic disable-line
 end
-
 
 --- @class _MIZ_ZONE
 --- @field name string
@@ -33,14 +32,13 @@ AETHR._MIZ_ZONE = {}
 --- @param envZone table
 --- @return _MIZ_ZONE instance
 function AETHR._MIZ_ZONE:New(envZone)
-    
     local instance = {
         name = envZone.name,
         zoneId = envZone.zoneId,
         type = envZone.type,
         BorderOffsetThreshold = AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
         ArrowLength = AETHR.CONFIG.MAIN.Zone.ArrowLength,
-        verticies = envZone.verticies,--AETHR.POLY:ensureConvex(envZone.verticies),
+        verticies = envZone.verticies, --AETHR.POLY:ensureConvex(envZone.verticies),
         ownedBy = AETHR.ENUMS.Coalition.NEUTRAL,
         oldOwnedBy = 0,
         markID = 0,
@@ -52,7 +50,7 @@ function AETHR._MIZ_ZONE:New(envZone)
         LinesVec2 = {},
     }
     instance.LinesVec2 = AETHR.POLY:convertPolygonToLines(instance.verticies)
-    
+
     return instance ---@diagnostic disable-line
 end
 
@@ -72,19 +70,17 @@ AETHR._Grid = {}
 --- @param dz number Cell height.
 --- @return _Grid instance
 function AETHR._Grid:New(c, minX, maxZ, dx, dz)
-    
     local instance = {
         minX  = minX,
         minZ  = maxZ,
         dx    = dx,
         dz    = dz,
-        invDx = 1 / dx,            -- Inverse widths for index computation.
-        invDz = 1 / dz,            -- Inverse heights for index computation.
+        invDx = 1 / dx, -- Inverse widths for index computation.
+        invDz = 1 / dz, -- Inverse heights for index computation.
     }
-    
+
     return instance ---@diagnostic disable-line
 end
-
 
 --- @class _Marker
 --- @field markID number
@@ -101,12 +97,12 @@ end
 --- @field radius number
 AETHR._Marker = {} ---@diagnostic disable-line
 
---- 
+---
 --- @return _Marker instance
 function AETHR._Marker:New(
-    markID, markString, vec3Origin, readOnly, 
-    message, shapeId, coalition, 
-    lineType, lineColor, fillColor, 
+    markID, markString, vec3Origin, readOnly,
+    message, shapeId, coalition,
+    lineType, lineColor, fillColor,
     freeFormVec2Table, radius)
     local instance = {
         markID = markID,
@@ -117,10 +113,10 @@ function AETHR._Marker:New(
         shapeId = shapeId or 0,
         lineType = lineType or 0,
         coalition = coalition or -1,
-        lineColor = lineColor or {0,0,0,0}, --r,g,b,a
-        fillColor = fillColor or {0,0,0,0}, --r,g,b,a
+        lineColor = lineColor or { 0, 0, 0, 0 },     --r,g,b,a
+        fillColor = fillColor or { 0, 0, 0, 0 },     --r,g,b,a
         freeFormVec2Table = freeFormVec2Table or {}, --ipair of vec2 for freeform or drawn shapes
-        radius = radius or 0, --radius for drawn circles
+        radius = radius or 0,                        --radius for drawn circles
     }
     return instance ---@diagnostic disable-line
 end
@@ -138,13 +134,14 @@ end
 --- @field zoneName string
 --- @field zoneObject table
 AETHR._airbase = {} ---@diagnostic disable-line
---- 
+---
 --- @return _airbase instance
-function AETHR._airbase:New(id,id_,coordinates,description,zoneName,zoneObject,name,category,categoryText,coalition,previousCoalition)
+function AETHR._airbase:New(id, id_, coordinates, description, zoneName, zoneObject, name, category, categoryText,
+                            coalition, previousCoalition)
     local instance = {
         id = id or {},
         id_ = id_ or 0,
-        coordinates = coordinates or {x=0,y=0,z=0},
+        coordinates = coordinates or { x = 0, y = 0, z = 0 },
         description = description or {},
         zoneName = zoneName or "",
         zoneObject = zoneObject or {},
@@ -155,5 +152,55 @@ function AETHR._airbase:New(id,id_,coordinates,description,zoneName,zoneObject,n
         previousCoalition = previousCoalition or 0,
 
     }
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _task
+--- @field stopAfterTime number|nil
+--- @field stopAfterIterations number|nil
+--- @field repeatInterval number|nil
+--- @field delay number|nil
+--- @field taskFunction function
+--- @field functionArgs table
+--- @field iterations number
+--- @field lastRun number
+--- @field nextRun number
+--- @field stopTime number|nil
+--- @field running boolean
+--- @field active boolean
+--- @field schedulerID number
+--- @field repeating boolean
+AETHR._task = {} ---@diagnostic disable-line
+
+---
+--- @param stopAfterTime number|nil Maximum time in seconds to run the task (nil = infinite).
+--- @param stopAfterIterations number|nil Maximum number of iterations to run the task (nil = infinite).
+--- @param repeatInterval number|nil Time in seconds between task executions (nil = run once).
+--- @param delay number|nil Initial delay in seconds before first execution (default = 0).
+--- @param taskFunction function Function to execute.
+--- @param functionArgs table Arguments to pass to the task function.
+--- @param schedulerID number Unique ID assigned by the scheduler.
+--- @return _task instance
+function AETHR._task:New(stopAfterTime, stopAfterIterations, repeatInterval, delay, taskFunction, functionArgs,
+                         schedulerID)
+    local instance = {
+        stopAfterTime = stopAfterTime or nil,
+        stopAfterIterations = stopAfterIterations or 1,
+        repeatInterval = repeatInterval or nil,
+        delay = delay or 0,
+        taskFunction = taskFunction or nil,
+        functionArgs = functionArgs or {},
+        iterations = 0,
+        lastRun = 0,
+        nextRun = AETHR.UTILS.getTime() + (delay or 0),
+        stopTime = (stopAfterTime and (AETHR.UTILS.getTime() + stopAfterTime)) or nil,
+        running = false,
+        active = true,
+        schedulerID = schedulerID or 0,
+        repeating = false,
+    }
+    if repeatInterval and repeatInterval > 0 or stopAfterIterations > 1 or stopAfterTime then
+        instance.repeating = true
+    end
     return instance ---@diagnostic disable-line
 end

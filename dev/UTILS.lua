@@ -43,3 +43,7 @@ function AETHR.UTILS.sumTable(t)
   end
   return sum
 end
+
+function AETHR.UTILS.getTime()
+  return os.time()
+end

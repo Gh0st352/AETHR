@@ -24,6 +24,7 @@ AETHR = {
         "CONFIG",
         "UTILS",
         "MARKERS",
+        "BRAIN",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 
@@ -42,29 +43,6 @@ function AETHR:New(mission_id)
     -- copies of mutable tables (CONFIG.MAIN.STORAGE.PATHS, USERSTORAGE, etc).
     ---@type AETHR
     local instance = setmetatable({}, { __index = self })
-
-    -- -- Helper: shallow clone a table (one level). Defined inside function per constraints.
-    -- local function shallowClone(tbl)
-    --     if type(tbl) ~= "table" then return tbl end
-    --     local out = {}
-    --     for k, v in pairs(tbl) do
-    --         out[k] = v
-    --     end
-    --     return out
-    -- end
-
-    -- -- Ensure instance-specific containers.
-    -- instance.USERSTORAGE = shallowClone(self.USERSTORAGE)
-
-
-    -- -- Clone CONFIG shallowly and ensure STORAGE/PATHS are separate tables for the instance.
-    -- instance.CONFIG.MAIN = shallowClone(self.CONFIG.MAIN or {})
-    -- if instance.CONFIG.MAIN.STORAGE then
-    --     instance.CONFIG.MAIN.STORAGE = shallowClone(self.CONFIG.MAIN.STORAGE)
-    --     instance.CONFIG.MAIN.STORAGE.PATHS = shallowClone(self.CONFIG.MAIN.STORAGE.PATHS or {})
-    -- else
-    --     instance.CONFIG.MAIN.STORAGE = { PATHS = {} }
-    -- end
 
     -- Apply mission id for this instance.
     instance.CONFIG.MAIN.MISSION_ID = id
@@ -159,12 +137,16 @@ function AETHR:Init()
     self.ZONE_MANAGER:initMizZoneData() -- Load or generate mission trigger zones.
     self.WORLD:initWorldDivisions()     -- Load or generate world division grid.
     self.WORLD:initActiveDivisions()    -- Load or generate active divisions in mission.
-    --self.WORLD:getAirbases()            -- Collect airbase data.
 
-    -- self.WORLD:initSceneryInDivisions()
-    -- self.WORLD:initBaseInDivisions()
-    -- self.WORLD:initStaticInDivisions()
-    
+    if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
+        self.ZONE_MANAGER:drawMissionZones()
+        self.ZONE_MANAGER:drawGameBounds()
+    end
+
+    self.WORLD:initSceneryInDivisions()
+    self.WORLD:initBaseInDivisions()
+    self.WORLD:initStaticInDivisions()
+
     self.ZONE_MANAGER:initGameZoneBoundaries() -- Load or generate out of bounds information.
 
     self:loadUSERSTORAGE()                     -- Load per-user storage data.
@@ -176,9 +158,15 @@ function AETHR:Init()
 end
 
 function AETHR:Start()
-    self.ZONE_MANAGER:drawMissionZones()
-    self.ZONE_MANAGER:drawGameBounds()
-
+    self.BRAIN:scheduleTask(
+        self.BRAIN.runScheduledTasks,
+        nil,
+        self.BRAIN.DATA.updateInterval,
+        nil,
+        nil,
+        { self }
+    )
+    self.BRAIN:runScheduledTasks()
     return self
 end
 
