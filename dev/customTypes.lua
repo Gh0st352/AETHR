@@ -161,7 +161,7 @@ function AETHR._BBox:New(minx, maxx, miny, maxy)
     return instance ---@diagnostic disable-line
 end
 
----@class WorldDivision
+---@class _WorldDivision
 ---@field ID integer Unique division identifier
 ---@field active boolean Flag indicating if division intersects any zone
 ---@field corners _vec2xz[] Rectangle corners in world XZ coordinates
@@ -172,7 +172,7 @@ AETHR._WorldDivision = {} ---@diagnostic disable-line
 --- @param active boolean|nil Flag indicating if division intersects any zone
 --- @param corners _vec2xz[]|nil Rectangle corners in world XZ coordinates
 --- @param height number|nil Optional search height in meters
---- @return WorldDivision instance
+--- @return _WorldDivision instance
 function AETHR._WorldDivision:New(ID, active, corners, height)
     local instance = {
         ID = ID or 0,

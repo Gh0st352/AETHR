@@ -34,7 +34,7 @@ function AETHR.WORLD:New(parent)
         _cache = {},
     }
     setmetatable(instance, { __index = self })
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 --- @function AETHR.WORLD:markWorldDivisions
@@ -83,9 +83,9 @@ end
 
 --- Searches for objects of a given category within a 3D box volume.
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
---- @param corners AETHR.Vec2XZ[] Array of base corner points (x,z)
+--- @param corners _vec2xz[] Array of base corner points (x,z)
 --- @param height number Height of the search volume in meters
---- @return AETHR.FoundObjectMap found Found objects keyed by object ID
+--- @return _FoundObject[] found Found objects keyed by object ID
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
@@ -115,10 +115,13 @@ function AETHR.WORLD:getAirbases()
         local data = {
             id = ab:getID(),
             id_ = ab.id_,
-            coordinates = { x = pos.x, y = pos.y, z = pos.z },
+            coordinates = self.AETHR._vec3:New(pos.x, pos.y, pos.z ),
             description = desc,
             zoneName = "",
-            zoneObject = {},
+            ---@type _MIZ_ZONE
+            zoneObject = {}, ---@diagnostic disable-line
+            ---@type string
+            categoryText = "",
         }
         -- Map numeric category to text
         if desc.category == 0 then
@@ -147,7 +150,7 @@ function AETHR.WORLD:getAirbases()
             data.id, data.id_, data.coordinates,
             data.description, data.zoneName, data.zoneObject,
             desc.displayName, desc.category,
-            desc.categoryText, data.categoryText,
+            desc.categoryText, data.categoryText, ---@diagnostic disable-line
             desc.coalition -- previousCoalition
         )
 
@@ -160,7 +163,7 @@ function AETHR.WORLD:getAirbases()
 end
 
 --- Loads saved active divisions from storage.
---- @return table<integer, AETHR.WorldDivision>|nil data
+--- @return table<integer, _WorldDivision>|nil data
 function AETHR.WORLD:loadActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
@@ -269,8 +272,8 @@ end
 
 --- @function AETHR.WORLD:initGrid
 --- @brief Initializes grid metrics (origin and cell sizes) from division corners.
---- @param divs AETHR.WorldDivision[] Array of division objects; each has a `.corners` array of points `{x, z}`.
---- @return AETHR._Grid Grid parameters:
+--- @param divs _WorldDivision[] Array of division objects; each has a `.corners` array of points `{x, z}`.
+--- @return _Grid Grid parameters:
 ---   * minX, minZ - grid origin coordinates
 ---   * dx, dz - width and height of each cell
 ---   * invDx, invDz - precomputed inverses for fast lookup
@@ -282,7 +285,7 @@ function AETHR.WORLD:initGrid(divs)
     local dx   = c[2].x - c[1].x -- Cell width.
     local dz   = c[4].z - c[1].z -- Cell height.
 
-    local Grid = AETHR._Grid:New(c, minX, maxZ, dx, dz)
+    local Grid = self.AETHR._Grid:New(c, minX, maxZ, dx, dz)
 
     return Grid
 end
@@ -290,8 +293,8 @@ end
 --- @function AETHR.WORLD:buildZoneCellIndex
 --- @brief Constructs a mapping of grid cells to zone entries for efficient spatial lookup.
 --- @param Zones table<string, _MIZ_ZONE> Array or map of zone objects; each contains `.verticies` points `{x, y|z}`.
---- @param grid AETHR._Grid Grid metrics returned by `initGrid`.
---- @return AETHR.ZoneCellIndex cells Nested table `cells[col][row]` containing lists of zone entries.
+--- @param grid _Grid Grid metrics returned by `initGrid`.
+--- @return any cells Nested table `cells[col][row]` containing lists of zone entries.
 function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
     local cells = {}
 
@@ -407,7 +410,7 @@ end
 --- Retrieves objects of a specific category within a division.
 --- @param divisionID integer ID of the division
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
---- @return AETHR.FoundObjectMap found Found objects keyed by object ID
+--- @return any found Found objects keyed by object ID
 function AETHR.WORLD:objectsInDivision(divisionID, objectCategory)
     local div = self.DATA.worldDivisions[divisionID]
     if not div then return {} end
