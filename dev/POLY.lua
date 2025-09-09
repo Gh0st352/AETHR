@@ -166,7 +166,7 @@ end
 --- - Returns true for points strictly inside (odd number of intersections), false otherwise.
 --- @function AETHR.POLY:PointWithinShape
 --- @param P table Point to test; expects numeric x and y (or z) field.
---- @param Polygon table Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
+--- @param Polygon table<_vec2> Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
 --- @return boolean True if P is inside the polygon (or on an edge when onLine returns true), false otherwise.
 function AETHR.POLY:PointWithinShape(P, Polygon)
     local n = #Polygon
@@ -192,22 +192,22 @@ function AETHR.POLY:PointWithinShape(P, Polygon)
 
         -- Create normalized points with consistent coordinate naming
         local p1 = {
-            x = Polygon[i].x,
-            y = self:getY(Polygon[i])
+            x = Polygon[i].x, ---@diagnostic disable-line
+            y = self:getY(Polygon[i])---@diagnostic disable-line
         }
 
         local p2 = {
-            x = Polygon[next].x,
-            y = self:getY(Polygon[next])
+            x = Polygon[next].x, ---@diagnostic disable-line
+            y = self:getY(Polygon[next]) ---@diagnostic disable-line
         }
-
+        
         local side = { p1 = p1, p2 = p2 }
         local normalizedP = { x = P.x, y = vertCoord }
 
         -- Check if the line segment formed by P and extreme intersects with the side of the polygon
         if self:isIntersect(side, { p1 = normalizedP, p2 = extreme }) then
             -- If the point P is collinear with the side of the polygon, check if it lies on the segment
-            if self.MATH:direction(side.p1, normalizedP, side.p2) == 0 then
+            if self.MATH:direction(side.p1, normalizedP, side.p2) == 0 then ---@diagnostic disable-line
                 return self:onLine(side, normalizedP)
             end
 
@@ -298,7 +298,7 @@ function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
 
         -- helper to build comparison key
         local function build_key(x, y)
-            if precision then
+            if precision then ---@diagnostic disable-line
                 return string.format("%." .. tostring(precision) .. "f:%." .. tostring(precision) .. "f", x, y)
             else
                 return tostring(x) .. ":" .. tostring(y)
@@ -538,7 +538,7 @@ function AETHR.POLY:ensureConvexN(coords)
             local yi = getY(tbl[i])
             local xj = tbl[j].x or 0
             local yj = getY(tbl[j])
-            area = area + (xi * yj - xj * yi)
+            area = area + (xi * yj - xj * yi) ---@diagnostic disable-line
         end
         return area
     end
@@ -581,7 +581,7 @@ function AETHR.POLY:ensureConvexN(coords)
         local y = getY(p)
         items[i] = {
             pt = p,
-            ang = math.atan2(y - cy, x - cx),
+            ang = math.atan2(y - cy, x - cx), ---@diagnostic disable-line
             r2 = (x - cx) * (x - cx) + (y - cy) * (y - cy)
         }
     end
@@ -677,7 +677,7 @@ function AETHR.POLY:ensureConvexN(coords)
                     end
                 end
             end
-            if changed then break end
+            if changed then break end ---@diagnostic disable-line
         end
     end
 
@@ -967,7 +967,7 @@ end
 
 --- Build a concave hull using a k-nearest heuristic.
 --- @function AETHR.POLY:concaveHull
---- @param pts table Array of {x,y} points
+--- @param pts _vec2[] Array of {x,y} points
 --- @param opts table Optional parameters { k = int, concavity = int }
 --- @return table|nil hull array or nil on failure
 function AETHR.POLY:concaveHull(pts, opts)
@@ -979,7 +979,7 @@ function AETHR.POLY:concaveHull(pts, opts)
 
     -- helper: point equality using MATH:pointsEqual (falls back to direct compare)
     local function ptEqual(a, b)
-        if self.MATH and self.MATH.pointsEqual then
+        if self.MATH and self.MATH.pointsEqual then ---@diagnostic disable-line
             return self.MATH:pointsEqual(a, b)
         end
         return math.abs(a.x - b.x) < 1e-9 and math.abs(a.y - b.y) < 1e-9
@@ -1016,14 +1016,15 @@ function AETHR.POLY:concaveHull(pts, opts)
         -- starting point: leftmost then lowest y
         local startIdx = 1
         for i = 2, N do
-            if pts[i].x < pts[startIdx].x or (pts[i].x == pts[startIdx].x and pts[i].y < pts[startIdx].y) then
+            if pts[i].x < pts[startIdx].x or (pts[i].x == pts[startIdx].x and pts[i].y < pts[startIdx].y) then ---@diagnostic disable-line
                 startIdx = i
             end
         end
-
-        local current = { x = pts[startIdx].x, y = pts[startIdx].y }
+        ---@type _vec2
+        local current = { x = pts[startIdx].x, y = pts[startIdx].y } ---@diagnostic disable-line
         table.insert(hull, current)
-        local prev = { x = current.x - 1, y = current.y }
+        ---@type _vec2
+        local prev = { x = current.x - 1, y = current.y } ---@diagnostic disable-line
         local step = 1
         local finished = false
         local safety = 0
@@ -1035,23 +1036,23 @@ function AETHR.POLY:concaveHull(pts, opts)
             local neighbors = kNearest(current, pts, k)
             table.sort(neighbors, function(a, b)
                 -- use MATH:turnAngle if available
-                if self.MATH and self.MATH.turnAngle then
+                if self.MATH and self.MATH.turnAngle then ---@diagnostic disable-line
                     return self.MATH:turnAngle(prev, current, a) < self.MATH:turnAngle(prev, current, b)
                 end
                 -- fallback angle computation
                 local v1x = current.x - prev.x; local v1y = current.y - prev.y
-                local a1 = math.atan2(v1y, v1x)
+                local a1 = math.atan2(v1y, v1x) ---@diagnostic disable-line
                 local v2x = a.x - current.x; local v2y = a.y - current.y
-                local aa = math.atan2(v2y, v2x)
+                local aa = math.atan2(v2y, v2x) ---@diagnostic disable-line
                 local d1 = aa - a1
                 if d1 <= -math.pi then d1 = d1 + 2 * math.pi end
                 if d1 > math.pi then d1 = d1 - 2 * math.pi end
                 if d1 < 0 then d1 = d1 + 2 * math.pi end
 
                 local v3x = current.x - prev.x; local v3y = current.y - prev.y
-                local a2 = math.atan2(v3y, v3x)
+                local a2 = math.atan2(v3y, v3x) ---@diagnostic disable-line
                 local v4x = b.x - current.x; local v4y = b.y - current.y
-                local ab = math.atan2(v4y, v4x)
+                local ab = math.atan2(v4y, v4x) ---@diagnostic disable-line
                 local d2 = ab - a2
                 if d2 <= -math.pi then d2 = d2 + 2 * math.pi end
                 if d2 > math.pi then d2 = d2 - 2 * math.pi end
@@ -1119,8 +1120,8 @@ end
 --------------------------------------------------------------------------------
 --- Monotone-chain convex hull (fallback for concave hull failure)
 --- @function AETHR.POLY:convexHull
---- @param points table Array of {x,y}
---- @return table hull array
+--- @param points _vec2[] Array of {x,y}
+--- @return table|nil hull array
 function AETHR.POLY:convexHull(points)
     if not points or #points < 3 then return nil end
     local pts = {}
@@ -1129,7 +1130,7 @@ function AETHR.POLY:convexHull(points)
         if a.x == b.x then return a.y < b.y end
         return a.x < b.x
     end)
-    local function cross(a, b, c) return self.MATH:crossProduct(a, b, { x = c.x, y = c.y }) end
+    local function cross(a, b, c) return self.MATH:crossProduct(a, b, { x = c.x, y = c.y }) end ---@diagnostic disable-line
     local lower, upper = {}, {}
     for i = 1, #pts do
         while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], pts[i]) <= 0 do table.remove(lower) end
@@ -1251,13 +1252,13 @@ function AETHR.POLY:densifyHullEdges(hull, polygons, samplesPerEdge, snapDistanc
                     end
                 end
 
-                if bestLine and bestDist2 <= snapThreshold2 then
+                if bestLine and bestDist2 <= snapThreshold2 then ---@diagnostic disable-line
                     local ax, ay = bestLine[1].x, bestLine[1].y
                     local bx, by = bestLine[2].x, bestLine[2].y
                     local l2 = self.MATH:distanceSquared(ax, ay, bx, by)
                     local t = 0
                     if l2 > 0 then
-                        t = self.MATH:dot(s.x - ax, s.y - ay, bx - ax, by - ay) / l2
+                        t = self.MATH:dot(s.x - ax, s.y - ay, bx - ax, by - ay) / l2 ---@diagnostic disable-line
                         if t < 0 then t = 0 end
                         if t > 1 then t = 1 end
                     end
@@ -1313,8 +1314,8 @@ function AETHR.POLY:findOverlaidPolygonGaps(smallerPolygon, largerPolygon, offse
     local sanitizedSmallIndexes = {}
     for index, value in ipairs(smallIndexes) do
         if #value >= 2 then
-            local _max = math.max(unpack(value))
-            local _min = math.min(unpack(value))
+            local _max = math.max(unpack(value)) ---@diagnostic disable-line
+            local _min = math.min(unpack(value)) ---@diagnostic disable-line
             if _max - _min >= 2 then
                 local checkCW = {}
                 local checkCCW = {}

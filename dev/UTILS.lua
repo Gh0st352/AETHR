@@ -27,7 +27,7 @@ function AETHR.UTILS:New(parent)
     _cache = {},
   }
   setmetatable(instance, { __index = self })
-  return instance
+  return instance ---@diagnostic disable-line
 end
 
 -- --- Checks whether a value exists in a table (legacy name).
@@ -101,7 +101,7 @@ end
 --- Return the vertical coordinate for a point-like table.
 --- Accepts tables with either `.y` or `.z` fields (DCS uses z for map Y).
 --- @param pt table|nil
---- @return number y-coordinate or nil if pt absent
+--- @return number|nil y y-coordinate or nil if pt absent
 function AETHR.UTILS:getPointY(pt)
   if not pt then return nil end
   return pt.y or pt.z

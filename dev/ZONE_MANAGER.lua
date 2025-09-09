@@ -49,7 +49,7 @@ function AETHR.ZONE_MANAGER:New(parent)
         _cache = {},
     }
     setmetatable(instance, { __index = self })
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 --- Sets mission trigger zone names (all, red and blue start).
@@ -638,10 +638,10 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
     local holeCandidates = {}
     for i = 2, #loops do
         local L = loops[i]
-        if L and L.centroid and outer and outer.points and #outer.points >= 3 then
+        if L and L.centroid and outer and outer.points and #outer.points >= 3 then ---@diagnostic disable-line
             -- use POLY:pointInPolygon which expects {x,y} points
             local inside = false
-            if self.POLY and self.POLY.pointInPolygon then
+            if self.POLY and self.POLY.pointInPolygon then ---@diagnostic disable-line
                 inside = self.POLY:pointInPolygon(L.centroid, outer.points)
             else
                 -- fallback simple winding check via centroid-in-outer using our polygonArea-based ray-cast
@@ -724,7 +724,7 @@ function AETHR.ZONE_MANAGER:getOutOfBounds(opts)
     -- Build hull (concave then convex fallback)
     local initial_k = opts.k or opts.concavity or math.max(3, math.floor(#allPoints * 0.1))
     local hull = nil
-    if self.POLY and self.POLY.concaveHull then
+    if self.POLY and self.POLY.concaveHull then ---@diagnostic disable-line
         hull = self.POLY:concaveHull(allPoints, { k = initial_k, concavity = opts.concavity })
     end
     if not hull then

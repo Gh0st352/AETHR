@@ -1,5 +1,5 @@
 --- @class AETHR.MATH
---- @brief 
+--- @brief Mathematical helpers for geometry and numerics used across AETHR.
 ---@diagnostic disable: undefined-global
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
@@ -16,15 +16,15 @@ AETHR.MATH = {} ---@diagnostic disable-line
 function AETHR.MATH:New()
     local instance = {}
     setmetatable(instance, { __index = self })
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 --- Calculates the 2D cross product (determinant) of three points.
 --- Used to determine orientation (clockwise, counterclockwise, or colinear).
---- @function crossProduct
---- @param p1 table First point with `.x`, `.z` or `.y`
---- @param p2 table Second point
---- @param p3 table Third point
+--- @function AETHR.MATH:crossProduct
+--- @param p1 _vec2|{x:number,z:number} First point (x with y or z component)
+--- @param p2 _vec2|{x:number,z:number} Second point
+--- @param p3 _vec2|{x:number,z:number} Third point
 --- @return number Determinant value (positive = CCW, negative = CW, zero = colinear)
 function AETHR.MATH:crossProduct(p1, p2, p3)
     local z1 = p1.z or p1.y
@@ -66,7 +66,7 @@ end
 
 --------------------------------------------------------------------------------
 --- Computes the dot product of two 2D vectors.
---- @function AETHR.MATH.dot
+--- @function AETHR.MATH:dot
 --- @param ax number X component of first vector.
 --- @param ay number Y component of first vector.
 --- @param bx number X component of second vector.
@@ -88,10 +88,10 @@ end
 ---
 --- Formula used (cross-product sign):
 --- val = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
---- @function AETHR.MATH.direction
---- @param a table First point with numeric x and y.
---- @param b table Second point with numeric x and y.
---- @param c table Third point with numeric x and y.
+--- @function AETHR.MATH:direction
+--- @param a _vec2 First point with numeric x and y.
+--- @param b _vec2 Second point with numeric x and y.
+--- @param c _vec2 Third point with numeric x and y.
 --- @return integer 0 = collinear, 1 = clockwise, 2 = counterclockwise.
 function AETHR.MATH:direction(a, b, c)
     local val = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
@@ -113,7 +113,7 @@ end
 --- @function AETHR.MATH:almostEqual
 --- @param a number
 --- @param b number
---- @param eps number|nil
+--- @param eps number|nil Optional tolerance (default 1e-9)
 --- @return boolean
 function AETHR.MATH:almostEqual(a, b, eps)
     eps = eps or 1e-9
@@ -122,9 +122,9 @@ end
 
 --- Compare 2D points with tolerance.
 --- @function AETHR.MATH:pointsEqual
---- @param p1 table {x,y}
---- @param p2 table {x,y}
---- @param eps number|nil
+--- @param p1 _vec2 First point {x,y}
+--- @param p2 _vec2 Second point {x,y}
+--- @param eps number|nil Optional tolerance (default 1e-9)
 --- @return boolean
 function AETHR.MATH:pointsEqual(p1, p2, eps)
     eps = eps or 1e-9
@@ -135,14 +135,14 @@ end
 --- Compute a positive normalized turn angle from (prev->cur) to (cur->cand).
 --- Returns angle in radians between 0 and 2*pi.
 --- @function AETHR.MATH:turnAngle
---- @param prev table
---- @param cur table
---- @param cand table
+--- @param prev _vec2 Previous point
+--- @param cur _vec2 Current point
+--- @param cand _vec2 Candidate next point
 --- @return number
 function AETHR.MATH:turnAngle(prev, cur, cand)
     local v1x = cur.x - prev.x; local v1y = cur.y - prev.y
     local v2x = cand.x - cur.x; local v2y = cand.y - cur.y
-    local a1 = math.atan2(v1y, v1x); local a2 = math.atan2(v2y, v2x)
+    local a1 = math.atan2(v1y, v1x); local a2 = math.atan2(v2y, v2x) ---@diagnostic disable-line
     local d = a2 - a1
     if d <= -math.pi then d = d + 2 * math.pi end
     if d > math.pi then d = d - 2 * math.pi end
@@ -152,14 +152,15 @@ end
 
 --- Compute arithmetic centroid (average) of an array of {x,y} points.
 --- @function AETHR.MATH:centroid
---- @param pts table Array of points
+--- @param pts _vec2[] Array of 2D points {x,y}
 --- @return number x, number y
 function AETHR.MATH:centroid(pts)
+    ---@type any
     local cx, cy = 0, 0
     if not pts or #pts == 0 then return 0, 0 end
     for _, p in ipairs(pts) do
         cx = cx + p.x
-        cy = cy + p.y
+        cy = cy + p.y ---@diagnostic disable-line
     end
     return cx / #pts, cy / #pts
 end
