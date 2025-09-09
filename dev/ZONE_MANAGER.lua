@@ -15,24 +15,86 @@
 --- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
+-- EmmyLua type aliases and structures used by Zone Manager.
+--- Types for vectors, lines, polygons, borders, and computed game bounds.
+
+--- @class _ColorRGBA
+--- @field r number
+--- @field g number
+--- @field b number
+--- @field a number
+
+--- @alias _LineVec2 _vec2[]        -- 2-length array representing a line segment
+--- @alias _PolygonVec2 _vec2[]     -- 3+ length array of vertices
+--- @alias _PolygonList _PolygonVec2[]
+
+--- @class _WorldBoundsAxis
+--- @field min number
+--- @field max number
+
+--- @class _WorldBounds
+--- @field X _WorldBoundsAxis
+--- @field Z _WorldBoundsAxis
+
+--- @class _ZoneBorder
+--- @field OwnedByCoalition integer Coalition that currently owns this border segment (0 = neutral)
+--- @field ZoneLine _LineVec2
+--- @field ZoneLineLen number
+--- @field ZoneLineMidP _vec2
+--- @field ZoneLineSlope number|nil
+--- @field ZoneLinePerpendicularPoint _vec2|nil
+--- @field NeighborLine _LineVec2
+--- @field NeighborLineLen number
+--- @field NeighborLineMidP _vec2
+--- @field NeighborLineSlope number|nil
+--- @field NeighborLinePerpendicularPoint _vec2|nil
+--- @field MarkID table<integer, integer> Map 0..2 -> mark IDs
+
+--- @alias _ZoneBorderMap table<string, _ZoneBorder[]>
+
+--- @class _InBounds
+--- @field polyLines _LineVec2[] Remaining perimeter lines after excluding shared borders
+--- @field polyVerts _PolygonVec2 Master polygon vertices (in-bounds area)
+
+--- @class _OutOfBounds
+--- @field HullPolysNoSample _PolygonList Quads created without densification
+--- @field HullPolysWithSample _PolygonList Quads created when sampling edges
+--- @field centerPoly _PolygonVec2|nil Inner "hole" polygon (cutout) if computed
+--- @field masterPoly _PolygonVec2|nil Largest closed perimeter loop of all zones (optional)
+
+--- @class _InOutBoundsGaps
+--- @field overlaid _PolygonList Overlap regions between in-bounds and center cutout
+--- @field convex _PolygonList Convexified versions of overlaid gaps
+--- @field concave _PolygonList Concave ordering for drawing
+
+--- @class _GameBounds
+--- @field outOfBounds _OutOfBounds
+--- @field inBounds _InBounds
+--- @field inOutBoundsGaps _InOutBoundsGaps
+
+--- @class _ZoneManagerData
+--- @field MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones keyed by name
+--- @field GAME_BOUNDS _GameBounds Computed bounds information
+
+--- @type _ZoneManagerData
 AETHR.ZONE_MANAGER.DATA = {
     --- @type _MIZ_ZONE[]
     MIZ_ZONES = {}, -- Mission trigger zones keyed by name.
     GAME_BOUNDS = {
         outOfBounds = {
-            HullPolysNoSample = {},
-            HullPolysWithSample = {},
-            centerPoly = {},
-            masterPoly = {},
+            HullPolysNoSample = {}, -- _PolygonList
+            HullPolysWithSample = {}, -- _PolygonList
+            centerPoly = {}, -- _PolygonVec2
+            masterPoly = {}, -- _PolygonVec2
         },
         inBounds = {
-            polyLines = {},
-            polyVerts = {},
+            polyLines = {}, -- _LineVec2[]
+            polyVerts = {}, -- _PolygonVec2
         },
         inOutBoundsGaps = {
-            overlaid = {},
-            convex = {},
-            concave = {},
+            overlaid = {}, -- _PolygonList
+            convex = {}, -- _PolygonList
+            concave = {}, -- _PolygonList
         },
     },
 }
@@ -232,14 +294,22 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
     return MIZ_ZONES
 end
 
+--- Draws a polygon marker on the F10 map.
+--- @param coalition integer Coalition ID (-1 all, or DCS coalition)
+--- @param fillColor _ColorRGBA Fill color (r,g,b,a in 0..1)
+--- @param borderColor _ColorRGBA Border color (r,g,b,a in 0..1)
+--- @param linetype integer DCS line type enum
+--- @param cornerVec2s _PolygonVec2 Four corner points in Vec2 space (x,y)
+--- @param markerID integer Unique marker identifier
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype, cornerVec2s, markerID)
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         --  RGBA components Fill
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a --  RGBA components Fill
     local shapeTypeID    = 7                                                          --  Polygon shape type
-    local vec3_1         = { x = cornerVec2s[4].x, y = 0, z = cornerVec2s[4].y }
-    local vec3_2         = { x = cornerVec2s[3].x, y = 0, z = cornerVec2s[3].y }
-    local vec3_3         = { x = cornerVec2s[2].x, y = 0, z = cornerVec2s[2].y }
-    local vec3_4         = { x = cornerVec2s[1].x, y = 0, z = cornerVec2s[1].y }
+    local vec3_1         = { x = cornerVec2s[4].x, y = 0, z = cornerVec2s[4].y } --- @diagnostic disable-line
+    local vec3_2         = { x = cornerVec2s[3].x, y = 0, z = cornerVec2s[3].y } --- @diagnostic disable-line
+    local vec3_3         = { x = cornerVec2s[2].x, y = 0, z = cornerVec2s[2].y } --- @diagnostic disable-line
+    local vec3_4         = { x = cornerVec2s[1].x, y = 0, z = cornerVec2s[1].y } --- @diagnostic disable-line
 
     -- Draw polygon on map
     trigger.action.markupToAll(
@@ -255,11 +325,14 @@ function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype
     return self
 end
 
+--- Builds a set of vertex keys to exclude (those that belong to shared/bordering edges).
+--- @param zonesTable table<string, _MIZ_ZONE>
+--- @return table<string, boolean> exclude Map keyed by "x,y" -> true
 function AETHR.ZONE_MANAGER:_buildBorderExclude(zonesTable)
     local function keyFor(p) return string.format("%.6f,%.6f", p.x, p.y or p.z) end
     local exclude = {}
     for zname, mz in pairs(zonesTable or {}) do
-        if mz and mz.BorderingZones then
+        if mz and mz.BorderingZones then --- @diagnostic disable-line
             for neighborName, zoneBorders in pairs(mz.BorderingZones) do
                 for _, border in ipairs(zoneBorders or {}) do
                     if border.ZoneLine then
@@ -279,10 +352,15 @@ function AETHR.ZONE_MANAGER:_buildBorderExclude(zonesTable)
     return exclude
 end
 
+--- Collects polygons (Vec2 arrays) from zones, skipping vertices present in the exclude set.
+--- @param zonesTable table<string, _MIZ_ZONE>
+--- @param exclude table<string, boolean>|nil
+--- @return _PolygonList polygons
 function AETHR.ZONE_MANAGER:_collectPolygonsFromZones(zonesTable, exclude)
     local polygons = {}
+    ---@param mz _MIZ_ZONE  
     for zname, mz in pairs(zonesTable or {}) do
-        local verts = mz.verticies or mz.vertices or mz.Vertices or mz.Verticies
+        local verts = mz.verticies
         if verts and #verts > 0 then
             local poly = {}
             for _, v in ipairs(verts) do
@@ -298,6 +376,10 @@ function AETHR.ZONE_MANAGER:_collectPolygonsFromZones(zonesTable, exclude)
     return polygons
 end
 
+--- Flattens polygons into a unique set of points, with fallback to zone vertices.
+--- @param polygons _PolygonList
+--- @param zonesTable table<string, _MIZ_ZONE>
+--- @return _vec2[] uniquePoints
 function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
     local allPoints = {}
     local uniqp = {}
@@ -314,8 +396,8 @@ function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
     -- fallback: include any zone vertices not already included
     if #allPoints < 3 then
         for zname, mz in pairs(zonesTable or {}) do
-            local verts = mz and (mz.verticies or mz.vertices or mz.Vertices or mz.Verticies) or nil
-            if verts then
+            local verts = mz and mz.verticies or nil
+            if verts then --- @diagnostic disable-line
                 for _, v in ipairs(verts) do
                     local key = string.format("%.6f,%.6f", v.x, v.y or v.z)
                     if not uniqp[key] then
@@ -330,6 +412,12 @@ function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
     return allPoints
 end
 
+--- Processes a perimeter hull to produce out-of-bounds quads and stores them on DATA.GAME_BOUNDS.outOfBounds.
+--- @param hull _PolygonVec2
+--- @param polygons _PolygonList
+--- @param worldBounds _WorldBounds
+--- @param opts table Options: { samplesPerEdge: integer|nil, snapDistance: number|nil }
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts)
     if not hull or #hull < 3 then return self end
     local samplesPerEdge = opts.samplesPerEdge or 0
@@ -379,7 +467,7 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts)
             if not (math.abs(oi.x - oj.x) < 1e-6 and math.abs(oi.y - oj.y) < 1e-6) then
                 local poly = {
                     { x = vi.x, y = vi.y },
-                    { x = vj.x, y = vj.y },
+                    { x = vj.x, y = vj.y },--- @diagnostic disable-line
                     { x = oj.x, y = oj.y },
                     { x = oi.x, y = oi.y },
                 }
@@ -397,6 +485,9 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts)
     return self
 end
 
+--- Computes and stores the master in-bounds polygon from child zones, excluding shared borders.
+--- Populates DATA.GAME_BOUNDS.inBounds.polyLines and polyVerts.
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:getMasterZonePolygon()
     -- New logic flow implementing user's specification:
     -- 1) Determine bordering polygons (edges within offset)
@@ -440,6 +531,9 @@ function AETHR.ZONE_MANAGER:getMasterZonePolygon()
     return self
 end
 
+--- Constructs the inner "hole" polygon from a list of contributing polygons.
+--- @param PolyTable _PolygonList List of polygons (each polygon is an array of { x: number, y: number })
+--- @return _PolygonVec2|nil Hollow inner polygon or nil if none
 function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
     -- Returns the inner "hole" polygon constructed from a list of contributing polygons.
     -- PolyTable is expected to be an array of polygons where each polygon is an array of points { x = number, y = number }.
@@ -669,13 +763,10 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
     return out
 end
 
---- Draws an out-of-bounds convex ring surrounding provided zone vertices.
---- The routine computes a convex hull of the input zone vertices, shoots outward
---- rays from the hull centroid to the world bounds, and constructs quads between
---- each hull edge and its corresponding intersections on the world bounds.
---- This tiles the ring with convex quads and avoids overlapping the inner zone.
---- @function AETHR.ZONE_MANAGER:drawOutOfBounds
---- @param opts table|nil Options: { samplesPerEdge = int, useHoleSinglePolygon = bool, snapDistance = number } Optional: snapDistance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity. Default 0.1.
+--- Computes out-of-bounds quads around the union of mission zones and stores them on DATA.GAME_BOUNDS.outOfBounds.
+--- Uses concave hull (fallback to convex hull) and optional edge densification.
+--- @function AETHR.ZONE_MANAGER:getOutOfBounds
+--- @param opts table|nil Options: { samplesPerEdge: integer|nil, useHoleSinglePolygon: boolean|nil, snapDistance: number|nil, k: integer|nil, concavity: number|nil }
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:getOutOfBounds(opts)
     opts = opts or {}
@@ -735,6 +826,8 @@ function AETHR.ZONE_MANAGER:getOutOfBounds(opts)
     return self
 end
 
+--- Initializes in/out-of-bounds and gaps data by loading from storage or generating it.
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initGameZoneBoundaries()
     local data = self:getStoredGameBoundData()
     if data then
@@ -746,6 +839,8 @@ function AETHR.ZONE_MANAGER:initGameZoneBoundaries()
     return self
 end
 
+--- Loads previously saved game bound data from storage if present.
+--- @return _GameBounds|nil
 function AETHR.ZONE_MANAGER:getStoredGameBoundData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.GAME_BOUNDS_FILE
@@ -754,12 +849,16 @@ function AETHR.ZONE_MANAGER:getStoredGameBoundData()
     return nil
 end
 
+--- Persists current DATA.GAME_BOUNDS to storage.
+--- @return nil
 function AETHR.ZONE_MANAGER:saveGameBoundData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.GAME_BOUNDS_FILE
     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.GAME_BOUNDS)
 end
 
+--- Computes master zone polygon, out-of-bounds tiles, and gap polygons and stores them under DATA.GAME_BOUNDS.
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:generateGameBoundData()
     self:getMasterZonePolygon()
     self:getOutOfBounds({
@@ -792,6 +891,8 @@ function AETHR.ZONE_MANAGER:generateGameBoundData()
     return self
 end
 
+--- Renders computed game bound polygons as freeform markers.
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawGameBounds()
     local function markerGen(poly)
         local _Marker = self.AETHR._Marker:New(
@@ -839,6 +940,8 @@ function AETHR.ZONE_MANAGER:drawGameBounds()
     return self
 end
 
+--- Renders all mission zones as freeform markers colored by coalition.
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawMissionZones()
     ---@param _ string
     ---@param _zone _MIZ_ZONE
