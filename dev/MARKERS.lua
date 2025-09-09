@@ -56,7 +56,7 @@ function AETHR.MARKERS:markFreeform(_Marker, storageLocation)
         verts
     )
 
-    if storageLocation and type(storageLocation) == "table" then
+    if storageLocation and type(storageLocation) == "table" then ---@diagnostic disable-line
         storageLocation[markID] = _Marker
     end
     return self
@@ -73,7 +73,7 @@ end
 --- @param borderColor table Border color table {r,g,b,a} or object with .r .g .b .a
 --- @param linetype number Line type enum value
 --- @param markerID number|nil Marker identifier (optional)
---- @param ... table|vec2 Either a single array of vec2 vertices or multiple vec2 arguments
+--- @param ... table|_vec2 Either a single array of vec2 vertices or multiple vec2 arguments
 --- @return AETHR.MARKERS self
 function AETHR.MARKERS:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, ...)
     local varargs = { ... }
@@ -117,7 +117,7 @@ function AETHR.MARKERS:drawPolygon(coalition, fillColor, borderColor, linetype, 
     table.insert(margs, true)
 
     -- Call markupToAll with the constructed argument list
-    trigger.action.markupToAll(unpack(margs))
+    trigger.action.markupToAll(unpack(margs)) ---@diagnostic disable-line
 
     return self
 end

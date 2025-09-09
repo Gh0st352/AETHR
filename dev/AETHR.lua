@@ -72,7 +72,7 @@ function AETHR:New(mission_id)
             instance.CONFIG.MAIN.STORAGE = { PATHS = {}, FILENAMES = {} }
         end
     else
-        instance.CONFIG = { MAIN = { STORAGE = { PATHS = {}, FILENAMES = {} } } }
+        instance.CONFIG = { MAIN = { STORAGE = { PATHS = {}, FILENAMES = {} } } } ---@diagnostic disable-line
     end
 
     -- Set mission id on the instance config

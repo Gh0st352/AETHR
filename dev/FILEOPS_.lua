@@ -5,6 +5,12 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field IO AETHR.IO Basic file I/O submodule attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
+--- @field BRAIN AETHR.BRAIN AI behavior submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.FILEOPS = {}
@@ -20,7 +26,7 @@ function AETHR.FILEOPS:New(parent)
         _cache = {},
     }
     setmetatable(instance, { __index = self })
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 --- @function joinPaths

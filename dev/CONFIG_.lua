@@ -8,6 +8,8 @@
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+--- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field VERSION string Framework version identifier.
 --- @field AUTHOR string Package author.
 --- @field GITHUB string GitHub repository URL.
@@ -22,7 +24,7 @@
 --- @field worldBounds table Coordinate bounds for supported theaters.
 --- @field Zone table Default rendering and arrow settings for zones.
 --- @field MAIN table General Config Data Table.
-AETHR.CONFIG = {}
+AETHR.CONFIG = {} ---@diagnostic disable-line
 AETHR.CONFIG.MAIN = {
     VERSION = "0.1.0",                      -- Library version.
     AUTHOR = "Gh0st352",                    -- Package author.

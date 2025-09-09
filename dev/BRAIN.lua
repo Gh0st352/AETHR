@@ -5,16 +5,62 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
+--- @field UTILS AETHR.UTILS Utility functions helper table attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
---- @field MARKERS AETHR.MARKERS
---- @field DATA table Container for zone management data.
---- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
+--- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
+--- @field DATA AETHR.BRAIN.Data Container for scheduling, coroutine, and timing data.
 AETHR.BRAIN = {} ---@diagnostic disable-line
 
+--- Scheduler and data types for AETHR.BRAIN
+---@alias AETHR.SchedulerID integer
+
+--- Represents a scheduled task managed by the BRAIN scheduler.
+---@class AETHR.ScheduledTask
+---@field active boolean|nil Whether the task is active.
+---@field running boolean|nil True while the task is running.
+---@field nextRun number|nil Next scheduled execution time (epoch seconds).
+---@field lastRun number|nil Last execution time (epoch seconds).
+---@field iterations integer|nil Number of times the task has executed.
+---@field taskFunction fun(...: any) Function to execute.
+---@field functionArgs any[]|nil Flattened argument list passed to taskFunction.
+---@field repeatInterval number|nil Interval between executions when repeating.
+---@field delay number|nil Initial delay before first execution.
+---@field repeating boolean|nil Whether the task is configured to repeat.
+---@field stopTime number|nil Absolute time after which the task should stop.
+---@field stopAfterIterations integer|nil Max executions before stopping.
+
+-----@alias AETHR.SchedulerMap table<AETHR.SchedulerID, AETHR.ScheduledTask>
+
+--- Data container for the BRAIN module.
+---@class AETHR.BRAIN.Data
+---@field Schedulers _task[] Holds scheduled tasks and their states.
+---@field SchedulerIDCounter integer Incrementing counter to assign unique IDs.
+---@field coroutines table<integer, thread|fun(...: any)> Holds active coroutines or async tasks.
+---@field updateInterval number Default update interval in seconds.
+---@field mainScheduleLoopInterval number Main scheduling loop tick interval in seconds.
+
+---@type AETHR.BRAIN.Data
 AETHR.BRAIN.DATA = {
-    Schedulers = { -- Holds scheduled tasks and their states.
-        -- [schedulerID] = { task = function, nextRun = time, interval = seconds, stopAfterTime = time, stopAfterIterations = count, iterations = count }
+    -- Map of scheduler IDs to scheduled task descriptors.
+    Schedulers = {
+        -- [schedulerID: AETHR.SchedulerID] = {
+        --     taskFunction = function,               -- fun(...: any)
+        --     functionArgs = { ... },                -- any[]
+        --     active = true,                         -- boolean
+        --     running = false,                       -- boolean
+        --     nextRun = os.time(),                   -- number (epoch seconds)
+        --     lastRun = os.time(),                   -- number (epoch seconds)
+        --     repeatInterval = 10,                   -- number|nil
+        --     delay = 0,                             -- number|nil
+        --     stopTime = os.time() + 60,             -- number|nil
+        --     stopAfterIterations = 3,               -- integer|nil
+        --     iterations = 0,                        -- integer|nil
+        --     repeating = true,                      -- boolean|nil
+        -- }
     },
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {}, -- Holds active coroutines for asynchronous tasks.
@@ -24,8 +70,8 @@ AETHR.BRAIN.DATA = {
 }
 --- Creates a new AETHR.BRAIN submodule instance.
 --- @function AETHR.BRAIN:New
---- @param parent AETHR Parent AETHR instance
---- @return AETHR.BRAIN instance New instance inheriting AETHR.BRAIN methods.
+--- @param parent AETHR Parent AETHR instance.
+--- @return AETHR.BRAIN New instance inheriting AETHR.BRAIN methods.
 function AETHR.BRAIN:New(parent)
     local instance = {
         AETHR = parent,
@@ -33,7 +79,7 @@ function AETHR.BRAIN:New(parent)
         _cache = {},
     }
     setmetatable(instance, { __index = self })
-    return instance
+    return instance ---@diagnostic disable-line
 end
 
 --- Builds a watcher on a table to monitor changes to a specific key.
@@ -43,12 +89,12 @@ end
 --- When a change to the specified key is detected, a watcher function is called with additional arguments if provided.
 --- This is useful for monitoring changes to a table and triggering specific actions when those changes occur.
 --- @function AETHR.BRAIN:buildWatcher
---- @param table_ table The table on which the watcher is to be set.
+--- @generic TKey, TValue
+--- @param table_ table<TKey, TValue> The table on which the watcher is to be set.
 --- @param key_ any The key in the table to monitor for changes.
---- @param watcherFunction function The function to call when a change to the specified key is detected.
+--- @param watcherFunction fun(changedKey: TKey, newValue: any, ...: any) The function to call when a change to the specified key is detected.
 --- @param ... any Additional arguments to pass to the watcherFunction.
 --- @return nil
---- @usage AETHR.BRAIN:buildWatcher(myTable, "myKey", function(key, value) print("Key " .. key .. " changed to " .. value) end)
 function AETHR.BRAIN:buildWatcher(table_, key_, watcherFunction, ...)
     local extraArgs = { ... } -- Capture extra arguments in a table
 
@@ -65,7 +111,7 @@ function AETHR.BRAIN:buildWatcher(table_, key_, watcherFunction, ...)
             __newindex = function(t, k, v)
                 if k == key_ then
                     -- Call the watcher function with extra arguments
-                    watcherFunction(tableKey_, v, unpack(extraArgs))
+                    watcherFunction(tableKey_, v, unpack(extraArgs)) ---@diagnostic disable-line
                 end
                 t.__actualValue[k] = v -- Modify actual value
             end
@@ -77,13 +123,13 @@ end
 
 --- Schedules a task for later execution, optionally repeating.
 --- @function AETHR.BRAIN:scheduleTask
----@param ... any[]|nil Variables to pass to function
----@param stopAfterTime number|nil Time in seconds after which the task should stop repeating. If nil, the task executes once.
----@param stopAfterIterations number|nil Number of times to repeat the task before stopping. If nil, the task executes once.
----@param repeatInterval number|nil Time in seconds between repeated executions of the task. If nil, the task executes once, otherwise it repeats indefinitely.
----@param delay number|nil Time in seconds to wait before executing the task.
----@param taskFunction function A function to be scheduled to run.
----@return number schedulerID Identifier for the scheduled task (numeric handle).
+--- @param taskFunction fun(...: any) A function to be scheduled to run.
+--- @param delay number|nil Time in seconds to wait before executing the task.
+--- @param repeatInterval number|nil Time in seconds between repeated executions of the task. If nil, the task executes once, otherwise it repeats indefinitely.
+--- @param stopAfterTime number|nil Time in seconds after which the task should stop repeating. If nil, the task executes once.
+--- @param stopAfterIterations integer|nil Number of times to repeat the task before stopping. If nil, the task executes once.
+--- @param ... any Variables to pass to the task function.
+--- @return AETHR.SchedulerID schedulerID Identifier for the scheduled task (numeric handle).
 function AETHR.BRAIN:scheduleTask(taskFunction, delay, repeatInterval, stopAfterTime, stopAfterIterations, ...)
     local schedulerID = self.DATA.SchedulerIDCounter
     self.DATA.SchedulerIDCounter = self.DATA.SchedulerIDCounter + 1
@@ -123,7 +169,7 @@ function AETHR.BRAIN:runScheduledTasks()
             task.iterations = (task.iterations or 0) + 1
 
             -- Call the task function with protected call and flattened args
-            local ok, err = pcall(task.taskFunction, unpack(task.functionArgs or {}))
+            local ok, err = pcall(task.taskFunction, unpack(task.functionArgs or {})) ---@diagnostic disable-line
             if not ok then
                 if self.AETHR and self.AETHR.UTILS and type(self.AETHR.UTILS.debugInfo) == "function" then
                     pcall(function()

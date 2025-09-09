@@ -214,3 +214,19 @@ function AETHR._task:New(stopAfterTime, stopAfterIterations, repeatInterval, del
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
+
+--- @class _vec2
+--- @field x number
+--- @field y number
+AETHR._vec2 = {} ---@diagnostic disable-line
+---
+--- @param x table
+--- @param y table
+--- @return __template instance
+function AETHR._vec2:New(x,y)
+    local instance = {
+
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
