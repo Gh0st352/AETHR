@@ -37,30 +37,76 @@ AETHR = {
 --- @param mission_id string|nil Optional mission identifier (defaults to configured ID).
 --- @return AETHR instance New instance inheriting AETHR methods.
 function AETHR:New(mission_id)
-    local id = mission_id or (self.CONFIG and self.CONFIG.MISSION_ID) or "1"
-
-    -- Instance inherits methods/values via metatable; we'll provide instance-specific
-    -- copies of mutable tables (CONFIG.MAIN.STORAGE.PATHS, USERSTORAGE, etc).
     ---@type AETHR
     local instance = setmetatable({}, { __index = self })
 
-    -- Apply mission id for this instance.
+    -- Safe shallow-copy helper to avoid shared mutable state between instances.
+    local function shallow_copy(t)
+        if type(t) ~= "table" then return t end
+        local out = {}
+        for k, v in pairs(t) do out[k] = v end
+        return out
+    end
+
+    -- Apply mission id (prefer provided id, then prototype config, then "1")
+    local id = mission_id or
+    ((self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.MISSION_ID) and self.CONFIG.MAIN.MISSION_ID) or "1"
+
+    -- Create instance-local copies of mutable configuration subtables to prevent prototype mutation.
+    if type(self.CONFIG) == "table" then
+        instance.CONFIG = shallow_copy(self.CONFIG)
+        if type(self.CONFIG.MAIN) == "table" then
+            instance.CONFIG.MAIN = shallow_copy(self.CONFIG.MAIN)
+            -- STORAGE contains nested mutable tables we want instance-scoped
+            if type(self.CONFIG.MAIN.STORAGE) == "table" then
+                instance.CONFIG.MAIN.STORAGE = shallow_copy(self.CONFIG.MAIN.STORAGE)
+                instance.CONFIG.MAIN.STORAGE.PATHS = shallow_copy(self.CONFIG.MAIN.STORAGE.PATHS or {})
+                instance.CONFIG.MAIN.STORAGE.FILENAMES = shallow_copy(self.CONFIG.MAIN.STORAGE.FILENAMES or {})
+            else
+                instance.CONFIG.MAIN.STORAGE = {}
+                instance.CONFIG.MAIN.STORAGE.PATHS = {}
+                instance.CONFIG.MAIN.STORAGE.FILENAMES = {}
+            end
+        else
+            instance.CONFIG.MAIN = {}
+            instance.CONFIG.MAIN.STORAGE = { PATHS = {}, FILENAMES = {} }
+        end
+    else
+        instance.CONFIG = { MAIN = { STORAGE = { PATHS = {}, FILENAMES = {} } } }
+    end
+
+    -- Set mission id on the instance config
     instance.CONFIG.MAIN.MISSION_ID = id
 
-    -- Resolve writable root directory and cache it on both prototype and instance.
-    local lfs = require("lfs")
-    local rt_path = lfs.writedir()
-    AETHR.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
-    instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
+    -- Resolve writable directory. Do NOT mutate prototype; write only to instance.
+    local ok, lfs = pcall(require, "lfs")
+    if ok and type(lfs.writedir) == "function" then
+        local rt_path = lfs.writedir()
+        instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = rt_path
+    else
+        instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR = instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR or ""
+    end
 
-    instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = instance.FILEOPS:joinPaths(
-        rt_path,
-        instance.CONFIG.MAIN.STORAGE.ROOT_FOLDER,
-        instance.CONFIG.MAIN.STORAGE.CONFIG_FOLDER
-    )
+    -- Ensure CONFIG.PATHS.CONFIG_FOLDER is computed using available FILEOPS (prototype methods are reachable via metatable)
+    local joiner = instance.FILEOPS or self.FILEOPS
+    if joiner and type(joiner.joinPaths) == "function" then
+        instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = joiner:joinPaths(
+            instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR,
+            instance.CONFIG.MAIN.STORAGE.ROOT_FOLDER or "",
+            instance.CONFIG.MAIN.STORAGE.CONFIG_FOLDER or ""
+        )
+    else
+        -- fallback to simple concat using package.config separator
+        local sep = package.config:sub(1, 1)
+        instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = table.concat({
+            instance.CONFIG.MAIN.STORAGE.SAVEGAME_DIR,
+            instance.CONFIG.MAIN.STORAGE.ROOT_FOLDER or "",
+            instance.CONFIG.MAIN.STORAGE.CONFIG_FOLDER or ""
+        }, sep)
+    end
 
-    -- Capture the current theater for this instance if available.
-    if env and env.mission then
+    -- Capture the current theater for this instance if available (do not mutate prototype)
+    if env and env.mission and env.mission.theatre then
         instance.CONFIG.MAIN.THEATER = env.mission.theatre
     end
 
@@ -138,30 +184,38 @@ function AETHR:Init()
     self.WORLD:initWorldDivisions()     -- Load or generate world division grid.
     self.WORLD:initActiveDivisions()    -- Load or generate active divisions in mission.
 
-    if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
-        self.ZONE_MANAGER:drawMissionZones()
-        self.ZONE_MANAGER:drawGameBounds()
-    end
-
     self.WORLD:initSceneryInDivisions()
     self.WORLD:initBaseInDivisions()
     self.WORLD:initStaticInDivisions()
 
-    self.ZONE_MANAGER:initGameZoneBoundaries() -- Load or generate out of bounds information.
 
-    self:loadUSERSTORAGE()                     -- Load per-user storage data.
-    self:saveUSERSTORAGE()                     -- Persist current user storage data.
+
+    if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
+        self.ZONE_MANAGER:initGameZoneBoundaries()  -- Load or generate out of bounds information.
+        self.ZONE_MANAGER:drawMissionZones()
+        self.ZONE_MANAGER:drawGameBounds()
+    end
+
+    self:loadUSERSTORAGE() -- Load per-user storage data.
+    self:saveUSERSTORAGE() -- Persist current user storage data.
     self.CONFIG:saveConfig()
 
 
     return self
 end
 
+--- Starts the AETHR framework and schedules background processes.
+--- @function AETHR:Start
+--- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
     self:BackgroundProcesses()
     return self
 end
 
+--- Starts or re-schedules background processes for the framework.
+--- Schedules BRAIN:runScheduledTasks to be invoked periodically and triggers an immediate run.
+--- @function AETHR:BackgroundProcesses
+--- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
     -- Schedule periodic execution of runScheduledTasks using a bound closure
     self.BRAIN:scheduleTask(

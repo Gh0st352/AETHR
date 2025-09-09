@@ -9,6 +9,10 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.FILEOPS = {}
 
+--- Creates a new AETHR.FILEOPS submodule instance.
+--- @function AETHR.FILEOPS:New
+--- @param parent AETHR Parent AETHR instance
+--- @return AETHR.FILEOPS instance New instance inheriting AETHR.FILEOPS methods.
 function AETHR.FILEOPS:New(parent)
     local instance = {
         AETHR = parent,
@@ -72,7 +76,7 @@ function AETHR.FILEOPS:ensureFile(directory, filename)
     if not self:ensureDirectory(directory) then
         return false
     end
-    local filepath = self.FILEOPS:joinPaths(directory, filename)
+    local filepath = self:joinPaths(directory, filename)
     local lfs = require("lfs")
     local attr = lfs.attributes(filepath)
     if attr and attr.mode == "file" then
@@ -140,13 +144,33 @@ end
 --- @param orig any Source value or table to copy.
 --- @return any copy Deep copied value.
 function AETHR.FILEOPS:deepcopy(orig)
-    if type(orig) ~= "table" then
-        return orig
+    -- Cycle-safe deep copy that preserves table structure and metatables.
+    -- Uses a visited table to avoid infinite recursion on cyclic references.
+    local function _deepcopy(obj, visited)
+        if type(obj) ~= "table" then
+            return obj
+        end
+        visited = visited or {}
+        if visited[obj] then
+            return visited[obj]
+        end
+
+        local copy = {}
+        visited[obj] = copy
+
+        for k, v in pairs(obj) do
+            local nk = _deepcopy(k, visited)
+            local nv = _deepcopy(v, visited)
+            copy[nk] = nv
+        end
+
+        local mt = getmetatable(obj)
+        if mt then
+            setmetatable(copy, _deepcopy(mt, visited))
+        end
+
+        return copy
     end
-    local copy = {}
-    for k, v in pairs(orig) do
-        copy[self:deepcopy(k)] = self:deepcopy(v)
-    end
-    setmetatable(copy, self:deepcopy(getmetatable(orig)))
-    return copy
+
+    return _deepcopy(orig, {})
 end

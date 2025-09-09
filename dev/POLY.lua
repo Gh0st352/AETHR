@@ -134,6 +134,27 @@ function AETHR.POLY:getBoxPoints(corners, height)
 end
 
 --------------------------------------------------------------------------------
+--- Return the vertical coordinate for a point-like table (supports .y or .z).
+--- @function AETHR.POLY:getY
+--- @param pt table|nil Point-like table with .y or .z fields.
+--- @return number|nil Vertical coordinate (y or z) or nil if pt absent.
+function AETHR.POLY:getY(pt)
+    -- Return the vertical coordinate for a point-like table (supports .y or .z)
+    if not pt then return nil end
+    return pt.y or pt.z
+end
+
+--- Normalize a point-like table into { x = number, y = number } without mutating input.
+--- @function AETHR.POLY:normalizePoint
+--- @param pt table|nil Point-like table with x and y or z.
+--- @return table Normalized point { x = number, y = number }.
+function AETHR.POLY:normalizePoint(pt)
+    -- Normalize a point-like table into { x = number, y = number } without mutating input.
+    if not pt then return { x = 0, y = 0 } end
+    return { x = pt.x or 0, y = (pt.y ~= nil) and pt.y or (pt.z or 0) }
+end
+
+--------------------------------------------------------------------------------
 --- Determines whether a 2D point lies strictly inside a polygon using the ray-casting algorithm.
 ---
 --- Behavior and notes:
@@ -143,16 +164,15 @@ end
 --- - Ray-casting is done horizontally to a large positive X ("extreme") and counts edge intersections.
 --- - If the point is collinear with an edge, the function uses onLine to decide if the point lies on that edge.
 --- - Returns true for points strictly inside (odd number of intersections), false otherwise.
---- @function AETHR.POLY.PointWithinShape
---- @brief Determines whether a point lies strictly inside a polygon (including on-edge cases) using the ray-casting algorithm.
+--- @function AETHR.POLY:PointWithinShape
 --- @param P table Point to test; expects numeric x and y (or z) field.
 --- @param Polygon table Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
 --- @return boolean True if P is inside the polygon (or on an edge when onLine returns true), false otherwise.
 function AETHR.POLY:PointWithinShape(P, Polygon)
     local n = #Polygon
 
-    -- Get the appropriate vertical coordinate from P
-    local vertCoord = P.y or P.z
+    -- Resolve vertical coordinate consistently
+    local vertCoord = self:getY(P)
 
     -- A polygon must have at least 3 vertices to enclose a space
     if n < 3 then
@@ -173,12 +193,12 @@ function AETHR.POLY:PointWithinShape(P, Polygon)
         -- Create normalized points with consistent coordinate naming
         local p1 = {
             x = Polygon[i].x,
-            y = Polygon[i].y or Polygon[i].z
+            y = self:getY(Polygon[i])
         }
 
         local p2 = {
             x = Polygon[next].x,
-            y = Polygon[next].y or Polygon[next].z
+            y = self:getY(Polygon[next])
         }
 
         local side = { p1 = p1, p2 = p2 }

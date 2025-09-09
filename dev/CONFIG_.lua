@@ -185,34 +185,57 @@ end
 --- @brief Reads config JSON and merges into `AETHR.CONFIG`; writes default if absent.
 --- @return AETHR.CONFIG self Framework instance for chaining.
 function AETHR.CONFIG:initConfig()
-    -- Attempt to read existing config from file.
-    local configData = self:loadConfig()
-    if configData then
+    -- Attempt to read existing config from storage; merge if present, otherwise persist defaults.
+    local ok, configData = pcall(function() return self:loadConfig() end)
+    if ok and type(configData) == "table" then
+        -- Replace instance MAIN with loaded config (trusted source)
         self.MAIN = configData
     else
-        -- Persist defaults to disk.
-        self:saveConfig()
+        -- Persist current defaults to disk (best-effort)
+        pcall(function() self:saveConfig() end)
     end
     return self
 end
 
 function AETHR.CONFIG:loadConfig()
-    -- Attempt to read existing config from JSON file.
-    local configData = self.FILEOPS:loadData(
-        self.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
-        self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE
-    )
-    if configData then
-        return configData
+    -- Defensive guards
+    if not (self and self.MAIN and self.MAIN.STORAGE and self.MAIN.STORAGE.PATHS) then
+        return nil
+    end
+
+    local mapPath = self.MAIN.STORAGE.PATHS.CONFIG_FOLDER
+    local filename = self.MAIN.STORAGE.FILENAMES and self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE
+
+    if not mapPath or not filename then return nil end
+
+    local ok, data = pcall(function()
+        return self.FILEOPS:loadData(mapPath, filename)
+    end)
+
+    if ok and type(data) == "table" then
+        return data
     end
     return nil
 end
 
 function AETHR.CONFIG:saveConfig()
-    -- Attempt to read existing config from JSON file.
-    self.FILEOPS:saveData(
-        self.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
-        self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE,
-        self.MAIN
-    )
+    -- Defensive guards
+    if not (self and self.MAIN and self.MAIN.STORAGE and self.MAIN.STORAGE.PATHS) then
+        return false
+    end
+
+    local mapPath = self.MAIN.STORAGE.PATHS.CONFIG_FOLDER
+    local filename = self.MAIN.STORAGE.FILENAMES and self.MAIN.STORAGE.FILENAMES.AETHER_CONFIG_FILE
+    if not mapPath or not filename then return false end
+
+    local ok, err = pcall(function()
+        self.FILEOPS:saveData(mapPath, filename, self.MAIN)
+    end)
+    if not ok then
+        if type(self.AETHR) == "table" and self.AETHR.UTILS and type(self.AETHR.UTILS.debugInfo) == "function" then
+            pcall(function() self.AETHR.UTILS:debugInfo("Failed saving config: " .. tostring(err)) end)
+        end
+        return false
+    end
+    return true
 end

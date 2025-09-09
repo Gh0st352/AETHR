@@ -32,7 +32,9 @@ function AETHR.WORLD:New(parent)
     return instance
 end
 
---- Displays active world divisions on the map with randomized colors.
+--- @function AETHR.WORLD:markWorldDivisions
+--- @brief Displays active world divisions on the map with randomized colors.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:markWorldDivisions()
     local divisions = self.DATA.saveDivisions
     local shapeID = self.CONFIG.MAIN.COUNTERS.MARKERS -- 352352352     -- Base marker ID
@@ -248,7 +250,7 @@ function AETHR.WORLD:initWorldDivisions()
     return self
 end
 
---- @function AETHR.AUTOSAVE.initGrid
+--- @function AETHR.WORLD:initGrid
 --- @brief Initializes grid metrics (origin and cell sizes) from division corners.
 --- @param divs table Array of division objects; each has a `.corners` array of points `{x, z}`.
 --- @return _Grid Grid parameters:
@@ -268,7 +270,7 @@ function AETHR.WORLD:initGrid(divs)
     return Grid
 end
 
---- @function AETHR.AUTOSAVE.buildZoneCellIndex
+--- @function AETHR.WORLD:buildZoneCellIndex
 --- @brief Constructs a mapping of grid cells to zone entries for efficient spatial lookup.
 --- @param Zones table<string, _MIZ_ZONE> Array or map of zone objects, each containing `.verticies` array of points `{x, y}`.
 --- @param grid table Grid metrics returned by `initGrid`.
@@ -276,50 +278,61 @@ end
 function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
     local cells = {}
 
+    local function getY(v)
+        if not v then return 0 end
+        return (v.y ~= nil) and v.y or (v.z or 0)
+    end
+
     -- Iterate each zone and compute its bounding cells.
-    for _, zone in pairs(Zones) do
+    for _, zone in pairs(Zones or {}) do
         local zminX, zmaxX = math.huge, -math.huge
-        local zminZ, zmaxZ = math.huge, -math.huge
+        local zminY, zmaxY = math.huge, -math.huge
 
-        -- Compute raw bounding box in world coordinates.
-        for _, v in ipairs(zone.verticies) do
-            zminX = math.min(zminX, v.x)
-            zmaxX = math.max(zmaxX, v.x)
-            zminZ = math.min(zminZ, v.y)
-            zmaxZ = math.max(zmaxZ, v.y)
+        -- Compute raw bounding box in world coordinates using flexible Y/Z access.
+        for _, v in ipairs(zone.verticies or {}) do
+            local vy = getY(v)
+            zminX = math.min(zminX, v.x or zminX)
+            zmaxX = math.max(zmaxX, v.x or zmaxX)
+            zminY = math.min(zminY, vy)
+            zmaxY = math.max(zmaxY, vy)
         end
 
-        -- Convert world extremes to grid indices.
-        local col0 = math.floor((zminX - grid.minX) * grid.invDx) + 1
-        local col1 = math.floor((zmaxX - grid.minX) * grid.invDx) + 1
-        local row0 = math.floor((zminZ - grid.minZ) * grid.invDz) + 1
-        local row1 = math.floor((zmaxZ - grid.minZ) * grid.invDz) + 1
+        -- If zone had no valid points, skip processing this zone (Lua 5.1 does not support goto/labels).
+        if not (zminX == math.huge or zminY == math.huge) then
 
-        -- Prepare polygon for intersection tests.
-        local poly = {}
-        for _, v in ipairs(zone.verticies) do
-            poly[#poly + 1] = { x = v.x, y = v.y }
-        end
+            -- Convert world extremes to grid indices.
+            local col0 = math.floor((zminX - grid.minX) * grid.invDx) + 1
+            local col1 = math.floor((zmaxX - grid.minX) * grid.invDx) + 1
+            local row0 = math.floor((zminY - grid.minZ) * grid.invDz) + 1
+            local row1 = math.floor((zmaxY - grid.minZ) * grid.invDz) + 1
 
-        local entry = {
-            bbox = { minx = zminX, maxx = zmaxX, miny = zminZ, maxy = zmaxZ },
-            poly = poly,
-        }
-
-        -- Assign entry into each grid cell it overlaps.
-        for col = col0, col1 do
-            cells[col] = cells[col] or {}
-            for row = row0, row1 do
-                cells[col][row] = cells[col][row] or {}
-                table.insert(cells[col][row], entry)
+            -- Prepare polygon for intersection tests.
+            local poly = {}
+            for _, v in ipairs(zone.verticies or {}) do
+                table.insert(poly, { x = v.x or 0, y = getY(v) })
             end
+
+            local entry = {
+                bbox = { minx = zminX, maxx = zmaxX, miny = zminY, maxy = zmaxY },
+                poly = poly,
+            }
+
+            -- Assign entry into each grid cell it overlaps.
+            for col = col0, col1 do
+                cells[col] = cells[col] or {}
+                for row = row0, row1 do
+                    cells[col][row] = cells[col][row] or {}
+                    table.insert(cells[col][row], entry)
+                end
+            end
+
         end
     end
 
     return cells
 end
 
---- @function AETHR.AUTOSAVE.checkDivisionsInZones
+--- @function AETHR.WORLD:checkDivisionsInZones
 --- @brief Flags divisions as active if they spatially intersect any zone.
 --- @param Divisions table Array of division objects with `.corners` points.
 --- @param Zones table<string, _MIZ_ZONE> Indexed cells of zone entries (from `buildZoneCellIndex`).

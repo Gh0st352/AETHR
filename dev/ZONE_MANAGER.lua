@@ -35,6 +35,10 @@ AETHR.ZONE_MANAGER.DATA = {
 }
 
 
+--- Creates a new AETHR.ZONE_MANAGER submodule instance.
+--- @function AETHR.ZONE_MANAGER:New
+--- @param parent AETHR Parent AETHR instance
+--- @return AETHR.ZONE_MANAGER instance New instance inheriting AETHR.ZONE_MANAGER methods.
 function AETHR.ZONE_MANAGER:New(parent)
     local instance = {
         AETHR = parent,
@@ -765,7 +769,7 @@ function AETHR.ZONE_MANAGER:generateGameBoundData()
     })
 
 
-    self.DATA.GAME_BOUNDS.inOutBoundsGaps.overlaid = G_AETHR.POLY:findOverlaidPolygonGaps(
+    self.DATA.GAME_BOUNDS.inOutBoundsGaps.overlaid = self.POLY:findOverlaidPolygonGaps(
         self.DATA.GAME_BOUNDS.inBounds.polyVerts,
         self.DATA.GAME_BOUNDS.outOfBounds.centerPoly
     )

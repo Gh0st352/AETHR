@@ -1,6 +1,8 @@
----HERE THERE BE DRAGONS. PROCEED WITH CAUTION. 
+--- @class AETHR.IO
+--- @brief Low-level persistence helpers: serialize Lua objects to disk and reload them.
+--- This module contains complex serialization logic and is intentionally verbose.
+--- Use caution when modifying; functions attempt to be robust when running outside DCS.
 ---@diagnostic disable
-AETHR.IO = {}
 
 
 do
@@ -25,15 +27,10 @@ do
   AETHR.IO = {}
 
   --- Transforms a table or value into its string representation.
-  --
-  --  @{AETHR.IO.dump}
-  --
-  -- A utility function crafted to convert a table into its string representation recursively.
-  -- For any non-table values, the function will directly convert them into strings.
-  --
-  -- @param o The table or value that needs conversion.
-  -- @return #string A string that represents the serialized form of the given table or value.
-  -- @usage local serializedString = AETHR.IO.dump(dataTable) -- Retrieves the string format of `dataTable`.
+  --- @function AETHR.IO.dump
+  --- @param o any The table or value (or primitive) that needs conversion.
+  --- @return string Serialized string representation of `o`.
+  --- @usage local serializedString = AETHR.IO.dump(dataTable) -- Retrieves the string format of `dataTable`.
   function AETHR.IO.dump(o)
     if type(o) == 'table' then
       local s = '{ '
@@ -58,6 +55,11 @@ do
   -- @param path The path where the serialized values should be written.
   -- @param ... Lua values that need to be serialized and persisted.
   -- @usage AETHR.IO.store("destination/file.txt", dataTable1, dataTable2) -- Serializes and saves `dataTable1` and `dataTable2` to the defined file.
+  --- Persist multiple Lua values by serializing and saving them to a file.
+  --- @function AETHR.IO.store
+  --- @param path string Destination file path.
+  --- @param ... any Values to serialize and persist.
+  --- @return nil|error Raises an error on failure.
   function AETHR.IO.store(path, ...)
     local file, e = io.open(path, "w")
     if not file then
@@ -123,6 +125,12 @@ do
   -- @param path The path where the serialized values should be written.
   -- @param ... Lua values that need to be serialized and persisted.
   -- @usage AETHR.IO.store("destination/file.txt", dataTable1, dataTable2) -- Serializes and saves `dataTable1` and `dataTable2` to the defined file.
+  --- Persist multiple Lua values by serializing and saving them to a file.
+  --- Variant that replaces functions with placeholders (no function output).
+  --- @function AETHR.IO.storeNoFunc
+  --- @param path string Destination file path.
+  --- @param ... any Values to serialize and persist.
+  --- @return nil|error Raises an error on failure.
   function AETHR.IO.storeNoFunc(path, ...)
     local file, e = io.open(path, "w")
     if not file then
@@ -184,6 +192,10 @@ do
     end
   end
 
+  --- Serialize values to a string without attempting to serialize functions.
+  --- @function AETHR.IO.serializeNoFunc
+  --- @param ... any Values to serialize
+  --- @return string Serialized Lua chunk as string
   function AETHR.IO.serializeNoFunc(...)
     --AETHR.UTILS.debugInfo("AETHR.IO:serializeNoFunc | ------------------------- ")
     local serialString_ = ""
@@ -260,6 +272,12 @@ do
   -- @param serialString_
   -- @return e The result of the Lua content execution, or `nil` and an associated error message if an error occurs.
   -- @usage local executionResult = AETHR.IO.load("directory/luaScript.lua") -- Loads and executes the Lua script at the defined path.
+--- Deserializes a Lua chunk contained in a string and executes it.
+--- Returns the chunk execution result or nil and an error message on failure.
+--- @function AETHR.IO.deSerialize
+--- @param serialString_ string Serialized Lua chunk as produced by this module.
+--- @return any|nil result Result(s) returned by executing the chunk, or nil on error.
+--- @return string|nil errorMessage Error message when loading/execution fails.
   function AETHR.IO.deSerialize(serialString_)
     -- Attempt to load the serialized data string as a Lua chunk
     local f, e = loadstring(serialString_)
@@ -283,6 +301,12 @@ do
   -- @param path The path to the Lua file, or a file-like object containing Lua content.
   -- @return e The result of the Lua content execution, or `nil` and an associated error message if an error occurs.
   -- @usage local executionResult = AETHR.IO.load("directory/luaScript.lua") -- Loads and executes the Lua script at the defined path.
+--- Loads and executes Lua content from a file path or reads from a file-like object.
+--- Returns execution result(s) or nil and an error message on failure.
+--- @function AETHR.IO.load
+--- @param path string|file Either a filesystem path (string) or a file-like object supporting :read('*a').
+--- @return any|nil result Result(s) returned by executing the loaded chunk, or nil on error.
+--- @return string|nil errorMessage Error message when loading/execution fails.
   function AETHR.IO.load(path)
     local f, e
     if type(path) == "string" then

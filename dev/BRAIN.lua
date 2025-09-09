@@ -22,6 +22,10 @@ AETHR.BRAIN.DATA = {
     mainScheduleLoopInterval = 0.1,
 
 }
+--- Creates a new AETHR.BRAIN submodule instance.
+--- @function AETHR.BRAIN:New
+--- @param parent AETHR Parent AETHR instance
+--- @return AETHR.BRAIN instance New instance inheriting AETHR.BRAIN methods.
 function AETHR.BRAIN:New(parent)
     local instance = {
         AETHR = parent,
@@ -38,11 +42,12 @@ end
 --- The proxy uses metatable magic to intercept changes to a specific key.
 --- When a change to the specified key is detected, a watcher function is called with additional arguments if provided.
 --- This is useful for monitoring changes to a table and triggering specific actions when those changes occur.
----
+--- @function AETHR.BRAIN:buildWatcher
 --- @param table_ table The table on which the watcher is to be set.
 --- @param key_ any The key in the table to monitor for changes.
 --- @param watcherFunction function The function to call when a change to the specified key is detected.
 --- @param ... any Additional arguments to pass to the watcherFunction.
+--- @return nil
 --- @usage AETHR.BRAIN:buildWatcher(myTable, "myKey", function(key, value) print("Key " .. key .. " changed to " .. value) end)
 function AETHR.BRAIN:buildWatcher(table_, key_, watcherFunction, ...)
     local extraArgs = { ... } -- Capture extra arguments in a table
@@ -70,14 +75,15 @@ function AETHR.BRAIN:buildWatcher(table_, key_, watcherFunction, ...)
     end
 end
 
----
+--- Schedules a task for later execution, optionally repeating.
+--- @function AETHR.BRAIN:scheduleTask
 ---@param ... any[]|nil Variables to pass to function
 ---@param stopAfterTime number|nil Time in seconds after which the task should stop repeating. If nil, the task executes once.
 ---@param stopAfterIterations number|nil Number of times to repeat the task before stopping. If nil, the task executes once.
 ---@param repeatInterval number|nil Time in seconds between repeated executions of the task. If nil, the task executes once, otherwise it repeats indefinitely.
 ---@param delay number|nil Time in seconds to wait before executing the task.
 ---@param taskFunction function A function to be scheduled to run.
----@return _task scheduledTask An identifier for the scheduled task, which can be used to cancel it later if needed.
+---@return number schedulerID Identifier for the scheduled task (numeric handle).
 function AETHR.BRAIN:scheduleTask(taskFunction, delay, repeatInterval, stopAfterTime, stopAfterIterations, ...)
     local schedulerID = self.DATA.SchedulerIDCounter
     self.DATA.SchedulerIDCounter = self.DATA.SchedulerIDCounter + 1
@@ -104,10 +110,14 @@ function AETHR.BRAIN:scheduleTask(taskFunction, delay, repeatInterval, stopAfter
     return schedulerID
 end
 
+--- Execute scheduled tasks that are due. Iterates through schedulers and runs active tasks whose nextRun <= current time.
+--- @function AETHR.BRAIN:runScheduledTasks
+--- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
 function AETHR.BRAIN:runScheduledTasks()
-    local currentTime = self.AETHR.UTILS.getTime()
+    -- Note: UTILS.getTime is a function (defined without colon), call via table field
+    local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or os.time()
     for id, task in pairs(self.DATA.Schedulers) do
-        if task and task.active and not task.running and currentTime >= task.nextRun then
+        if task and task.active and not task.running and (task.nextRun or 0) <= currentTime then
             task.running = true
             task.lastRun = currentTime
             task.iterations = (task.iterations or 0) + 1
@@ -115,7 +125,11 @@ function AETHR.BRAIN:runScheduledTasks()
             -- Call the task function with protected call and flattened args
             local ok, err = pcall(task.taskFunction, unpack(task.functionArgs or {}))
             if not ok then
-                    AETHR.UTILS:debugInfo("Scheduled task error (id " .. tostring(id) .. "): " .. tostring(err))
+                if self.AETHR and self.AETHR.UTILS and type(self.AETHR.UTILS.debugInfo) == "function" then
+                    pcall(function()
+                        self.AETHR.UTILS:debugInfo("Scheduled task error (id " .. tostring(id) .. "): " .. tostring(err))
+                    end)
+                end
             end
 
             -- Update nextRun for repeating tasks. Use previous nextRun to avoid schedule drift.
@@ -135,7 +149,7 @@ function AETHR.BRAIN:runScheduledTasks()
             end
 
             -- Check stopping conditions (only when explicit limits are provided)
-            if (task.stopAfterTime and currentTime >= task.stopTime) or
+            if (task.stopTime and currentTime >= task.stopTime) or
                (task.stopAfterIterations and task.iterations >= task.stopAfterIterations) then
                 task.active = false -- Deactivate the task if stopping conditions are met
             end

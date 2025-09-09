@@ -8,6 +8,7 @@ function AETHR.__template:New(c)
     local instance = {
 
     }
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 
@@ -49,6 +50,9 @@ function AETHR._MIZ_ZONE:New(envZone)
         Airbases = {},
         LinesVec2 = {},
     }
+    -- attach metatable so instance inherits methods from prototype
+    setmetatable(instance, { __index = self })
+
     instance.LinesVec2 = AETHR.POLY:convertPolygonToLines(instance.verticies)
 
     return instance ---@diagnostic disable-line
@@ -78,7 +82,7 @@ function AETHR._Grid:New(c, minX, maxZ, dx, dz)
         invDx = 1 / dx, -- Inverse widths for index computation.
         invDz = 1 / dz, -- Inverse heights for index computation.
     }
-
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 
@@ -118,6 +122,7 @@ function AETHR._Marker:New(
         freeFormVec2Table = freeFormVec2Table or {}, --ipair of vec2 for freeform or drawn shapes
         radius = radius or 0,                        --radius for drawn circles
     }
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 
@@ -152,6 +157,7 @@ function AETHR._airbase:New(id, id_, coordinates, description, zoneName, zoneObj
         previousCoalition = previousCoalition or 0,
 
     }
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 
@@ -205,5 +211,6 @@ function AETHR._task:New(stopAfterTime, stopAfterIterations, repeatInterval, del
     if (repeatInterval and repeatInterval > 0) or (stopAfterIterations and stopAfterIterations > 1) or stopAfterTime then
         instance.repeating = true
     end
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end

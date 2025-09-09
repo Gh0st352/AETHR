@@ -28,21 +28,37 @@ function AETHR.MARKERS:New(parent)
     return instance
 end
 
----
----@param _Marker _Marker
----@param storageLocation table
----@return AETHR.MARKERS self
+--- Mark a freeform marker on the map and optionally store the marker object in a provided table.
+--- @function AETHR.MARKERS:markFreeform
+--- @param _Marker _Marker Marker object describing the freeform shape and styles.
+--- @param storageLocation table|nil Optional table to store the marker object keyed by markID.
+--- @return AETHR.MARKERS self Returns the MARKERS instance for chaining.
 function AETHR.MARKERS:markFreeform(_Marker, storageLocation)
+    -- Defensive guards: ensure expected fields exist
+    if not _Marker or type(_Marker) ~= "table" then
+        return self
+    end
     storageLocation = storageLocation or nil
+
+    local coalition = _Marker.coalition or -1
+    local fillColor = _Marker.fillColor or { r = 0, g = 0, b = 0, a = 0 }
+    local lineColor = _Marker.lineColor or { r = 0, g = 0, b = 0, a = 0 }
+    local lineType = _Marker.lineType or 0
+    local markID = _Marker.markID or 0
+    local verts = _Marker.freeFormVec2Table or {}
+
     self:drawPolygon(
-        _Marker.coalition,
-        _Marker.fillColor,
-        _Marker.lineColor,
-        _Marker.lineType,
-        _Marker.markID,
-        _Marker.freeFormVec2Table
+        coalition,
+        fillColor,
+        lineColor,
+        lineType,
+        markID,
+        verts
     )
-    if storageLocation then storageLocation[_Marker.markID] = _Marker end
+
+    if storageLocation and type(storageLocation) == "table" then
+        storageLocation[markID] = _Marker
+    end
     return self
 end
 
@@ -51,6 +67,14 @@ end
 ---   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, {v1, v2, v3, ...})
 ---   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, v1, v2, v3, ...)
 --- markerID may be nil (defaults to 0).
+--- @function AETHR.MARKERS:drawPolygon
+--- @param coalition number Coalition id (e.g., -1 for all)
+--- @param fillColor table Fill color table {r,g,b,a} or object with .r .g .b .a
+--- @param borderColor table Border color table {r,g,b,a} or object with .r .g .b .a
+--- @param linetype number Line type enum value
+--- @param markerID number|nil Marker identifier (optional)
+--- @param ... table|vec2 Either a single array of vec2 vertices or multiple vec2 arguments
+--- @return AETHR.MARKERS self
 function AETHR.MARKERS:drawPolygon(coalition, fillColor, borderColor, linetype, markerID, ...)
     local varargs = { ... }
     -- If no vertices provided, nothing to draw

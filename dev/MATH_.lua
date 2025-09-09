@@ -10,10 +10,12 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.MATH = {} ---@diagnostic disable-line
 
+--- Creates a new AETHR.MATH helper instance.
+--- @function AETHR.MATH:New
+--- @return AETHR.MATH instance New instance inheriting AETHR.MATH methods.
 function AETHR.MATH:New()
-    local instance = {
-
-    }
+    local instance = {}
+    setmetatable(instance, { __index = self })
     return instance
 end
 

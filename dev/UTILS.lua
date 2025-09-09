@@ -16,6 +16,10 @@ AETHR.UTILS.DATA = {
 }
 
 
+--- Creates a new AETHR.UTILS submodule instance.
+--- @function AETHR.UTILS:New
+--- @param parent AETHR Parent AETHR instance
+--- @return AETHR.UTILS instance New instance inheriting AETHR.UTILS methods.
 function AETHR.UTILS:New(parent)
   local instance = {
     AETHR = parent,
@@ -26,6 +30,11 @@ function AETHR.UTILS:New(parent)
   return instance
 end
 
+--- Checks whether a value exists in a table (legacy name).
+--- @function AETHR.UTILS:table_hasValue
+--- @param tbl table Table to search.
+--- @param val any Value to search for.
+--- @return boolean True if found, false otherwise.
 function AETHR.UTILS:table_hasValue(tbl, val)
   for index, value in pairs(tbl) do
     if value == val then
@@ -35,6 +44,10 @@ function AETHR.UTILS:table_hasValue(tbl, val)
   return false
 end
 
+--- Returns the number of entries in a table (non-nil keys).
+--- @function AETHR.UTILS.sumTable
+--- @param t table
+--- @return integer count Number of keys in the table.
 function AETHR.UTILS.sumTable(t)
   local sum = 0
   for k, v in pairs(t) do
@@ -43,6 +56,9 @@ function AETHR.UTILS.sumTable(t)
   return sum
 end
 
+--- Returns current time in milliseconds using os.time + os.clock fractional component.
+--- @function AETHR.UTILS.getTime
+--- @return number time_ms Current time in milliseconds (approx).
 function AETHR.UTILS.getTime()
   local seconds_part = os.time()
   local fractional_seconds_part = os.clock() % 1 -- Get the fractional part of os.clock()
@@ -61,8 +77,57 @@ end
 --- @param data any|nil Optional data to be logged.
 --- @usage AETHR.UTILS.debugInfo("Debug Message", {key="value"}) -- Logs the message and data if debugging is enabled.
 function AETHR.UTILS:debugInfo(message, data)
-  if self.CONFIG.MAIN.DEBUG_ENABLED then
-    env.info(message)
-    if data then BASE:E(data) end
+  -- Guard against missing config or runtime env
+  local enabled = false
+  if type(self) == "table" and self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
+    enabled = true
+  end
+
+  if not enabled then return end
+
+  -- Safely call env.info if available
+  if type(env) == "table" and type(env.info) == "function" then
+    pcall(function() env.info(tostring(message)) end)
+  end
+
+  -- If structured data provided, attempt to log via BASE:E if available; fail silently otherwise
+  if data and type(data) ~= "nil" then
+    if type(BASE) == "table" and type(BASE.E) == "function" then
+      pcall(function() BASE:E(data) end)
+    end
   end
 end
+
+--- Return the vertical coordinate for a point-like table.
+--- Accepts tables with either `.y` or `.z` fields (DCS uses z for map Y).
+--- @param pt table|nil
+--- @return number y-coordinate or nil if pt absent
+function AETHR.UTILS:getPointY(pt)
+  if not pt then return nil end
+  return pt.y or pt.z
+end
+
+--- Normalize a point-like table into { x = number, y = number } form.
+--- Does not modify the input table; returns a new table.
+--- @param pt table|nil
+--- @return table normalized point
+function AETHR.UTILS:normalizePoint(pt)
+  if not pt then return { x = 0, y = 0 } end
+  return { x = pt.x or 0, y = (pt.y ~= nil) and pt.y or (pt.z or 0) }
+end
+
+--- Alias for legacy name table_hasValue -> hasValue
+--- @param tbl table
+--- @param val any
+--- @return boolean
+function AETHR.UTILS:hasValue(tbl, val)
+  for index, value in pairs(tbl) do
+    if value == val then
+      return true
+    end
+  end
+  return false
+end
+
+-- keep backward-compatible function name
+function AETHR.UTILS:table_hasValue(tbl, val) return self:hasValue(tbl, val) end
