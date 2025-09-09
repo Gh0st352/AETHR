@@ -30,19 +30,19 @@ function AETHR.UTILS:New(parent)
   return instance
 end
 
---- Checks whether a value exists in a table (legacy name).
---- @function AETHR.UTILS:table_hasValue
---- @param tbl table Table to search.
---- @param val any Value to search for.
---- @return boolean True if found, false otherwise.
-function AETHR.UTILS:table_hasValue(tbl, val)
-  for index, value in pairs(tbl) do
-    if value == val then
-      return true
-    end
-  end
-  return false
-end
+-- --- Checks whether a value exists in a table (legacy name).
+-- --- @function AETHR.UTILS:table_hasValue
+-- --- @param tbl table Table to search.
+-- --- @param val any Value to search for.
+-- --- @return boolean True if found, false otherwise.
+-- function AETHR.UTILS:table_hasValue(tbl, val)
+--   for index, value in pairs(tbl) do
+--     if value == val then
+--       return true
+--     end
+--   end
+--   return false
+-- end
 
 --- Returns the number of entries in a table (non-nil keys).
 --- @function AETHR.UTILS.sumTable
@@ -131,3 +131,16 @@ end
 
 -- keep backward-compatible function name
 function AETHR.UTILS:table_hasValue(tbl, val) return self:hasValue(tbl, val) end
+
+
+function AETHR.UTILS.safe_lookup(path, fallback)
+    -- path: string like "Object.Category.UNIT"
+    -- fallback: value to return if lookup fails
+    local cur = _G
+    for part in string.gmatch(path, "[^%.]+") do
+        if type(cur) ~= "table" then return fallback end
+        cur = cur[part]
+        if cur == nil then return fallback end
+    end
+    return cur
+end

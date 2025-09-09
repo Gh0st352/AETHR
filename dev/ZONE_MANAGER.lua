@@ -5,6 +5,9 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS
@@ -463,6 +466,7 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
     local function polygonArea(pts)
         local n = #pts
         if n < 3 then return 0 end
+        ---@type any
         local sum = 0
         for i = 1, n do
             local j = (i % n) + 1
@@ -474,8 +478,11 @@ function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
     local function polygonCentroid(pts)
         local n = #pts
         if n < 1 then return { x = 0, y = 0 } end
+        ---@type any
         local A = 0
+        ---@type any
         local cx = 0
+        ---@type any
         local cy = 0
         for i = 1, n do
             local j = (i % n) + 1
