@@ -45,6 +45,7 @@ AETHR.CONFIG.MAIN = {
         AETHR_FIRST_RUN     = true,  -- True on first mission run.
         AETHR_LEARNING_MODE = false, -- Enable learning mode.
         AETHR_DEBUG_MODE    = false, -- Enable debug mode.
+        LEARN_WORLD_OBJECTS    = false,  -- Enable world item learning.
     },
     COUNTERS = {                     -- Counters for generating unique IDs.
         MARKERS = 3523523,           -- Base ID for zone markers.

@@ -50,7 +50,7 @@ function AETHR:New(mission_id)
 
     -- Apply mission id (prefer provided id, then prototype config, then "1")
     local id = mission_id or
-    ((self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.MISSION_ID) and self.CONFIG.MAIN.MISSION_ID) or "1"
+        ((self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.MISSION_ID) and self.CONFIG.MAIN.MISSION_ID) or "1"
 
     -- Create instance-local copies of mutable configuration subtables to prevent prototype mutation.
     if type(self.CONFIG) == "table" then
@@ -184,14 +184,13 @@ function AETHR:Init()
     self.WORLD:initWorldDivisions()     -- Load or generate world division grid.
     self.WORLD:initActiveDivisions()    -- Load or generate active divisions in mission.
 
-    self.WORLD:initSceneryInDivisions()
-    self.WORLD:initBaseInDivisions()
-    self.WORLD:initStaticInDivisions()
-
-
-
+    if self.CONFIG.MAIN.FLAGS.LEARN_WORLD_OBJECTS then
+        self.WORLD:initSceneryInDivisions()
+        self.WORLD:initBaseInDivisions()
+        self.WORLD:initStaticInDivisions()
+    end
     if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
-        self.ZONE_MANAGER:initGameZoneBoundaries()  -- Load or generate out of bounds information.
+        self.ZONE_MANAGER:initGameZoneBoundaries() -- Load or generate out of bounds information.
         self.ZONE_MANAGER:drawMissionZones()
         self.ZONE_MANAGER:drawGameBounds()
     end
