@@ -12,14 +12,50 @@ function AETHR.__template:New(c)
     return instance ---@diagnostic disable-line
 end
 
+
+--- @class _ColorRGBA
+--- @field r number
+--- @field g number
+--- @field b number
+--- @field a number
+
+--- @alias _LineVec2 _vec2[]        -- 2-length array representing a line segment
+--- @alias _PolygonVec2 _vec2[]     -- 3+ length array of vertices
+--- @alias _PolygonList _PolygonVec2[]
+
+
+--- @class _WorldBoundsAxis
+--- @field min number
+--- @field max number
+
+
+--- @class _WorldBounds
+--- @field X _WorldBoundsAxis
+--- @field Z _WorldBoundsAxis
+
+
+--- @class _ZoneBorder
+--- @field OwnedByCoalition integer Coalition that currently owns this border segment (0 = neutral)
+--- @field ZoneLine _LineVec2
+--- @field ZoneLineLen number
+--- @field ZoneLineMidP _vec2
+--- @field ZoneLineSlope number|nil
+--- @field ZoneLinePerpendicularPoint _vec2|nil
+--- @field NeighborLine _LineVec2
+--- @field NeighborLineLen number
+--- @field NeighborLineMidP _vec2
+--- @field NeighborLineSlope number|nil
+--- @field NeighborLinePerpendicularPoint _vec2|nil
+--- @field MarkID table<integer, integer> Map 0..2 -> mark IDs
+
+
+
 --- 3D point (vec3)
 --- @class _vec3
 --- @field x number
 --- @field y number
 --- @field z number
 AETHR._vec3 = {} ---@diagnostic disable-line
-
-
 function AETHR._vec3:New(x, y, z)
     local instance = {
         x = x or 0,
@@ -36,6 +72,22 @@ end
 ---@field miny number
 ---@field maxy number
 AETHR._BBox = {} ---@diagnostic disable-line
+--- Create a new bounding box instance
+--- @param minx number|nil
+--- @param maxx number|nil
+--- @param miny number|nil
+--- @param maxy number|nil
+--- @return _BBox instance
+function AETHR._BBox:New(minx, maxx, miny, maxy)
+    local instance = {
+        minx = minx or 0,
+        maxx = maxx or 0,
+        miny = miny or 0,
+        maxy = maxy or 0,
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 ---@class WorldDivision
 ---@field ID integer Unique division identifier
@@ -43,17 +95,59 @@ AETHR._BBox = {} ---@diagnostic disable-line
 ---@field corners _vec2xz[] Rectangle corners in world XZ coordinates
 ---@field height number|nil Optional search height in meters
 AETHR._WorldDivision = {} ---@diagnostic disable-line
+--- Create a new world division descriptor
+--- @param ID integer|nil Unique division identifier
+--- @param active boolean|nil Flag indicating if division intersects any zone
+--- @param corners _vec2xz[]|nil Rectangle corners in world XZ coordinates
+--- @param height number|nil Optional search height in meters
+--- @return WorldDivision instance
+function AETHR._WorldDivision:New(ID, active, corners, height)
+    local instance = {
+        ID = ID or 0,
+        active = (active ~= nil) and active or false,
+        corners = corners or {},
+        height = height,
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 ---@class _ZoneCellEntry
 ---@field bbox _BBox Bounding box of the zone polygon
 ---@field poly _vec2[] Zone polygon in XY plane
 AETHR._ZoneCellEntry = {} ---@diagnostic disable-line
+--- Create a new zone cell entry
+--- @param bbox _BBox|nil Bounding box of the zone polygon
+--- @param poly _vec2[]|nil Zone polygon in XY plane
+--- @return _ZoneCellEntry instance
+function AETHR._ZoneCellEntry:New(bbox, poly)
+    local instance = {
+        bbox = bbox or AETHR._BBox:New(0, 0, 0, 0),
+        poly = poly or {},
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 ---@class _FoundObject
 ---@field id integer
 ---@field desc table
 ---@field position _vec3
 AETHR._FoundObject = {} ---@diagnostic disable-line
+--- Create a new found object descriptor
+--- @param id integer|nil
+--- @param desc table|nil
+--- @param position _vec3|nil
+--- @return _FoundObject instance
+function AETHR._FoundObject:New(id, desc, position)
+    local instance = {
+        id = id or 0,
+        desc = desc or {},
+        position = position or AETHR._vec3:New(0, 0, 0),
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 
 
@@ -72,6 +166,28 @@ AETHR._FoundObject = {} ---@diagnostic disable-line
 --- @field NeighborLinePerpendicularPoint _vec2|nil  Perpendicular offset for neighbor edge
 --- @field MarkID table<integer, integer>            Map of segment index -> DCS mark ID(s)
 AETHR._BorderInfo = {} ---@diagnostic disable-line
+--- Create a new border info descriptor
+--- @param ZoneLine _LineVec2|nil Zone's edge line segment [p1,p2]
+--- @param NeighborLine _LineVec2|nil Neighbor's matching edge [p1,p2]
+--- @param MarkID table<integer, integer>|nil Map of segment index -> DCS mark ID(s)
+--- @return _BorderInfo instance
+function AETHR._BorderInfo:New(ZoneLine, NeighborLine, MarkID)
+    local instance = {
+        ZoneLine = ZoneLine or {},
+        ZoneLineLen = 0,
+        ZoneLineMidP = nil,
+        ZoneLineSlope = nil,
+        ZoneLinePerpendicularPoint = nil,
+        NeighborLine = NeighborLine or {},
+        NeighborLineLen = 0,
+        NeighborLineMidP = nil,
+        NeighborLineSlope = nil,
+        NeighborLinePerpendicularPoint = nil,
+        MarkID = MarkID or {},
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 --- @class _MIZ_ZONE
 --- @field name string                                        Unique zone name from env.mission
@@ -305,7 +421,8 @@ AETHR._vec2 = {} ---@diagnostic disable-line
 --- @return _vec2 instance
 function AETHR._vec2:New(x, y)
     local instance = {
-
+        x = x or 0,
+        y = y or 0,
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
@@ -324,7 +441,8 @@ AETHR._vec2xz = {} ---@diagnostic disable-line
 --- @return _vec2xz instance
 function AETHR._vec2xz:New(x, z)
     local instance = {
-
+        x = x or 0,
+        z = z or 0,
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
