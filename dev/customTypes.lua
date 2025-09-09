@@ -18,6 +18,23 @@ end
 --- @field g number
 --- @field b number
 --- @field a number
+AETHR._ColorRGBA = {} ---@diagnostic disable-line
+--- Create a new RGBA color
+--- @param r number|nil
+--- @param g number|nil
+--- @param b number|nil
+--- @param a number|nil
+--- @return _ColorRGBA instance
+function AETHR._ColorRGBA:New(r, g, b, a)
+    local instance = {
+        r = r or 0,
+        g = g or 0,
+        b = b or 0,
+        a = a or 0,
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 --- @alias _LineVec2 _vec2[]        -- 2-length array representing a line segment
 --- @alias _PolygonVec2 _vec2[]     -- 3+ length array of vertices
@@ -27,11 +44,37 @@ end
 --- @class _WorldBoundsAxis
 --- @field min number
 --- @field max number
+AETHR._WorldBoundsAxis = {} ---@diagnostic disable-line
+--- Create a new axis bounds descriptor
+--- @param min number|nil
+--- @param max number|nil
+--- @return _WorldBoundsAxis instance
+function AETHR._WorldBoundsAxis:New(min, max)
+    local instance = {
+        min = min or 0,
+        max = max or 0,
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 
 --- @class _WorldBounds
 --- @field X _WorldBoundsAxis
 --- @field Z _WorldBoundsAxis
+AETHR._WorldBounds = {} ---@diagnostic disable-line
+--- Create new world bounds (XZ axes)
+--- @param X _WorldBoundsAxis|nil
+--- @param Z _WorldBoundsAxis|nil
+--- @return _WorldBounds instance
+function AETHR._WorldBounds:New(X, Z)
+    local instance = {
+        X = X or AETHR._WorldBoundsAxis:New(0, 0),
+        Z = Z or AETHR._WorldBoundsAxis:New(0, 0),
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 
 --- @class _ZoneBorder
@@ -47,6 +90,31 @@ end
 --- @field NeighborLineSlope number|nil
 --- @field NeighborLinePerpendicularPoint _vec2|nil
 --- @field MarkID table<integer, integer> Map 0..2 -> mark IDs
+AETHR._ZoneBorder = {} ---@diagnostic disable-line
+--- Create a new zone border descriptor
+--- @param OwnedByCoalition integer|nil
+--- @param ZoneLine _LineVec2|nil
+--- @param NeighborLine _LineVec2|nil
+--- @param MarkID table<integer, integer>|nil
+--- @return _ZoneBorder instance
+function AETHR._ZoneBorder:New(OwnedByCoalition, ZoneLine, NeighborLine, MarkID)
+    local instance = {
+        OwnedByCoalition = OwnedByCoalition or 0,
+        ZoneLine = ZoneLine or {},
+        ZoneLineLen = 0,
+        ZoneLineMidP = nil,
+        ZoneLineSlope = nil,
+        ZoneLinePerpendicularPoint = nil,
+        NeighborLine = NeighborLine or {},
+        NeighborLineLen = 0,
+        NeighborLineMidP = nil,
+        NeighborLineSlope = nil,
+        NeighborLinePerpendicularPoint = nil,
+        MarkID = MarkID or {},
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
 
 
 
@@ -56,6 +124,10 @@ end
 --- @field y number
 --- @field z number
 AETHR._vec3 = {} ---@diagnostic disable-line
+--- @param x number|nil
+--- @param y number|nil
+--- @param z number|nil
+--- @return _vec3 instance
 function AETHR._vec3:New(x, y, z)
     local instance = {
         x = x or 0,
@@ -331,7 +403,18 @@ end
 --- @field zoneName string                              Zone name this airbase belongs to (if any)
 --- @field zoneObject _MIZ_ZONE|nil                     Zone object this airbase belongs to (if any)
 AETHR._airbase = {} ---@diagnostic disable-line
----
+--- Create a new airbase descriptor
+--- @param id table|nil Raw engine-provided airbase identifier object
+--- @param id_ number|nil Numeric ID
+--- @param coordinates _vec3|nil World coordinates of the airbase
+--- @param description table|nil Engine description (e.g., from Airbase.getDescByName)
+--- @param zoneName string|nil Zone name this airbase belongs to (if any)
+--- @param zoneObject _MIZ_ZONE|nil Zone object this airbase belongs to (if any)
+--- @param name string|nil Airbase name
+--- @param category number|nil Category enum
+--- @param categoryText string|nil Category text
+--- @param coalition number|nil Current coalition
+--- @param previousCoalition number|nil Previous coalition
 --- @return _airbase instance
 function AETHR._airbase:New(id, id_, coordinates, description, zoneName, zoneObject, name, category, categoryText,
                             coalition, previousCoalition)
