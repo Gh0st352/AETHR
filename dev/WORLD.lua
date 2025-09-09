@@ -9,9 +9,12 @@
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
---- @field DATA table Container for zone management data.
+--- @field DATA AETHR.WORLD.Data Container for zone management data.
 --- @field DATA.AIRBASES table -- Airbase descriptors keyed by displayName.
 AETHR.WORLD = {} ---@diagnostic disable-line
+
+
+---@class AETHR.WORLD.Data
 AETHR.WORLD.DATA = {
     AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
     worldDivisions         = {}, -- Grid division definitions keyed by ID.
@@ -22,6 +25,8 @@ AETHR.WORLD.DATA = {
 }
 
 
+--- @param parent AETHR
+--- @return AETHR.WORLD
 function AETHR.WORLD:New(parent)
     local instance = {
         AETHR = parent,
@@ -77,10 +82,10 @@ function AETHR.WORLD:markWorldDivisions()
 end
 
 --- Searches for objects of a given category within a 3D box volume.
---- @param objectCategory any Category filter for search
---- @param corners table Array of base corner points (x,z)
---- @param height number Height of the search volume
---- @return table Found objects keyed by object ID
+--- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
+--- @param corners AETHR.Vec2XZ[] Array of base corner points (x,z)
+--- @param height number Height of the search volume in meters
+--- @return AETHR.FoundObjectMap found Found objects keyed by object ID
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
@@ -101,7 +106,7 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
 end
 
 --- Retrieves all airbases in the world and stores their data.
---- @return AETHR.WORLD Instance
+--- @return AETHR.WORLD self
 function AETHR.WORLD:getAirbases()
     local bases = world.getAirbases() -- Array of airbase objects
     for _, ab in ipairs(bases) do
@@ -154,6 +159,8 @@ function AETHR.WORLD:getAirbases()
     return self
 end
 
+--- Loads saved active divisions from storage.
+--- @return table<integer, AETHR.WorldDivision>|nil data
 function AETHR.WORLD:loadActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
@@ -164,12 +171,16 @@ function AETHR.WORLD:loadActiveDivisions()
     return nil
 end
 
+--- Persists current active divisions to storage.
+--- @return nil
 function AETHR.WORLD:saveActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.saveDivisions)
 end
 
+--- Evaluates worldDivisions against zones to populate saveDivisions map.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:generateActiveDivisions()
     -- Compute active flags by intersection
     local updated = self:checkDivisionsInZones(
@@ -199,6 +210,8 @@ function AETHR.WORLD:initActiveDivisions()
     return self
 end
 
+--- Loads world division definitions from config if present.
+--- @return table<integer, AETHR.WorldDivision>|nil data
 function AETHR.WORLD:loadWorldDivisions()
     local data = self.FILEOPS:loadData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
@@ -210,6 +223,8 @@ function AETHR.WORLD:loadWorldDivisions()
     return nil
 end
 
+--- Saves world division definitions to config storage.
+--- @return nil
 function AETHR.WORLD:saveWorldDivisions()
     self.FILEOPS:saveData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
@@ -218,6 +233,8 @@ function AETHR.WORLD:saveWorldDivisions()
     )
 end
 
+--- Generates world divisions from theater bounds and configured division area.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:generateWorldDivisions()
     -- Generate new divisions based on theater bounds and division area
     local boundsPoly = self.POLY:convertBoundsToPolygon(
@@ -236,7 +253,7 @@ function AETHR.WORLD:generateWorldDivisions()
 end
 
 --- Loads existing world divisions if available; otherwise generates and saves new divisions.
---- @return AETHR.WORLD Instance
+--- @return AETHR.WORLD self
 function AETHR.WORLD:initWorldDivisions()
     -- Attempt to read existing config from file.
     local data = self:loadWorldDivisions()
@@ -252,8 +269,8 @@ end
 
 --- @function AETHR.WORLD:initGrid
 --- @brief Initializes grid metrics (origin and cell sizes) from division corners.
---- @param divs table Array of division objects; each has a `.corners` array of points `{x, z}`.
---- @return _Grid Grid parameters:
+--- @param divs AETHR.WorldDivision[] Array of division objects; each has a `.corners` array of points `{x, z}`.
+--- @return AETHR._Grid Grid parameters:
 ---   * minX, minZ - grid origin coordinates
 ---   * dx, dz - width and height of each cell
 ---   * invDx, invDz - precomputed inverses for fast lookup
@@ -272,9 +289,9 @@ end
 
 --- @function AETHR.WORLD:buildZoneCellIndex
 --- @brief Constructs a mapping of grid cells to zone entries for efficient spatial lookup.
---- @param Zones table<string, _MIZ_ZONE> Array or map of zone objects, each containing `.verticies` array of points `{x, y}`.
---- @param grid table Grid metrics returned by `initGrid`.
---- @return table cells Nested table `cells[col][row]` containing lists of zone entry tables.
+--- @param Zones table<string, _MIZ_ZONE> Array or map of zone objects; each contains `.verticies` points `{x, y|z}`.
+--- @param grid AETHR._Grid Grid metrics returned by `initGrid`.
+--- @return AETHR.ZoneCellIndex cells Nested table `cells[col][row]` containing lists of zone entries.
 function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
     local cells = {}
 
@@ -334,9 +351,9 @@ end
 
 --- @function AETHR.WORLD:checkDivisionsInZones
 --- @brief Flags divisions as active if they spatially intersect any zone.
---- @param Divisions table Array of division objects with `.corners` points.
---- @param Zones table<string, _MIZ_ZONE> Indexed cells of zone entries (from `buildZoneCellIndex`).
---- @return table Updated Divisions array with `.active` flags.
+--- @param Divisions AETHR.WorldDivision[] Array of divisions with `.corners` points.
+--- @param Zones table<string, _MIZ_ZONE> Zones keyed by name used to construct the zone cell index.
+--- @return AETHR.WorldDivision[] Updated Divisions array with `.active` flags.
 function AETHR.WORLD:checkDivisionsInZones(Divisions, Zones)
     -- Initialize grid and compute zone cell index.
     local grid      = self:initGrid(Divisions)
@@ -388,17 +405,21 @@ function AETHR.WORLD:checkDivisionsInZones(Divisions, Zones)
 end
 
 --- Retrieves objects of a specific category within a division.
---- @param divisionID number ID of the division
---- @param objectCategory any Category filter
---- @return table Found objects
+--- @param divisionID integer ID of the division
+--- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
+--- @return AETHR.FoundObjectMap found Found objects keyed by object ID
 function AETHR.WORLD:objectsInDivision(divisionID, objectCategory)
     local div = self.DATA.worldDivisions[divisionID]
     if not div then return {} end
     return self:searchObjectsBox(objectCategory, div.corners, div.height or 2000)
 end
 
--- Internal helper to initialize objects for any category across active divisions.
--- Reduces duplication across initSceneryInDivisions, initBaseInDivisions, initStaticInDivisions.
+--- Internal helper to initialize objects for any category across active divisions.
+--- Reduces duplication across initSceneryInDivisions, initBaseInDivisions, initStaticInDivisions.
+---@param objectCategory integer Category id (AETHR.ENUMS.ObjectCategory)
+---@param filename string Save file basename
+---@param targetField "divisionSceneryObjects"|"divisionStaticObjects"|"divisionBaseObjects"
+---@return AETHR.WORLD self
 function AETHR.WORLD:_initObjectsInDivisions(objectCategory, filename, targetField)
     local storage = self.CONFIG.MAIN.STORAGE
     local root = storage.PATHS.OBJECTS_FOLDER
@@ -426,6 +447,7 @@ function AETHR.WORLD:_initObjectsInDivisions(objectCategory, filename, targetFie
     return self
 end
 
+--- @return AETHR.WORLD self
 function AETHR.WORLD:initSceneryInDivisions()
     return self:_initObjectsInDivisions(
         self.AETHR.ENUMS.ObjectCategory.SCENERY,
@@ -434,6 +456,7 @@ function AETHR.WORLD:initSceneryInDivisions()
     )
 end
 
+--- @return AETHR.WORLD self
 function AETHR.WORLD:initBaseInDivisions()
     return self:_initObjectsInDivisions(
         self.AETHR.ENUMS.ObjectCategory.BASE,
@@ -442,6 +465,7 @@ function AETHR.WORLD:initBaseInDivisions()
     )
 end
 
+--- @return AETHR.WORLD self
 function AETHR.WORLD:initStaticInDivisions()
     return self:_initObjectsInDivisions(
         self.AETHR.ENUMS.ObjectCategory.STATIC,
