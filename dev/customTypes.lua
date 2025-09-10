@@ -162,15 +162,15 @@ function AETHR._BBox:New(minx, maxx, miny, maxy)
 end
 
 ---@class _WorldDivision
----@field ID integer Unique division identifier
+---@field ID number Unique division identifier
 ---@field active boolean Flag indicating if division intersects any zone
----@field corners _vec2xz[] Rectangle corners in world XZ coordinates
+---@field corners _vec2xz[] Rectangle corners in world XZ coordinates (exactly 4 corners expected)
 ---@field height number|nil Optional search height in meters
 AETHR._WorldDivision = {} ---@diagnostic disable-line
 --- Create a new world division descriptor
---- @param ID integer|nil Unique division identifier
+--- @param ID number|nil Unique division identifier
 --- @param active boolean|nil Flag indicating if division intersects any zone
---- @param corners _vec2xz[]|nil Rectangle corners in world XZ coordinates
+--- @param corners _vec2xz[4]|nil Rectangle corners in world XZ coordinates
 --- @param height number|nil Optional search height in meters
 --- @return _WorldDivision instance
 function AETHR._WorldDivision:New(ID, active, corners, height)
@@ -202,12 +202,13 @@ function AETHR._ZoneCellEntry:New(bbox, poly)
 end
 
 ---@class _FoundObject
----@field id integer
+---@field id number
 ---@field desc table
 ---@field position _vec3
+--- @field New fun(id:number|nil, desc:table|nil, position:_vec3|nil): _FoundObject
 AETHR._FoundObject = {} ---@diagnostic disable-line
 --- Create a new found object descriptor
---- @param id integer|nil
+--- @param id number|nil
 --- @param desc table|nil
 --- @param position _vec3|nil
 --- @return _FoundObject instance
@@ -227,6 +228,7 @@ end
 --- This structure is used in ZONE_MANAGER:determineBorderingZones.
 --- @class _BorderInfo
 --- @field ZoneLine _LineVec2                        Zone's edge line segment [p1,p2]
+--- @field OwnedByCoalition integer               Coalition that currently owns this border segment (0 = neutral)
 --- @field ZoneLineLen number                        Zone edge length
 --- @field ZoneLineMidP _vec2                        Midpoint of zone edge
 --- @field ZoneLineSlope number|nil                  Slope (nil for vertical)

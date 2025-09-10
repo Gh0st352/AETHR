@@ -11,18 +11,18 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA AETHR.WORLD.Data Container for zone management data.
 --- @field AIRBASES table<string, _airbase>                       Airbase descriptors keyed by displayName
---- @field worldDivisions table<integer, _WorldDivision>          Grid division definitions keyed by ID
---- @field saveDivisions table<integer, _WorldDivision>           Active divisions keyed by ID
---- @field divisionSceneryObjects table<integer, table<integer, _FoundObject>>  DivisionID -> (objectID -> _FoundObject)
---- @field divisionStaticObjects table<integer, table<integer, _FoundObject>>
---- @field divisionBaseObjects table<integer, table<integer, _FoundObject>>
+--- @field worldDivisions table<number, _WorldDivision>          Grid division definitions keyed by ID
+--- @field saveDivisions table<number, _WorldDivision>           Active divisions keyed by ID
+--- @field divisionSceneryObjects table<number, table<number, _FoundObject>>  DivisionID -> (objectID -> _FoundObject)
+--- @field divisionStaticObjects table<number, table<number, _FoundObject>>
+--- @field divisionBaseObjects table<number, table<number, _FoundObject>>
 AETHR.WORLD = {} ---@diagnostic disable-line
 
 
 ---@class AETHR.WORLD.Data
 --- @field AIRBASES table<string, _airbase>                       Airbase descriptors keyed by displayName
---- @field worldDivisions table<integer, _WorldDivision>          Grid division definitions keyed by ID
---- @field saveDivisions table<integer, _WorldDivision>           Active divisions keyed by ID
+--- @field worldDivisions table<number, _WorldDivision>          Grid division definitions keyed by ID
+--- @field saveDivisions table<number, _WorldDivision>           Active divisions keyed by ID
 --- @field divisionSceneryObjects table<integer, table<integer, _FoundObject>>  DivisionID -> (objectID -> _FoundObject)
 --- @field divisionStaticObjects table<integer, table<integer, _FoundObject>>
 --- @field divisionBaseObjects table<integer, table<integer, _FoundObject>>
@@ -59,6 +59,7 @@ function AETHR.WORLD:markWorldDivisions()
     local alpha2 = 0.3
     local linetype = 4 -- Dot Dash
 
+        ---@param div _WorldDivision
     for _, div in pairs(divisions) do
         local shapeTypeID = 7 -- Polygon shape type
         local coalition = -1  -- All coalitions
@@ -96,12 +97,12 @@ end
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
 --- @param corners _vec2xz[] Array of base corner points (x,z)
 --- @param height number Height of the search volume in meters
---- @return table<integer, _FoundObject> found Found objects keyed by object ID
+--- @return table<number, _FoundObject> found Found objects keyed by object ID
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
     local vol = self.POLY:createBox(box.min, box.max)
-    local found = {} ---@type table<integer, _FoundObject>
+    local found = {} ---@type table<number, _FoundObject>
 
     -- Callback for world.searchObjects
     local function ifFound(item)
@@ -174,7 +175,7 @@ function AETHR.WORLD:getAirbases()
 end
 
 --- Loads saved active divisions from storage.
---- @return table<integer, _WorldDivision>|nil data
+--- @return table<number, _WorldDivision>|nil data
 function AETHR.WORLD:loadActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
@@ -225,7 +226,7 @@ function AETHR.WORLD:initActiveDivisions()
 end
 
 --- Loads world division definitions from config if present.
---- @return table<integer, _WorldDivision>|nil data
+--- @return table<number, _WorldDivision>|nil data
 function AETHR.WORLD:loadWorldDivisions()
     local data = self.FILEOPS:loadData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
@@ -283,21 +284,35 @@ end
 
 --- @function AETHR.WORLD:initGrid
 --- @brief Initializes grid metrics (origin and cell sizes) from division corners.
---- @param divs _WorldDivision[] Array of division objects; each has a `.corners` array of points `{x, z}`.
+--- @param divs table<number, _WorldDivision>|_WorldDivision[] Array or map of division objects; each has a `.corners` array of points `{x, z}`.
 --- @return _Grid Grid parameters:
 ---   * minX, minZ - grid origin coordinates
 ---   * dx, dz - width and height of each cell
 ---   * invDx, invDz - precomputed inverses for fast lookup
 function AETHR.WORLD:initGrid(divs)
-    -- Use first division's corners as reference origin and cell dimensions.
-    local c    = divs[1].corners -- Corner list of first division.
-    local minX = c[1].x          -- X-coordinate of grid origin.
-    local maxZ = c[1].z          -- Z-coordinate of grid origin.
-    local dx   = c[2].x - c[1].x -- Cell width.
-    local dz   = c[4].z - c[1].z -- Cell height.
+    -- Support either array-style or map-style Divisions.
+    local firstDiv = (divs and divs[1]) or nil
+    if not firstDiv then
+        for _, v in pairs(divs or {}) do
+            firstDiv = v
+            break
+        end
+    end
+    if not firstDiv then
+        error("initGrid: no divisions supplied")
+    end
+
+    local c = firstDiv.corners or {}
+    if not c or not c[1] then
+        error("initGrid: division corners not available")
+    end
+
+    local minX = c[1].x or 0
+    local maxZ = c[1].z or 0
+    local dx   = (c[2] and (c[2].x - c[1].x)) or 1
+    local dz   = (c[4] and (c[4].z - c[1].z)) or 1
 
     local Grid = self.AETHR._Grid:New(c, minX, maxZ, dx, dz)
-
     return Grid
 end
 
@@ -365,9 +380,9 @@ end
 
 --- @function AETHR.WORLD:checkDivisionsInZones
 --- @brief Flags divisions as active if they spatially intersect any zone.
---- @param Divisions _WorldDivision[] Array of divisions with `.corners` points.
+--- @param Divisions table<number, _WorldDivision>|_WorldDivision[] Array (or map) of divisions with `.corners` points.
 --- @param Zones table<string, _MIZ_ZONE> Zones keyed by name used to construct the zone cell index.
---- @return _WorldDivision[] Updated Divisions array with `.active` flags.
+--- @return table<number, _WorldDivision> Updated Divisions map/array with `.active` flags.
 function AETHR.WORLD:checkDivisionsInZones(Divisions, Zones)
     -- Initialize grid and compute zone cell index.
     local grid      = self:initGrid(Divisions)
@@ -421,7 +436,7 @@ end
 --- Retrieves objects of a specific category within a division.
 --- @param divisionID integer ID of the division
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
---- @return table<integer, _FoundObject> found Found objects keyed by object ID
+--- @return table<number, _FoundObject> found Found objects keyed by object ID
 function AETHR.WORLD:objectsInDivision(divisionID, objectCategory)
     local div = self.DATA.worldDivisions[divisionID]
     if not div then return {} end
