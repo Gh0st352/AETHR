@@ -209,6 +209,9 @@ end
 function AETHR:Start()
     self:BackgroundProcesses()
 
+    self.BRAIN:scheduleTask(function() self.UTILS:debugInfo("AETHR: TEST SCHED TASK-------------") end, nil,
+        5, nil, nil, self)
+
     return self
 end
 
@@ -218,25 +221,15 @@ end
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
     self.UTILS:debugInfo("AETHR:BackgroundProcesses-------------")
+    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
-    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + 1)
 
     self.BRAIN:runScheduledTasks()
 
     return self
 end
 
---- Stops the background scheduled driver if running.
-function AETHR:StopBackgroundProcesses()
-    if self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.BackgroundDriverId then
-        local id = self.BRAIN.DATA.BackgroundDriverId
-        if type(timer) == "table" and type(timer.removeFunction) == "function" then
-            pcall(timer.removeFunction, id)
-        end
-        self.BRAIN.DATA.BackgroundDriverId = nil
-    end
-    return self
-end
+
 
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data if available.

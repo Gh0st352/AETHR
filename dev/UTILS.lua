@@ -56,16 +56,12 @@ function AETHR.UTILS.sumTable(t)
   return sum
 end
 
---- Returns current time in milliseconds using os.time + os.clock fractional component.
+---  timer.getTime( ) Returns the mission start time in seconds.
+--- timer.getAbsTime( ) Returns the game world time in seconds relative to time the mission started.
 --- @function AETHR.UTILS.getTime
 --- @return number time_ms Current time in milliseconds (approx).
 function AETHR.UTILS.getTime()
-  local seconds_part = os.time()
-  local fractional_seconds_part = os.clock() % 1 -- Get the fractional part of os.clock()
-
-  local time_in_milliseconds = (seconds_part + fractional_seconds_part) * 1000
-  return time_in_milliseconds
-  --return os.time()
+  return timer.getAbsTime() - timer.getTime0()
 end
 
 --- Log debug information if debugging is enabled.
@@ -132,15 +128,14 @@ end
 -- keep backward-compatible function name
 function AETHR.UTILS:table_hasValue(tbl, val) return self:hasValue(tbl, val) end
 
-
 function AETHR.UTILS.safe_lookup(path, fallback)
-    -- path: string like "Object.Category.UNIT"
-    -- fallback: value to return if lookup fails
-    local cur = _G
-    for part in string.gmatch(path, "[^%.]+") do
-        if type(cur) ~= "table" then return fallback end
-        cur = cur[part]
-        if cur == nil then return fallback end
-    end
-    return cur
+  -- path: string like "Object.Category.UNIT"
+  -- fallback: value to return if lookup fails
+  local cur = _G
+  for part in string.gmatch(path, "[^%.]+") do
+    if type(cur) ~= "table" then return fallback end
+    cur = cur[part]
+    if cur == nil then return fallback end
+  end
+  return cur
 end

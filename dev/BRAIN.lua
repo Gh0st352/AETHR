@@ -41,16 +41,9 @@ AETHR.BRAIN = {} ---@diagnostic disable-line
 ---@field SchedulerIDCounter integer Incrementing counter to assign unique IDs.
 ---@field coroutines table<integer, thread|fun(...: any)> Holds active coroutines or async tasks.
 ---@field updateInterval number Default update interval in seconds.
----@field mainScheduleLoopInterval number Main scheduling loop tick interval in seconds.
----@field MainLoop any Main scheduling loop tick interval in seconds.
----@field MainMetronome any Main scheduling loop tick interval in seconds.
----@field BackgroundDriverId integer|nil Timer driver id for background scheduling.
-
+---@field BackgroundLoopInterval number Main scheduling loop tick interval in seconds.
 ---@type AETHR.BRAIN.Data
 AETHR.BRAIN.DATA = {
-    MainLoop = {},
-    MainMetronome = {},
-    BackgroundDriverId = nil,
     -- Map of scheduler IDs to scheduled task descriptors.
     Schedulers = {
         -- [schedulerID: AETHR.SchedulerID] = {
@@ -71,7 +64,7 @@ AETHR.BRAIN.DATA = {
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {}, -- Holds active coroutines for asynchronous tasks.
     updateInterval = 10, -- Default update interval in seconds.
-    mainScheduleLoopInterval = 0.1,
+    BackgroundLoopInterval = 0.1,
 
 }
 --- Creates a new AETHR.BRAIN submodule instance.
