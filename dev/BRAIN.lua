@@ -118,9 +118,10 @@ function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
             cg.thread = coroutine.create(function() fn(unpack(args)) end) ---@diagnostic disable-line
         end
 
-        -- Resume only when the coroutine is suspended
-        if cg.thread and coroutine.status(cg.thread) == 'suspended' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CO SUSP")
+        -- Resume the coroutine (both newly created and previously suspended)
+        local status = coroutine.status(cg.thread)
+        if status == 'suspended' then
+            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CO RESUMED")
             local ok, err = coroutine.resume(cg.thread)
             if not ok then
                 if self.UTILS and type(self.UTILS.debugInfo) == 'function' then

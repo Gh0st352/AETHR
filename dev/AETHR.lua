@@ -207,7 +207,11 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
+    self.WORLD:updateAirbaseOwnership()
     self:BackgroundProcesses()
+
+    self:setupWatchers()
+
 
     -- self.BRAIN:scheduleTask(function() self.UTILS:debugInfo("AETHR: TEST SCHED TASK-------------") end, nil,
     --     5, nil, nil, self)
@@ -221,19 +225,24 @@ end
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
     self.UTILS:debugInfo("AETHR:BackgroundProcesses-------------")
-    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
+    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval + 5)
 
     -- COROUTINES
-    
-    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, self.WORLD.updateAirbaseOwnership, self)
-    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function() end)
-    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
-
-
-
-
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, function(parentAETHR)
+        parentAETHR.WORLD:updateAirbaseOwnership()
+    end, self)
+    -- self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function() end)
+    -- self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
 
     self.BRAIN:runScheduledTasks()
+    return self
+end
+
+function AETHR:setupWatchers()
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    for zName, zObj in pairs(_zones) do
+        self.BRAIN:buildWatcher(zObj.Airbases, "ownedBy", self.WORLD.airbaseOwnershipChanged(), zName, self)
+    end
     return self
 end
 

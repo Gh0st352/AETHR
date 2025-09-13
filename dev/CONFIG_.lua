@@ -172,6 +172,12 @@ AETHR.CONFIG.MAIN = {
         BorderOffsetThreshold = 800,   -- Distance threshold for bordering detection.
         ArrowLength           = 20000, -- Length of directional arrows.
     },
+    outTextSettings = {
+        airbaseOwnershipChange = {
+            displayTime = 10, -- Seconds to display the message.
+            clearView  = false, -- Clear previous messages before displaying new one.
+        },
+    },
 }
 
 function AETHR.CONFIG:New(parent)

@@ -275,4 +275,13 @@ AETHR.ENUMS = {
         Freeform = 7,
         MizMark = 8,
     },
+    TextStrings = {
+        capturedBy = "has been captured by ",
+        Teams = {
+            REDFOR = "REDFOR",
+            BLUFOR = "BLUFOR",
+            NEUTRAL = "Neutral",
+            CONTESTED = "is contested by both sides",
+        },
+    },
 }

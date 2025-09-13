@@ -192,14 +192,35 @@ function AETHR.WORLD:updateAirbaseOwnership()
             -- 2 = blue
             -- 3 = contested, red + blue
 
-            co_.yieldCounter = co_.yieldCounter + 1
-            if co_.yieldCounter >= co_.yieldThreshold then
-                co_.yieldCounter = 0
-                coroutine.yield()
-                self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -- CO YIELD")
+            if co_.thread then
+                co_.yieldCounter = co_.yieldCounter + 1
+                if co_.yieldCounter >= co_.yieldThreshold then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -- CO YIELD")
+                    coroutine.yield()
+                end
             end
         end
     end
+    return self
+end
+
+function AETHR.WORLD.airbaseOwnershipChanged(airbaseName, newOwner, zoneName, self)
+    local oldOwner = self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].oldOwnedBy
+
+    self.UTILS:debugInfo("AETHR.WORLD.airbaseOwnershipChanged: " ..
+    airbaseName .. " from " .. oldOwner .. " to " .. newOwner)
+
+    local outText = newOwner == 3 and airbaseName .. " " .. self.AETHR.ENUMS.TextStrings.contested or
+        airbaseName .. " " .. self.AETHR.ENUMS.TextStrings.capturedBy .. self.AETHR.ENUMS.TextStrings.Teams[
+        (newOwner == 1 and "REDFOR") or (newOwner == 2 and "BLUFOR") or "NEUTRAL"]
+
+
+
+    trigger.action.outText(outText, self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.displayTime,
+        self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.clearView)
+
+
     return self
 end
 
