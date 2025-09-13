@@ -62,9 +62,25 @@ AETHR.BRAIN.DATA = {
         -- }
     },
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
-    coroutines = {}, -- Holds active coroutines for asynchronous tasks.
+    coroutines = {
+        saveGroundUnits = {
+            interval = 30, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
+            counter = 0, 
+            thread = nil,
+        }, --- Holds active coroutines for asynchronous tasks.
+        updateZoneOwnership = {
+            interval = 10,
+            counter = 0,
+            thread = nil,
+        },
+        updateAirfieldOwnership = {
+            interval = 60,
+            counter = 0,
+            thread = nil,
+        },
+    },                   -- Holds active coroutines for asynchronous tasks.
     updateInterval = 10, -- Default update interval in seconds.
-    BackgroundLoopInterval = 0.1,
+    BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
 
 }
 --- Creates a new AETHR.BRAIN submodule instance.
@@ -159,9 +175,10 @@ end
 --- @function AETHR.BRAIN:runScheduledTasks
 ----- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
 function AETHR.BRAIN:runScheduledTasks()
-self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks-------------")
+    self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks-------------")
     -- Note: UTILS.getTime is a function (defined without colon), call via table field
-    local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or os.time()
+    local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or
+    os.time()
     for id, task in pairs(self.DATA.Schedulers) do
         if task and task.active and not task.running and (task.nextRun or 0) <= currentTime then
             task.running = true
@@ -196,7 +213,7 @@ self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks-------------")
 
             -- Check stopping conditions (only when explicit limits are provided)
             if (task.stopTime and currentTime >= task.stopTime) or
-               (task.stopAfterIterations and task.iterations >= task.stopAfterIterations) then
+                (task.stopAfterIterations and task.iterations >= task.stopAfterIterations) then
                 task.active = false -- Deactivate the task if stopping conditions are met
             end
 
@@ -208,6 +225,5 @@ self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks-------------")
             end
         end
     end
-   return self
+    return self
 end
-

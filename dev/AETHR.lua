@@ -209,8 +209,8 @@ end
 function AETHR:Start()
     self:BackgroundProcesses()
 
-    self.BRAIN:scheduleTask(function() self.UTILS:debugInfo("AETHR: TEST SCHED TASK-------------") end, nil,
-        5, nil, nil, self)
+    -- self.BRAIN:scheduleTask(function() self.UTILS:debugInfo("AETHR: TEST SCHED TASK-------------") end, nil,
+    --     5, nil, nil, self)
 
     return self
 end
@@ -223,13 +223,30 @@ function AETHR:BackgroundProcesses()
     self.UTILS:debugInfo("AETHR:BackgroundProcesses-------------")
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
+    -- COROUTINES
+    self.BRAIN.DATA.coroutines.saveGroundUnits.counter = self.BRAIN.DATA.coroutines.saveGroundUnits.counter + 1
+    if self.BRAIN.DATA.coroutines.saveGroundUnits.counter == self.BRAIN.DATA.coroutines.saveGroundUnits.interval then
+        self.BRAIN.DATA.coroutines.saveGroundUnits.counter = 0
+
+
+        if not self.BRAIN.DATA.coroutines.saveGroundUnits.thread then
+            self.BRAIN.DATA.coroutines.saveGroundUnits.thread = coroutine.create(function() end)
+        end
+
+        coroutine.resume(self.BRAIN.DATA.coroutines.saveGroundUnits.thread)
+
+        if coroutine.status(self.BRAIN.DATA.coroutines.saveGroundUnits.thread) == 'dead' then
+            self.BRAIN.DATA.coroutines.saveGroundUnits.thread = nil
+        end
+    end
+
+
+
+
 
     self.BRAIN:runScheduledTasks()
-
     return self
 end
-
-
 
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data if available.
