@@ -6,6 +6,7 @@
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
+--- @field BRAIN AETHR.BRAIN
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
@@ -59,7 +60,7 @@ function AETHR.WORLD:markWorldDivisions()
     local alpha2 = 0.3
     local linetype = 4 -- Dot Dash
 
-        ---@param div _WorldDivision
+    ---@param div _WorldDivision
     for _, div in pairs(divisions) do
         local shapeTypeID = 7 -- Polygon shape type
         local coalition = -1  -- All coalitions
@@ -77,11 +78,11 @@ function AETHR.WORLD:markWorldDivisions()
             vec3_2,
             vec3_3,
             vec3_4,
-            { r, g, b, alpha1 },                       -- Fill color
-            { r + 0.2, g + 0.4, b + 0.8, alpha2 },     -- Border color
+            { r, g, b, alpha1 },                   -- Fill color
+            { r + 0.2, g + 0.4, b + 0.8, alpha2 }, -- Border color
             linetype, true
         )
-        shapeID = shapeID + 1     -- Increment marker ID
+        shapeID = shapeID + 1 -- Increment marker ID
 
         -- Randomize next color
         r = (r + math.random()) % 1
@@ -127,7 +128,7 @@ function AETHR.WORLD:getAirbases()
         local data = {
             id = ab:getID(),
             id_ = ab.id_,
-            coordinates = self.AETHR._vec3:New(pos.x, pos.y, pos.z ),
+            coordinates = self.AETHR._vec3:New(pos.x, pos.y, pos.z),
             description = desc,
             zoneName = "",
             ---@type _MIZ_ZONE
@@ -162,7 +163,7 @@ function AETHR.WORLD:getAirbases()
             data.id, data.id_, data.coordinates,
             data.description, data.zoneName, data.zoneObject,
             desc.displayName, desc.category,
-            desc.categoryText, data.categoryText, ---@diagnostic disable-line
+            desc.categoryText, data.coalition, ---@diagnostic disable-line
             desc.coalition -- previousCoalition
         )
 
@@ -170,6 +171,34 @@ function AETHR.WORLD:getAirbases()
             data.zoneObject.Airbases[desc.displayName] = _airbase
         end
         self.DATA.AIRBASES[desc.displayName] = _airbase
+    end
+    return self
+end
+
+function AETHR.WORLD:updateAirbaseOwnership()
+    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -------------")
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    local co_ = self.BRAIN.DATA.coroutines.updateAirfieldOwnership
+
+
+    for zName, zObj in pairs(_zones) do
+        for abName, abObj in pairs(zObj.Airbases) do
+            local updatedABObj = Airbase.getByName(abName)
+            local updatedABObjCoalition = updatedABObj:getCoalition()
+            abObj.previousCoalition = abObj.coalition
+            abObj.coalition = updatedABObjCoalition
+            -- 0 = neutral
+            -- 1 = red
+            -- 2 = blue
+            -- 3 = contested, red + blue
+
+            co_.yieldCounter = co_.yieldCounter + 1
+            if co_.yieldCounter >= co_.yieldThreshold then
+                co_.yieldCounter = 0
+                coroutine.yield()
+                self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -- CO YIELD")
+            end
+        end
     end
     return self
 end
@@ -345,7 +374,6 @@ function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
 
         -- If zone had no valid points, skip processing this zone (Lua 5.1 does not support goto/labels).
         if not (zminX == math.huge or zminY == math.huge) then
-
             -- Convert world extremes to grid indices.
             local col0 = math.floor((zminX - grid.minX) * grid.invDx) + 1
             local col1 = math.floor((zmaxX - grid.minX) * grid.invDx) + 1
@@ -371,7 +399,6 @@ function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
                     table.insert(cells[col][row], entry)
                 end
             end
-
         end
     end
 

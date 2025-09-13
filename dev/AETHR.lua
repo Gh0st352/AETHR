@@ -224,9 +224,10 @@ function AETHR:BackgroundProcesses()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     -- COROUTINES
-    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
+    
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, self.WORLD.updateAirbaseOwnership, self)
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function() end)
-    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, function() end)
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
 
 
 
