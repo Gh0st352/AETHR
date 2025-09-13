@@ -25,6 +25,8 @@ AETHR = {
         "UTILS",
         "MARKERS",
         "BRAIN",
+        "METRONOME",
+        "SCHED",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 
@@ -207,7 +209,14 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
-    self:BackgroundProcesses()
+    --self:BackgroundProcesses()
+
+    self.BRAIN.DATA.MainLoop = self.SCHED:New(self)
+    self.BRAIN.DATA.MainLoop:every(1.0, function() BASE:E("MAINLOOP-------------") end,
+        { name = "hb", first_in = 0 })
+    self.BRAIN.DATA.MainMetronome = self.METRONOME:New(function() self.BRAIN.DATA.MainLoop:step() end, 0.050, 20000)
+    self.BRAIN.DATA.MainMetronome:start()
+
     return self
 end
 
