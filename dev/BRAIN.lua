@@ -85,6 +85,46 @@ function AETHR.BRAIN:New(parent)
     return instance ---@diagnostic disable-line
 end
 
+--- Runs a periodic coroutine routine based on its interval descriptor.
+--- Increments the internal counter, runs when counter % interval == 0,
+--- creates/resumes the coroutine safely, and cleans up when dead.
+--- @function AETHR.BRAIN:doRoutine
+--- @param cg AETHR.CoroutineDescriptor Coroutine descriptor (interval, counter, thread).
+--- @param routineFn fun():nil Function to execute inside the coroutine.
+--- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
+function AETHR.BRAIN:doRoutine(cg, routineFn)
+    if type(cg) ~= "table" then return self end
+    local interval = tonumber(cg.interval) or 0
+    cg.counter = (cg.counter or 0) + 1
+
+    if interval > 0 and (cg.counter % interval) == 0 then
+        cg.counter = 0
+
+        -- Lazily (re)create the coroutine only when needed
+        if (not cg.thread) or coroutine.status(cg.thread) == 'dead' then
+            cg.thread = coroutine.create(routineFn or function() end)
+        end
+
+        -- Resume only when the coroutine is suspended
+        if cg.thread and coroutine.status(cg.thread) == 'suspended' then
+            local ok, err = coroutine.resume(cg.thread)
+            if not ok then
+                if self.UTILS and type(self.UTILS.debugInfo) == 'function' then
+                    self.UTILS:debugInfo("doRoutine coroutine error: " .. tostring(err))
+                end
+                cg.thread = nil
+            end
+        end
+
+        -- Clean up if it finished
+        if cg.thread and coroutine.status(cg.thread) == 'dead' then
+            cg.thread = nil
+        end
+    end
+
+    return self
+end
+
 --- Builds a watcher on a table to monitor changes to a specific key.
 ---
 --- This function iterates through each key-value pair in a provided table and sets up a proxy table with a metatable to watch changes.

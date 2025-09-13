@@ -224,36 +224,9 @@ function AETHR:BackgroundProcesses()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     -- COROUTINES
-    -- Ensure coroutine container exists and is initialized
-    local cg = self.BRAIN.DATA.coroutines.saveGroundUnits
-    cg.counter = cg.counter + 1
-    local interval = cg.interval
-    local shouldRun = false
-    if interval > 0 then
-        shouldRun = (cg.counter % interval) == 0
-    end
-    if shouldRun then
-        cg.counter = 0
-
-        -- Lazily (re)create the coroutine only when needed
-        if (not cg.thread) or coroutine.status(cg.thread) == 'dead' then
-            cg.thread = coroutine.create(function() end)
-        end
-
-        -- Resume only when the coroutine is suspended
-        if cg.thread and coroutine.status(cg.thread) == 'suspended' then
-            local ok, err = coroutine.resume(cg.thread)
-            if not ok then
-                self.UTILS:debugInfo("saveGroundUnits coroutine error: " .. tostring(err))
-                cg.thread = nil
-            end
-        end
-
-        -- Clean up if it finished
-        if cg.thread and coroutine.status(cg.thread) == 'dead' then
-            cg.thread = nil
-        end
-    end
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function() end)
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, function() end)
 
 
 
