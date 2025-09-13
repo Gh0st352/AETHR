@@ -212,9 +212,10 @@ function AETHR:Start()
     --self:BackgroundProcesses()
 
     self.BRAIN.DATA.MainLoop = self.SCHED:New(self)
-    self.BRAIN.DATA.MainLoop:every(1.0, function() BASE:E("MAINLOOP-------------") end,
+    self.BRAIN.DATA.MainLoop:every(1.0, function() env.info("MAINLOOP-------------") end,
         { name = "hb", first_in = 0 })
-    self.BRAIN.DATA.MainMetronome = self.METRONOME:New(function() self.BRAIN.DATA.MainLoop:step() end, 0.050, 20000)
+    -- Create a metronome that advances the scheduler every 50ms (20Hz)
+    self.BRAIN.DATA.MainMetronome = self.METRONOME:New(self, function() self.BRAIN.DATA.MainLoop:step() end, 0.050, 20000)
     self.BRAIN.DATA.MainMetronome:start()
 
     return self

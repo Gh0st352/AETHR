@@ -23,6 +23,10 @@ AETHR.METRONOME.DATA = {}
 -- period_s  : seconds between calls (e.g., 0.050 for 50 ms)
 -- instr_n   : instruction budget between hook checks (e.g., 20000)
 function AETHR.METRONOME:New(parent, step_fn, period_s, instr_n)
+  -- basic validation with safe fallbacks
+  if type(step_fn) ~= "function" then
+    io.stderr:write("[Metronome] invalid step_fn passed to New(); expected function, got " .. type(step_fn) .. "\n")
+  end
     local instance = {
         AETHR        = parent,
         -- submodule-local caches/state can be initialized here
@@ -34,7 +38,7 @@ function AETHR.METRONOME:New(parent, step_fn, period_s, instr_n)
         running      = false,
         _guard       = false,
         _orig_create = coroutine.create,
-        s_orig_wrap  = coroutine.wrap,
+    _orig_wrap   = coroutine.wrap,
     }
     instance.next_at      = instance.next_at + instance.period
     setmetatable(instance, { __index = self })
@@ -61,7 +65,14 @@ end
 
 -- Install hook on a specific thread (or current if nil)
 function AETHR.METRONOME:_install_on(thread)
-  debug.sethook(thread, function() self:_hook() end, "", self.instr_n)
+  -- If thread is nil, set hook on the current thread; otherwise set on the given coroutine thread.
+  local hook = function() self:_hook() end
+  if thread ~= nil then
+    debug.sethook(thread, hook, "", self.instr_n)
+  else
+    -- use the variant without explicit thread to attach to current thread
+    debug.sethook(hook, "", self.instr_n)
+  end
 end
 
 -- Start the metronome: install hooks on current thread and future coroutines.
