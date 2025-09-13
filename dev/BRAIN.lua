@@ -90,19 +90,22 @@ end
 --- creates/resumes the coroutine safely, and cleans up when dead.
 --- @function AETHR.BRAIN:doRoutine
 --- @param cg AETHR.CoroutineDescriptor Coroutine descriptor (interval, counter, thread).
---- @param routineFn fun():nil Function to execute inside the coroutine.
+--- @param routineFn fun(...: any):nil Function to execute inside the coroutine.
+--- @param ... any Additional arguments to pass to routineFn.
 --- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
-function AETHR.BRAIN:doRoutine(cg, routineFn)
+function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
     if type(cg) ~= "table" then return self end
     local interval = tonumber(cg.interval) or 0
     cg.counter = (cg.counter or 0) + 1
+    local args = { ... } -- Capture varargs for the coroutine
 
     if interval > 0 and (cg.counter % interval) == 0 then
         cg.counter = 0
 
         -- Lazily (re)create the coroutine only when needed
         if (not cg.thread) or coroutine.status(cg.thread) == 'dead' then
-            cg.thread = coroutine.create(routineFn or function() end)
+            local fn = routineFn or function() end
+            cg.thread = coroutine.create(function() fn(unpack(args)) end) ---@diagnostic disable-line
         end
 
         -- Resume only when the coroutine is suspended
