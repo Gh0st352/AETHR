@@ -224,19 +224,34 @@ function AETHR:BackgroundProcesses()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     -- COROUTINES
-    self.BRAIN.DATA.coroutines.saveGroundUnits.counter = self.BRAIN.DATA.coroutines.saveGroundUnits.counter + 1
-    if self.BRAIN.DATA.coroutines.saveGroundUnits.counter == self.BRAIN.DATA.coroutines.saveGroundUnits.interval then
-        self.BRAIN.DATA.coroutines.saveGroundUnits.counter = 0
+    -- Ensure coroutine container exists and is initialized
+    local cg = self.BRAIN.DATA.coroutines.saveGroundUnits
+    cg.counter = cg.counter + 1
+    local interval = cg.interval
+    local shouldRun = false
+    if interval > 0 then
+        shouldRun = (cg.counter % interval) == 0
+    end
+    if shouldRun then
+        cg.counter = 0
 
-
-        if not self.BRAIN.DATA.coroutines.saveGroundUnits.thread then
-            self.BRAIN.DATA.coroutines.saveGroundUnits.thread = coroutine.create(function() end)
+        -- Lazily (re)create the coroutine only when needed
+        if (not cg.thread) or coroutine.status(cg.thread) == 'dead' then
+            cg.thread = coroutine.create(function() end)
         end
 
-        coroutine.resume(self.BRAIN.DATA.coroutines.saveGroundUnits.thread)
+        -- Resume only when the coroutine is suspended
+        if cg.thread and coroutine.status(cg.thread) == 'suspended' then
+            local ok, err = coroutine.resume(cg.thread)
+            if not ok then
+                self.UTILS:debugInfo("saveGroundUnits coroutine error: " .. tostring(err))
+                cg.thread = nil
+            end
+        end
 
-        if coroutine.status(self.BRAIN.DATA.coroutines.saveGroundUnits.thread) == 'dead' then
-            self.BRAIN.DATA.coroutines.saveGroundUnits.thread = nil
+        -- Clean up if it finished
+        if cg.thread and coroutine.status(cg.thread) == 'dead' then
+            cg.thread = nil
         end
     end
 

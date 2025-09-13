@@ -33,41 +33,30 @@ AETHR.BRAIN = {} ---@diagnostic disable-line
 ---@field stopTime number|nil Absolute time after which the task should stop.
 ---@field stopAfterIterations integer|nil Max executions before stopping.
 
------@alias AETHR.SchedulerMap table<AETHR.SchedulerID, AETHR.ScheduledTask>
+--- Descriptor for a named background coroutine entry.
+---@class AETHR.CoroutineDescriptor
+---@field interval number Background loop ticks between runs.
+---@field counter integer Internal counter incremented each background tick.
+---@field thread thread|nil Coroutine thread handle.
 
 --- Data container for the BRAIN module.
 ---@class AETHR.BRAIN.Data
----@field Schedulers _task[] Holds scheduled tasks and their states.
+---@field Schedulers table<integer, any> Holds scheduled tasks and their states.
 ---@field SchedulerIDCounter integer Incrementing counter to assign unique IDs.
----@field coroutines table<integer, thread|fun(...: any)> Holds active coroutines or async tasks.
+---@field coroutines table<string, AETHR.CoroutineDescriptor> Holds active coroutines or async tasks.
 ---@field updateInterval number Default update interval in seconds.
 ---@field BackgroundLoopInterval number Main scheduling loop tick interval in seconds.
 ---@type AETHR.BRAIN.Data
 AETHR.BRAIN.DATA = {
     -- Map of scheduler IDs to scheduled task descriptors.
-    Schedulers = {
-        -- [schedulerID: AETHR.SchedulerID] = {
-        --     taskFunction = function,               -- fun(...: any)
-        --     functionArgs = { ... },                -- any[]
-        --     active = true,                         -- boolean
-        --     running = false,                       -- boolean
-        --     nextRun = os.time(),                   -- number (epoch seconds)
-        --     lastRun = os.time(),                   -- number (epoch seconds)
-        --     repeatInterval = 10,                   -- number|nil
-        --     delay = 0,                             -- number|nil
-        --     stopTime = os.time() + 60,             -- number|nil
-        --     stopAfterIterations = 3,               -- integer|nil
-        --     iterations = 0,                        -- integer|nil
-        --     repeating = true,                      -- boolean|nil
-        -- }
-    },
+    Schedulers = {},
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {
         saveGroundUnits = {
             interval = 30, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
-            counter = 0, 
+            counter = 0,
             thread = nil,
-        }, --- Holds active coroutines for asynchronous tasks.
+        },
         updateZoneOwnership = {
             interval = 10,
             counter = 0,
@@ -78,10 +67,9 @@ AETHR.BRAIN.DATA = {
             counter = 0,
             thread = nil,
         },
-    },                   -- Holds active coroutines for asynchronous tasks.
+    },
     updateInterval = 10, -- Default update interval in seconds.
     BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
-
 }
 --- Creates a new AETHR.BRAIN submodule instance.
 --- @function AETHR.BRAIN:New
