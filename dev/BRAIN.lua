@@ -44,11 +44,13 @@ AETHR.BRAIN = {} ---@diagnostic disable-line
 ---@field mainScheduleLoopInterval number Main scheduling loop tick interval in seconds.
 ---@field MainLoop any Main scheduling loop tick interval in seconds.
 ---@field MainMetronome any Main scheduling loop tick interval in seconds.
+---@field BackgroundDriverId integer|nil Timer driver id for background scheduling.
 
 ---@type AETHR.BRAIN.Data
 AETHR.BRAIN.DATA = {
     MainLoop = {},
     MainMetronome = {},
+    BackgroundDriverId = nil,
     -- Map of scheduler IDs to scheduled task descriptors.
     Schedulers = {
         -- [schedulerID: AETHR.SchedulerID] = {
@@ -162,9 +164,9 @@ end
 
 --- Execute scheduled tasks that are due. Iterates through schedulers and runs active tasks whose nextRun <= current time.
 --- @function AETHR.BRAIN:runScheduledTasks
---- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
+----- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
 function AETHR.BRAIN:runScheduledTasks()
-env.info("AETHR.BRAIN:runScheduledTasks-------------")
+self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks-------------")
     -- Note: UTILS.getTime is a function (defined without colon), call via table field
     local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or os.time()
     for id, task in pairs(self.DATA.Schedulers) do
@@ -213,6 +215,6 @@ env.info("AETHR.BRAIN:runScheduledTasks-------------")
             end
         end
     end
-    return self
+   return self
 end
 

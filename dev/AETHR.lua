@@ -25,8 +25,6 @@ AETHR = {
         "UTILS",
         "MARKERS",
         "BRAIN",
-        "METRONOME",
-        "SCHED",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 
@@ -209,18 +207,7 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
-
-
     self:BackgroundProcesses()
-
-
-
-    -- self.BRAIN.DATA.MainLoop = self.SCHED:New(self)
-    -- self.BRAIN.DATA.MainLoop:every(1.0, function() env.info("MAINLOOP-------------") end,
-    --     { name = "hb", first_in = 0 })
-    -- -- Create a metronome that advances the scheduler every 50ms (20Hz)
-    -- self.BRAIN.DATA.MainMetronome = self.METRONOME:New(self, function() self.BRAIN.DATA.MainLoop:step() end, 0.050, 20000)
-    -- self.BRAIN.DATA.MainMetronome:start()
 
     return self
 end
@@ -230,18 +217,24 @@ end
 --- @function AETHR:BackgroundProcesses
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
+    self.UTILS:debugInfo("AETHR:BackgroundProcesses-------------")
 
-timer.scheduleFunction(self:BackgroundProcesses(), {}, timer.getTime() + 1)
+    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + 1)
 
-
-    -- -- Schedule periodic execution of runScheduledTasks using a bound closure
-    -- self.BRAIN:scheduleTask(
-    --     function() self:BackgroundProcesses() end,
-    --     0,
-    --     self.BRAIN.DATA.mainScheduleLoopInterval
-    -- )
-    -- Run once immediately
     self.BRAIN:runScheduledTasks()
+
+    return self
+end
+
+--- Stops the background scheduled driver if running.
+function AETHR:StopBackgroundProcesses()
+    if self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.BackgroundDriverId then
+        local id = self.BRAIN.DATA.BackgroundDriverId
+        if type(timer) == "table" and type(timer.removeFunction) == "function" then
+            pcall(timer.removeFunction, id)
+        end
+        self.BRAIN.DATA.BackgroundDriverId = nil
+    end
     return self
 end
 
