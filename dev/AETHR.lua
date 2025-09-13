@@ -209,14 +209,18 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
-    --self:BackgroundProcesses()
 
-    self.BRAIN.DATA.MainLoop = self.SCHED:New(self)
-    self.BRAIN.DATA.MainLoop:every(1.0, function() env.info("MAINLOOP-------------") end,
-        { name = "hb", first_in = 0 })
-    -- Create a metronome that advances the scheduler every 50ms (20Hz)
-    self.BRAIN.DATA.MainMetronome = self.METRONOME:New(self, function() self.BRAIN.DATA.MainLoop:step() end, 0.050, 20000)
-    self.BRAIN.DATA.MainMetronome:start()
+
+    self:BackgroundProcesses()
+
+
+
+    -- self.BRAIN.DATA.MainLoop = self.SCHED:New(self)
+    -- self.BRAIN.DATA.MainLoop:every(1.0, function() env.info("MAINLOOP-------------") end,
+    --     { name = "hb", first_in = 0 })
+    -- -- Create a metronome that advances the scheduler every 50ms (20Hz)
+    -- self.BRAIN.DATA.MainMetronome = self.METRONOME:New(self, function() self.BRAIN.DATA.MainLoop:step() end, 0.050, 20000)
+    -- self.BRAIN.DATA.MainMetronome:start()
 
     return self
 end
@@ -226,12 +230,16 @@ end
 --- @function AETHR:BackgroundProcesses
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
-    -- Schedule periodic execution of runScheduledTasks using a bound closure
-    self.BRAIN:scheduleTask(
-        function() self:BackgroundProcesses() end,
-        0,
-        self.BRAIN.DATA.mainScheduleLoopInterval
-    )
+
+timer.scheduleFunction(self:BackgroundProcesses(), {}, timer.getTime() + 1)
+
+
+    -- -- Schedule periodic execution of runScheduledTasks using a bound closure
+    -- self.BRAIN:scheduleTask(
+    --     function() self:BackgroundProcesses() end,
+    --     0,
+    --     self.BRAIN.DATA.mainScheduleLoopInterval
+    -- )
     -- Run once immediately
     self.BRAIN:runScheduledTasks()
     return self
