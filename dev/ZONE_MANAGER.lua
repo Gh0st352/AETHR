@@ -948,6 +948,7 @@ end
 
 function AETHR.ZONE_MANAGER:drawZoneArrows()
     local _zones = self.DATA.MIZ_ZONES
+     local ArrowColors = self.CONFIG.MAIN.Zone.paintColors.ArrowColors
     for zName, zObj in pairs(_zones) do
         local ownedBy = zObj.ownedBy
         for bzName, bzObj in pairs(zObj.BorderingZones) do
@@ -955,15 +956,15 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
             for _, borderDetail in ipairs(bzObj) do
                 for currentCoalition = 0, 2 do
                     local lineColor = {
-                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
-                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
-                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                        r = ArrowColors[currentCoalition].r,
+                        g = ArrowColors[currentCoalition].g,
+                        b = ArrowColors[currentCoalition].b,
                         a = 0
                     }
                     local fillColor = {
-                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
-                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
-                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                        r = ArrowColors[currentCoalition].r,
+                        g = ArrowColors[currentCoalition].g,
+                        b = ArrowColors[currentCoalition].b,
                         a = 0
                     }
                     -- if borderCoalition == currentCoalition then
@@ -981,8 +982,6 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
                         self.ENUMS.LineTypes.Solid,
                         { r = lineColor.r, g = lineColor.g, b = lineColor.b, a = lineColor.a },
                         { r = fillColor.r, g = fillColor.g, b = fillColor.b, a = fillColor.a },
-                        --lineColor,
-                        --fillColor,
                         { borderDetail.ArrowTip, borderDetail.ArrowEnd },
                         nil
                     )

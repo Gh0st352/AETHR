@@ -294,47 +294,59 @@ function AETHR.WORLD:updateZoneArrows()
     self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows -------------")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.updateZoneArrows
+    local ArrowColors = self.CONFIG.MAIN.Zone.paintColors.ArrowColors
+
     for zName, zObj in pairs(_zones) do
         local ownedBy = zObj.ownedBy
         for bzName, bzObj in pairs(zObj.BorderingZones) do
             local borderCoalition = _zones[bzName] and _zones[bzName].ownedBy
             for _, borderDetail in ipairs(bzObj) do
-                for currentCoalition = 0, 2 do
-                    local lineColor = {
-                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
-                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
-                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
-                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
-                    }
-                    local fillColor = {
-                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
-                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
-                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
-                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
-                    }
-                    if borderCoalition == currentCoalition then
-                        lineColor.a = 0
-                        fillColor.a = 0
-                    end
-                    if ownedBy ~= currentCoalition then
-                        lineColor.a = 0
-                        fillColor.a = 0
-                    end
+                -- Decide which coalition’s arrow should be visible (if any).
+                local desiredShown = nil
+                if ownedBy ~= nil and borderCoalition ~= nil and ownedBy ~= borderCoalition then
+                    desiredShown = ownedBy
+                end
 
-                    
-                    self.UTILS:updateMarkupColors(borderDetail.MarkID[currentCoalition],
-                        { lineColor.r, lineColor.g, lineColor.b, lineColor.a },
-                        { fillColor.r, fillColor.g, fillColor.b, fillColor.a })
-                    --lineColor, fillColor)
+                local lastShown = borderDetail.lastShownCoalition
 
-                    if co_.thread then
-                        co_.yieldCounter = co_.yieldCounter + 1
-                        if co_.yieldCounter >= co_.yieldThreshold then
-                            co_.yieldCounter = 0
-                            self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
-                            coroutine.yield()
+                if desiredShown ~= lastShown then
+                    -- Hide previously shown arrow (if any).
+                    if lastShown ~= nil and borderDetail.MarkID and borderDetail.MarkID[lastShown] then
+                        local c = ArrowColors[lastShown]
+                        self.UTILS:updateMarkupColors(
+                            borderDetail.MarkID[lastShown],
+                            { c.r, c.g, c.b, 0 },
+                            { c.r, c.g, c.b, 0 }
+                        )
+                        if co_.thread then
+                            co_.yieldCounter = (co_.yieldCounter or 0) + 1
+                            if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+                                co_.yieldCounter = 0
+                                self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
+                                coroutine.yield()
+                            end
                         end
                     end
+
+                    -- Show new arrow (if needed).
+                    if desiredShown ~= nil and borderDetail.MarkID and borderDetail.MarkID[desiredShown] then
+                        local c = ArrowColors[desiredShown]
+                        self.UTILS:updateMarkupColors(
+                            borderDetail.MarkID[desiredShown],
+                            { c.r, c.g, c.b, c.a },
+                            { c.r, c.g, c.b, c.a }
+                        )
+                        if co_.thread then
+                            co_.yieldCounter = (co_.yieldCounter or 0) + 1
+                            if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+                                co_.yieldCounter = 0
+                                self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
+                                coroutine.yield()
+                            end
+                        end
+                    end
+
+                    borderDetail.lastShownCoalition = desiredShown
                 end
             end
         end
