@@ -90,7 +90,7 @@ AETHR.BRAIN.DATA = {
             interval = 10,
             counter = 0,
             thread = nil,
-            yieldThreshold = 40,
+            yieldThreshold = 10,
             yieldCounter = 0,
             desc = "updateZoneArrows",
         },

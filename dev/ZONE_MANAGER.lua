@@ -958,18 +958,18 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
                         r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
                         g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
                         b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
-                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                        a = 0
                     }
                     local fillColor = {
                         r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
                         g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
                         b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
-                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                        a = 0
                     }
-                    if borderCoalition == currentCoalition then
-                        lineColor.a = 0
-                        fillColor.a = 0
-                    end
+                    -- if borderCoalition == currentCoalition then
+                    --     lineColor.a = 0
+                    --     fillColor.a = 0
+                    -- end
                     local _Marker = self.AETHR._Marker:New(
                         borderDetail.MarkID[currentCoalition],
                         nil,
