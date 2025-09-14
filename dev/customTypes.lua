@@ -254,6 +254,7 @@ function AETHR._BorderInfo:New(ZoneLine, NeighborLine, MarkID)
         ZoneLineLen = 0,
         ZoneLineMidP = nil,
         ZoneLineSlope = nil,
+        OwnedByCoalition = 0,
         ZoneLinePerpendicularPoint = nil,
         NeighborLine = NeighborLine or {},
         NeighborLineLen = 0,

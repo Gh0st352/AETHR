@@ -262,7 +262,7 @@ function AETHR.WORLD:updateZoneColors()
 
         if ownedBy ~= oldOwnedBy then
             self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors --> Update " ..
-            zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
+                zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
             local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy]
             local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy]
             local lineColor = {
@@ -294,64 +294,49 @@ function AETHR.WORLD:updateZoneArrows()
     self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows -------------")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.updateZoneArrows
-
     for zName, zObj in pairs(_zones) do
         local ownedBy = zObj.ownedBy
-        local oldOwnedBy = zObj.lastMarkColorOwner
+        for bzName, bzObj in pairs(zObj.BorderingZones) do
+            local borderCoalition = _zones[bzName] and _zones[bzName].ownedBy
+            for _, borderDetail in ipairs(bzObj) do
+                for currentCoalition = 0, 2 do
+                    local lineColor = {
+                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
+                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
+                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                    }
+                    local fillColor = {
+                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
+                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
+                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                    }
+                    if borderCoalition == currentCoalition then
+                        lineColor.a = 0
+                        fillColor.a = 0
+                    end
+                    if ownedBy ~= currentCoalition then
+                        lineColor.a = 0
+                        fillColor.a = 0
+                    end
+                    self.UTILS:updateMarkupColors(borderDetail.MarkID[currentCoalition],
+                        { lineColor.r, lineColor.g, lineColor.b, lineColor.a },
+                        { fillColor.r, fillColor.g, fillColor.b, fillColor.a })
+                    --lineColor, fillColor)
 
-        if ownedBy ~= oldOwnedBy then
-            -- self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> Update " .. zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
-
-
-
-            -- for BorderZoneName, BorderObject in pairs(self.BorderingZones) do
-            --     local borderCoalition = BorderObject.OwnedByCoalition
-            --     if borderCoalition ~= currentCoalition then
-            --         for _, borderDetail in ipairs(BorderObject) do
-            --             -- Assign a new mark ID and increment the global counter.
-            --             borderDetail.MarkID[currentCoalition] = self.ZoneManager.codeMarker_
-            --             self.ZoneManager.codeMarker_ = self.ZoneManager.codeMarker_ + 1
-
-            --             -- Define the start and end points of the arrow.
-            --             local ArrowTip = mist.utils.makeVec3(borderDetail.NeighborLinePerpendicularPoint)
-            --             local ArrowEnd = mist.utils.makeVec3(borderDetail.ZoneLinePerpendicularPoint)
-
-            --             -- Retrieve the appropriate arrow color.
-            --             local arrowColors_ = self._ArrowColors[currentCoalition]
-
-            --             -- Draw the arrow using the defined properties.
-            --             trigger.action.markupToAll(4, currentCoalition, borderDetail.MarkID[currentCoalition], ArrowTip,
-            --                 ArrowEnd, arrowColors_, arrowColors_, 1, true)
-            --         end
-            --     end
-            -- end
-
-
-
-            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy]
-            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy]
-            local lineColor = {
-                _LineColors.r, _LineColors.g, _LineColors.b, self.CONFIG.MAIN.Zone.paintColors.LineAlpha
-            }
-            local fillColor = {
-                _FillColors.r, _FillColors.g, _FillColors.b, self.CONFIG.MAIN.Zone.paintColors.FillAlpha
-            }
-
-            self.UTILS:updateMarkupColors(zObj.markerObject.markID, lineColor, fillColor)
-            --zObj.lastMarkColorOwner = ownedBy
-        end
-
-
-        if co_.thread then
-            co_.yieldCounter = co_.yieldCounter + 1
-            if co_.yieldCounter >= co_.yieldThreshold then
-                co_.yieldCounter = 0
-                self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
-                coroutine.yield()
+                    if co_.thread then
+                        co_.yieldCounter = co_.yieldCounter + 1
+                        if co_.yieldCounter >= co_.yieldThreshold then
+                            co_.yieldCounter = 0
+                            self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
+                            coroutine.yield()
+                        end
+                    end
+                end
             end
         end
     end
-
     return self
 end
 

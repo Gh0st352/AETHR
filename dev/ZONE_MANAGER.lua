@@ -951,8 +951,25 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
     for zName, zObj in pairs(_zones) do
         local ownedBy = zObj.ownedBy
         for bzName, bzObj in pairs(zObj.BorderingZones) do
+            local borderCoalition = _zones[bzName] and _zones[bzName].ownedBy
             for _, borderDetail in ipairs(bzObj) do
                 for currentCoalition = 0, 2 do
+                    local lineColor = {
+                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
+                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
+                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                    }
+                    local fillColor = {
+                        r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
+                        g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
+                        b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                        a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                    }
+                    if borderCoalition == currentCoalition then
+                        lineColor.a = 0
+                        fillColor.a = 0
+                    end
                     local _Marker = self.AETHR._Marker:New(
                         borderDetail.MarkID[currentCoalition],
                         nil,
@@ -962,18 +979,10 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
                         self.ENUMS.MarkerTypes.Arrow,
                         currentCoalition,
                         self.ENUMS.LineTypes.Solid,
-                        {
-                            r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
-                            g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
-                            b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
-                            a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
-                        },
-                        {
-                            r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
-                            g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
-                            b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
-                            a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
-                        },
+                        { r = lineColor.r, g = lineColor.g, b = lineColor.b, a = lineColor.a },
+                        { r = fillColor.r, g = fillColor.g, b = fillColor.b, a = fillColor.a },
+                        --lineColor,
+                        --fillColor,
                         { borderDetail.ArrowTip, borderDetail.ArrowEnd },
                         nil
                     )
@@ -986,10 +995,6 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
             end
         end
     end
-
-    --         -- Draw the arrow using the defined properties.
-    --         trigger.action.markupToAll(4, currentCoalition, borderDetail.MarkID[currentCoalition], ArrowTip,
-    --             ArrowEnd, arrowColors_, arrowColors_, 1, true)
     return self
 end
 

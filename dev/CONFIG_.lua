@@ -149,9 +149,9 @@ AETHR.CONFIG.MAIN = {
                 [2] = { r = 0, g = 0, b = 1 },
             },
             ArrowColors = {
-                [0] = { r = 0, g = 0, b = 0, a = 0.3 },
-                [1] = { r = 1, g = 0, b = 0, a = 0.3 },
-                [2] = { r = 0, g = 0, b = 1, a = 0.3 },
+                [0] = { r = 0, g = 0, b = 0, a = 0.5 },
+                [1] = { r = 1, g = 0, b = 0, a = 0.5 },
+                [2] = { r = 0, g = 0, b = 1, a = 0.5 },
             },
             FillAlpha   = 0.20,                           -- Transparency for filled zones.
             LineAlpha   = 0.5,                           -- Transparency for zone borders.
@@ -170,7 +170,7 @@ AETHR.CONFIG.MAIN = {
             },
         },
         BorderOffsetThreshold = 800,   -- Distance threshold for bordering detection.
-        ArrowLength           = 20000, -- Length of directional arrows.
+        ArrowLength           = 15000 --20000, -- Length of directional arrows.
     },
     outTextSettings = {
         airbaseOwnershipChange = {
