@@ -298,11 +298,8 @@ function AETHR.WORLD:updateZoneArrows()
         local ownedBy = zObj.ownedBy
         for bzName, bzObj in pairs(zObj.BorderingZones) do
             local borderCoalition = _zones[bzName] and _zones[bzName].ownedBy
-            if borderCoalition ~= currentCoalition then
             for _, borderDetail in ipairs(bzObj) do
                 for currentCoalition = 0, 2 do
-
-
                     local lineColor = {
                         r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
                         g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
@@ -324,7 +321,7 @@ function AETHR.WORLD:updateZoneArrows()
                         fillColor.a = 0
                     end
 
-
+                    
                     self.UTILS:updateMarkupColors(borderDetail.MarkID[currentCoalition],
                         { lineColor.r, lineColor.g, lineColor.b, lineColor.a },
                         { fillColor.r, fillColor.g, fillColor.b, fillColor.a })
@@ -340,7 +337,6 @@ function AETHR.WORLD:updateZoneArrows()
                     end
                 end
             end
-            en
         end
     end
     return self
