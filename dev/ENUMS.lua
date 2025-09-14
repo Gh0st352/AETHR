@@ -277,11 +277,12 @@ AETHR.ENUMS = {
     },
     TextStrings = {
         capturedBy = "has been captured by ",
+        contestedBy = "is contested by ",
         Teams = {
             REDFOR = "REDFOR",
             BLUFOR = "BLUFOR",
             NEUTRAL = "Neutral",
-            CONTESTED = "is contested by both sides",
+            CONTESTED = "REDFOR and BLUFOR",
         },
     },
 }

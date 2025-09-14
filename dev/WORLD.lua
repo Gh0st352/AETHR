@@ -185,41 +185,55 @@ function AETHR.WORLD:updateAirbaseOwnership()
         for abName, abObj in pairs(zObj.Airbases) do
             local updatedABObj = Airbase.getByName(abName)
             local updatedABObjCoalition = updatedABObj:getCoalition()
-            abObj.previousCoalition = abObj.coalition
-            abObj.coalition = updatedABObjCoalition
-            -- 0 = neutral
-            -- 1 = red
-            -- 2 = blue
-            -- 3 = contested, red + blue
 
-            --if co_.thread then
+            if abObj.coalition ~= updatedABObjCoalition then
+                abObj.previousCoalition = abObj.coalition
+                abObj.coalition = updatedABObjCoalition
+                -- 0 = neutral
+                -- 1 = red
+                -- 2 = blue
+                -- 3 = contested, red + blue
+            end
+            if co_.thread then
                 co_.yieldCounter = co_.yieldCounter + 1
                 if co_.yieldCounter >= co_.yieldThreshold then
                     co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -- YIELD")
+                    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership --> YIELD")
                     coroutine.yield()
                 end
-           -- end
+            end
         end
     end
     return self
 end
 
 function AETHR.WORLD.airbaseOwnershipChanged(airbaseName, newOwner, zoneName, self)
-    local oldOwner = self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].oldOwnedBy
+    local oldOwner = self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].previousCoalition
+    -- 0 = neutral
+    -- 1 = red
+    -- 2 = blue
+    -- 3 = contested, red + blue
 
-    self.UTILS:debugInfo("AETHR.WORLD.airbaseOwnershipChanged: " ..
-    airbaseName .. " from " .. oldOwner .. " to " .. newOwner)
+    -- Only announce if ownership actually changed
+    if newOwner ~= oldOwner then
+        local oldOwnerText = (oldOwner == 1 and "Red") or (oldOwner == 2 and "Blue") or
+            (oldOwner == 3 and "Contested") or "Neutral"
+        local newOwnerText = (newOwner == 1 and "Red") or (newOwner == 2 and "Blue") or
+            (newOwner == 3 and "Contested") or "Neutral"
 
-    local outText = newOwner == 3 and airbaseName .. " " .. self.AETHR.ENUMS.TextStrings.contested or
-        airbaseName .. " " .. self.AETHR.ENUMS.TextStrings.capturedBy .. self.AETHR.ENUMS.TextStrings.Teams[
-        (newOwner == 1 and "REDFOR") or (newOwner == 2 and "BLUFOR") or "NEUTRAL"]
+
+        self.UTILS:debugInfo("AETHR.WORLD.airbaseOwnershipChanged: " ..
+            airbaseName .. " from " .. oldOwner .. " to " .. newOwner)
+
+        local outText = newOwner == 3 and airbaseName .. " " .. self.ENUMS.TextStrings.contestedBy .. self.ENUMS.TextStrings.Teams.CONTESTED or
+            airbaseName .. " " .. self.ENUMS.TextStrings.capturedBy .. self.ENUMS.TextStrings.Teams[
+            (newOwner == 1 and "REDFOR") or (newOwner == 2 and "BLUFOR") or "NEUTRAL"]
 
 
 
-    trigger.action.outText(outText, self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.displayTime,
-        self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.clearView)
-
+        trigger.action.outText(outText, self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.displayTime,
+            self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.clearView)
+    end
 
     return self
 end

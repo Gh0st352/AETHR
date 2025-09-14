@@ -207,7 +207,7 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
-    --self.WORLD:updateAirbaseOwnership()
+    self.WORLD:updateAirbaseOwnership()
     self:BackgroundProcesses()
 
     self:setupWatchers()
@@ -241,9 +241,9 @@ end
 function AETHR:setupWatchers()
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     for zName, zObj in pairs(_zones) do
-        for abName, abObj in pairs(zObj.Airbases) do
-            self.BRAIN:buildWatcher(abObj, "coalition", self.WORLD.airbaseOwnershipChanged, zName, self)
-        end
+      --  for abName, abObj in pairs(zObj.Airbases) do
+            self.BRAIN:buildWatcher(zObj.Airbases, "coalition", self.WORLD.airbaseOwnershipChanged, zName, self)
+      -- end
     end
     return self
 end
