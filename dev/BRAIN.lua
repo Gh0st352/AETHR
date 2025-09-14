@@ -47,7 +47,6 @@ AETHR.BRAIN = {} ---@diagnostic disable-line
 ---@field Schedulers table<integer, any> Holds scheduled tasks and their states.
 ---@field SchedulerIDCounter integer Incrementing counter to assign unique IDs.
 ---@field coroutines table<string, AETHR.CoroutineDescriptor> Holds active coroutines or async tasks.
----@field updateInterval number Default update interval in seconds.
 ---@field BackgroundLoopInterval number Main scheduling loop tick interval in seconds.
 ---@type AETHR.BRAIN.Data
 AETHR.BRAIN.DATA = {
@@ -56,7 +55,7 @@ AETHR.BRAIN.DATA = {
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {
         saveGroundUnits = {
-            interval = 30, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
+            interval = 10, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
@@ -72,17 +71,35 @@ AETHR.BRAIN.DATA = {
             desc = "updateZoneOwnership",
         },
         updateAirfieldOwnership = {
-            interval = 60,
+            interval = 10,
             counter = 0,
             thread = nil,
-            yieldThreshold = 20,
+            yieldThreshold = 5,
             yieldCounter = 0,
             desc = "updateAirfieldOwnership",
         },
+        updateZoneColors = {
+            interval = 10,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 5,
+            yieldCounter = 0,
+            desc = "updateZoneColors",
+        },
+        updateZoneArrows = {
+            interval = 10,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 5,
+            yieldCounter = 0,
+            desc = "updateZoneArrows",
+        },
     },
-    updateInterval = 10,          -- Default update interval in seconds.
     BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
 }
+--updateInterval = 10,          -- Default update interval in seconds.
+
+
 --- Creates a new AETHR.BRAIN submodule instance.
 --- @function AETHR.BRAIN:New
 --- @param parent AETHR Parent AETHR instance.

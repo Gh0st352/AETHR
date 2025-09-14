@@ -190,9 +190,11 @@ function AETHR:Init()
         self.WORLD:initStaticInDivisions()
     end
     if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
+        self.ZONE_MANAGER:initZoneArrows()
         self.ZONE_MANAGER:initGameZoneBoundaries() -- Load or generate out of bounds information.
         self.ZONE_MANAGER:drawMissionZones()
         self.ZONE_MANAGER:drawGameBounds()
+        self.ZONE_MANAGER:drawZoneArrows()
     end
 
     self:loadUSERSTORAGE() -- Load per-user storage data.
@@ -228,10 +230,27 @@ function AETHR:BackgroundProcesses()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     -- COROUTINES
+
+    --Airfield Ownership
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, function(parentAETHR)
         parentAETHR.WORLD:updateAirbaseOwnership()
     end, self)
-    -- self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function() end)
+
+    --Zone Ownership
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function(parentAETHR)
+        parentAETHR.WORLD:updateZoneOwnership()
+    end, self)
+
+    --Update Zone Color
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneColors, function(parentAETHR)
+        parentAETHR.WORLD:updateZoneColors()
+    end, self)
+
+        --Update Zone Arrows
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneArrows, function(parentAETHR)
+        parentAETHR.WORLD:updateZoneArrows()
+    end, self)
+    
     -- self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
 
     self.BRAIN:runScheduledTasks()
@@ -239,12 +258,8 @@ function AETHR:BackgroundProcesses()
 end
 
 function AETHR:setupWatchers()
-    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
-    for zName, zObj in pairs(_zones) do
-      --  for abName, abObj in pairs(zObj.Airbases) do
-            self.BRAIN:buildWatcher(zObj.Airbases, "coalition", self.WORLD.airbaseOwnershipChanged, zName, self)
-      -- end
-    end
+    self.ZONE_MANAGER:initWatcher_AirbaseOwnership()
+    self.ZONE_MANAGER:initWatcher_ZoneOwnership()
     return self
 end
 

@@ -7,6 +7,7 @@
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
 --- @field BRAIN AETHR.BRAIN
+--- @field ENUMS AETHR.ENUMS Enumeration constants submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
@@ -189,11 +190,8 @@ function AETHR.WORLD:updateAirbaseOwnership()
             if abObj.coalition ~= updatedABObjCoalition then
                 abObj.previousCoalition = abObj.coalition
                 abObj.coalition = updatedABObjCoalition
-                -- 0 = neutral
-                -- 1 = red
-                -- 2 = blue
-                -- 3 = contested, red + blue
             end
+
             if co_.thread then
                 co_.yieldCounter = co_.yieldCounter + 1
                 if co_.yieldCounter >= co_.yieldThreshold then
@@ -207,32 +205,215 @@ function AETHR.WORLD:updateAirbaseOwnership()
     return self
 end
 
+function AETHR.WORLD:updateZoneOwnership()
+    self.UTILS:debugInfo("AETHR.WORLD:updateZoneOwnership -------------")
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    local co_ = self.BRAIN.DATA.coroutines.updateZoneOwnership
+    local ENUM_RED = self.ENUMS.Coalition.RED
+    local ENUM_BLUE = self.ENUMS.Coalition.BLUE
+    local ENUM_NEUTRAL = self.ENUMS.Coalition.NEUTRAL
+
+    for zName, zObj in pairs(_zones) do
+        local numRed = 0
+        local numBlue = 0
+        local owner_ = 0
+        for abName, abObj in pairs(zObj.Airbases) do
+            if abObj.coalition == ENUM_RED then
+                numRed = numRed + 1
+            elseif abObj.coalition == ENUM_BLUE then
+                numBlue = numBlue + 1
+            end
+
+            if co_.thread then
+                co_.yieldCounter = co_.yieldCounter + 1
+                if co_.yieldCounter >= co_.yieldThreshold then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:updateZoneOwnership --> YIELD")
+                    coroutine.yield()
+                end
+            end
+        end
+
+        if numRed > numBlue then
+            owner_ = ENUM_RED
+        elseif numBlue > numRed then
+            owner_ = ENUM_BLUE
+        else
+            owner_ = ENUM_NEUTRAL
+        end
+
+        if zObj.ownedBy ~= owner_ then
+            zObj.oldOwnedBy = zObj.ownedBy
+            zObj.ownedBy = owner_
+        end
+    end
+
+    return self
+end
+
+function AETHR.WORLD:updateZoneColors()
+    self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors -------------")
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    local co_ = self.BRAIN.DATA.coroutines.updateZoneColors
+
+    for zName, zObj in pairs(_zones) do
+        local ownedBy = zObj.ownedBy
+        local oldOwnedBy = zObj.lastMarkColorOwner
+
+        if ownedBy ~= oldOwnedBy then
+            self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors --> Update " ..
+            zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
+            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy]
+            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy]
+            local lineColor = {
+                _LineColors.r, _LineColors.g, _LineColors.b, self.CONFIG.MAIN.Zone.paintColors.LineAlpha
+            }
+            local fillColor = {
+                _FillColors.r, _FillColors.g, _FillColors.b, self.CONFIG.MAIN.Zone.paintColors.FillAlpha
+            }
+
+            self.UTILS:updateMarkupColors(zObj.markerObject.markID, lineColor, fillColor)
+            zObj.lastMarkColorOwner = ownedBy
+        end
+
+
+        if co_.thread then
+            co_.yieldCounter = co_.yieldCounter + 1
+            if co_.yieldCounter >= co_.yieldThreshold then
+                co_.yieldCounter = 0
+                self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors --> YIELD")
+                coroutine.yield()
+            end
+        end
+    end
+
+    return self
+end
+
+function AETHR.WORLD:updateZoneArrows()
+    self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows -------------")
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    local co_ = self.BRAIN.DATA.coroutines.updateZoneArrows
+
+    for zName, zObj in pairs(_zones) do
+        local ownedBy = zObj.ownedBy
+        local oldOwnedBy = zObj.lastMarkColorOwner
+
+        if ownedBy ~= oldOwnedBy then
+            -- self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> Update " .. zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
+
+
+
+            -- for BorderZoneName, BorderObject in pairs(self.BorderingZones) do
+            --     local borderCoalition = BorderObject.OwnedByCoalition
+            --     if borderCoalition ~= currentCoalition then
+            --         for _, borderDetail in ipairs(BorderObject) do
+            --             -- Assign a new mark ID and increment the global counter.
+            --             borderDetail.MarkID[currentCoalition] = self.ZoneManager.codeMarker_
+            --             self.ZoneManager.codeMarker_ = self.ZoneManager.codeMarker_ + 1
+
+            --             -- Define the start and end points of the arrow.
+            --             local ArrowTip = mist.utils.makeVec3(borderDetail.NeighborLinePerpendicularPoint)
+            --             local ArrowEnd = mist.utils.makeVec3(borderDetail.ZoneLinePerpendicularPoint)
+
+            --             -- Retrieve the appropriate arrow color.
+            --             local arrowColors_ = self._ArrowColors[currentCoalition]
+
+            --             -- Draw the arrow using the defined properties.
+            --             trigger.action.markupToAll(4, currentCoalition, borderDetail.MarkID[currentCoalition], ArrowTip,
+            --                 ArrowEnd, arrowColors_, arrowColors_, 1, true)
+            --         end
+            --     end
+            -- end
+
+
+
+            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy]
+            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy]
+            local lineColor = {
+                _LineColors.r, _LineColors.g, _LineColors.b, self.CONFIG.MAIN.Zone.paintColors.LineAlpha
+            }
+            local fillColor = {
+                _FillColors.r, _FillColors.g, _FillColors.b, self.CONFIG.MAIN.Zone.paintColors.FillAlpha
+            }
+
+            self.UTILS:updateMarkupColors(zObj.markerObject.markID, lineColor, fillColor)
+            --zObj.lastMarkColorOwner = ownedBy
+        end
+
+
+        if co_.thread then
+            co_.yieldCounter = co_.yieldCounter + 1
+            if co_.yieldCounter >= co_.yieldThreshold then
+                co_.yieldCounter = 0
+                self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
+                coroutine.yield()
+            end
+        end
+    end
+
+    return self
+end
+
 function AETHR.WORLD.airbaseOwnershipChanged(airbaseName, newOwner, zoneName, self)
-    local oldOwner = self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].previousCoalition
-    -- 0 = neutral
-    -- 1 = red
-    -- 2 = blue
-    -- 3 = contested, red + blue
+    local oldOwner = self.ZONE_MANAGER and
+        self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].previousCoalition or
+        self.AETHR.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].previousCoalition
+    local ENUM_RED = self.ENUMS.Coalition.RED
+    local ENUM_BLUE = self.ENUMS.Coalition.BLUE
+    local ENUM_CONTESTED = self.ENUMS.Coalition.CONTESTED
 
     -- Only announce if ownership actually changed
     if newOwner ~= oldOwner then
-        local oldOwnerText = (oldOwner == 1 and "Red") or (oldOwner == 2 and "Blue") or
-            (oldOwner == 3 and "Contested") or "Neutral"
-        local newOwnerText = (newOwner == 1 and "Red") or (newOwner == 2 and "Blue") or
-            (newOwner == 3 and "Contested") or "Neutral"
+        local oldOwnerText = (oldOwner == ENUM_RED and "Red") or (oldOwner == ENUM_BLUE and "Blue") or
+            (oldOwner == ENUM_CONTESTED and "Contested") or "Neutral"
+        local newOwnerText = (newOwner == ENUM_RED and "Red") or (newOwner == ENUM_BLUE and "Blue") or
+            (newOwner == ENUM_CONTESTED and "Contested") or "Neutral"
 
 
         self.UTILS:debugInfo("AETHR.WORLD.airbaseOwnershipChanged: " ..
             airbaseName .. " from " .. oldOwner .. " to " .. newOwner)
 
-        local outText = newOwner == 3 and airbaseName .. " " .. self.ENUMS.TextStrings.contestedBy .. self.ENUMS.TextStrings.Teams.CONTESTED or
+        local outText = newOwner == ENUM_CONTESTED and
+            airbaseName .. " " .. self.ENUMS.TextStrings.contestedBy .. self.ENUMS.TextStrings.Teams.CONTESTED or
             airbaseName .. " " .. self.ENUMS.TextStrings.capturedBy .. self.ENUMS.TextStrings.Teams[
-            (newOwner == 1 and "REDFOR") or (newOwner == 2 and "BLUFOR") or "NEUTRAL"]
-
-
+            (newOwner == ENUM_RED and "REDFOR") or (newOwner == ENUM_BLUE and "BLUFOR") or "NEUTRAL"]
 
         trigger.action.outText(outText, self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.displayTime,
             self.CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.clearView)
+    end
+    return self
+end
+
+function AETHR.WORLD.zoneOwnershipChanged(zoneName, newOwner, self)
+    local oldOwner = self.ZONE_MANAGER and self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].oldOwnedBy or
+        self.AETHR.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].oldOwnedBy
+    local ENUM_RED = self.ENUMS.Coalition.RED
+    local ENUM_BLUE = self.ENUMS.Coalition.BLUE
+    local ENUM_CONTESTED = self.ENUMS.Coalition.CONTESTED
+    local ENUM_NEUTRAL = self.ENUMS.Coalition.NEUTRAL
+
+    -- Only announce if ownership actually changed
+    if newOwner ~= oldOwner then
+        local oldOwnerText = (oldOwner == ENUM_RED and "Red") or (oldOwner == ENUM_BLUE and "Blue") or
+            (oldOwner == ENUM_CONTESTED and "Contested") or "Neutral"
+        local newOwnerText = (newOwner == ENUM_RED and "Red") or (newOwner == ENUM_BLUE and "Blue") or
+            (newOwner == ENUM_CONTESTED and "Contested") or "Neutral"
+
+
+        self.UTILS:debugInfo("AETHR.WORLD.zoneOwnershipChanged: " ..
+            zoneName .. " from " .. oldOwner .. " to " .. newOwner)
+
+        local outText = newOwner == ENUM_CONTESTED or
+            newOwner == ENUM_NEUTRAL and
+            zoneName .. " " .. self.ENUMS.TextStrings.contestedBy .. self.ENUMS.TextStrings.Teams.CONTESTED or
+            zoneName .. " " .. self.ENUMS.TextStrings.capturedBy .. self.ENUMS.TextStrings.Teams[
+            (newOwner == ENUM_RED and "REDFOR") or (newOwner == ENUM_BLUE and "BLUFOR") or "NEUTRAL"]
+
+
+
+        trigger.action.outText(outText, self.CONFIG.MAIN.outTextSettings.zoneOwnershipChange.displayTime,
+            self.CONFIG.MAIN.outTextSettings.zoneOwnershipChange.clearView)
     end
 
     return self

@@ -139,3 +139,9 @@ function AETHR.UTILS.safe_lookup(path, fallback)
   end
   return cur
 end
+
+function AETHR.UTILS:updateMarkupColors(markupID, lineColor, fillColor)
+  trigger.action.setMarkupColor(markupID, lineColor)
+  trigger.action.setMarkupColorFill(markupID, fillColor)
+  return self
+end

@@ -227,6 +227,7 @@ AETHR.ENUMS = {
         RED = coalition.side.RED,
         BLUE = coalition.side.BLUE,
         ALL = -1,
+        CONTESTED = 3,
     },
     Phonetic = {
         A = 'Alpha',

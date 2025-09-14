@@ -5,6 +5,8 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field UTILS AETHR.UTILS Utility helper table attached per-instance.
+--- @field BRAIN AETHR.BRAIN Brain submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
@@ -21,10 +23,10 @@ AETHR.ZONE_MANAGER.DATA = {
     MIZ_ZONES = {}, -- Mission trigger zones keyed by name.
     GAME_BOUNDS = {
         outOfBounds = {
-            HullPolysNoSample = {}, -- _PolygonList
+            HullPolysNoSample = {},   -- _PolygonList
             HullPolysWithSample = {}, -- _PolygonList
-            centerPoly = {}, -- _PolygonVec2
-            masterPoly = {}, -- _PolygonVec2
+            centerPoly = {},          -- _PolygonVec2
+            masterPoly = {},          -- _PolygonVec2
         },
         inBounds = {
             polyLines = {}, -- _LineVec2[]
@@ -32,8 +34,8 @@ AETHR.ZONE_MANAGER.DATA = {
         },
         inOutBoundsGaps = {
             overlaid = {}, -- _PolygonList
-            convex = {}, -- _PolygonList
-            concave = {}, -- _PolygonList
+            convex = {},   -- _PolygonList
+            concave = {},  -- _PolygonList
         },
     },
 }
@@ -94,7 +96,7 @@ function AETHR.ZONE_MANAGER:initMizZoneData()
         self.DATA.MIZ_ZONES = data
     else
         self:generateMizZoneData()
-        self.WORLD:getAirbases()            -- Collect airbase data.
+        self.WORLD:getAirbases() -- Collect airbase data.
         self:saveMizZoneData()
     end
     return self
@@ -170,6 +172,7 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                             zoneBorder[borderIndex] = zoneBorder[borderIndex] or {}
 
                             -- Populate border details
+                            zoneBorder[borderIndex] = self.AETHR._BorderInfo:New()
                             local currentBorder = zoneBorder[borderIndex]
                             currentBorder.OwnedByCoalition = 0
                             currentBorder.ZoneLine = lineA
@@ -187,6 +190,25 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                                 [1] = 0,
                                 [2] = 0,
                             }
+
+                            -- -- Populate border details
+                            -- local currentBorder = zoneBorder[borderIndex]
+                            -- currentBorder.OwnedByCoalition = 0
+                            -- currentBorder.ZoneLine = lineA
+                            -- currentBorder.ZoneLineLen = POLY:lineLength(lineA)
+                            -- currentBorder.ZoneLineMidP = POLY:getMidpoint(lineA)
+                            -- currentBorder.ZoneLineSlope = POLY:calculateLineSlope(lineA)
+                            -- currentBorder.ZoneLinePerpendicularPoint = {}
+                            -- currentBorder.NeighborLine = lineB
+                            -- currentBorder.NeighborLineLen = POLY:lineLength(lineB)
+                            -- currentBorder.NeighborLineMidP = POLY:getMidpoint(lineB)
+                            -- currentBorder.NeighborLineSlope = POLY:calculateLineSlope(lineB)
+                            -- currentBorder.NeighborLinePerpendicularPoint = {}
+                            -- currentBorder.MarkID = {
+                            --     [0] = 0,
+                            --     [1] = 0,
+                            --     [2] = 0,
+                            -- }
 
                             -- Determine the perpendicular points and update them
                             local ArrowMP, line_, NeighborLine_, length_, NeighborLength_
@@ -245,10 +267,10 @@ function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         --  RGBA components Fill
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a --  RGBA components Fill
     local shapeTypeID    = 7                                                          --  Polygon shape type
-    local vec3_1         = { x = cornerVec2s[4].x, y = 0, z = cornerVec2s[4].y } --- @diagnostic disable-line
-    local vec3_2         = { x = cornerVec2s[3].x, y = 0, z = cornerVec2s[3].y } --- @diagnostic disable-line
-    local vec3_3         = { x = cornerVec2s[2].x, y = 0, z = cornerVec2s[2].y } --- @diagnostic disable-line
-    local vec3_4         = { x = cornerVec2s[1].x, y = 0, z = cornerVec2s[1].y } --- @diagnostic disable-line
+    local vec3_1         = { x = cornerVec2s[4].x, y = 0, z = cornerVec2s[4].y }      --- @diagnostic disable-line
+    local vec3_2         = { x = cornerVec2s[3].x, y = 0, z = cornerVec2s[3].y }      --- @diagnostic disable-line
+    local vec3_3         = { x = cornerVec2s[2].x, y = 0, z = cornerVec2s[2].y }      --- @diagnostic disable-line
+    local vec3_4         = { x = cornerVec2s[1].x, y = 0, z = cornerVec2s[1].y }      --- @diagnostic disable-line
 
     -- Draw polygon on map
     trigger.action.markupToAll(
@@ -297,7 +319,7 @@ end
 --- @return _PolygonList polygons
 function AETHR.ZONE_MANAGER:_collectPolygonsFromZones(zonesTable, exclude)
     local polygons = {}
-    ---@param mz _MIZ_ZONE  
+    ---@param mz _MIZ_ZONE
     for zname, mz in pairs(zonesTable or {}) do
         local verts = mz.verticies
         if verts and #verts > 0 then
@@ -406,7 +428,7 @@ function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts)
             if not (math.abs(oi.x - oj.x) < 1e-6 and math.abs(oi.y - oj.y) < 1e-6) then
                 local poly = {
                     { x = vi.x, y = vi.y },
-                    { x = vj.x, y = vj.y },--- @diagnostic disable-line
+                    { x = vj.x, y = vj.y }, --- @diagnostic disable-line
                     { x = oj.x, y = oj.y },
                     { x = oi.x, y = oi.y },
                 }
@@ -805,7 +827,8 @@ function AETHR.ZONE_MANAGER:generateGameBoundData()
         useHoleSinglePolygon = false,
         snapDistance = 0,
     })
-    self.DATA.GAME_BOUNDS.outOfBounds.centerPoly = self:getPolygonCutout(self.DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample)
+    self.DATA.GAME_BOUNDS.outOfBounds.centerPoly = self:getPolygonCutout(self.DATA.GAME_BOUNDS.outOfBounds
+        .HullPolysNoSample)
 
     self:getOutOfBounds({
         samplesPerEdge = self.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.samplesPerEdge,
@@ -862,7 +885,7 @@ function AETHR.ZONE_MANAGER:drawGameBounds()
         return _Marker
     end
 
-    for _, poly in pairs(self.DATA.GAME_BOUNDS.outOfBounds.HullPolysWithSample or self.DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample ) do
+    for _, poly in pairs(self.DATA.GAME_BOUNDS.outOfBounds.HullPolysWithSample or self.DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample) do
         local _Marker = markerGen(poly)
         self.MARKERS:markFreeform(
             _Marker,
@@ -923,4 +946,87 @@ function AETHR.ZONE_MANAGER:drawMissionZones()
     return self
 end
 
+function AETHR.ZONE_MANAGER:drawZoneArrows()
+    local _zones = self.DATA.MIZ_ZONES
+    for zName, zObj in pairs(_zones) do
+        local ownedBy = zObj.ownedBy
+        for bzName, bzObj in pairs(zObj.BorderingZones) do
+            for _, borderDetail in ipairs(bzObj) do
+                for currentCoalition = 0, 2 do
+                    local _Marker = self.AETHR._Marker:New(
+                        borderDetail.MarkID[currentCoalition],
+                        nil,
+                        nil,
+                        zObj.readOnly,
+                        nil,
+                        self.ENUMS.MarkerTypes.Arrow,
+                        currentCoalition,
+                        self.ENUMS.LineTypes.Solid,
+                        {
+                            r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
+                            g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
+                            b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                            a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                        },
+                        {
+                            r = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].r,
+                            g = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].g,
+                            b = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].b,
+                            a = self.CONFIG.MAIN.Zone.paintColors.ArrowColors[currentCoalition].a
+                        },
+                        { borderDetail.ArrowTip, borderDetail.ArrowEnd },
+                        nil
+                    )
+                    borderDetail.ArrowObjects[currentCoalition] = _Marker
+                    self.MARKERS:markArrow(
+                        _Marker,
+                        self.MARKERS.DATA.ZONE_MANAGER.ZoneArrows
+                    )
+                end
+            end
+        end
+    end
 
+    --         -- Draw the arrow using the defined properties.
+    --         trigger.action.markupToAll(4, currentCoalition, borderDetail.MarkID[currentCoalition], ArrowTip,
+    --             ArrowEnd, arrowColors_, arrowColors_, 1, true)
+    return self
+end
+
+function AETHR.ZONE_MANAGER:initZoneArrows()
+    local _zones = self.DATA.MIZ_ZONES
+    for zName, zObj in pairs(_zones) do
+        local ownedBy = zObj.ownedBy
+        for bzName, bzObj in pairs(zObj.BorderingZones) do
+            --Assign Arrow MarkID if not already assigned
+            for _, borderDetail in ipairs(bzObj) do
+                for currentCoalition = 0, 2 do
+                    if borderDetail.MarkID[currentCoalition] == 0 then
+                        borderDetail.MarkID[currentCoalition] = self.CONFIG.MAIN.COUNTERS.MARKERS
+                        self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+                    end
+                end
+                -- Define the start and end points of the arrow.
+                local NLPP = borderDetail.NeighborLinePerpendicularPoint
+                local ZLPP = borderDetail.ZoneLinePerpendicularPoint
+                borderDetail.ArrowTip = NLPP
+                borderDetail.ArrowEnd = ZLPP
+            end
+        end
+    end
+    return self
+end
+
+function AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()
+    local _zones = self.DATA.MIZ_ZONES
+    for zName, zObj in pairs(_zones) do
+        self.BRAIN:buildWatcher(zObj.Airbases, "coalition", self.WORLD.airbaseOwnershipChanged, zName, self)
+    end
+    return self
+end
+
+function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
+    local _zones = self.DATA.MIZ_ZONES
+    self.BRAIN:buildWatcher(_zones, "ownedBy", self.WORLD.zoneOwnershipChanged, self)
+    return self
+end

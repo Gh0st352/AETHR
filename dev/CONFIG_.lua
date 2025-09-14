@@ -36,27 +36,27 @@ AETHR.CONFIG.MAIN = {
         "It provides a set of tools and libraries to create dynamic and engaging scenarios.",
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
-    MISSION_ID = "1", -- Default mission identifier.
+    MISSION_ID = "1",     -- Default mission identifier.
     DEBUG_ENABLED = true, -- Enable debug logging to DCS log.
-    MIZ_ZONES = {     -- Lists of mission trigger zone names.
+    MIZ_ZONES = {         -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},
         BLUESTART = {},
     },
-    FLAGS = {                        -- Runtime feature flags.
-        AETHR_FIRST_RUN     = true,  -- True on first mission run.
-        AETHR_LEARNING_MODE = false, -- Enable learning mode.
-        AETHR_DEBUG_MODE    = false, -- Enable debug mode.
-        LEARN_WORLD_OBJECTS    = false,  -- Enable world item learning.
+    FLAGS = {                           -- Runtime feature flags.
+        AETHR_FIRST_RUN     = true,     -- True on first mission run.
+        AETHR_LEARNING_MODE = false,    -- Enable learning mode.
+        AETHR_DEBUG_MODE    = false,    -- Enable debug mode.
+        LEARN_WORLD_OBJECTS = false,    -- Enable world item learning.
     },
-    COUNTERS = {                     -- Counters for generating unique IDs.
-        MARKERS = 3523523,           -- Base ID for zone markers.
+    COUNTERS = {                        -- Counters for generating unique IDs.
+        MARKERS = 3523523,              -- Base ID for zone markers.
     },
-    STORAGE = {                      -- Filesystem storage configuration.
-        SAVEGAME_DIR  = "",          -- Absolute path to the DCS savegame writable directory root.
-        ROOT_FOLDER   = "AETHR",     -- Root AETHR directory under writable path.
-        CONFIG_FOLDER = "CONFIG",    -- Subdirectory for config files.
-        SUB_FOLDERS   = {            -- Additional subdirectories.
+    STORAGE = {                         -- Filesystem storage configuration.
+        SAVEGAME_DIR  = "",             -- Absolute path to the DCS savegame writable directory root.
+        ROOT_FOLDER   = "AETHR",        -- Root AETHR directory under writable path.
+        CONFIG_FOLDER = "CONFIG",       -- Subdirectory for config files.
+        SUB_FOLDERS   = {               -- Additional subdirectories.
             LEARNING_FOLDER = "LEARNING",
             MAP_FOLDER      = "MAP",
             UNITS_FOLDER    = "UNITS",
@@ -139,34 +139,34 @@ AETHR.CONFIG.MAIN = {
     Zone = { -- Default visualization settings for trigger zones.
         paintColors           = {
             LineColors  = {
-                [0] = {r = 0, g = 0, b = 0 },
-                [1] = {r = 1, g = 0, b = 0 },
-                [2] = {r = 0, g = 0, b = 1 },
+                [0] = { r = 0, g = 0, b = 0 },
+                [1] = { r = 1, g = 0, b = 0 },
+                [2] = { r = 0, g = 0, b = 1 },
             },
             FillColors  = {
-                [0] = {r = 0, g = 0, b = 0 },
-                [1] = {r = 1, g = 0, b = 0 },
-                [2] = {r = 0, g = 0, b = 1 },
+                [0] = { r = 0, g = 0, b = 0 },
+                [1] = { r = 1, g = 0, b = 0 },
+                [2] = { r = 0, g = 0, b = 1 },
             },
             ArrowColors = {
-                [0] = {r = 0, g = 0, b = 0, a = 0.8 },
-                [1] = {r = 1, g = 0, b = 0, a = 0.8 },
-                [2] = {r = 0, g = 0, b = 1, a = 0.8 },
+                [0] = { r = 0, g = 0, b = 0, a = 0.3 },
+                [1] = { r = 1, g = 0, b = 0, a = 0.3 },
+                [2] = { r = 0, g = 0, b = 1, a = 0.3 },
             },
-            FillAlpha   = 0.1, -- Transparency for filled zones.
-            LineAlpha   = 0.6, -- Transparency for zone borders.
-            lineType    = AETHR.ENUMS.LineTypes.DashDot,    -- Default line style.
+            FillAlpha   = 0.20,                           -- Transparency for filled zones.
+            LineAlpha   = 0.5,                           -- Transparency for zone borders.
+            lineType    = AETHR.ENUMS.LineTypes.DashDot, -- Default line style.
         },
         gameBounds            = {
-            LineColors  = {r = 0.1, g = 0.1, b = 0.1 },
-            FillColors  = {r = 0.1, g = 0.1, b = 0.1 },
-            FillAlpha   = 0.30,        -- Transparency for filled zones.
-            LineAlpha   = 0.30,        -- Transparency for zone borders.
-            lineType    = AETHR.ENUMS.LineTypes.NoLine,           -- Default line style.
+            LineColors     = { r = 0.1, g = 0.1, b = 0.1 },
+            FillColors     = { r = 0.1, g = 0.1, b = 0.1 },
+            FillAlpha      = 0.4,                      -- Transparency for filled zones.
+            LineAlpha      = 0.30,                      -- Transparency for zone borders.
+            lineType       = AETHR.ENUMS.LineTypes.NoLine, -- Default line style.
             getOutOfBounds = {
-                samplesPerEdge      = 20,   -- Number of samples to generate per edge of the world bounds.
-                useHoleSinglePolygon = false, -- If true, generates a single polygon with a hole for the in-bounds area. Otherwise, generates multiple convex polygons.
-                snapDistance        = 0, -- Distance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity.
+                samplesPerEdge       = 20,              -- Number of samples to generate per edge of the world bounds.
+                useHoleSinglePolygon = false,           -- If true, generates a single polygon with a hole for the in-bounds area. Otherwise, generates multiple convex polygons.
+                snapDistance         = 0,               -- Distance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity.
             },
         },
         BorderOffsetThreshold = 800,   -- Distance threshold for bordering detection.
@@ -174,8 +174,12 @@ AETHR.CONFIG.MAIN = {
     },
     outTextSettings = {
         airbaseOwnershipChange = {
-            displayTime = 10, -- Seconds to display the message.
-            clearView  = false, -- Clear previous messages before displaying new one.
+            displayTime = 10,   -- Seconds to display the message.
+            clearView   = false, -- Clear previous messages before displaying new one.
+        },
+        zoneOwnershipChange = {
+            displayTime = 10,   -- Seconds to display the message.
+            clearView   = false, -- Clear previous messages before displaying new one.
         },
     },
 }

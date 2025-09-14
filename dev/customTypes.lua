@@ -238,7 +238,10 @@ end
 --- @field NeighborLineMidP _vec2                    Midpoint of neighbor edge
 --- @field NeighborLineSlope number|nil              Neighbor slope (nil for vertical)
 --- @field NeighborLinePerpendicularPoint _vec2|nil  Perpendicular offset for neighbor edge
+--- @field ArrowTip _vec3                            Point defining the arrow tip
+--- @field ArrowEnd _vec3                            Point defining the arrow base
 --- @field MarkID table<integer, integer>            Map of segment index -> DCS mark ID(s)
+--- @field ArrowObjects table<integer, _Marker>      Map of segment index -> DCS marker objects for arrows
 AETHR._BorderInfo = {} ---@diagnostic disable-line
 --- Create a new border info descriptor
 --- @param ZoneLine _LineVec2|nil Zone's edge line segment [p1,p2]
@@ -257,7 +260,14 @@ function AETHR._BorderInfo:New(ZoneLine, NeighborLine, MarkID)
         NeighborLineMidP = nil,
         NeighborLineSlope = nil,
         NeighborLinePerpendicularPoint = nil,
+        ArrowTip = {},
+        ArrowEnd = {},
         MarkID = MarkID or {},
+        ArrowObjects = {
+            [0] = {},
+            [1] = {},
+            [2] = {},
+        },
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
@@ -272,13 +282,13 @@ end
 --- @field verticies (_vec2|_vec2xz)[]                        Polygon vertices; accepts {x,y} or {x,z}
 --- @field ownedBy number                                     Current owning coalition (AETHR.ENUMS.Coalition)
 --- @field oldOwnedBy number                                  Previous owning coalition
---- @field markID number                                      Legacy mark ID (if used for text marks)
 --- @field shapeID number                                     Marker shape type (AETHR.ENUMS.MarkerTypes)
 --- @field markerObject _Marker                               Marker object used for drawing the zone
 --- @field readOnly boolean                                   True if zone cannot be edited
 --- @field BorderingZones table<string, _BorderInfo[]>        Map: neighbor zone name -> list of border segment descriptors
 --- @field Airbases table<string, _airbase>                   Airbases within this zone keyed by displayName
 --- @field LinesVec2 _LineVec2[]                              Precomputed line segments from verticies
+--- @field lastMarkColorOwner number                           Coalition that last set the marker color (to avoid redundant updates)
 AETHR._MIZ_ZONE = {}
 --- Create a new mission zone instance from an env.mission trigger zone
 --- @param envZone { name: string, zoneId: number, type: integer|string, verticies: (_vec2|_vec2xz)[] }
@@ -292,14 +302,14 @@ function AETHR._MIZ_ZONE:New(envZone)
         ArrowLength = AETHR.CONFIG.MAIN.Zone.ArrowLength,
         verticies = envZone.verticies, --AETHR.POLY:ensureConvex(envZone.verticies),
         ownedBy = AETHR.ENUMS.Coalition.NEUTRAL,
-        oldOwnedBy = 0,
-        markID = 0,
+        oldOwnedBy = AETHR.ENUMS.Coalition.NEUTRAL,
         shapeID = AETHR.ENUMS.MarkerTypes.Freeform,
         markerObject = {},
         readOnly = true,
         BorderingZones = {},
         Airbases = {},
         LinesVec2 = {},
+        lastMarkColorOwner = AETHR.ENUMS.Coalition.NEUTRAL,
     }
     -- attach metatable so instance inherits methods from prototype
     setmetatable(instance, { __index = self })
