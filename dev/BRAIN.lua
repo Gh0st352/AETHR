@@ -40,6 +40,7 @@ AETHR.BRAIN = {} ---@diagnostic disable-line
 ---@field thread thread|nil Coroutine thread handle.
 ---@field yieldThreshold integer|nil .
 ---@field yieldCounter integer|nil .
+---@field desc string Description or name of the coroutine.
 
 --- Data container for the BRAIN module.
 ---@class AETHR.BRAIN.Data
@@ -60,6 +61,7 @@ AETHR.BRAIN.DATA = {
             thread = nil,
             yieldThreshold = 5,
             yieldCounter = 0,
+            desc = "saveGroundUnits",
         },
         updateZoneOwnership = {
             interval = 10,
@@ -67,13 +69,15 @@ AETHR.BRAIN.DATA = {
             thread = nil,
             yieldThreshold = 5,
             yieldCounter = 0,
+            desc = "updateZoneOwnership",
         },
         updateAirfieldOwnership = {
             interval = 60,
             counter = 0,
             thread = nil,
-            yieldThreshold = 5,
+            yieldThreshold = 20,
             yieldCounter = 0,
+            desc = "updateAirfieldOwnership",
         },
     },
     updateInterval = 10,          -- Default update interval in seconds.
@@ -102,18 +106,18 @@ end
 --- @param ... any Additional arguments to pass to routineFn.
 --- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
 function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
-    self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -------------")
     if type(cg) ~= "table" then return self end
     local interval = tonumber(cg.interval) or 0
     cg.counter = (cg.counter or 0) + 1
     local args = { ... } -- Capture varargs for the coroutine
 
     if interval > 0 and (cg.counter % interval) == 0 then
+        self.UTILS:debugInfo("AETHR.BRAIN:doRoutine --> " .. (cg and cg.desc or ""))
         cg.counter = 0
 
         -- Lazily (re)create the coroutine only when needed
         if (not cg.thread) or coroutine.status(cg.thread) == 'dead' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CO CREATED")
+            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CREATED --> " .. (cg and cg.desc or ""))
             local fn = routineFn or function() end
             cg.thread = coroutine.create(function() fn(unpack(args)) end) ---@diagnostic disable-line
         end
@@ -121,7 +125,7 @@ function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
         -- Resume the coroutine (both newly created and previously suspended)
         local status = coroutine.status(cg.thread)
         if status == 'suspended' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CO RESUMED")
+            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- RESUMED --> " .. (cg and cg.desc or ""))
             local ok, err = coroutine.resume(cg.thread)
             if not ok then
                 if self.UTILS and type(self.UTILS.debugInfo) == 'function' then
@@ -133,7 +137,7 @@ function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
 
         -- Clean up if it finished
         if cg.thread and coroutine.status(cg.thread) == 'dead' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CO DEAD")
+            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- DEAD --> " .. (cg and cg.desc or ""))
             cg.thread = nil
         end
     end
@@ -219,11 +223,11 @@ end
 --- @function AETHR.BRAIN:runScheduledTasks
 ----- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
 function AETHR.BRAIN:runScheduledTasks()
-    self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks-------------")
     -- Note: UTILS.getTime is a function (defined without colon), call via table field
     local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or
         os.time()
     for id, task in pairs(self.DATA.Schedulers) do
+        self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks   -------------")
         if task and task.active and not task.running and (task.nextRun or 0) <= currentTime then
             task.running = true
             task.lastRun = currentTime

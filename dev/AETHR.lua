@@ -207,7 +207,7 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
-    self.WORLD:updateAirbaseOwnership()
+    --self.WORLD:updateAirbaseOwnership()
     self:BackgroundProcesses()
 
     self:setupWatchers()
@@ -224,8 +224,8 @@ end
 --- @function AETHR:BackgroundProcesses
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
-    self.UTILS:debugInfo("AETHR:BackgroundProcesses-------------")
-    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval + 5)
+    --self.UTILS:debugInfo("AETHR:BackgroundProcesses         -------------")
+    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     -- COROUTINES
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, function(parentAETHR)
@@ -241,7 +241,9 @@ end
 function AETHR:setupWatchers()
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     for zName, zObj in pairs(_zones) do
-        self.BRAIN:buildWatcher(zObj.Airbases, "ownedBy", self.WORLD.airbaseOwnershipChanged(), zName, self)
+        for abName, abObj in pairs(zObj.Airbases) do
+            self.BRAIN:buildWatcher(abObj, "coalition", self.WORLD.airbaseOwnershipChanged, zName, self)
+        end
     end
     return self
 end

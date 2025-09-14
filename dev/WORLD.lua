@@ -192,14 +192,14 @@ function AETHR.WORLD:updateAirbaseOwnership()
             -- 2 = blue
             -- 3 = contested, red + blue
 
-            if co_.thread then
+            --if co_.thread then
                 co_.yieldCounter = co_.yieldCounter + 1
                 if co_.yieldCounter >= co_.yieldThreshold then
                     co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -- CO YIELD")
+                    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -- YIELD")
                     coroutine.yield()
                 end
-            end
+           -- end
         end
     end
     return self
