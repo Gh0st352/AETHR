@@ -38,6 +38,8 @@ AETHR.CONFIG.MAIN = {
     },
     MISSION_ID = "1",     -- Default mission identifier.
     DEBUG_ENABLED = true, -- Enable debug logging to DCS log.
+    DefaultRedCountry = country.id.CJTF_BLUE,
+    DefaultBlueCountry = country.id.CJTF_RED,
     MIZ_ZONES = {         -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},
@@ -51,6 +53,10 @@ AETHR.CONFIG.MAIN = {
     },
     COUNTERS = {                        -- Counters for generating unique IDs.
         MARKERS = 3523523,              -- Base ID for zone markers.
+        UNITS = 1,                -- Base ID for dynamically spawned units.
+        OBJECTS = 1,              -- Base ID for dynamically spawned objects.
+        SCENERY_OBJECTS = 1,      -- Base ID for dynamically spawned scenery objects.
+        STATIC_OBJECTS = 1,       -- Base ID for dynamically spawned static objects
     },
     STORAGE = {                         -- Filesystem storage configuration.
         SAVEGAME_DIR  = "",             -- Absolute path to the DCS savegame writable directory root.

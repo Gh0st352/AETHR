@@ -35,6 +35,8 @@ AETHR.WORLD.DATA = {
     divisionSceneryObjects = {}, -- Loaded scenery per division.
     divisionStaticObjects  = {}, -- Loaded statics per division.
     divisionBaseObjects    = {}, -- Loaded Base per division.
+    groundUnitsDB          = {}, -- Ground units database keyed by unit name.
+    groundGroupsDB         = {}, -- Ground groups database keyed by group name.
 }
 
 
@@ -108,11 +110,14 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
 
     -- Callback for world.searchObjects
     local function ifFound(item)
-        found[item.id_] = {
-            id = item.id_,
-            desc = item:getDesc(),
-            position = item:getPoint()
-        }
+        found[item:getName()] = self.AETHR._foundObject:New(item)
+        --found[item.id_] = self.AETHR._foundObject:New(item)
+        -- found[item.id_] = {
+        --     id = item.id_,
+        --     desc = item:getDesc(),
+        --     position = item:getPoint(),
+        --     name = item:getName() or nil,
+        -- }
     end
 
     world.searchObjects(objectCategory, vol, ifFound)
@@ -351,6 +356,80 @@ function AETHR.WORLD:updateZoneArrows()
             end
         end
     end
+    return self
+end
+
+function AETHR.WORLD:updateGroundUnitsDB()
+    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB -------------")
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    local activeDivisions = self.DATA.saveDivisions
+    local co_ = self.BRAIN.DATA.coroutines.updateGroundUnitsDB
+
+
+    for adID, adObj in pairs(activeDivisions) do
+        local divCorners = {
+            adObj.corners[1],
+            adObj.corners[2],
+            adObj.corners[3],
+            adObj.corners[4],
+        }
+        local foundUnits = self:searchObjectsBox(
+            self.ENUMS.ObjectCategory.UNIT,
+            divCorners,
+            100000
+        )
+
+        -- Add new units to DB or update existing entries
+        ---@param fuID number
+        ---@param fuObj _foundObject
+        for fuID, fuObj in pairs(foundUnits) do
+            fuObj.AETHR.spawned = fuObj.isActive
+            fuObj.AETHR.divisionID = adID
+            self.DATA.groundUnitsDB[fuID] = fuObj
+            self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Added unit " .. fuID)
+        end
+
+        if co_.thread then
+            co_.yieldCounter = (co_.yieldCounter or 0) + 1
+            if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+                co_.yieldCounter = 0
+                self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
+                coroutine.yield()
+            end
+        end
+    end
+
+    -- Remove units that are dead
+    for dbID, dbObj in pairs(self.DATA.groundUnitsDB) do
+        if dbObj.isDead then
+            self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Removed dead unit " .. dbID)
+            self.DATA.groundUnitsDB[dbID] = nil
+            if co_.thread then
+                co_.yieldCounter = (co_.yieldCounter or 0) + 1
+                if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
+                    coroutine.yield()
+                end
+            end
+        end
+    end
+
+    -- Build Groups DB
+    for dbID, dbObj in pairs(self.DATA.groundUnitsDB) do
+        if not self.DATA.groundGroupsDB[dbObj.groupName] then
+            self.DATA.groundGroupsDB[dbObj.groupName] = dbObj.groupUnitNames
+            if co_.thread then
+                co_.yieldCounter = (co_.yieldCounter or 0) + 1
+                if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
+                    coroutine.yield()
+                end
+            end
+        end
+    end
+
     return self
 end
 

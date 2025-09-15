@@ -246,11 +246,17 @@ function AETHR:BackgroundProcesses()
         parentAETHR.WORLD:updateZoneColors()
     end, self)
 
-        --Update Zone Arrows
+    --Update Zone Arrows
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneArrows, function(parentAETHR)
         parentAETHR.WORLD:updateZoneArrows()
     end, self)
+
+    --Update groundUnits DB
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateGroundUnitsDB, function(parentAETHR)
+        parentAETHR.WORLD:updateGroundUnitsDB()
+    end, self)
     
+
     -- self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
 
     self.BRAIN:runScheduledTasks()

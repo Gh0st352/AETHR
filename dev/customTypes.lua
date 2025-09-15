@@ -12,7 +12,6 @@ function AETHR.__template:New(c)
     return instance ---@diagnostic disable-line
 end
 
-
 --- @class _ColorRGBA
 --- @field r number
 --- @field g number
@@ -58,7 +57,6 @@ function AETHR._WorldBoundsAxis:New(min, max)
     return instance ---@diagnostic disable-line
 end
 
-
 --- @class _WorldBounds
 --- @field X _WorldBoundsAxis
 --- @field Z _WorldBoundsAxis
@@ -75,7 +73,6 @@ function AETHR._WorldBounds:New(X, Z)
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
-
 
 --- @class _ZoneBorder
 --- @field OwnedByCoalition integer Coalition that currently owns this border segment (0 = neutral)
@@ -115,8 +112,6 @@ function AETHR._ZoneBorder:New(OwnedByCoalition, ZoneLine, NeighborLine, MarkID)
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
-
-
 
 --- 3D point (vec3)
 --- @class _vec3
@@ -221,8 +216,6 @@ function AETHR._FoundObject:New(id, desc, position)
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
-
-
 
 --- Data describing a shared border segment between two zones
 --- This structure is used in ZONE_MANAGER:determineBorderingZones.
@@ -540,6 +533,153 @@ function AETHR._vec2xz:New(x, z)
         x = x or 0,
         z = z or 0,
     }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _groundUnit
+--- @field desc table
+--- @field desc._origin string
+--- @field desc.category number
+--- @field desc.displayName string
+--- @field desc.Kmax number
+--- @field desc.life number
+--- @field desc.massEmpty number
+--- @field desc.maxSlopeAngle number
+--- @field desc.RCS number
+--- @field desc.riverCrossing boolean
+--- @field desc.speedMax number
+--- @field desc.speedMaxOffRoad number
+--- @field desc.typeName string
+--- @field desc.attributes table<string, boolean> -- table of boolean kv pairs
+--- @field desc.box table
+--- @field desc.box.max table
+--- @field desc.box.max.x number
+--- @field desc.box.max.y number
+--- @field desc.box.max.z number
+--- @field desc.box.min table
+--- @field desc.box.min.x number
+--- @field desc.box.min.y number
+--- @field desc.box.min.z number
+--- @field position _vec3
+--- @field position.x number
+--- @field position.y number
+--- @field position.z number
+--- @field id number
+--- @field OBJECT table -- DCS unit object
+--- @field group table -- group object
+--- @field groupUnits number[] -- list of unitIDs in the group
+--- @field AETHR table
+--- @field AETHR.spawned boolean
+--- @field AETHR.parentDivisionID number|nil
+--- @field AETHR.parentZone _MIZ_ZONE|nil
+--- @field AETHR.groundUnitID number
+AETHR._groundUnit = {} ---@diagnostic disable-line
+---
+--- @param desc table|nil
+--- @param position _vec3|nil
+--- @param id number|nil
+--- @return _groundUnit instance
+function AETHR._groundUnit:New(desc, position, id)
+    local instance = {
+        desc = desc or {
+            _origin = "",
+            category = 0,
+            displayName = "",
+            Kmax = 0,
+            life = 0,
+            massEmpty = 0,
+            maxSlopeAngle = 0,
+            RCS = 0,
+            riverCrossing = false,
+            speedMax = 0,
+            speedMaxOffRoad = 0,
+            typeName = "",
+            attributes = {}, -- table of boolean kv pairs
+            box = {
+                max = { x = 0, y = 0, z = 0 },
+                min = { x = 0, y = 0, z = 0 },
+            },
+        },
+        position = position or { x = 0, y = 0, z = 0 },
+        id = id or 0,
+        OBJECT = {},     -- DCS unit object
+        group = {},      -- group object
+        groupUnits = {}, -- list of unitIDs in the group
+        AETHR = {
+            spawned = false,
+            parentDivisionID = nil,
+            parentZone = nil,
+            groundUnitID = 0,
+        },
+    }
+    setmetatable(instance, { __index = self })
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _foundObject
+--- @field callsign string|nil
+--- @field category number|nil
+--- @field categoryEx number|nil
+--- @field coalition number|nil
+--- @field country number|nil
+--- @field desc table|nil
+--- @field groupName string|nil
+--- @field id number|nil
+--- @field name string|nil
+--- @field ObjectID number|nil
+--- @field isActive boolean|nil
+--- @field isAlive boolean|nil
+--- @field isBroken boolean|nil
+--- @field isDead boolean|nil
+--- @field isEffective boolean|nil
+--- @field sensors table|nil
+--- @field postition _vec3|nil
+--- @field groupUnitNames string[] List of unit names in the same group
+--- @field AETHR table
+--- @field AETHR.spawned boolean
+--- @field AETHR.divisionID number|nil
+--- @field AETHR.groundUnitID number
+AETHR._foundObject = {} ---@diagnostic disable-line
+---
+--- @param OBJ any
+--- @return _foundObject instance
+function AETHR._foundObject:New(OBJ)
+    local instance = {
+        callsign = OBJ and OBJ:getCallsign() or nil,
+        category = OBJ and OBJ:getCategory() or nil,
+        categoryEx = OBJ and OBJ:getCategoryEx() or nil,
+        coalition = OBJ and OBJ:getCoalition() or nil,
+        country = OBJ and OBJ:getCountry() or nil,
+        desc = OBJ and OBJ:getDesc() or nil,
+        groupName = OBJ and OBJ:getGroup() and OBJ:getGroup():getName() or nil,
+        groupUnitNames = {},
+        id = OBJ and OBJ:getID() or nil,
+        name = OBJ and OBJ:getName() or nil,
+        ObjectID = OBJ and OBJ:getObjectID() or nil,
+        isActive = OBJ and OBJ:isActive() or nil,
+        isAlive = OBJ and OBJ:isAlive() or nil,
+        isBroken = OBJ and OBJ:isBroken() or nil,
+        isDead = OBJ and OBJ:isDead() or nil,
+        isEffective = OBJ and OBJ:isEffective() or nil,
+        sensors = OBJ and OBJ:getSensors() or nil,
+        postition = OBJ and OBJ:getPoint() or nil,
+        AETHR = {
+            spawned = false,
+            divisionID = nil,
+            groundUnitID = 0,
+        },
+    }
+
+    if instance.groupName then
+        local _groupUnits = OBJ:getGroup():getUnits()
+        if _groupUnits and #_groupUnits > 0 then
+            for _, unit in pairs(_groupUnits) do
+                table.insert(instance.groupUnitNames, unit:getName())
+            end
+        end
+    end
+
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end

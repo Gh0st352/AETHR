@@ -94,6 +94,14 @@ AETHR.BRAIN.DATA = {
             yieldCounter = 0,
             desc = "updateZoneArrows",
         },
+        updateGroundUnitsDB = {
+            interval = 10,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 50,
+            yieldCounter = 0,
+            desc = "updateGroundUnitsDB",
+        },
     },
     BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
 }

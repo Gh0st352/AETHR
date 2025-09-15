@@ -286,4 +286,5 @@ AETHR.ENUMS = {
             CONTESTED = "REDFOR and BLUFOR",
         },
     },
+    Countries = country.id,
 }

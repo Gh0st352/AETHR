@@ -967,10 +967,6 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
                         b = ArrowColors[currentCoalition].b,
                         a = 0
                     }
-                    -- if borderCoalition == currentCoalition then
-                    --     lineColor.a = 0
-                    --     fillColor.a = 0
-                    -- end
                     local _Marker = self.AETHR._Marker:New(
                         borderDetail.MarkID[currentCoalition],
                         nil,
