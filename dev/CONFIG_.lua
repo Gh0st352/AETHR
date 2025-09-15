@@ -90,6 +90,10 @@ AETHR.CONFIG.MAIN = {
             STATIC_OBJECTS_FILE  = "staticObjects.lua",
             BASE_OBJECTS_FILE    = "baseObjects.lua",
             GAME_BOUNDS_FILE     = "gameBounds.lua",
+            MIZ_CACHE_DB         = "mizCacheDB.lua",
+            SPAWNER_TEMPLATE_DB   = "spawnerTemplateDB.lua",
+            SPAWNER_ATTRIBUTE_DB  = "spawnerAttributesDB.lua",
+            SPAWNER_UNIT_CACHE_DB = "spawnerUnitInfoCache.lua",
         },
     },
     worldDivisionArea = 1862500000, -- Desired area (m²) per world division.

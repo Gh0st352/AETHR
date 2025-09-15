@@ -56,7 +56,67 @@ function AETHR.WORLD:New(parent)
     return instance ---@diagnostic disable-line
 end
 
+--- Initializes in/out-of-bounds and gaps data by loading from storage or generating it.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:initMizFileCache()
+    local data = self:getStoredMizFileCache()
+    if data then
+        self.DATA.mizCacheDB           = data.MIZ_CACHE_DB
+        self.DATA.spawnerTemplateDB    = data.SPAWNER_TEMPLATE_DB
+        self.DATA.spawnerAttributesDB  = data.SPAWNER_ATTRIBUTE_DB
+        self.DATA.spawnerUnitInfoCache = data.SPAWNER_UNIT_CACHE_DB
+    else
+        self:generateMizFileCache()
+        self:saveMizFileCache()
+    end
+    return self
+end
+
+function AETHR.WORLD:getStoredMizFileCache()
+    local data = {}
+    local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER
+
+    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_CACHE_DB
+    data.MIZ_CACHE_DB = self.FILEOPS:loadData(mapPath, saveFile)
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_TEMPLATE_DB
+    data.SPAWNER_TEMPLATE_DB = self.FILEOPS:loadData(mapPath, saveFile)
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_ATTRIBUTE_DB
+    data.SPAWNER_ATTRIBUTE_DB = self.FILEOPS:loadData(mapPath, saveFile)
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_UNIT_CACHE_DB
+    data.SPAWNER_UNIT_CACHE_DB = self.FILEOPS:loadData(mapPath, saveFile)
+
+
+    if data
+        and data.MIZ_CACHE_DB
+        and data.SPAWNER_TEMPLATE_DB
+        and data.SPAWNER_ATTRIBUTE_DB
+        and data.SPAWNER_UNIT_CACHE_DB
+    then
+        return data
+    end
+    return nil
+end
+
+function AETHR.WORLD:saveMizFileCache()
+    local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER
+
+    local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_CACHE_DB
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.mizCacheDB)
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_TEMPLATE_DB
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerTemplateDB)
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_ATTRIBUTE_DB
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerAttributesDB)
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_UNIT_CACHE_DB
+    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerUnitInfoCache)
+end
+
+function AETHR.WORLD:generateMizFileCache()
     self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache -------------")
     local mizCache = self.DATA.mizCacheDB
     for coalition, coalitionObj in pairs(env.mission.coalition) do
@@ -115,8 +175,6 @@ function AETHR.WORLD:initMizFileCache()
             end
         end
     end
-
-
     return self
 end
 
