@@ -54,8 +54,10 @@ AETHR.BRAIN.DATA = {
     Schedulers = {},
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {
+        -- phase is an offset (in loop ticks) used to stagger execution across the interval window.
         saveGroundUnits = {
             interval = 10, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
+            phase = 9,
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
@@ -64,6 +66,7 @@ AETHR.BRAIN.DATA = {
         },
         updateZoneOwnership = {
             interval = 10,
+            phase = 2,
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
@@ -72,6 +75,7 @@ AETHR.BRAIN.DATA = {
         },
         updateAirfieldOwnership = {
             interval = 10,
+            phase = 0,
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
@@ -80,6 +84,7 @@ AETHR.BRAIN.DATA = {
         },
         updateZoneColors = {
             interval = 10,
+            phase = 4,
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
@@ -88,6 +93,7 @@ AETHR.BRAIN.DATA = {
         },
         updateZoneArrows = {
             interval = 10,
+            phase = 6,
             counter = 0,
             thread = nil,
             yieldThreshold = 10,
@@ -95,10 +101,11 @@ AETHR.BRAIN.DATA = {
             desc = "updateZoneArrows",
         },
         updateGroundUnitsDB = {
-            interval = 10,
+            interval = 30, -- make ground DB updates less frequent by default
+            phase = 8,
             counter = 0,
             thread = nil,
-            yieldThreshold = 50,
+            yieldThreshold = 10, -- yield more often
             yieldCounter = 0,
             desc = "updateGroundUnitsDB",
         },
@@ -133,16 +140,25 @@ end
 function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
     if type(cg) ~= "table" then return self end
     local interval = tonumber(cg.interval) or 0
+    local phase = tonumber(cg.phase) or 0
     cg.counter = (cg.counter or 0) + 1
     local args = { ... } -- Capture varargs for the coroutine
 
-    if interval > 0 and (cg.counter % interval) == 0 then
-        self.UTILS:debugInfo("AETHR.BRAIN:doRoutine --> " .. (cg and cg.desc or ""))
+    -- Only run when the (counter + phase) aligns with the interval to spread work across ticks.
+    if interval > 0 and ((cg.counter + phase) % interval) == 0 then
+        -- conditional debug to reduce logging overhead when disabled
+        local debugEnabled = (self.AETHR and self.AETHR.CONFIG and self.AETHR.CONFIG.MAIN and self.AETHR.CONFIG.MAIN.DEBUG)
+        if debugEnabled and self.UTILS and type(self.UTILS.debugInfo) == "function" then
+            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine --> " .. (cg and cg.desc or ""))
+        end
+
         cg.counter = 0
 
         -- Lazily (re)create the coroutine only when needed
         if (not cg.thread) or coroutine.status(cg.thread) == 'dead' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CREATED --> " .. (cg and cg.desc or ""))
+            if debugEnabled and self.UTILS and type(self.UTILS.debugInfo) == "function" then
+                self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- CREATED --> " .. (cg and cg.desc or ""))
+            end
             local fn = routineFn or function() end
             cg.thread = coroutine.create(function() fn(unpack(args)) end) ---@diagnostic disable-line
         end
@@ -150,7 +166,9 @@ function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
         -- Resume the coroutine (both newly created and previously suspended)
         local status = coroutine.status(cg.thread)
         if status == 'suspended' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- RESUMED --> " .. (cg and cg.desc or ""))
+            if debugEnabled and self.UTILS and type(self.UTILS.debugInfo) == "function" then
+                self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- RESUMED --> " .. (cg and cg.desc or ""))
+            end
             local ok, err = coroutine.resume(cg.thread)
             if not ok then
                 if self.UTILS and type(self.UTILS.debugInfo) == 'function' then
@@ -162,7 +180,9 @@ function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
 
         -- Clean up if it finished
         if cg.thread and coroutine.status(cg.thread) == 'dead' then
-            self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- DEAD --> " .. (cg and cg.desc or ""))
+            if debugEnabled and self.UTILS and type(self.UTILS.debugInfo) == "function" then
+                self.UTILS:debugInfo("AETHR.BRAIN:doRoutine -- DEAD --> " .. (cg and cg.desc or ""))
+            end
             cg.thread = nil
         end
     end
@@ -247,13 +267,17 @@ end
 --- Execute scheduled tasks that are due. Iterates through schedulers and runs active tasks whose nextRun <= current time.
 --- @function AETHR.BRAIN:runScheduledTasks
 ----- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
-function AETHR.BRAIN:runScheduledTasks()
+function AETHR.BRAIN:runScheduledTasks(maxPerTick)
     -- Note: UTILS.getTime is a function (defined without colon), call via table field
     local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or
         os.time()
+    local executed = 0
     for id, task in pairs(self.DATA.Schedulers) do
-        self.UTILS:debugInfo("AETHR.BRAIN:runScheduledTasks   -------------")
+        -- Cap tasks per tick if requested
+        if maxPerTick and executed >= maxPerTick then break end
+
         if task and task.active and not task.running and (task.nextRun or 0) <= currentTime then
+            executed = executed + 1
             task.running = true
             task.lastRun = currentTime
             task.iterations = (task.iterations or 0) + 1

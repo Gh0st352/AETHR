@@ -491,8 +491,23 @@ function AETHR.WORLD:updateGroundUnitsDB()
     local saveDivs = self.DATA.saveDivisions
     local groundDB = self.DATA.groundUnitsDB
     local co_ = self.BRAIN.DATA.coroutines.updateGroundUnitsDB
-    local yieldThreshold = (co_ and co_.yieldThreshold) or 0
+    local yieldThreshold = (co_ and co_.yieldThreshold) or 10
     local ObjectCategory = self.ENUMS.ObjectCategory
+
+    -- Persistent state across coroutine runs
+    co_.state = co_.state or { ids = nil, idx = 1 }
+    local state = co_.state
+
+    if not state.ids then
+        state.ids = {}
+        for divID, _ in pairs(saveDivs) do state.ids[#state.ids + 1] = divID end
+        table.sort(state.ids, function(a, b) return a < b end)
+        state.idx = 1
+    end
+
+    local divisionsPerRun = (self.CONFIG.MAIN.Background and self.CONFIG.MAIN.Background.divisionsPerRun) or 3
+    local startIdx = state.idx
+    local endIdx = math.min(startIdx + divisionsPerRun - 1, #state.ids)
 
     local processed = 0
     local addedLogEvery = 100 -- adjust if you want finer logging
@@ -508,44 +523,57 @@ function AETHR.WORLD:updateGroundUnitsDB()
         end
     end
 
-    -- Scan active divisions and upsert units
-    for divID, div in pairs(saveDivs) do
-        local foundUnits = self:searchObjectsBox(
-            ObjectCategory.UNIT,
-            div.corners,
-            div.height or 2000
-        )
-        for fuID, fuObj in pairs(foundUnits) do
-            if not fuObj.AETHR then fuObj.AETHR = {} end
-            fuObj.AETHR.spawned = fuObj.isActive
-            fuObj.AETHR.divisionID = divID
-            groundDB[fuID] = fuObj
+    -- Process a slice of divisions this run
+    for i = startIdx, endIdx do
+        local divID = state.ids[i]
+        local div = saveDivs[divID]
+        if div then
+            local foundUnits = self:searchObjectsBox(
+                ObjectCategory.UNIT,
+                div.corners,
+                div.height or 2000
+            )
+            for fuID, fuObj in pairs(foundUnits) do
+                if not fuObj.AETHR then fuObj.AETHR = {} end
+                fuObj.AETHR.spawned = fuObj.isActive
+                fuObj.AETHR.divisionID = divID
+                groundDB[fuID] = fuObj
 
-            processed = processed + 1
-            if (processed % addedLogEvery) == 0 then
-                UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Added/updated units: " .. processed)
+                processed = processed + 1
+                if (processed % addedLogEvery) == 0 then
+                    UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Added/updated units: " .. processed)
+                end
+                maybeYield(1)
+            end
+            -- light yield between divisions
+            maybeYield(1)
+        end
+    end
+
+    -- Advance index and, if we've completed a full pass, prune and rebuild groups
+    state.idx = endIdx + 1
+    if state.idx > #state.ids then
+        local newGroups = {}
+        for id, obj in pairs(groundDB) do
+            if obj.isDead then
+                if UTILS and type(UTILS.debugInfo) == "function" then
+                    UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Removed dead unit " .. id)
+                end
+                groundDB[id] = nil
+            else
+                local gname = obj.groupName
+                if gname and not newGroups[gname] then
+                    newGroups[gname] = obj.groupUnitNames or {}
+                end
             end
             maybeYield(1)
         end
-        -- light yield between divisions
-        maybeYield(1)
-    end
+        self.DATA.groundGroupsDB = newGroups
 
-    -- Prune dead entries and rebuild groups in one pass
-    local newGroups = {}
-    for id, obj in pairs(groundDB) do
-        if obj.isDead then
-            UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Removed dead unit " .. id)
-            groundDB[id] = nil
-        else
-            local gname = obj.groupName
-            if gname and not newGroups[gname] then
-                newGroups[gname] = obj.groupUnitNames or {}
-            end
-        end
-        maybeYield(1)
+        -- Reset for next full cycle
+        state.ids = nil
+        state.idx = 1
     end
-    self.DATA.groundGroupsDB = newGroups
 
     return self
 end

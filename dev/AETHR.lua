@@ -211,7 +211,7 @@ end
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
     self.WORLD:updateAirbaseOwnership()
-    self:BackgroundProcesses()
+    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     self:setupWatchers()
 
@@ -228,7 +228,7 @@ end
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:BackgroundProcesses()
     --self.UTILS:debugInfo("AETHR:BackgroundProcesses         -------------")
-    timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
+    local now = timer.getTime()
 
     -- COROUTINES
 
@@ -258,10 +258,8 @@ function AETHR:BackgroundProcesses()
     end, self)
     
 
-    -- self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.saveGroundUnits, function() end)
-
-    self.BRAIN:runScheduledTasks()
-    return self
+    self.BRAIN:runScheduledTasks(2)
+    return now + (self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.BackgroundLoopInterval or 0.5)
 end
 
 function AETHR:setupWatchers()
