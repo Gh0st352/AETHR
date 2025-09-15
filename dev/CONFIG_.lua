@@ -40,6 +40,7 @@ AETHR.CONFIG.MAIN = {
     DEBUG_ENABLED = true, -- Enable debug logging to DCS log.
     DefaultRedCountry = country.id.CJTF_BLUE,
     DefaultBlueCountry = country.id.CJTF_RED,
+    GroupTemplatesPrefix = "SPECTRESPAWNERTemplate",
     MIZ_ZONES = {         -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},

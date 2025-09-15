@@ -37,6 +37,7 @@ AETHR.WORLD.DATA = {
     divisionBaseObjects    = {}, -- Loaded Base per division.
     groundUnitsDB          = {}, -- Ground units database keyed by unit name.
     groundGroupsDB         = {}, -- Ground groups database keyed by group name.
+    mizCacheDB             = {}, -- Cached MIZ file data keyed by .
 }
 
 
@@ -50,6 +51,13 @@ function AETHR.WORLD:New(parent)
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
+end
+
+function AETHR.WORLD:initMizFileCache()
+self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache -------------")
+
+    
+    return self
 end
 
 --- @function AETHR.WORLD:markWorldDivisions
@@ -361,74 +369,65 @@ end
 
 function AETHR.WORLD:updateGroundUnitsDB()
     self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB -------------")
-    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
-    local activeDivisions = self.DATA.saveDivisions
+    local UTILS = self.UTILS
+    local saveDivs = self.DATA.saveDivisions
+    local groundDB = self.DATA.groundUnitsDB
     local co_ = self.BRAIN.DATA.coroutines.updateGroundUnitsDB
+    local yieldThreshold = (co_ and co_.yieldThreshold) or 0
+    local ObjectCategory = self.ENUMS.ObjectCategory
 
+    local processed = 0
+    local addedLogEvery = 100 -- adjust if you want finer logging
 
-    for adID, adObj in pairs(activeDivisions) do
-        local divCorners = {
-            adObj.corners[1],
-            adObj.corners[2],
-            adObj.corners[3],
-            adObj.corners[4],
-        }
-        local foundUnits = self:searchObjectsBox(
-            self.ENUMS.ObjectCategory.UNIT,
-            divCorners,
-            100000
-        )
-
-        -- Add new units to DB or update existing entries
-        ---@param fuID number
-        ---@param fuObj _foundObject
-        for fuID, fuObj in pairs(foundUnits) do
-            fuObj.AETHR.spawned = fuObj.isActive
-            fuObj.AETHR.divisionID = adID
-            self.DATA.groundUnitsDB[fuID] = fuObj
-            self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Added unit " .. fuID)
-        end
-
-        if co_.thread then
-            co_.yieldCounter = (co_.yieldCounter or 0) + 1
-            if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+    local function maybeYield(inc)
+        if co_ and co_.thread then
+            co_.yieldCounter = (co_.yieldCounter or 0) + (inc or 1)
+            if co_.yieldCounter >= yieldThreshold then
                 co_.yieldCounter = 0
-                self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
+                UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
                 coroutine.yield()
             end
         end
     end
 
-    -- Remove units that are dead
-    for dbID, dbObj in pairs(self.DATA.groundUnitsDB) do
-        if dbObj.isDead then
-            self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Removed dead unit " .. dbID)
-            self.DATA.groundUnitsDB[dbID] = nil
-            if co_.thread then
-                co_.yieldCounter = (co_.yieldCounter or 0) + 1
-                if co_.yieldCounter >= (co_.yieldThreshold or 0) then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
-                    coroutine.yield()
-                end
+    -- Scan active divisions and upsert units
+    for divID, div in pairs(saveDivs) do
+        local foundUnits = self:searchObjectsBox(
+            ObjectCategory.UNIT,
+            div.corners,
+            div.height or 2000
+        )
+        for fuID, fuObj in pairs(foundUnits) do
+            if not fuObj.AETHR then fuObj.AETHR = {} end
+            fuObj.AETHR.spawned = fuObj.isActive
+            fuObj.AETHR.divisionID = divID
+            groundDB[fuID] = fuObj
+
+            processed = processed + 1
+            if (processed % addedLogEvery) == 0 then
+                UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Added/updated units: " .. processed)
             end
+            maybeYield(1)
         end
+        -- light yield between divisions
+        maybeYield(1)
     end
 
-    -- Build Groups DB
-    for dbID, dbObj in pairs(self.DATA.groundUnitsDB) do
-        if not self.DATA.groundGroupsDB[dbObj.groupName] then
-            self.DATA.groundGroupsDB[dbObj.groupName] = dbObj.groupUnitNames
-            if co_.thread then
-                co_.yieldCounter = (co_.yieldCounter or 0) + 1
-                if co_.yieldCounter >= (co_.yieldThreshold or 0) then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
-                    coroutine.yield()
-                end
+    -- Prune dead entries and rebuild groups in one pass
+    local newGroups = {}
+    for id, obj in pairs(groundDB) do
+        if obj.isDead then
+            UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Removed dead unit " .. id)
+            groundDB[id] = nil
+        else
+            local gname = obj.groupName
+            if gname and not newGroups[gname] then
+                newGroups[gname] = obj.groupUnitNames or {}
             end
         end
+        maybeYield(1)
     end
+    self.DATA.groundGroupsDB = newGroups
 
     return self
 end

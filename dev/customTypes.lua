@@ -537,86 +537,6 @@ function AETHR._vec2xz:New(x, z)
     return instance ---@diagnostic disable-line
 end
 
---- @class _groundUnit
---- @field desc table
---- @field desc._origin string
---- @field desc.category number
---- @field desc.displayName string
---- @field desc.Kmax number
---- @field desc.life number
---- @field desc.massEmpty number
---- @field desc.maxSlopeAngle number
---- @field desc.RCS number
---- @field desc.riverCrossing boolean
---- @field desc.speedMax number
---- @field desc.speedMaxOffRoad number
---- @field desc.typeName string
---- @field desc.attributes table<string, boolean> -- table of boolean kv pairs
---- @field desc.box table
---- @field desc.box.max table
---- @field desc.box.max.x number
---- @field desc.box.max.y number
---- @field desc.box.max.z number
---- @field desc.box.min table
---- @field desc.box.min.x number
---- @field desc.box.min.y number
---- @field desc.box.min.z number
---- @field position _vec3
---- @field position.x number
---- @field position.y number
---- @field position.z number
---- @field id number
---- @field OBJECT table -- DCS unit object
---- @field group table -- group object
---- @field groupUnits number[] -- list of unitIDs in the group
---- @field AETHR table
---- @field AETHR.spawned boolean
---- @field AETHR.parentDivisionID number|nil
---- @field AETHR.parentZone _MIZ_ZONE|nil
---- @field AETHR.groundUnitID number
-AETHR._groundUnit = {} ---@diagnostic disable-line
----
---- @param desc table|nil
---- @param position _vec3|nil
---- @param id number|nil
---- @return _groundUnit instance
-function AETHR._groundUnit:New(desc, position, id)
-    local instance = {
-        desc = desc or {
-            _origin = "",
-            category = 0,
-            displayName = "",
-            Kmax = 0,
-            life = 0,
-            massEmpty = 0,
-            maxSlopeAngle = 0,
-            RCS = 0,
-            riverCrossing = false,
-            speedMax = 0,
-            speedMaxOffRoad = 0,
-            typeName = "",
-            attributes = {}, -- table of boolean kv pairs
-            box = {
-                max = { x = 0, y = 0, z = 0 },
-                min = { x = 0, y = 0, z = 0 },
-            },
-        },
-        position = position or { x = 0, y = 0, z = 0 },
-        id = id or 0,
-        OBJECT = {},     -- DCS unit object
-        group = {},      -- group object
-        groupUnits = {}, -- list of unitIDs in the group
-        AETHR = {
-            spawned = false,
-            parentDivisionID = nil,
-            parentZone = nil,
-            groundUnitID = 0,
-        },
-    }
-    setmetatable(instance, { __index = self })
-    return instance ---@diagnostic disable-line
-end
-
 --- @class _foundObject
 --- @field callsign string|nil
 --- @field category number|nil
@@ -680,6 +600,6 @@ function AETHR._foundObject:New(OBJ)
         end
     end
 
-    setmetatable(instance, { __index = self })
+    --setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
