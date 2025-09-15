@@ -164,7 +164,8 @@ AETHR.ENUMS = {
         AIRPLANE = Group.Category.AIRPLANE,
         HELICOPTER = Group.Category.HELICOPTER,
         GROUND = Group.Category.GROUND,
-        SHIP = Group.Category.SHIP
+        SHIP = Group.Category.SHIP,
+        FARP = -1,
     },
     AirbaseCategory = {
         AIRDROME = Airbase.Category.AIRDROME,

@@ -37,7 +37,10 @@ AETHR.WORLD.DATA = {
     divisionBaseObjects    = {}, -- Loaded Base per division.
     groundUnitsDB          = {}, -- Ground units database keyed by unit name.
     groundGroupsDB         = {}, -- Ground groups database keyed by group name.
-    mizCacheDB             = {}, -- Cached MIZ file data keyed by .
+    mizCacheDB             = {}, -- Cached MIZ file groups keyed by groupname.
+    spawnerTemplateDB      = {}, -- Cached group templates keyed by template name.
+    spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
+    spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
 }
 
 
@@ -54,9 +57,66 @@ function AETHR.WORLD:New(parent)
 end
 
 function AETHR.WORLD:initMizFileCache()
-self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache -------------")
+    local mizCache = self.DATA.mizCacheDB
+    for coalition, coalitionObj in pairs(env.mission.coalition) do
+        local _coal = coalition == "blue" and self.ENUMS.Coalition.BLUE or
+            coalition == "red" and self.ENUMS.Coalition.RED or
+            self.ENUMS.Coalition.NEUTRAL
+        for _, countryObj in ipairs(coalitionObj.country) do
+            local _countryID = countryObj.id
+            local _countryName = countryObj.name
+            for k, v in pairs(countryObj) do
+                if k ~= "id" and k ~= "name" then
+                    local typeKey = k -- "plane", "vehicle", "static", "ship", "helicopter"
+                    for __, groupObj in ipairs(v.group) do
+                        groupObj.AETHR = {
+                            coalition = _coal,
+                            countryID = _countryID,
+                            countryName = _countryName,
+                            typeKey = typeKey,
+                        }
+                        mizCache[groupObj.name] = groupObj
+                    end
+                end
+            end
+        end
+    end
+    local searchString = self.AETHR.CONFIG.MAIN.spawnTemplateSearchString
+    for groupName, groupObj in pairs(mizCache) do
+        if string.find(groupName, searchString) then
+            self.DATA.spawnerTemplateDB[groupName] = groupObj
+        end
+    end
 
-    
+    local spawnerTemplateDB = self.DATA.spawnerTemplateDB
+    local spawnerUnitInfoCache = self.DATA.spawnerUnitInfoCache
+    local spawnerAttributesDB = self.DATA.spawnerAttributesDB
+    for groupName, groupObj in pairs(spawnerTemplateDB) do
+        local _gObj = Group.getByName(groupName)
+        local _gUnits = _gObj and _gObj:getUnits() or nil
+        if _gUnits and #_gUnits >= 1 then
+            for _, unitObj in ipairs(_gUnits) do
+                local descUnit = unitObj:getDesc()
+
+                local descUnit = unitObj:getDesc()
+                local typeName = descUnit.typeName
+                if not spawnerUnitInfoCache[typeName] then
+                    spawnerUnitInfoCache[typeName] = descUnit
+                end
+
+                for attrib, attBool in pairs(descUnit.attributes) do
+                    if not spawnerAttributesDB[attrib] then spawnerAttributesDB[attrib] = {} end
+                    if not spawnerAttributesDB[attrib][typeName] then
+                        spawnerAttributesDB[attrib][typeName] = {}
+                        spawnerAttributesDB[attrib][typeName] = descUnit
+                    end
+                end
+            end
+        end
+    end
+
+
     return self
 end
 
