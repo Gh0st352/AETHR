@@ -143,9 +143,27 @@
 ---@field Freeform integer Freeform polygon
 ---@field MizMark integer Mission Editor mark style
 
+---@class AETHR.ENUMS.TextStrings
+---@field capturedBy string "has been captured by "
+---@field contestedBy string "is contested by "
+---@field Teams table
+
+
+---@class AETHR.ENUMS.Countries table DCS country.id mapping.
+
+
+---@class AETHR.ENUMS.Skill table AI skill level strings.
+---@field Excellent string "Excellent"
+---@field High string "High"
+---@field Good string "Good"
+---@field Average string "Average"
+---@field Random string "Random"
+---@field Player string "Player"
+
+
 ---@type AETHR.ENUMS
 AETHR.ENUMS = {
-    
+
     ObjectCategory = {
         UNIT = Object.Category.UNIT,
         WEAPON = Object.Category.WEAPON,
@@ -288,6 +306,12 @@ AETHR.ENUMS = {
         },
     },
     Countries = country.id,
+    Skill = {
+        Excellent = "Excellent",
+        High = "High",
+        Good = "Good",
+        Average = "Average",
+        Random = "Random",
+        Player = "Player",
+    },
 }
-
-

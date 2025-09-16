@@ -603,3 +603,106 @@ function AETHR._foundObject:New(OBJ)
     --setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
+
+--- @class _groundUnit
+--- @field type string
+--- @field transportable table
+--- @field transportable.randomTransportable boolean
+--- @field skill string
+--- @field y number
+--- @field x number
+--- @field name string
+--- @field playerCanDrive boolean
+--- @field heading number
+AETHR._groundUnit = {} ---@diagnostic disable-line
+---
+--- @param type string|nil
+--- @param skill string|nil
+--- @param x number|nil
+--- @param y number|nil
+--- @param name string|nil
+--- @param heading number|nil
+--- @param playerCanDrive boolean|nil
+--- @param randomTransportable boolean|nil
+--- @return _groundUnit instance
+function AETHR._groundUnit:New(type, skill, x, y, name, heading, playerCanDrive, randomTransportable)
+    local instance = {
+        type = type or nil,
+        transportable =
+        {
+            randomTransportable = randomTransportable or false,
+        },                                         -- end of transportable
+        skill = skill or AETHR.ENUMS.Skill.Random, -- string of the units skill level. Can be "Excellent", "High", "Good", "Average", "Random", "Player"
+        y = y or 0,
+        x = x or 0,
+        name = name or nil,
+        playerCanDrive = playerCanDrive or true,
+        heading = heading or 0, -- number heading of the object in radians
+    }
+    if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
+
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _groundGroup
+--- @field visible boolean
+--- @field taskSelected boolean
+--- @field lateActivation boolean
+--- @field hidden boolean
+--- @field hiddenOnPlanner boolean
+--- @field hiddenOnMFD boolean
+--- @field route table
+--- @field tasks table
+--- @field units _groundUnit[]
+--- @field y number
+--- @field x number
+--- @field name string
+--- @field start_time number
+--- @field task string
+--- @field uncontrollable boolean
+AETHR._groundGroup = {} ---@diagnostic disable-line
+---
+--- @param visible boolean|nil
+--- @param taskSelected boolean|nil
+--- @param lateActivation boolean|nil
+--- @param hidden boolean|nil
+--- @param hiddenOnPlanner boolean|nil
+--- @param hiddenOnMFD boolean|nil
+--- @param route table|nil
+--- @param tasks table|nil
+--- @param units _groundUnit[]|nil
+--- @param y number|nil
+--- @param x number|nil
+--- @param name string|nil
+--- @param start_time number|nil
+--- @param task string|nil
+--- @param uncontrollable boolean|nil
+--- @return _groundGroup instance
+function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, hiddenOnPlanner, hiddenOnMFD,
+                                route, tasks, units, y, x, name, start_time, task, uncontrollable)
+    local instance = {
+        visible = visible or false,
+        uncontrollable = uncontrollable or false,
+        taskSelected = taskSelected or true,
+        lateActivation = lateActivation or true,
+        hidden = hidden or false,                   --- boolean whether or not the group is visible on the F10 map view
+        hiddenOnPlanner = hiddenOnPlanner or false, --- boolean if true the group will be hidden on the mission planner available in single player.
+        hiddenOnMFD = hiddenOnMFD or false,         --- boolean if true this group will not be auto populated on relevant aircraft map screens and avionics. For instance SAM rings in F-16/F-18 and AH-64 threats pages
+        route = route or
+            {
+            }, -- end of route
+        tasks = tasks or
+            {
+            }, -- end of tasks
+        units = units or
+            {
+            }, -- end of ipair units
+        y = y or 0,
+        x = x or 0,
+        name = name or nil,
+        start_time = start_time or 0, -- time in seconds from mission start when the group will be spawned
+        task = task or "Ground Nothing",
+    }
+    if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
+    return instance ---@diagnostic disable-line
+end

@@ -25,6 +25,7 @@ AETHR = {
         "UTILS",
         "MARKERS",
         "BRAIN",
+        "SPAWNER",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 

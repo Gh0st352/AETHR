@@ -55,6 +55,7 @@ AETHR.CONFIG.MAIN = {
     COUNTERS = {                        -- Counters for generating unique IDs.
         MARKERS = 3523523,              -- Base ID for zone markers.
         UNITS = 1,                -- Base ID for dynamically spawned units.
+        GROUPS = 1,               -- Base ID for dynamically spawned groups.
         OBJECTS = 1,              -- Base ID for dynamically spawned objects.
         SCENERY_OBJECTS = 1,      -- Base ID for dynamically spawned scenery objects.
         STATIC_OBJECTS = 1,       -- Base ID for dynamically spawned static objects
