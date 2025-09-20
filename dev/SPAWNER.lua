@@ -115,12 +115,37 @@ function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tas
     return groundGroupName
 end
 
+
+function AETHR.SPAWNER:assembleUnitsForGroup(UnitNames)
+    local units = {}
+    for _, unitName in ipairs(UnitNames) do
+        local unitData = self.DATA.generatedUnits[unitName]
+        if unitData then
+            table.insert(units, unitData)
+        end
+    end
+    return units
+end
+
 function AETHR.SPAWNER:activateGroup(groupName)
     Group.activate(Group.getByName(groupName))
     return self
 end
 
 function AETHR.SPAWNER:deactivateGroup(groupName)
+
+
+
      trigger.action.deactivateGroup(Group.getByName(groupName))
     return self
+end
+
+
+function AETHR.SPAWNER:getGroupInfo(groupName)
+local groupInfo = {}
+local groupObj = Group.getByName(groupName)
+local groupDB = self.DATA.generatedGroups[groupName]
+
+local pause_ = "pause"
+return groupInfo
 end
