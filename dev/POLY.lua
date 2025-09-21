@@ -1422,3 +1422,9 @@ function AETHR.POLY:reverseVertOrder(vertTable)
     end
     return reverseVertTable
 end
+
+
+function AETHR.POLY:getCenterPoint(vertTable)
+
+return centerPoint
+end

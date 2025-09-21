@@ -135,17 +135,40 @@ end
 function AETHR.SPAWNER:deactivateGroup(groupName)
 
 
-
+    self:updateDBGroupInfo(groupName)
      trigger.action.deactivateGroup(Group.getByName(groupName))
     return self
 end
 
 
-function AETHR.SPAWNER:getGroupInfo(groupName)
-local groupInfo = {}
-local groupObj = Group.getByName(groupName)
-local groupDB = self.DATA.generatedGroups[groupName]
+function AETHR.SPAWNER:updateDBGroupInfo(Name)
+local groupObj = Group.getByName(Name)
+local unitsObj = groupObj:getUnits()
+local DB = self.DATA.generatedGroups[Name]
+
+for index, _unit in pairs(unitsObj) do
+    local unitName = _unit:getName()
+    local unitPos = _unit:getPoint()
+
+    DB.units[index].x = unitPos.x
+    DB.units[index].y = unitPos.z
+end
+
+
+
 
 local pause_ = "pause"
-return groupInfo
+return self
 end
+
+
+function AETHR.SPAWNER:getUnitInfo(Name)
+local Info = {}
+local Obj = Unit.getByName(Name)
+local DB = self.DATA.generatedGroups[Name]
+
+local pause_ = "pause"
+return Info
+end
+
+
