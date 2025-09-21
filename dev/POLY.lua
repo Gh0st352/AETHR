@@ -1423,8 +1423,52 @@ function AETHR.POLY:reverseVertOrder(vertTable)
     return reverseVertTable
 end
 
-
+--- Returns a center point for a list of 2D vertices.
+--- Behavior:
+--- - 0 vertices: returns { x = 0, y = 0 }
+--- - 1 vertex : returns that vertex (normalized to {x,y})
+--- - 2 vertices: returns the midpoint between them
+--- - 3+ vertices: returns the arithmetic centroid (average of vertex coordinates)
+--- Accepts vertex tables that use .y or .z for the vertical coordinate; output uses .y.
+--- @function AETHR.POLY:getCenterPoint
+--- @param vertTable table Array of points `{x,y}` or `{x,z}`
+--- @return table { x = number, y = number }
 function AETHR.POLY:getCenterPoint(vertTable)
+    -- Validate input
+    if type(vertTable) ~= "table" or #vertTable == 0 then
+        return { x = 0, y = 0 }
+    end
 
-return centerPoint
+    -- Single point: normalize and return
+    if #vertTable == 1 then
+        local p = self:normalizePoint(vertTable[1])
+        return { x = p.x, y = p.y }
+    end
+
+    -- Two points: midpoint
+    if #vertTable == 2 then
+        local a = self:normalizePoint(vertTable[1])
+        local b = self:normalizePoint(vertTable[2])
+        return { x = (a.x + b.x) / 2, y = (a.y + b.y) / 2 }
+    end
+
+    -- Three or more: treat as polygon vertices and return arithmetic centroid (average)
+    local pts = {}
+    for i = 1, #vertTable do
+        pts[i] = self:normalizePoint(vertTable[i])
+    end
+
+    local cx, cy = 0, 0
+    if self.MATH and self.MATH.centroid then
+        cx, cy = self.MATH:centroid(pts)
+    else
+        for i = 1, #pts do
+            cx = cx + (pts[i].x or 0)
+            cy = cy + (pts[i].y or 0)
+        end
+        cx = cx / #pts
+        cy = cy / #pts
+    end
+
+    return { x = cx, y = cy }
 end
