@@ -745,10 +745,16 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field extraTypes table
 --- @field numExtraTypes number
 --- @field numExtraUnits number
+--- @field numSubZonesMin number
+--- @field numSubZonesMax number
+--- @field numSubZonesNominal number
+--- @field numSubZonesNudgeFactor number
+--- @field numSubZones number
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
+--- @param name string Name of the dynamic spawner instance
 --- @return _dynamicSpawner instance
-function AETHR._dynamicSpawner:New()
+function AETHR._dynamicSpawner:New(name)
     local instance = {
         zones = {
             main = {}, -- single AETHR._zoneObject:New(),
@@ -760,11 +766,36 @@ function AETHR._dynamicSpawner:New()
         extraTypes = {},
         numExtraTypes = 0,
         numExtraUnits = 0,
-        name = "",
+        name = name,
+        numSubZonesMin = 2,
+        numSubZonesMax = 4,
+        numSubZonesNominal = 3,
+        numSubZonesNudgeFactor = 0.9,
+        numSubZones = 3,
     }
-
-
     return instance ---@diagnostic disable-line
+end
+
+--- Set the number of sub-zones to generate
+--- @param numSubZonesNominal number Nominal number of sub-zones
+--- @param numSubZonesMin number|nil Minimum number of sub-zones
+--- @param numSubZonesMax number|nil Maximum number of sub-zones
+--- @param numSubZonesNudgeFactor number|nil Adjustment factor for randomization (0 = no variation, 1 = full variation)
+--- @return self
+function AETHR._dynamicSpawner:setNumSpawnZones(numSubZonesNominal,numSubZonesMin,  numSubZonesMax, numSubZonesNudgeFactor)
+    local instance = self
+    instance.numSubZonesNominal = numSubZonesNominal
+    instance.numSubZonesMin = numSubZonesMin and numSubZonesMin or numSubZonesNominal
+    instance.numSubZonesMax = numSubZonesMax and numSubZonesMax or numSubZonesNominal
+    instance.numSubZonesNudgeFactor = numSubZonesNudgeFactor and numSubZonesNudgeFactor or
+        instance.numSubZonesNudgeFactor
+
+    instance.numSubZones = math.ceil(AETHR.MATH:generateNominal(
+        instance.numSubZonesNominal,
+        instance.numSubZonesMin,
+        instance.numSubZonesMax,
+        instance.numSubZonesNudgeFactor))
+    return self
 end
 
 --- @class _spawnerZone
@@ -778,11 +809,6 @@ end
 --- @field weight number
 --- @field center _vec2xz
 --- @field triggerZone table
---- @field numSubZonesMin number
---- @field numSubZonesMax number
---- @field numSubZonesNominal number
---- @field numSubZonesNudgeFactor number
---- @field numSubZones number
 --- @field avgDistribution number
 --- @field worldDivisions _WorldDivision[]
 --- @field staticObjects table
@@ -822,11 +848,6 @@ function AETHR._spawnerZone:New()
         weight = 0,
         center = { x = 0, y = 0 },
         triggerZone = {},
-        numSubZonesMin = 2,
-        numSubZonesMax = 4,
-        numSubZonesNominal = 3,
-        numSubZonesNudgeFactor = 0.9,
-        numSubZones = 3,
         avgDistribution = 0,
         worldDivisions = {},
         staticObjects = {},
@@ -877,11 +898,7 @@ function AETHR._spawnerZone:New()
 
     instance.area = math.pi * (instance.actualRadius ^ 2)
 
-    instance.numSubZones = math.ceil(AETHR.MATH:generateNominal(
-        instance.numSubZonesNominal,
-        instance.numSubZonesMin,
-        instance.numSubZonesMax,
-        instance.numSubZonesNudgeFactor))
+
 
     ---Base spawn settings calculations
     local spawnSettings              = instance.spawnSettings.base
@@ -917,9 +934,9 @@ function AETHR._spawnerZone:New()
     genSpawnSettings.ratioMax        = spawnSettings.ratioMax
     genSpawnSettings.ratioMin        = spawnSettings.ratioMin
     genSpawnSettings.max             = math.ceil(math.min(
-    genSpawnSettings.nominal + (genSpawnSettings.nominal * genSpawnSettings.ratioMax), spawnSettings.max))
+        genSpawnSettings.nominal + (genSpawnSettings.nominal * genSpawnSettings.ratioMax), spawnSettings.max))
     genSpawnSettings.min             = math.ceil(math.max(
-    genSpawnSettings.nominal - (genSpawnSettings.nominal * genSpawnSettings.ratioMin), spawnSettings.min))
+        genSpawnSettings.nominal - (genSpawnSettings.nominal * genSpawnSettings.ratioMin), spawnSettings.min))
     genSpawnSettings.weighted        = math.ceil(genSpawnSettings.nominal * instance.weight)
     genSpawnSettings.divisionFactor  = genSpawnSettings.nominal / genSpawnSettings.weighted
     genSpawnSettings.actual          = math.ceil(AETHR.MATH:generateNominal(
@@ -929,13 +946,13 @@ function AETHR._spawnerZone:New()
         genSpawnSettings.nudgeFactor))
     genSpawnSettings.actualWeighted  = math.ceil(genSpawnSettings.actual * instance.weight)
 
-    local genthresholds                 = genSpawnSettings.thresholds
-    genthresholds.overNom               = math.max(0, genSpawnSettings.actual - spawnSettings.nominal)
-    genthresholds.underNom              = math.max(0, spawnSettings.nominal - genSpawnSettings.actual)
-    genthresholds.overMax               = math.max(0, genSpawnSettings.actual - spawnSettings.max)
-    genthresholds.underMax              = math.max(0, spawnSettings.max - genSpawnSettings.actual)
-    genthresholds.overMin               = math.max(0, genSpawnSettings.actual - spawnSettings.min)
-    genthresholds.underMin              = math.max(0, spawnSettings.min - genSpawnSettings.actual)
+    local genthresholds              = genSpawnSettings.thresholds
+    genthresholds.overNom            = math.max(0, genSpawnSettings.actual - spawnSettings.nominal)
+    genthresholds.underNom           = math.max(0, spawnSettings.nominal - genSpawnSettings.actual)
+    genthresholds.overMax            = math.max(0, genSpawnSettings.actual - spawnSettings.max)
+    genthresholds.underMax           = math.max(0, spawnSettings.max - genSpawnSettings.actual)
+    genthresholds.overMin            = math.max(0, genSpawnSettings.actual - spawnSettings.min)
+    genthresholds.underMin           = math.max(0, spawnSettings.min - genSpawnSettings.actual)
 
     return instance ---@diagnostic disable-line
 end
@@ -1005,7 +1022,7 @@ AETHR._spawnerTypeConfig = {} ---@diagnostic disable-line
 --- @param nominal number
 --- @param limited boolean
 --- @return _spawnerTypeConfig instance
-function AETHR._spawnerTypeConfig:New(typeName, count, min,max,nominal,limited)
+function AETHR._spawnerTypeConfig:New(typeName, count, min, max, nominal, limited)
     local instance = {
         typeName = typeName,
         count = 0,

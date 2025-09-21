@@ -235,11 +235,12 @@ function AETHR.SPAWNER:despawnGroup(groupName)
     return self
 end
 
+--- @return _dynamicSpawner dynamicSpawner created dynamic spawner.
 function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
     local name = "AETHR_DYNAMIC_SPAWNER#" .. tostring(self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS)
     self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS = self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS + 1
-    
-    local dynamicSpawner = self.AETHR._dynamicSpawner:New()
+
+    local dynamicSpawner = self.AETHR._dynamicSpawner:New(name)
 
 
     self.DATA.dynamicSpawners[dynamicSpawnerType][dynamicSpawner.name] = dynamicSpawner
