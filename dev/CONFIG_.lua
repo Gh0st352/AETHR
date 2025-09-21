@@ -12,7 +12,7 @@
 --- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- Additional top-level convenience fields (documented in MAIN below)
---- @field MAIN AETHR.CONFIG.Main General Config Data Table (defaults)
+--- @field MAIN AETHR.CONFIG.MAIN General Config Data Table (defaults)
 --- @field VERSION string Framework version identifier.
 --- @field AUTHOR string Package author.
 --- @field GITHUB string GitHub repository URL.
@@ -27,17 +27,20 @@
 --- @field worldBounds table Coordinate bounds for supported theaters.
 --- @field Zone table Default rendering and arrow settings for zones.
 --- @field _cache table Instance-local cache (initialized in :New)
+
 --- @class AETHR.CONFIG.Color
 --- @field r number Red channel (0..1)
 --- @field g number Green channel (0..1)
 --- @field b number Blue channel (0..1)
 --- @field a number|nil Alpha channel (0..1), optional
+
 --- @class AETHR.CONFIG.SubFolders
 --- @field LEARNING_FOLDER string
 --- @field MAP_FOLDER string
 --- @field UNITS_FOLDER string
 --- @field OBJECTS_FOLDER string
 --- @field USER_FOLDER string
+
 --- @class AETHR.CONFIG.Paths
 --- @field LEARNING_FOLDER string Full path (populated at runtime)
 --- @field CONFIG_FOLDER string Full path (populated at runtime)
@@ -45,6 +48,7 @@
 --- @field UNITS_FOLDER string Full path (populated at runtime)
 --- @field OBJECTS_FOLDER string Full path (populated at runtime)
 --- @field USER_FOLDER string Full path (populated at runtime)
+
 --- @class AETHR.CONFIG.Filenames
 --- @field AETHER_CONFIG_FILE string Filename for main config persistence
 --- @field WORLD_DIVISIONS_FILE string
@@ -61,6 +65,7 @@
 --- @field SPAWNER_TEMPLATE_DB string
 --- @field SPAWNER_ATTRIBUTE_DB string
 --- @field SPAWNER_UNIT_CACHE_DB string
+
 --- @class AETHR.CONFIG.Storage
 --- @field SAVEGAME_DIR string Absolute path to the DCS savegame writable directory root.
 --- @field ROOT_FOLDER string Root AETHR directory under writable path.
@@ -68,21 +73,26 @@
 --- @field SUB_FOLDERS AETHR.CONFIG.SubFolders Named subfolders (constants).
 --- @field PATHS AETHR.CONFIG.Paths Runtime-populated full paths.
 --- @field FILENAMES AETHR.CONFIG.Filenames Lua filenames used for persistence.
+
 --- @class AETHR.CONFIG.AxisRange
 --- @field min number Minimum coordinate
 --- @field max number Maximum coordinate
+
 --- @class AETHR.CONFIG.BoundsCoord
 --- @field X AETHR.CONFIG.AxisRange
 --- @field Z AETHR.CONFIG.AxisRange
+
 --- @class AETHR.CONFIG.MizZones
 --- @field ALL string[] List of all trigger zone names (strings)
 --- @field REDSTART string[] Red coalition start zones
 --- @field BLUESTART string[] Blue coalition start zones
+
 --- @class AETHR.CONFIG.Flags
 --- @field AETHR_FIRST_RUN boolean True on first mission run.
 --- @field AETHR_LEARNING_MODE boolean Enable learning mode.
 --- @field AETHR_DEBUG_MODE boolean Enable debug mode.
 --- @field LEARN_WORLD_OBJECTS boolean Enable world item learning.
+
 --- @class AETHR.CONFIG.Counters
 --- @field MARKERS number Base ID for zone markers.
 --- @field UNITS number Base ID for dynamically spawned units.
@@ -90,6 +100,8 @@
 --- @field OBJECTS number Base ID for dynamically spawned objects.
 --- @field SCENERY_OBJECTS number Base ID for dynamically spawned scenery objects.
 --- @field STATIC_OBJECTS number Base ID for dynamically spawned static objects.
+--- @field DYNAMIC_SPAWNERS number Base ID for dynamic spawners.
+
 --- @class AETHR.CONFIG.PaintColors
 --- @field LineColors table<number, AETHR.CONFIG.Color> Indexed mapping for line color sets
 --- @field FillColors table<number, AETHR.CONFIG.Color> Indexed mapping for fill color sets
@@ -97,6 +109,7 @@
 --- @field FillAlpha number Default fill transparency (0..1)
 --- @field LineAlpha number Default line transparency (0..1)
 --- @field lineType number Enum value from AETHR.ENUMS.LineTypes
+
 --- @class AETHR.CONFIG.GameBoundsSettings
 --- @field LineColors AETHR.CONFIG.Color
 --- @field FillColors AETHR.CONFIG.Color
@@ -104,18 +117,22 @@
 --- @field LineAlpha number
 --- @field lineType number Enum for line style
 --- @field getOutOfBounds table Settings used to generate out-of-bounds polygons
+
 --- @class AETHR.CONFIG.ZoneSettings
 --- @field paintColors AETHR.CONFIG.PaintColors Default paint settings for zones
 --- @field gameBounds AETHR.CONFIG.GameBoundsSettings Settings when rendering world bounds
 --- @field BorderOffsetThreshold number Distance threshold for bordering detection (meters)
 --- @field ArrowLength number Default arrow length (meters)
+
 --- @class AETHR.CONFIG.OutTextSection
 --- @field displayTime number Seconds to display the message.
 --- @field clearView boolean Whether to clear previous messages before showing new one.
+
 --- @class AETHR.CONFIG.OutTextSettings
 --- @field airbaseOwnershipChange AETHR.CONFIG.OutTextSection
 --- @field zoneOwnershipChange AETHR.CONFIG.OutTextSection
---- @class AETHR.CONFIG.Main
+
+--- @class AETHR.CONFIG.MAIN
 --- @field VERSION string
 --- @field AUTHOR string
 --- @field GITHUB string
@@ -134,7 +151,8 @@
 --- @field worldBounds table<string, AETHR.CONFIG.BoundsCoord>
 --- @field Zone AETHR.CONFIG.ZoneSettings
 --- @field outTextSettings AETHR.CONFIG.OutTextSettings
---- @type AETHR.CONFIG.Main
+
+--- @type AETHR.CONFIG
 AETHR.CONFIG = {} ---@diagnostic disable-line
 AETHR.CONFIG.MAIN = {
     VERSION = "0.1.0",                      -- Library version.
@@ -170,6 +188,7 @@ AETHR.CONFIG.MAIN = {
         OBJECTS = 1,              -- Base ID for dynamically spawned objects.
         SCENERY_OBJECTS = 1,      -- Base ID for dynamically spawned scenery objects.
         STATIC_OBJECTS = 1,       -- Base ID for dynamically spawned static objects
+        DYNAMIC_SPAWNERS = 1,     -- Base ID for dynamic spawners.
     },
     STORAGE = {                         -- Filesystem storage configuration.
         SAVEGAME_DIR  = "",             -- Absolute path to the DCS savegame writable directory root.

@@ -23,6 +23,12 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field generatedUnits table<string, _groundUnit> Generated ground units keyed by name.
 --- @field spawnQueue string[] Names of groups scheduled to spawn (processed by WORLD:spawnGroundGroups).
 --- @field despawnQueue string[] Names of groups scheduled to despawn (processed by WORLD:despawnGroundGroups).
+--- @field dynamicSpawners table<string, table<string, _dynamicSpawner>> Dynamic spawners keyed by type and name.
+
+--- @class AETHR.SPAWNER.DATA.dynamicSpawners
+--- @field dynamicSpawners.Airbase table<string, _dynamicSpawner> Dynamic spawners of type "Airbase" keyed by name.
+--- @field dynamicSpawners.Zone table<string, _dynamicSpawner> Dynamic spawners of type "Zone" keyed by name.
+--- @field dynamicSpawners.Point table<string, _dynamicSpawner> Dynamic spawners of type "Point" keyed by name.
 
 --- Container for spawner-managed data.
 ---@type AETHR.SPAWNER.Data
@@ -35,6 +41,11 @@ AETHR.SPAWNER.DATA = {
     spawnQueue = {},
     ---@type string[]
     despawnQueue = {},
+    dynamicSpawners = {
+        Airbase = {},
+        Zone = {},
+        Point = {},
+    },
 }
 
 
@@ -224,3 +235,13 @@ function AETHR.SPAWNER:despawnGroup(groupName)
     return self
 end
 
+function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
+    local name = "AETHR_DYNAMIC_SPAWNER#" .. tostring(self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS)
+    self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS = self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS + 1
+    
+    local dynamicSpawner = self.AETHR._dynamicSpawner:New()
+
+
+    self.DATA.dynamicSpawners[dynamicSpawnerType][dynamicSpawner.name] = dynamicSpawner
+    return dynamicSpawner
+end

@@ -12,6 +12,8 @@
 ---@field Phonetic AETHR.ENUMS.Phonetic NATO phonetic alphabet strings.
 ---@field LineTypes AETHR.ENUMS.LineTypes Line rendering styles.
 ---@field MarkerTypes AETHR.ENUMS.MarkerTypes Marker shape types for F10 drawing.
+---@field spawnTypes AETHR.ENUMS.spawnTypes table
+---@field dynamicSpawnerTypes AETHR.ENUMS.dynamicSpawnerTypes table 
 ---@diagnostic disable: undefined-global
 
 ---@class AETHR.ENUMS.ObjectCategory
@@ -159,6 +161,79 @@
 ---@field Average string "Average"
 ---@field Random string "Random"
 ---@field Player string "Player"
+
+---@class AETHR.ENUMS.spawnTypes table
+---@field Ships string "Ships"
+---@field UnarmedShips string "Unarmed ships"   
+---@field ArmedShips string "Armed ships"
+---@field LightArmedShips string "Light armed ships"
+---@field HeavyArmedShips string "Heavy armed ships"
+---@field Corvettes string "Corvettes"
+---@field Frigates string "Frigates"
+---@field Destroyers string "Destroyers"
+---@field Cruisers string "Cruisers"
+---@field AircraftCarriers string "Aircraft Carriers"
+---@field GroundUnits string "Ground Units"
+---@field Infantry string "Infantry"
+---@field LightArmoredUnits string "LightArmoredUnits"
+---@field IFV string "IFV"
+---@field APC string "APC"
+---@field Artillery string "Artillery"
+---@field MLRS string "MLRS"
+---@field HeavyArmoredUnits string "HeavyArmoredUnits"
+---@field ModernTanks string "Modern Tanks"
+---@field OldTanks string "Old Tanks"
+---@field Tanks string "Tanks"
+---@field Buildings string "Buildings"
+---@field Fortifications string "Fortifications"
+---@field GroundVehicles string "Ground vehicles"
+---@field AAA string "AAA"
+---@field AA_flak string "AA_flak"
+---@field Static_AAA string "Static AAA"
+---@field Mobile_AAA string "Mobile AAA"
+---@field UnarmedVehicles string "Unarmed vehicles"
+---@field Cars string "Cars"
+---@field Trucks string "Trucks"
+---@field SamElements string "SAM elements"
+---@field IRGuidedSam string "IR Guided SAM"
+---@field SR_SAM string "SR SAM"
+---@field MR_SAM string "MR SAM"
+---@field LR_SAM string "LR SAM"
+---@field ArmedGroundUnits string "Armed ground units"
+---@field MANPADS string "MANPADS"
+---@field RocketAttack string "Rocket Attack Valid AirDefence"
+---@field ArmedVehicles string "Armed vehicles"
+---@field CRAM string "C-RAM"
+---@field AirDefenceVehicles string "Air Defence vehicles"
+---@field SAM_CC string "SAM CC"
+---@field SAM string "SAM"
+---@field human_vehicle string "human_vehicle"
+---@field WS_Type string "</WSTYPE>"
+---@field ATGM string "ATGM"
+---@field EWR string "EWR"
+---@field IndirectFire string "Indirect fire"
+---@field All string "All"
+---@field Datalink string "Datalink"
+---@field SAM_LL string "SAM LL"
+---@field MANPADS_AUX string "MANPADS AUX"
+---@field SAM_TR string "SAM TR"
+---@field Vehicles string "Vehicles"
+---@field SAM_SR string "SAM SR"
+---@field New_Infantry string "New infantry"
+---@field AA_missile string "AA_missile"
+---@field SAM_related string "SAM related"
+---@field GroundUnits_NonAirDefence string "Ground Units Non Airdefence"
+---@field AntiAir_ArmedVehicles string "AntiAir Armed Vehicles"
+---@field Infantry_Carriers string "Infantry carriers"
+---@field Air_Defence string "Air Defence"
+---@field NonAndLightArmoredUnits string "NonAndLightArmoredUnits"
+---@field NonArmoredUnits string "NonArmoredUnits"
+---@field ArmedAirDefence string "Armed Air Defence"
+
+---@class AETHR.ENUMS.dynamicSpawnerTypes table 
+---@field Airbase string "Airbase"
+---@field Zone string "Zone"
+---@field Point string "Point"
 
 
 ---@type AETHR.ENUMS
@@ -385,5 +460,11 @@ AETHR.ENUMS = {
         NonAndLightArmoredUnits = "NonAndLightArmoredUnits",
         NonArmoredUnits = "NonArmoredUnits",
         ArmedAirDefence = "Armed Air Defence",
+    },
+    ---.
+    dynamicSpawnerTypes = {
+        Airbase = "Airbase",
+        Zone = "Zone",
+        Point = "Point",
     },
 }

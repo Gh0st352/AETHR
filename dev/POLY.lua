@@ -858,7 +858,7 @@ end
 --- Returns the midpoint of a line segment.
 --- @function AETHR.POLY.getMidpoint
 --- @param line Line2 Two-element array of endpoints, each with numeric x and y fields.
---- @return Vec2 A point with numeric fields x and y representing the midpoint of the segment.
+--- @return Vec2|_vec2 A point with numeric fields x and y representing the midpoint of the segment.
 function AETHR.POLY:getMidpoint(line)
     -- Calculate the x and y coordinates of the midpoint using the average of the endpoints' coordinates
     return {

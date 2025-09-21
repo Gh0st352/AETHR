@@ -1,10 +1,10 @@
 --- @class __template
---- @field c table
+--- @field placeholder table
 AETHR.__template = {} ---@diagnostic disable-line
 ---
---- @param c table
+--- @param placeholder table
 --- @return __template instance
-function AETHR.__template:New(c)
+function AETHR.__template:New(placeholder)
     local instance = {
 
     }
@@ -760,6 +760,7 @@ function AETHR._dynamicSpawner:New()
         extraTypes = {},
         numExtraTypes = 0,
         numExtraUnits = 0,
+        name = "",
     }
 
 
@@ -983,5 +984,38 @@ function AETHR._spawnSettings:New()
             underMin = 0,
         },
     }
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _spawnerTypeConfig
+--- @field typeName table
+--- @field count number
+--- @field min number
+--- @field max number
+--- @field nominal number
+--- @field limited boolean
+--- @field actual number
+--- @field typesDB table
+AETHR._spawnerTypeConfig = {} ---@diagnostic disable-line
+---
+--- @param typeName string
+--- @param count number
+--- @param min number
+--- @param max number
+--- @param nominal number
+--- @param limited boolean
+--- @return _spawnerTypeConfig instance
+function AETHR._spawnerTypeConfig:New(typeName, count, min,max,nominal,limited)
+    local instance = {
+        typeName = typeName,
+        count = 0,
+        min = 0,
+        max = 0,
+        nominal = 0,
+        actual = 0,
+        limited = true,
+        typesDB = {}
+    }
+
     return instance ---@diagnostic disable-line
 end
