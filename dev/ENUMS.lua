@@ -196,6 +196,7 @@ AETHR.ENUMS = {
         WATER = land.SurfaceType.WATER,
         ROAD = land.SurfaceType.ROAD,
         RUNWAY = land.SurfaceType.RUNWAY,
+        NIL = "nil" -- Represents an undefined or non-existent surface type,
     },
     Events = {
         S_EVENT_SHOT = world.event.S_EVENT_SHOT,
