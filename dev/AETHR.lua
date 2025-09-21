@@ -262,6 +262,11 @@ function AETHR:BackgroundProcesses()
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnGroundGroups, function(parentAETHR)
         parentAETHR.WORLD:spawnGroundGroups()
     end, self)
+
+        --deSpawn queued ground Groups
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.despawnGroundGroups, function(parentAETHR)
+        parentAETHR.WORLD:despawnGroundGroups()
+    end, self)
     
 
     self.BRAIN:runScheduledTasks(2)

@@ -134,7 +134,7 @@ function AETHR.SPAWNER:activateGroup(groupName)
 end
 
 function AETHR.SPAWNER:deactivateGroup(groupName)
-    self:updateDBGroupInfo(groupName)
+    -- self:updateDBGroupInfo(groupName)
     trigger.action.deactivateGroup(Group.getByName(groupName))
     return self
 end
@@ -168,5 +168,11 @@ function AETHR.SPAWNER:spawnGroup(groupName)
     local _group = self.DATA.generatedGroups[groupName]
     coalition.addGroup(_group.countryID, Group.Category.GROUND, _group)
     table.insert(self.DATA.spawnQueue, groupName)
+    return self
+end
+
+function AETHR.SPAWNER:despawnGroup(groupName)
+    self:updateDBGroupInfo(groupName)
+    table.insert(self.DATA.despawnQueue, groupName)
     return self
 end
