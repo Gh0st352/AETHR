@@ -1,5 +1,5 @@
 --- @class __template
---- @field minX number
+--- @field c table
 AETHR.__template = {} ---@diagnostic disable-line
 ---
 --- @param c table
@@ -681,30 +681,30 @@ AETHR._groundGroup = {} ---@diagnostic disable-line
 --- @param countryID number|nil
 --- @return _groundGroup instance
 function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, hiddenOnPlanner, hiddenOnMFD,
-                                route, tasks, units, y, x, name, start_time, task, uncontrollable,countryID)
+                                route, tasks, units, y, x, name, start_time, task, uncontrollable, countryID)
     local instance = {
-        visible = visible or false,
-        uncontrollable = uncontrollable or false,
-        taskSelected = taskSelected or true,
-        lateActivation = lateActivation or true,
-        hidden = hidden or false,                   --- boolean whether or not the group is visible on the F10 map view
+        visible         = visible or false,
+        uncontrollable  = uncontrollable or false,
+        taskSelected    = taskSelected or true,
+        lateActivation  = lateActivation or true,
+        hidden          = hidden or false,          --- boolean whether or not the group is visible on the F10 map view
         hiddenOnPlanner = hiddenOnPlanner or false, --- boolean if true the group will be hidden on the mission planner available in single player.
-        hiddenOnMFD = hiddenOnMFD or false,         --- boolean if true this group will not be auto populated on relevant aircraft map screens and avionics. For instance SAM rings in F-16/F-18 and AH-64 threats pages
-        route = route or
+        hiddenOnMFD     = hiddenOnMFD or false,     --- boolean if true this group will not be auto populated on relevant aircraft map screens and avionics. For instance SAM rings in F-16/F-18 and AH-64 threats pages
+        route           = route or
             {
             }, -- end of route
-        tasks = tasks or
+        tasks           = tasks or
             {
             }, -- end of tasks
-        units = units or
+        units           = units or
             {
             }, -- end of ipair units
-        y = y or 0,
-        x = x or 0,
-        name = name or nil,
-        start_time = start_time or 0, -- time in seconds from mission start when the group will be spawned
-        task = task or "Ground Nothing",
-        countryID   = countryID or 0,
+        y               = y or 0,
+        x               = x or 0,
+        name            = name or nil,
+        start_time      = start_time or 0, -- time in seconds from mission start when the group will be spawned
+        task            = task or "Ground Nothing",
+        countryID       = countryID or 0,
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
     return instance ---@diagnostic disable-line
@@ -732,3 +732,54 @@ end
 --- @field displayName string Human-readable airbase name (display key used in DATA.AIRBASES)
 --- @field coords table Optional coordinate descriptor (format may vary)
 --- @field [any] any Additional provider-specific fields.
+
+
+--- @class _dynamicSpawner
+--- @field c table
+AETHR._dynamicSpawner = {} ---@diagnostic disable-line
+---
+--- @param c table
+--- @return _dynamicSpawner instance
+function AETHR._dynamicSpawner:New(c)
+    local instance = {
+        Zones = {
+            Main = {}, -- single AETHR._zoneObject:New(),
+            Sub = {},  --array of AETHR._zoneObject:New(),
+            Restricted = {},
+        },
+        SpawnTypes = {},
+        LimitedSpawnTypes = {},
+    }
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _spawnerZone
+--- @field c table
+AETHR._spawnerZone = {} ---@diagnostic disable-line
+---
+--- @param c table
+--- @return _spawnerZone instance
+function AETHR._spawnerZone:New(c)
+    local instance = {
+        name = "",
+        size = {
+            -- Minimum size of the main zone.
+            minRadius = 1000,
+            -- Maximum size of the main zone.
+            maxRadius = 10000,
+            -- Default size of the main zone.
+            nominalRadius = 5000,
+            -- Adjustment factor for the main zone size.
+            nudgeFactor = 0.5,
+            -- Actual calculated size of the main zone.
+            actualRadius = 5000
+        },
+        triggerZone = {},
+        numSubZones = 0,
+        avgDistribution = 0,
+
+
+
+    }
+    return instance ---@diagnostic disable-line
+end
