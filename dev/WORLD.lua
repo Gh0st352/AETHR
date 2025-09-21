@@ -15,10 +15,10 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA AETHR.WORLD.Data Container for zone management data.
---- @field AIRBASES table<string, _airbase>                       Airbase descriptors keyed by displayName
---- @field worldDivisions table<number, _WorldDivision>          Grid division definitions keyed by ID
---- @field saveDivisions table<number, _WorldDivision>           Active divisions keyed by ID
---- @field divisionSceneryObjects table<number, table<number, _FoundObject>>  DivisionID -> (objectID -> _FoundObject)
+--- @field AIRBASES table<string, _airbase> Airbase descriptors keyed by displayName
+--- @field worldDivisions table<number, _WorldDivision> Grid division definitions keyed by ID
+--- @field saveDivisions table<number, _WorldDivision> Active divisions keyed by ID
+--- @field divisionSceneryObjects table<number, table<number, _FoundObject>> DivisionID -> (objectID -> _FoundObject)
 --- @field divisionStaticObjects table<number, table<number, _FoundObject>>
 --- @field divisionBaseObjects table<number, table<number, _FoundObject>>
 AETHR.WORLD = {} ---@diagnostic disable-line
@@ -31,6 +31,12 @@ AETHR.WORLD = {} ---@diagnostic disable-line
 --- @field divisionSceneryObjects table<integer, table<integer, _FoundObject>>  DivisionID -> (objectID -> _FoundObject)
 --- @field divisionStaticObjects table<integer, table<integer, _FoundObject>>
 --- @field divisionBaseObjects table<integer, table<integer, _FoundObject>>
+--- @field groundUnitsDB table<string, _foundObject>             Ground units keyed by object name/id
+--- @field groundGroupsDB table<string, table<string>>           Ground groups keyed by group name -> unit name list
+--- @field mizCacheDB table<string, table>                       Cached mission file group objects keyed by group name
+--- @field spawnerTemplateDB table<string, table>                Cached spawn template groups keyed by template name
+--- @field spawnerAttributesDB table<string, table<string, table>> Attributes -> (typeName -> unitDesc)
+--- @field spawnerUnitInfoCache table<string, table>             Cached unit descriptor keyed by typeName
 AETHR.WORLD.DATA = {
     AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
     worldDivisions         = {}, -- Grid division definitions keyed by ID.
@@ -47,8 +53,9 @@ AETHR.WORLD.DATA = {
 }
 
 
---- @param parent AETHR
---- @return AETHR.WORLD
+--- Create a new WORLD instance attached to parent AETHR.
+--- @param parent AETHR Parent AETHR instance (owner)
+--- @return AETHR.WORLD instance
 function AETHR.WORLD:New(parent)
     local instance = {
         AETHR = parent,
@@ -59,8 +66,9 @@ function AETHR.WORLD:New(parent)
     return instance ---@diagnostic disable-line
 end
 
---- Initializes in/out-of-bounds and gaps data by loading from storage or generating it.
---- @return AETHR.WORLD self
+--- Initializes MIZ-file related caches by loading from storage or generating defaults.
+--- If no stored cache is found, this will generate and persist a new cache.
+--- @return AETHR.WORLD self (for chaining)
 function AETHR.WORLD:initMizFileCache()
     local data = self:getStoredMizFileCache()
     if data then
@@ -75,6 +83,9 @@ function AETHR.WORLD:initMizFileCache()
     return self
 end
 
+--- Attempts to load persisted MIZ file-derived caches from disk.
+--- Returns nil when any of the expected files is missing or invalid.
+--- @return table|nil data Table with keys: MIZ_CACHE_DB, SPAWNER_TEMPLATE_DB, SPAWNER_ATTRIBUTE_DB, SPAWNER_UNIT_CACHE_DB, or nil if incomplete
 function AETHR.WORLD:getStoredMizFileCache()
     local data = {}
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER
@@ -103,6 +114,9 @@ function AETHR.WORLD:getStoredMizFileCache()
     return nil
 end
 
+--- Persists current MIZ-file caches to disk.
+--- Uses configured storage paths and filenames.
+--- @return nil
 function AETHR.WORLD:saveMizFileCache()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER
 
@@ -119,6 +133,13 @@ function AETHR.WORLD:saveMizFileCache()
     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerUnitInfoCache)
 end
 
+--- Scans env.mission structure to build caches of groups and unit descriptors for spawner usage.
+--- Populates:
+---   * DATA.mizCacheDB (group objects from mission file)
+---   * DATA.spawnerTemplateDB (groups matching configured spawn template string)
+---   * DATA.spawnerUnitInfoCache (typeName -> desc)
+---   * DATA.spawnerAttributesDB (attribute -> typeName -> desc)
+--- @return AETHR.WORLD self
 function AETHR.WORLD:generateMizFileCache()
     self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache -------------")
     local mizCache = self.DATA.mizCacheDB
@@ -133,6 +154,7 @@ function AETHR.WORLD:generateMizFileCache()
                 if k ~= "id" and k ~= "name" then
                     local typeKey = k -- "plane", "vehicle", "static", "ship", "helicopter"
                     for __, groupObj in ipairs(v.group) do
+                        -- Attach metadata used by spawner logic
                         groupObj.AETHR = {
                             coalition = _coal,
                             countryID = _countryID,
@@ -183,6 +205,7 @@ end
 
 --- @function AETHR.WORLD:markWorldDivisions
 --- @brief Displays active world divisions on the map with randomized colors.
+--- Draws polygon markers for each active division and advances the global marker counter.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:markWorldDivisions()
     local divisions = self.DATA.saveDivisions
@@ -228,9 +251,9 @@ end
 
 --- Searches for objects of a given category within a 3D box volume.
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
---- @param corners _vec2xz[] Array of base corner points (x,z)
+--- @param corners _vec2xz[] Array of base corner points (x,z) used to compute the box
 --- @param height number Height of the search volume in meters
---- @return table<number, _FoundObject> found Found objects keyed by object ID
+--- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
@@ -253,7 +276,8 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     return found
 end
 
---- Retrieves all airbases in the world and stores their data.
+--- Retrieves all airbases in the world and stores their data in DATA.AIRBASES.
+--- Populates AETHR._airbase objects and assigns them to corresponding MIZ zones when found.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:getAirbases()
     local bases = world.getAirbases() -- Array of airbase objects
@@ -310,6 +334,9 @@ function AETHR.WORLD:getAirbases()
     return self
 end
 
+--- Updates airbase coalition ownership by comparing stored ownership against current engine state.
+--- Uses coroutine yield hints from BRAIN.DATA.coroutines.updateAirfieldOwnership to avoid long blocking runs.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:updateAirbaseOwnership()
     self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -------------")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
@@ -339,6 +366,9 @@ function AETHR.WORLD:updateAirbaseOwnership()
     return self
 end
 
+--- Activates queued ground groups by name using Group.activate.
+--- Processes spawnQueue from SPAWNER.DATA and yields periodically if a coroutine is configured.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:spawnGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups -------------")
     local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
@@ -362,6 +392,9 @@ function AETHR.WORLD:spawnGroundGroups()
     return self
 end
 
+--- Deactivates queued ground groups by name using trigger.action.deactivateGroup.
+--- Processes despawnQueue from SPAWNER.DATA and yields periodically if configured.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:despawnGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups -------------")
     local co_ = self.BRAIN.DATA.coroutines.despawnGroundGroups
@@ -385,6 +418,9 @@ function AETHR.WORLD:despawnGroundGroups()
     return self
 end
 
+--- Recomputes zone ownership based on airbase counts within each zone.
+--- Uses configured enums and yields to avoid long blocking runs.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:updateZoneOwnership()
     self.UTILS:debugInfo("AETHR.WORLD:updateZoneOwnership -------------")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
@@ -431,6 +467,9 @@ function AETHR.WORLD:updateZoneOwnership()
     return self
 end
 
+--- Updates zone marker colors to reflect ownership changes.
+--- Uses UTILS:updateMarkupColors to change map markers and uses coroutine yield hints.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:updateZoneColors()
     self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors -------------")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
@@ -470,6 +509,9 @@ function AETHR.WORLD:updateZoneColors()
     return self
 end
 
+--- Updates the visibility of border arrows between zones based on ownership differences.
+--- Iterates BorderingZones on each zone and shows/hides arrows for the coalition that should be displayed.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:updateZoneArrows()
     self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows -------------")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
@@ -534,6 +576,10 @@ function AETHR.WORLD:updateZoneArrows()
     return self
 end
 
+--- Rebuilds the ground unit database by scanning active divisions for UNIT objects.
+--- This function is designed to run incrementally across coroutine invocations.
+--- The coroutine `co_` holds persistent state in `co_.state` to remember progress across runs.
+--- @return AETHR.WORLD self
 function AETHR.WORLD:updateGroundUnitsDB()
     self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB -------------")
     local UTILS = self.UTILS
@@ -627,6 +673,14 @@ function AETHR.WORLD:updateGroundUnitsDB()
     return self
 end
 
+--- Callback invoked when an airbase changes ownership.
+--- This function uses the signature (airbaseName, newOwner, zoneName, self) so it can be used as an event callback
+--- where `self` is passed explicitly as the last argument.
+--- @param airbaseName string Display name of the airbase
+--- @param newOwner integer Coalition id (AETHR.ENUMS.Coalition)
+--- @param zoneName string Name of the zone the airbase belongs to
+--- @param self AETHR.WORLD The world instance (passed explicitly)
+--- @return AETHR.WORLD self
 function AETHR.WORLD.airbaseOwnershipChanged(airbaseName, newOwner, zoneName, self)
     local oldOwner = self.ZONE_MANAGER and
         self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].Airbases[airbaseName].previousCoalition or
@@ -657,6 +711,12 @@ function AETHR.WORLD.airbaseOwnershipChanged(airbaseName, newOwner, zoneName, se
     return self
 end
 
+--- Callback invoked when a zone changes ownership.
+--- Signature: zoneOwnershipChanged(zoneName, newOwner, self)
+--- @param zoneName string Zone display name
+--- @param newOwner integer Coalition id (AETHR.ENUMS.Coalition)
+--- @param self AETHR.WORLD The world instance (passed explicitly)
+--- @return AETHR.WORLD self
 function AETHR.WORLD.zoneOwnershipChanged(zoneName, newOwner, self)
     local oldOwner = self.ZONE_MANAGER and self.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].oldOwnedBy or
         self.AETHR.ZONE_MANAGER.DATA.MIZ_ZONES[zoneName].oldOwnedBy
@@ -692,7 +752,7 @@ function AETHR.WORLD.zoneOwnershipChanged(zoneName, newOwner, self)
 end
 
 --- Loads saved active divisions from storage.
---- @return table<number, _WorldDivision>|nil data
+--- @return table<number, _WorldDivision>|nil data Loaded saveDivisions or nil if none found
 function AETHR.WORLD:loadActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SAVE_DIVS_FILE
@@ -703,7 +763,7 @@ function AETHR.WORLD:loadActiveDivisions()
     return nil
 end
 
---- Persists current active divisions to storage.
+--- Persists current active divisions to configured storage location.
 --- @return nil
 function AETHR.WORLD:saveActiveDivisions()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
@@ -712,6 +772,7 @@ function AETHR.WORLD:saveActiveDivisions()
 end
 
 --- Evaluates worldDivisions against zones to populate saveDivisions map.
+--- Uses checkDivisionsInZones to compute active flags for each division.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:generateActiveDivisions()
     -- Compute active flags by intersection
@@ -766,6 +827,7 @@ function AETHR.WORLD:saveWorldDivisions()
 end
 
 --- Generates world divisions from theater bounds and configured division area.
+--- Each division will be a rectangle with .corners and an assigned numeric ID.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:generateWorldDivisions()
     -- Generate new divisions based on theater bounds and division area
@@ -960,10 +1022,10 @@ end
 
 --- Internal helper to initialize objects for any category across active divisions.
 --- Reduces duplication across initSceneryInDivisions, initBaseInDivisions, initStaticInDivisions.
----@param objectCategory integer Category id (AETHR.ENUMS.ObjectCategory)
----@param filename string Save file basename
----@param targetField "divisionSceneryObjects"|"divisionStaticObjects"|"divisionBaseObjects"
----@return AETHR.WORLD self
+--- @param objectCategory integer Category id (AETHR.ENUMS.ObjectCategory)
+--- @param filename string Save file basename
+--- @param targetField "divisionSceneryObjects"|"divisionStaticObjects"|"divisionBaseObjects"
+--- @return AETHR.WORLD self
 function AETHR.WORLD:_initObjectsInDivisions(objectCategory, filename, targetField)
     local storage = self.CONFIG.MAIN.STORAGE
     local root = storage.PATHS.OBJECTS_FOLDER
@@ -991,6 +1053,7 @@ function AETHR.WORLD:_initObjectsInDivisions(objectCategory, filename, targetFie
     return self
 end
 
+--- Initialize scenery objects cache for active divisions.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:initSceneryInDivisions()
     return self:_initObjectsInDivisions(
@@ -1000,6 +1063,7 @@ function AETHR.WORLD:initSceneryInDivisions()
     )
 end
 
+--- Initialize base objects cache for active divisions.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:initBaseInDivisions()
     return self:_initObjectsInDivisions(
@@ -1009,6 +1073,7 @@ function AETHR.WORLD:initBaseInDivisions()
     )
 end
 
+--- Initialize static objects cache for active divisions.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:initStaticInDivisions()
     return self:_initObjectsInDivisions(

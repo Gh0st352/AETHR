@@ -1,6 +1,6 @@
 --- @class AETHR.UTILS
 --- @brief Manages mission trigger zones and computes bordering relationships.
----@diagnostic disable: undefined-global
+--- @diagnostic disable: undefined-global
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
@@ -9,7 +9,7 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA table Container for zone management data.
---- @field DATA.AIRBASES table -- Airbase descriptors keyed by displayName.
+--- @field _cache table Private runtime cache attached to the instance.
 AETHR.UTILS = {} ---@diagnostic disable-line
 AETHR.UTILS.DATA = {
 
@@ -30,23 +30,10 @@ function AETHR.UTILS:New(parent)
   return instance ---@diagnostic disable-line
 end
 
--- --- Checks whether a value exists in a table (legacy name).
--- --- @function AETHR.UTILS:table_hasValue
--- --- @param tbl table Table to search.
--- --- @param val any Value to search for.
--- --- @return boolean True if found, false otherwise.
--- function AETHR.UTILS:table_hasValue(tbl, val)
---   for index, value in pairs(tbl) do
---     if value == val then
---       return true
---     end
---   end
---   return false
--- end
-
 --- Returns the number of entries in a table (non-nil keys).
+--- Performs a linear iteration over pairs(t) and counts entries.
 --- @function AETHR.UTILS.sumTable
---- @param t table
+--- @param t table Table to count keys in.
 --- @return integer count Number of keys in the table.
 function AETHR.UTILS.sumTable(t)
   local sum = 0
@@ -56,22 +43,24 @@ function AETHR.UTILS.sumTable(t)
   return sum
 end
 
----  timer.getTime( ) Returns the mission start time in seconds.
+--- timer.getTime( ) Returns the mission start time in seconds.
 --- timer.getAbsTime( ) Returns the game world time in seconds relative to time the mission started.
+--- Returns the elapsed mission time in seconds (timer.getAbsTime - timer.getTime0).
 --- @function AETHR.UTILS.getTime
---- @return number time_ms Current time in milliseconds (approx).
+--- @return number time_s Current time in seconds (approx).
 function AETHR.UTILS.getTime()
   return timer.getAbsTime() - timer.getTime0()
 end
 
 --- Log debug information if debugging is enabled.
 ---
---- Logs a given message when the SPECTRE.DebugEnabled flag is set to 1.
---- If additional data is provided, it's also logged.
+--- Logs a given message when the CONFIG.MAIN.DEBUG_ENABLED flag is set on the instance.
+--- If additional structured data is provided, attempts to log via global BASE:E if available.
+--- Guards against missing global functions (env.info, BASE:E) and fails silently on errors.
 ---
 --- @param message string The debug message to be logged.
---- @param data any|nil Optional data to be logged.
---- @usage AETHR.UTILS.debugInfo("Debug Message", {key="value"}) -- Logs the message and data if debugging is enabled.
+--- @param data any|nil Optional structured data to be logged via BASE:E when available.
+--- @usage AETHR.UTILS:debugInfo("Debug Message", {key="value"}) -- Logs the message and data if debugging is enabled.
 function AETHR.UTILS:debugInfo(message, data)
   -- Guard against missing config or runtime env
   local enabled = false
@@ -95,8 +84,8 @@ function AETHR.UTILS:debugInfo(message, data)
 end
 
 --- Return the vertical coordinate for a point-like table.
---- Accepts tables with either `.y` or `.z` fields (DCS uses z for map Y).
---- @param pt table|nil
+--- Accepts tables with either `.y` or `.z` fields (DCS commonly uses `z` for map Y).
+--- @param pt AETHR.PointLike|nil Point or nil.
 --- @return number|nil y y-coordinate or nil if pt absent
 function AETHR.UTILS:getPointY(pt)
   if not pt then return nil end
@@ -104,18 +93,19 @@ function AETHR.UTILS:getPointY(pt)
 end
 
 --- Normalize a point-like table into { x = number, y = number } form.
---- Does not modify the input table; returns a new table.
---- @param pt table|nil
---- @return table normalized point
+--- Does not modify the input table; returns a new table. Missing components default to 0.
+--- @param pt AETHR.PointLike|nil
+--- @return AETHR.NormalizedPoint normalized point
 function AETHR.UTILS:normalizePoint(pt)
   if not pt then return { x = 0, y = 0 } end
   return { x = pt.x or 0, y = (pt.y ~= nil) and pt.y or (pt.z or 0) }
 end
 
 --- Alias for legacy name table_hasValue -> hasValue
---- @param tbl table
---- @param val any
---- @return boolean
+--- Performs a linear search for value equality using pairs iteration.
+--- @param tbl table Table to search through.
+--- @param val any Value to search for.
+--- @return boolean True if found, false otherwise.
 function AETHR.UTILS:hasValue(tbl, val)
   for index, value in pairs(tbl) do
     if value == val then
@@ -126,8 +116,19 @@ function AETHR.UTILS:hasValue(tbl, val)
 end
 
 -- keep backward-compatible function name
+--- Backwards-compatible alias: calls :hasValue
+--- @function AETHR.UTILS:table_hasValue
+--- @param tbl table
+--- @param val any
+--- @return boolean
 function AETHR.UTILS:table_hasValue(tbl, val) return self:hasValue(tbl, val) end
 
+--- Safely resolve a dotted path against the global environment `_G`.
+--- Example: "Object.Category.UNIT"
+--- If any part is missing or an intermediate value is not a table, returns the provided fallback.
+--- @param path string Dotted path string to resolve (e.g. "A.B.C")
+--- @param fallback any Value to return when lookup fails.
+--- @return any value Resolved value or `fallback` if not found.
 function AETHR.UTILS.safe_lookup(path, fallback)
   -- path: string like "Object.Category.UNIT"
   -- fallback: value to return if lookup fails
@@ -140,6 +141,12 @@ function AETHR.UTILS.safe_lookup(path, fallback)
   return cur
 end
 
+--- Update markup colors (line and fill) for a DCS markup object.
+--- Wraps trigger.action.setMarkupColor and setMarkupColorFill for convenience and returns the instance for chaining.
+--- @param markupID integer DCS markup object ID.
+--- @param lineColor AETHR.Color Color table used for the outline/line.
+--- @param fillColor AETHR.Color Color table used for the fill.
+--- @return AETHR.UTILS self The UTILS instance (for method chaining).
 function AETHR.UTILS:updateMarkupColors(markupID, lineColor, fillColor)
   trigger.action.setMarkupColor(markupID, lineColor)
   trigger.action.setMarkupColorFill(markupID, fillColor)

@@ -10,14 +10,34 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field UTILS AETHR.UTILS Utils submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+---
+--- Type aliases used by EmmyLua aware editors to improve completion and linting:
+--- @class Vec2
+--- @field x number
+--- @field y number
+---
+--- @class Vec3
+--- @field x number
+--- @field y number
+--- @field z number
+---
+--- @alias Vec2Like Vec2|{ x: number, z: number }  -- supports y or z vertical coordinate
+--- @alias Line2 table<number, Vec2>                -- { [1] = Vec2, [2] = Vec2 }
+--- @class Line2Obj
+--- @field p1 Vec2
+--- @field p2 Vec2
+---
+--- @class BoundsXZ
+--- @field X table
+--- @field Z table
 AETHR.POLY = {} ---@diagnostic disable-line
 
 --- @function AETHR.POLY.segmentsIntersect
 --- @brief Determines if two line segments intersect or touch.
---- @param p1 table First segment endpoint `{x, y}`.
---- @param p2 table First segment endpoint `{x, y}`.
---- @param q1 table Second segment endpoint `{x, y}`.
---- @param q2 table Second segment endpoint `{x, y}`.
+--- @param p1 Vec2 First segment endpoint.
+--- @param p2 Vec2 First segment endpoint.
+--- @param q1 Vec2 Second segment endpoint.
+--- @param q2 Vec2 Second segment endpoint.
 --- @return boolean True if segments intersect or touch.
 function AETHR.POLY:segmentsIntersect(p1, p2, q1, q2)
     local o1 = self:orientation(p1, p2, q1)
@@ -38,8 +58,8 @@ end
 
 --- @function AETHR.POLY.pointInPolygon
 --- @brief Tests if point lies inside polygon using ray-casting algorithm.
---- @param pt table Point `{x, y}` to test.
---- @param poly table Array of polygon vertices `{x, y}`.
+--- @param pt Vec2Like Point to test ({x,y} or {x,z}).
+--- @param poly Vec2Like[] Array of polygon vertices.
 --- @return boolean True if inside, false otherwise.
 function AETHR.POLY:pointInPolygon(pt, poly)
     local inside = false
@@ -64,8 +84,8 @@ end
 
 --- @function AETHR.POLY.polygonsOverlap
 --- @brief Determines if two polygons overlap by vertex-in-polygon or edge intersection.
---- @param A table Array of vertices `{x, y}` for polygon A.
---- @param B table Array of vertices `{x, y}` for polygon B.
+--- @param A Vec2Like[] Array of vertices for polygon A.
+--- @param B Vec2Like[] Array of vertices for polygon B.
 --- @return boolean True if any overlap detected.
 function AETHR.POLY:polygonsOverlap(A, B)
     -- Check if any A vertex lies in B.
@@ -91,9 +111,9 @@ end
 
 --- @function AETHR.POLY.orientation
 --- @brief Computes the orientation determinant of three points.
---- @param a table Point `{x, y}`.
---- @param b table Point `{x, y}`.
---- @param c table Point `{x, y}`.
+--- @param a Vec2Like Point A.
+--- @param b Vec2Like Point B.
+--- @param c Vec2Like Point C.
 --- @return number >0 if counter-clockwise, <0 if clockwise, 0 if colinear.
 function AETHR.POLY:orientation(a, b, c)
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
@@ -101,9 +121,9 @@ end
 
 --- @function AETHR.POLY.onSegment
 --- @brief Checks if point `c` lies on segment `[a, b]` inclusive.
---- @param a table Endpoint `{x, y}`.
---- @param c table Point to test `{x, y}`.
---- @param b table Endpoint `{x, y}`.
+--- @param a Vec2 Endpoint A.
+--- @param c Vec2 Point to test.
+--- @param b Vec2 Endpoint B.
 --- @return boolean True if c lies on segment, false otherwise.
 function AETHR.POLY:onSegment(a, c, b)
     return c.x >= math.min(a.x, b.x) and c.x <= math.max(a.x, b.x)
@@ -112,9 +132,9 @@ end
 
 --- @function AETHR.POLY.getBoxPoints
 --- @brief Calculates bounding box min/max points for a set of corners and height.
---- @param corners table Array of corner points (x,z)
---- @param height number Vertical extent
---- @return table { min={x,y,z}, max={x,y,z} }
+--- @param corners Vec3[] Array of corner points (expects x and z).
+--- @param height number Vertical extent (y maximum).
+--- @return table{ min = Vec3, max = Vec3 } Bounding box with min/max vectors.
 function AETHR.POLY:getBoxPoints(corners, height)
     local minPt = { x = math.huge, y = 0, z = math.huge }
     local maxPt = { x = -math.huge, y = height, z = -math.huge }
@@ -136,7 +156,7 @@ end
 --------------------------------------------------------------------------------
 --- Return the vertical coordinate for a point-like table (supports .y or .z).
 --- @function AETHR.POLY:getY
---- @param pt table|nil Point-like table with .y or .z fields.
+--- @param pt Vec2Like|Vec3|nil Point-like table with .y or .z fields.
 --- @return number|nil Vertical coordinate (y or z) or nil if pt absent.
 function AETHR.POLY:getY(pt)
     -- Return the vertical coordinate for a point-like table (supports .y or .z)
@@ -146,8 +166,8 @@ end
 
 --- Normalize a point-like table into { x = number, y = number } without mutating input.
 --- @function AETHR.POLY:normalizePoint
---- @param pt table|nil Point-like table with x and y or z.
---- @return table Normalized point { x = number, y = number }.
+--- @param pt Vec2Like|Vec3|nil Point-like table with x and y or z.
+--- @return Vec2 Normalized point { x = number, y = number }.
 function AETHR.POLY:normalizePoint(pt)
     -- Normalize a point-like table into { x = number, y = number } without mutating input.
     if not pt then return { x = 0, y = 0 } end
@@ -165,8 +185,8 @@ end
 --- - If the point is collinear with an edge, the function uses onLine to decide if the point lies on that edge.
 --- - Returns true for points strictly inside (odd number of intersections), false otherwise.
 --- @function AETHR.POLY:PointWithinShape
---- @param P table Point to test; expects numeric x and y (or z) field.
---- @param Polygon table<_vec2> Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
+--- @param P Vec2Like Point to test; expects numeric x and y (or z) field.
+--- @param Polygon Vec2Like[] Array of polygon vertices. Each vertex is a table with numeric x and y (or z) field.
 --- @return boolean True if P is inside the polygon (or on an edge when onLine returns true), false otherwise.
 function AETHR.POLY:PointWithinShape(P, Polygon)
     local n = #Polygon
@@ -230,8 +250,8 @@ end
 --- - WS_Vec3 and EN_Vec3 should be vector-like tables describing min and max coordinates respectively.
 --- - Returns a simple table with id and params suitable for whatever world API consumes it.
 --- @function AETHR.POLY.createBox
---- @param WS_Vec3 table Minimum corner vector (table with numeric x,y,z or equivalent fields).
---- @param EN_Vec3 table Maximum corner vector (table with numeric x,y,z or equivalent fields).
+--- @param WS_Vec3 Vec3 Minimum corner vector (table with numeric x,y,z or equivalent fields).
+--- @param EN_Vec3 Vec3 Maximum corner vector (table with numeric x,y,z or equivalent fields).
 --- @return table Volume descriptor in the form { id = world.VolumeType.BOX, params = { min = WS_Vec3, max = EN_Vec3 } }.
 function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     local box = {
@@ -251,6 +271,9 @@ end
 --- - Accepts vertices using `y` or `z` (prefers `y`).
 --- Example:
 --- local poly = AETHR.POLY:convertLinesToPolygon(masterPolyLines, 0.1)
+--- @param lines Line2[] Array of unordered line segments, each segment is a pair of point-tables.
+--- @param vertOffset number|nil tolerance to consider endpoints equal (units same as coordinates)
+--- @return Vec2[]|nil Ordered polygon vertices or nil when a closed polygon could not be reconstructed.
 function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
     if type(lines) ~= "table" or #lines == 0 then
         return nil
@@ -403,9 +426,9 @@ function AETHR.POLY:convertLinesToPolygon(lines, vertOffset)
 end
 
 --- Converts a polygon (list of points) into an array of line segments.
---- @function convertZoneToLines
---- @param zone table Array of points `{x,y}` or `{x,z}`
---- @return table Array of segments `{{x,y},{x,y}}`
+--- @function convertPolygonToLines
+--- @param zone Vec2Like[] Array of points `{x,y}` or `{x,z}`
+--- @return Line2[] Array of segments `{{x,y},{x,y}}`
 function AETHR.POLY:convertPolygonToLines(zone)
     local lines = {}
     for i = 1, #zone do
@@ -419,9 +442,9 @@ end
 --- Divides a quadrilateral polygon into sub-polygons of roughly equal area.
 --- Calculates rows and columns based on aspect ratio.
 --- @function dividePolygon
---- @param polygon table Array of `{x,z}` four corners
+--- @param polygon Vec3[] Array of `{x,z}` four corners in clockwise order
 --- @param targetArea number Desired area per sub-polygon
---- @return table Array of division tables `{ corners = {pt1,pt2,pt3,pt4} }`
+--- @return table[] Array of division tables `{ corners = {pt1,pt2,pt3,pt4} }`
 function AETHR.POLY:dividePolygon(polygon, targetArea)
     local total     = self:polygonArea(polygon)
     local count     = math.max(1, math.floor(total / targetArea + 0.5))
@@ -493,8 +516,8 @@ end
 
 --- Computes the area of a polygon using the Shoelace formula.
 --- @function polygonArea
---- @param polygon table Array of `{x,z}` vertices
---- @return any abs area value
+--- @param polygon Vec3[] Array of `{x,z}` vertices
+--- @return number Absolute area value (non-negative)
 function AETHR.POLY:polygonArea(polygon)
     local n = #polygon
     if n < 3 then return 0 end
@@ -509,8 +532,8 @@ end
 --- Ensures a quadrilateral polygon is convex by checking cross product signs.
 --- Swaps the last two vertices if orientation is inconsistent.
 --- @function ensureConvex
---- @param coords table Array of four `{x,z}` points
---- @return table Possibly reordered convex polygon
+--- @param coords Vec3[] Array of four `{x,z}` points
+--- @return Vec3[] Possibly reordered convex polygon
 function AETHR.POLY:ensureConvex(coords)
     local signs = {
         self.MATH:crossProduct(coords[1], coords[2], coords[3]) >= 0,
@@ -525,6 +548,9 @@ function AETHR.POLY:ensureConvex(coords)
     return coords
 end
 
+--- Ensure consistent orientation and remove self-intersections for N-point polygons.
+--- @param coords Vec2Like[] Array of points
+--- @return Vec2Like[] Ordered polygon with preserved vertices
 function AETHR.POLY:ensureConvexN(coords)
     local n = #coords
     if n < 3 then return coords end
@@ -699,8 +725,8 @@ end
 --- Ensures convexity of the resulting polygon.
 --- @function AETHR.POLY.convertBoundsToPolygon
 --- @brief Converts world bounds into a convex quadrilateral polygon.
---- @param bounds table Structure with `X.min`, `X.max`, `Z.min`, `Z.max` coordinates.
---- @return table Array of four corner points `{x=number, z=number}` in clockwise order.
+--- @param bounds BoundsXZ Structure with `X.min`, `X.max`, `Z.min`, `Z.max` coordinates.
+--- @return Vec3[] Array of four corner points `{x=number, z=number}` in clockwise order.
 function AETHR.POLY:convertBoundsToPolygon(bounds)
     -- Create initial polygon corners: bottom-left, bottom-right, top-right, top-left
     local polygon = {
@@ -716,7 +742,7 @@ end
 
 --- Calculates the Euclidean length of a line segment.
 --- @function lineLength
---- @param line table Two points `{ {x,y},{x,y} }`
+--- @param line Line2 Two points `{ {x,y},{x,y} }`
 --- @return number Length of the segment
 function AETHR.POLY:lineLength(line)
     local dx = line[2].x - line[1].x
@@ -733,9 +759,9 @@ end
 --- - DesiredPoints is the number of interior samples; points are spaced at t = i/(DesiredPoints+1) for i=1..DesiredPoints.
 --- - Returns a list of points in the form { {x=..., y=...}, ... }.
 --- @function AETHR.POLY.getEquallySpacedPoints
---- @param InputLine table Two-element array of endpoints, each endpoint is a table with numeric x and y fields.
+--- @param InputLine Line2 Two-element array of endpoints, each endpoint is a table with numeric x and y fields.
 --- @param DesiredPoints integer Number of points to sample along the segment (interior points).
---- @return table OutputPoints Array of sampled points, each point being a table with x and y numeric fields.
+--- @return Vec2[] OutputPoints Array of sampled points, each point being a table with x and y numeric fields.
 function AETHR.POLY:getEquallySpacedPoints(InputLine, DesiredPoints)
     local P1, P2 = InputLine[1], InputLine[2]
     local OutputPoints = {}
@@ -764,8 +790,8 @@ end
 ---   returning true if either direction has enough sample points within the offset threshold.
 --- - This is an approximation: sampling density and the ratio calculation affect sensitivity.
 --- @function AETHR.POLY.isWithinOffset
---- @param LineA table Two-element array of endpoints for first line.
---- @param LineB table Two-element array of endpoints for second line.
+--- @param LineA Line2 Two-element array of endpoints for first line.
+--- @param LineB Line2 Two-element array of endpoints for second line.
 --- @param Offset number Distance threshold to consider a sampled point "within" the other line.
 --- @return boolean bool True if lines are considered within Offset of each other (approximate via sampling), false otherwise.
 function AETHR.POLY:isWithinOffset(LineA, LineB, Offset)
@@ -831,8 +857,8 @@ end
 --------------------------------------------------------------------------------
 --- Returns the midpoint of a line segment.
 --- @function AETHR.POLY.getMidpoint
---- @param line table Two-element array of endpoints, each with numeric x and y fields.
---- @return table A point with numeric fields x and y representing the midpoint of the segment.
+--- @param line Line2 Two-element array of endpoints, each with numeric x and y fields.
+--- @return Vec2 A point with numeric fields x and y representing the midpoint of the segment.
 function AETHR.POLY:getMidpoint(line)
     -- Calculate the x and y coordinates of the midpoint using the average of the endpoints' coordinates
     return {
@@ -848,7 +874,7 @@ end
 --- - If the line is vertical (dx == 0) the function returns math.huge to indicate an infinite slope.
 --- - The slope is computed as (y2 - y1) / (x2 - x1).
 --- @function AETHR.POLY.calculateLineSlope
---- @param line table Two-element array of endpoints, each with numeric x and y fields.
+--- @param line Line2 Two-element array of endpoints, each with numeric x and y fields.
 --- @return number Slope of the line (dy/dx), or math.huge for a vertical line.
 function AETHR.POLY:calculateLineSlope(line)
     -- Calculate the differences in x and y coordinates between the two points of the line
@@ -876,10 +902,10 @@ end
 ---   using the perpendicular slope.
 --- - The function returns a single endpoint in one perpendicular direction; to get both you may mirror the x displacement.
 --- @function AETHR.POLY.findPerpendicularEndpoints
---- @param Point table Starting point for the perpendicular segment. Expects numeric fields x and y.
---- @param line table Two-element array of endpoints defining the reference line, each with numeric x and y fields.
+--- @param Point Vec2 Starting point for the perpendicular segment. Expects numeric fields x and y.
+--- @param line Line2 Two-element array of endpoints defining the reference line, each with numeric x and y fields.
 --- @param length number Desired length of the perpendicular from Point to the endpoint.
---- @return table Endpoint point with numeric fields x and y located `length` away from Point along a perpendicular.
+--- @return Vec2 Endpoint point with numeric fields x and y located `length` away from Point along a perpendicular.
 function AETHR.POLY:findPerpendicularEndpoints(Point, line, length)
     -- Calculate the differences in x and y coordinates between the two points of the line
     local dx = line[2].x - line[1].x
@@ -908,8 +934,8 @@ end
 --- - Handles collinear overlap by checking whether endpoints of one segment lie on the other via onLine.
 --- - Returns true if segments intersect or touch (including collinear overlapping or touching at endpoints).
 --- @function AETHR.POLY.isIntersect
---- @param l1 table First line, with fields p1 and p2 (points with x and y).
---- @param l2 table Second line, with fields p1 and p2 (points with x and y).
+--- @param l1 Line2Obj First line, with fields p1 and p2 (points with x and y).
+--- @param l2 Line2Obj Second line, with fields p1 and p2 (points with x and y).
 --- @return boolean True if the segments intersect or touch, false otherwise.
 function AETHR.POLY:isIntersect(l1, l2)
     -- Calculate orientation values for each pair of points from the two lines
@@ -945,8 +971,8 @@ end
 --- - Assumes collinearity has already been established when used in conjunction with direction checks.
 --- - Returns true if p.x and p.y are within the bounding box of the segment endpoints.
 --- @function AETHR.POLY.onLine
---- @param l1 table Line with fields p1 and p2 (points with numeric x and y).
---- @param p table Point to test, with numeric x and y.
+--- @param l1 Line2Obj Line with fields p1 and p2 (points with numeric x and y).
+--- @param p Vec2 Point to test, with numeric x and y.
 --- @return boolean True if p lies on the segment [l1.p1, l1.p2], false otherwise.
 function AETHR.POLY:onLine(l1, p)
     -- Check if the x and y coordinates of the point are within the bounds of the line segment's endpoints
@@ -967,9 +993,9 @@ end
 
 --- Build a concave hull using a k-nearest heuristic.
 --- @function AETHR.POLY:concaveHull
---- @param pts _vec2[] Array of {x,y} points
+--- @param pts Vec2[] Array of {x,y} points
 --- @param opts table Optional parameters { k = int, concavity = int }
---- @return table|nil hull array or nil on failure
+--- @return Vec2[]|nil hull array or nil on failure
 function AETHR.POLY:concaveHull(pts, opts)
     if not pts or #pts < 3 then return nil end
     opts = opts or {}
@@ -1020,10 +1046,10 @@ function AETHR.POLY:concaveHull(pts, opts)
                 startIdx = i
             end
         end
-        ---@type _vec2
+        ---@type Vec2
         local current = { x = pts[startIdx].x, y = pts[startIdx].y } ---@diagnostic disable-line
         table.insert(hull, current)
-        ---@type _vec2
+        ---@type Vec2
         local prev = { x = current.x - 1, y = current.y } ---@diagnostic disable-line
         local step = 1
         local finished = false
@@ -1120,8 +1146,8 @@ end
 --------------------------------------------------------------------------------
 --- Monotone-chain convex hull (fallback for concave hull failure)
 --- @function AETHR.POLY:convexHull
---- @param points _vec2[] Array of {x,y}
---- @return table|nil hull array
+--- @param points Vec2[] Array of {x,y}
+--- @return Vec2[]|nil hull array
 function AETHR.POLY:convexHull(points)
     if not points or #points < 3 then return nil end
     local pts = {}
@@ -1149,10 +1175,10 @@ end
 --------------------------------------------------------------------------------
 --- Intersect a ray from pt in direction dir against axis-aligned bounds.
 --- @function AETHR.POLY:intersectRayToBounds
---- @param pt table {x,y}
---- @param dir table {x,y} normalized direction
---- @param bounds table { X={min,max}, Z={min,max} }
---- @return table|nil intersection {x,y} or nil
+--- @param pt Vec2 {x,y}
+--- @param dir Vec2 {x,y} normalized direction
+--- @param bounds BoundsXZ { X={min,max}, Z={min,max} }
+--- @return Vec2|nil intersection {x,y} or nil
 function AETHR.POLY:intersectRayToBounds(pt, dir, bounds)
     local candidates = {}
     local eps = 1e-12
@@ -1191,9 +1217,9 @@ end
 --------------------------------------------------------------------------------
 --- Check whether segment (a,b) intersects any consecutive segment of hull.
 --- @function AETHR.POLY:segmentIntersectsAny
---- @param a table point
---- @param b table point
---- @param hull table array of points (closed or open)
+--- @param a Vec2 point
+--- @param b Vec2 point
+--- @param hull Vec2[] array of points (closed or open)
 --- @return boolean
 function AETHR.POLY:segmentIntersectsAny(a, b, hull)
     for i = 1, #hull - 1 do
@@ -1213,11 +1239,11 @@ end
 --- those samples to the nearest original polygon segment when within snapDistance.
 --- Returns a new hull array with additional points inserted.
 --- @function AETHR.POLY:densifyHullEdges
---- @param hull table Array of {x,y} points (closed loop)
---- @param polygons table Array of polygons (each polygon = array of points)
+--- @param hull Vec2[] Array of {x,y} points (closed loop)
+--- @param polygons Vec2[][] Array of polygons (each polygon = array of points)
 --- @param samplesPerEdge integer Number of interior samples to generate per edge
 --- @param snapDistance number Tolerance for snapping samples to original polygon segments
---- @return table newHull
+--- @return Vec2[] newHull
 function AETHR.POLY:densifyHullEdges(hull, polygons, samplesPerEdge, snapDistance)
     if not samplesPerEdge or samplesPerEdge <= 0 then return hull end
     local newHull = {}
@@ -1275,6 +1301,11 @@ function AETHR.POLY:densifyHullEdges(hull, polygons, samplesPerEdge, snapDistanc
     return newHull
 end
 
+--- Finds polygonal gaps where a smaller polygon overlays a larger polygon's edges within a tolerance.
+--- @param smallerPolygon Vec2Like[] Polygon contained within largerPolygon (array of points)
+--- @param largerPolygon Vec2Like[] Polygon to inspect for overlayed gaps (array of points)
+--- @param offset number Tolerance distance to consider a vertex aligned; defaults to 1
+--- @return table[] Array of assembled gap polygons (each an array of points)
 function AETHR.POLY:findOverlaidPolygonGaps(smallerPolygon, largerPolygon, offset)
     offset = offset or 1
 
@@ -1347,10 +1378,6 @@ function AETHR.POLY:findOverlaidPolygonGaps(smallerPolygon, largerPolygon, offse
 
 
 
-
-
-
-
         polygonGaps[#polygonGaps + 1] = self:reorderSlaveToMaster(assembledGap, smallerPolygon) --assembledGap
     end
     return polygonGaps
@@ -1362,6 +1389,10 @@ end
 --   - Only entries in slave that also exist in master (by x,y) are included in the output.
 --   - Duplicates are handled in the order they appear in master.
 --   - Time complexity: O(#master + #slave)
+--- @function AETHR.POLY:reorderSlaveToMaster
+--- @param slaveVertTable Vec2Like[] Array of vertices to reorder
+--- @param masterVertTable Vec2Like[] Reference array ordering
+--- @return Vec2Like[] Reordered array of slave vertices matching master's order where possible
 function AETHR.POLY:reorderSlaveToMaster(slaveVertTable, masterVertTable)
     -- Reorders entries from `slaveVertTable` to match the order they appear in `masterVertTable`.
     -- Matching uses rounded coordinates (x,y) to `precision` decimals to allow near-equality.
@@ -1415,6 +1446,9 @@ function AETHR.POLY:reorderSlaveToMaster(slaveVertTable, masterVertTable)
     return out
 end
 
+--- Reverse the order of vertices in a table (returns a new table).
+--- @param vertTable Vec2Like[] Array of vertices
+--- @return Vec2Like[] Reversed vertex array
 function AETHR.POLY:reverseVertOrder(vertTable)
     local reverseVertTable = {}
     for i = #vertTable, 1, -1 do
@@ -1431,8 +1465,8 @@ end
 --- - 3+ vertices: returns the arithmetic centroid (average of vertex coordinates)
 --- Accepts vertex tables that use .y or .z for the vertical coordinate; output uses .y.
 --- @function AETHR.POLY:getCenterPoint
---- @param vertTable table Array of points `{x,y}` or `{x,z}`
---- @return table { x = number, y = number }
+--- @param vertTable Vec2Like[] Array of points `{x,y}` or `{x,z}`
+--- @return Vec2 { x = number, y = number }
 function AETHR.POLY:getCenterPoint(vertTable)
     -- Validate input
     if type(vertTable) ~= "table" or #vertTable == 0 then
@@ -1481,8 +1515,8 @@ end
 ---   * 2 vertices -> midpoint
 --- - Accepts vertices that use .y or .z for the vertical coordinate; output uses .y.
 --- @function AETHR.POLY:getCentroidPoint
---- @param vertTable table Array of points `{x,y}` or `{x,z}`
---- @return table { x = number, y = number }
+--- @param vertTable Vec2Like[] Array of points `{x,y}` or `{x,z}`
+--- @return Vec2 { x = number, y = number }
 function AETHR.POLY:getCentroidPoint(vertTable)
     -- Validate input
     if type(vertTable) ~= "table" or #vertTable == 0 then

@@ -4,14 +4,38 @@
 --- @brief Core AETHR framework for DCS World mission management.
 --- @author Gh0st352
 --- @diagnostic disable: undefined-global
+---
+--- Type aliases (partial shapes) used by this file to improve editor IntelliSense.
+--- These are intentionally minimal and describe only the fields accessed by AETHR.lua.
+---@alias AETHR_ConfigMainStoragePaths table<string, string> Map of named storage paths (computed at runtime)
+---@alias AETHR_ConfigMainStorageFILENAMES table<string, string> Map of filenames used for persisted data
+---@alias AETHR_ConfigMainStorage table{
+---  SAVEGAME_DIR?: string,
+---  ROOT_FOLDER?: string,
+---  CONFIG_FOLDER?: string,
+---  PATHS?: AETHR_ConfigMainStoragePaths,
+---  FILENAMES?: AETHR_ConfigMainStorageFILENAMES,
+---  SUB_FOLDERS?: table<string, string>
+---}
+---@alias AETHR_ConfigMainFlags table{ LEARN_WORLD_OBJECTS?: boolean }
+---@alias AETHR_ConfigMain table{
+---  MISSION_ID?: string,
+---  THEATER?: string,
+---  STORAGE?: AETHR_ConfigMainStorage,
+---  FLAGS?: AETHR_ConfigMainFlags
+---}
+---
+--- Top-level prototype fields.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
---- @field CONFIG AETHR.CONFIG World learning submodule attached per-instance.
+--- @field CONFIG AETHR.CONFIG Config manager submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
---- @field MARKERS AETHR.MARKERS
+--- @field MARKERS AETHR.MARKERS Marker helper submodule attached per-instance.
+--- @field BRAIN AETHR.BRAIN Task scheduler and coroutine manager.
+--- @field FILEOPS AETHR.FILEOPS Filesystem utilities used to load/save JSON and manage paths.
 --- @field MODULES string[] Names of module tables on the prototype which will be auto-wired into instances.
---- @field USERSTORAGE table Container for per-user saved data.
+--- @field USERSTORAGE table<string, any> Container for per-user saved data.
 AETHR = {
     MODULES     = {
         "AUTOSAVE",
@@ -34,14 +58,17 @@ AETHR = {
 --- Creates a new AETHR instance with optional mission ID override.
 --- Returns a new table with a metatable pointing back to the prototype.
 --- Mutable sub-tables are shallow-cloned so instance changes won't mutate the prototype.
---- @function AETHR:New
---- @param mission_id string|nil Optional mission identifier (defaults to configured ID).
---- @return AETHR instance New instance inheriting AETHR methods.
+---@param self AETHR The prototype table (called with colon syntax).
+---@param mission_id string|nil Optional mission identifier (defaults to configured ID).
+---@return AETHR instance New instance inheriting AETHR methods.
 function AETHR:New(mission_id)
     ---@type AETHR
     local instance = setmetatable({}, { __index = self })
 
     -- Safe shallow-copy helper to avoid shared mutable state between instances.
+    ---@generic T
+    ---@param t T|any
+    ---@return T|any
     local function shallow_copy(t)
         if type(t) ~= "table" then return t end
         local out = {}
@@ -50,6 +77,7 @@ function AETHR:New(mission_id)
     end
 
     -- Apply mission id (prefer provided id, then prototype config, then "1")
+    ---@type string
     local id = mission_id or
         ((self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.MISSION_ID) and self.CONFIG.MAIN.MISSION_ID) or "1"
 
@@ -80,6 +108,7 @@ function AETHR:New(mission_id)
     instance.CONFIG.MAIN.MISSION_ID = id
 
     -- Resolve writable directory. Do NOT mutate prototype; write only to instance.
+    ---@type boolean, table|nil
     local ok, lfs = pcall(require, "lfs")
     if ok and type(lfs.writedir) == "function" then
         local rt_path = lfs.writedir()
@@ -89,6 +118,7 @@ function AETHR:New(mission_id)
     end
 
     -- Ensure CONFIG.PATHS.CONFIG_FOLDER is computed using available FILEOPS (prototype methods are reachable via metatable)
+    ---@type AETHR.FILEOPS|table|nil
     local joiner = instance.FILEOPS or self.FILEOPS
     if joiner and type(joiner.joinPaths) == "function" then
         instance.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER = joiner:joinPaths(
@@ -113,6 +143,7 @@ function AETHR:New(mission_id)
 
     -- Attach instance-scoped helpers/submodules so submodules can reference parent resources.
     -- Use the master AETHR.MODULES list so new modules can be registered by updating that list only.
+    ---@type string[]
     local modulesList = {}
     if type(self.MODULES) == "table" then
         for _, modName in ipairs(self.MODULES) do
@@ -160,7 +191,10 @@ function AETHR:New(mission_id)
 end
 
 --- Initializes AETHR by preparing directories and loading or saving mission data.
+--- This method creates required storage folders, caches their resolved paths, and
+--- invokes submodule init routines (CONFIG, ZONE_MANAGER, WORLD).
 --- @function AETHR:Init
+--- @param self AETHR
 --- @return AETHR self Initialized framework instance.
 function AETHR:Init()
     -- Defensive checks.
@@ -168,10 +202,12 @@ function AETHR:Init()
         return self
     end
 
+    ---@type table<string, string>
     local subFolders = self.CONFIG.MAIN.STORAGE.SUB_FOLDERS or {}
 
     -- Ensure storage subdirectories exist and cache their full paths.
     for folderName, folderPath in pairs(subFolders) do
+        ---@type string
         local fullPath = self.FILEOPS:joinPaths(self.CONFIG.MAIN.STORAGE.SAVEGAME_DIR,
             self.CONFIG.MAIN.STORAGE.ROOT_FOLDER, self.CONFIG.MAIN.MISSION_ID, folderPath)
 
@@ -209,6 +245,7 @@ end
 
 --- Starts the AETHR framework and schedules background processes.
 --- @function AETHR:Start
+--- @param self AETHR
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
     self.WORLD:updateAirbaseOwnership()
@@ -225,8 +262,11 @@ end
 
 --- Starts or re-schedules background processes for the framework.
 --- Schedules BRAIN:runScheduledTasks to be invoked periodically and triggers an immediate run.
+--- IMPORTANT: This function is intended to be scheduled by DCS timer.scheduleFunction and must
+--- return the absolute mission time (number) for the next invocation.
 --- @function AETHR:BackgroundProcesses
---- @return AETHR self Framework instance (for chaining).
+--- @param self AETHR
+--- @return number nextTime Absolute mission time for the next invocation.
 function AETHR:BackgroundProcesses()
     --self.UTILS:debugInfo("AETHR:BackgroundProcesses         -------------")
     local now = timer.getTime()
@@ -234,36 +274,43 @@ function AETHR:BackgroundProcesses()
     -- COROUTINES
 
     --Airfield Ownership
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateAirfieldOwnership, function(parentAETHR)
         parentAETHR.WORLD:updateAirbaseOwnership()
     end, self)
 
     --Zone Ownership
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneOwnership, function(parentAETHR)
         parentAETHR.WORLD:updateZoneOwnership()
     end, self)
 
     --Update Zone Color
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneColors, function(parentAETHR)
         parentAETHR.WORLD:updateZoneColors()
     end, self)
 
     --Update Zone Arrows
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateZoneArrows, function(parentAETHR)
         parentAETHR.WORLD:updateZoneArrows()
     end, self)
 
     --Update groundUnits DB
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateGroundUnitsDB, function(parentAETHR)
         parentAETHR.WORLD:updateGroundUnitsDB()
     end, self)
 
     --Spawn queued ground Groups
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnGroundGroups, function(parentAETHR)
         parentAETHR.WORLD:spawnGroundGroups()
     end, self)
 
         --deSpawn queued ground Groups
+    ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.despawnGroundGroups, function(parentAETHR)
         parentAETHR.WORLD:despawnGroundGroups()
     end, self)
@@ -273,6 +320,10 @@ function AETHR:BackgroundProcesses()
     return now + (self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.BackgroundLoopInterval or 0.5)
 end
 
+--- Initializes various watchers used by AETHR to observe game / mission state events.
+--- @function AETHR:setupWatchers
+--- @param self AETHR
+--- @return AETHR self For chaining.
 function AETHR:setupWatchers()
     self.ZONE_MANAGER:initWatcher_AirbaseOwnership()
     self.ZONE_MANAGER:initWatcher_ZoneOwnership()
@@ -281,9 +332,12 @@ end
 
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data if available.
+--- Attempts to load a JSON user storage file from configured USER_FOLDER.
+--- @param self AETHR
 --- @return AETHR self Framework instance for chaining.
 function AETHR:loadUSERSTORAGE()
     -- Attempt to load userStorage JSON file.
+    ---@type table|nil
     local userData = self.FILEOPS:loadData(
         self.CONFIG.MAIN.STORAGE.PATHS.USER_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.USER_STORAGE_FILE
@@ -296,6 +350,8 @@ end
 
 --- @function AETHR:saveUSERSTORAGE
 --- @brief Saves the `USERSTORAGE` table to file.
+--- Delegates to FILEOPS:saveData which should accept (folder, filename, table).
+--- @param self AETHR
 --- @return AETHR self Framework instance for chaining.
 function AETHR:saveUSERSTORAGE()
     self.FILEOPS:saveData(

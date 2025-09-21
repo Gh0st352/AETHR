@@ -1,8 +1,9 @@
 --- @class AETHR.CONFIG
---- @brief
+--- @brief Configuration submodule for the AETHR framework. Contains default runtime
+--- values, storage paths, visual preferences and helpers for persisting/merging config.
 ---@diagnostic disable: undefined-global
+--- Existing injected submodules (attached by AETHR:New)
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New)
---- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
@@ -10,20 +11,130 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- Additional top-level convenience fields (documented in MAIN below)
+--- @field MAIN AETHR.CONFIG.Main General Config Data Table (defaults)
 --- @field VERSION string Framework version identifier.
 --- @field AUTHOR string Package author.
 --- @field GITHUB string GitHub repository URL.
 --- @field THEATER string Mission theater name (set at runtime).
---- @field DESCRIPTION table Array of description lines.
+--- @field DESCRIPTION string[] Array of description lines.
 --- @field MISSION_ID string Default mission identifier.
---- @field MIZ_ZONES table Lists of trigger zone names by coalition or overall.
---- @field FLAGS table Runtime flags to toggle features.
---- @field COUNTERS table Numeric counters for marker IDs.
---- @field STORAGE table Directory and filename configuration for persistence.
+--- @field MIZ_ZONES AETHR.CONFIG.MizZones Lists of trigger zone names by coalition or overall.
+--- @field FLAGS AETHR.CONFIG.Flags Runtime flags to toggle features.
+--- @field COUNTERS AETHR.CONFIG.Counters Numeric counters for marker IDs.
+--- @field STORAGE AETHR.CONFIG.Storage Directory and filename configuration for persistence.
 --- @field worldDivisionArea number Target area in square meters for grid divisions.
 --- @field worldBounds table Coordinate bounds for supported theaters.
 --- @field Zone table Default rendering and arrow settings for zones.
---- @field MAIN table General Config Data Table.
+--- @field _cache table Instance-local cache (initialized in :New)
+--- @class AETHR.CONFIG.Color
+--- @field r number Red channel (0..1)
+--- @field g number Green channel (0..1)
+--- @field b number Blue channel (0..1)
+--- @field a number|nil Alpha channel (0..1), optional
+--- @class AETHR.CONFIG.SubFolders
+--- @field LEARNING_FOLDER string
+--- @field MAP_FOLDER string
+--- @field UNITS_FOLDER string
+--- @field OBJECTS_FOLDER string
+--- @field USER_FOLDER string
+--- @class AETHR.CONFIG.Paths
+--- @field LEARNING_FOLDER string Full path (populated at runtime)
+--- @field CONFIG_FOLDER string Full path (populated at runtime)
+--- @field MAP_FOLDER string Full path (populated at runtime)
+--- @field UNITS_FOLDER string Full path (populated at runtime)
+--- @field OBJECTS_FOLDER string Full path (populated at runtime)
+--- @field USER_FOLDER string Full path (populated at runtime)
+--- @class AETHR.CONFIG.Filenames
+--- @field AETHER_CONFIG_FILE string Filename for main config persistence
+--- @field WORLD_DIVISIONS_FILE string
+--- @field USER_STORAGE_FILE string
+--- @field AIRBASES_FILE string
+--- @field MIZ_ZONES_FILE string
+--- @field SAVE_DIVS_FILE string
+--- @field OBJECTS_FILE string
+--- @field SCENERY_OBJECTS_FILE string
+--- @field STATIC_OBJECTS_FILE string
+--- @field BASE_OBJECTS_FILE string
+--- @field GAME_BOUNDS_FILE string
+--- @field MIZ_CACHE_DB string
+--- @field SPAWNER_TEMPLATE_DB string
+--- @field SPAWNER_ATTRIBUTE_DB string
+--- @field SPAWNER_UNIT_CACHE_DB string
+--- @class AETHR.CONFIG.Storage
+--- @field SAVEGAME_DIR string Absolute path to the DCS savegame writable directory root.
+--- @field ROOT_FOLDER string Root AETHR directory under writable path.
+--- @field CONFIG_FOLDER string Subdirectory for config files.
+--- @field SUB_FOLDERS AETHR.CONFIG.SubFolders Named subfolders (constants).
+--- @field PATHS AETHR.CONFIG.Paths Runtime-populated full paths.
+--- @field FILENAMES AETHR.CONFIG.Filenames Lua filenames used for persistence.
+--- @class AETHR.CONFIG.AxisRange
+--- @field min number Minimum coordinate
+--- @field max number Maximum coordinate
+--- @class AETHR.CONFIG.BoundsCoord
+--- @field X AETHR.CONFIG.AxisRange
+--- @field Z AETHR.CONFIG.AxisRange
+--- @class AETHR.CONFIG.MizZones
+--- @field ALL string[] List of all trigger zone names (strings)
+--- @field REDSTART string[] Red coalition start zones
+--- @field BLUESTART string[] Blue coalition start zones
+--- @class AETHR.CONFIG.Flags
+--- @field AETHR_FIRST_RUN boolean True on first mission run.
+--- @field AETHR_LEARNING_MODE boolean Enable learning mode.
+--- @field AETHR_DEBUG_MODE boolean Enable debug mode.
+--- @field LEARN_WORLD_OBJECTS boolean Enable world item learning.
+--- @class AETHR.CONFIG.Counters
+--- @field MARKERS number Base ID for zone markers.
+--- @field UNITS number Base ID for dynamically spawned units.
+--- @field GROUPS number Base ID for dynamically spawned groups.
+--- @field OBJECTS number Base ID for dynamically spawned objects.
+--- @field SCENERY_OBJECTS number Base ID for dynamically spawned scenery objects.
+--- @field STATIC_OBJECTS number Base ID for dynamically spawned static objects.
+--- @class AETHR.CONFIG.PaintColors
+--- @field LineColors table<number, AETHR.CONFIG.Color> Indexed mapping for line color sets
+--- @field FillColors table<number, AETHR.CONFIG.Color> Indexed mapping for fill color sets
+--- @field ArrowColors table<number, AETHR.CONFIG.Color> Indexed mapping for arrow colors (may include alpha)
+--- @field FillAlpha number Default fill transparency (0..1)
+--- @field LineAlpha number Default line transparency (0..1)
+--- @field lineType number Enum value from AETHR.ENUMS.LineTypes
+--- @class AETHR.CONFIG.GameBoundsSettings
+--- @field LineColors AETHR.CONFIG.Color
+--- @field FillColors AETHR.CONFIG.Color
+--- @field FillAlpha number
+--- @field LineAlpha number
+--- @field lineType number Enum for line style
+--- @field getOutOfBounds table Settings used to generate out-of-bounds polygons
+--- @class AETHR.CONFIG.ZoneSettings
+--- @field paintColors AETHR.CONFIG.PaintColors Default paint settings for zones
+--- @field gameBounds AETHR.CONFIG.GameBoundsSettings Settings when rendering world bounds
+--- @field BorderOffsetThreshold number Distance threshold for bordering detection (meters)
+--- @field ArrowLength number Default arrow length (meters)
+--- @class AETHR.CONFIG.OutTextSection
+--- @field displayTime number Seconds to display the message.
+--- @field clearView boolean Whether to clear previous messages before showing new one.
+--- @class AETHR.CONFIG.OutTextSettings
+--- @field airbaseOwnershipChange AETHR.CONFIG.OutTextSection
+--- @field zoneOwnershipChange AETHR.CONFIG.OutTextSection
+--- @class AETHR.CONFIG.Main
+--- @field VERSION string
+--- @field AUTHOR string
+--- @field GITHUB string
+--- @field THEATER string
+--- @field DESCRIPTION string[]
+--- @field MISSION_ID string
+--- @field DEBUG_ENABLED boolean
+--- @field DefaultRedCountry number country.id constant for red (default mapping)
+--- @field DefaultBlueCountry number country.id constant for blue (default mapping)
+--- @field spawnTemplateSearchString string Search token for spawner templates.
+--- @field MIZ_ZONES AETHR.CONFIG.MizZones
+--- @field FLAGS AETHR.CONFIG.Flags
+--- @field COUNTERS AETHR.CONFIG.Counters
+--- @field STORAGE AETHR.CONFIG.Storage
+--- @field worldDivisionArea number Desired area (m²) per world division.
+--- @field worldBounds table<string, AETHR.CONFIG.BoundsCoord>
+--- @field Zone AETHR.CONFIG.ZoneSettings
+--- @field outTextSettings AETHR.CONFIG.OutTextSettings
+--- @type AETHR.CONFIG.Main
 AETHR.CONFIG = {} ---@diagnostic disable-line
 AETHR.CONFIG.MAIN = {
     VERSION = "0.1.0",                      -- Library version.
@@ -195,7 +306,9 @@ AETHR.CONFIG.MAIN = {
         },
     },
 }
-
+--- Create a new instance of the CONFIG submodule for a specific AETHR parent instance.
+--- @param parent AETHR Parent AETHR instance (used to access injected helpers like FILEOPS)
+--- @return AETHR.CONFIG instance New instance bound to `parent`
 function AETHR.CONFIG:New(parent)
     local instance = {
         AETHR = parent,
@@ -206,8 +319,9 @@ function AETHR.CONFIG:New(parent)
     return instance
 end
 
---- @function AETHR:initConfig
---- @brief Reads config JSON and merges into `AETHR.CONFIG`; writes default if absent.
+--- Initialize configuration for this instance.
+--- Reads persisted config from storage (if available) and replaces the in-memory defaults.
+--- If no persisted config is found, persists the current defaults to disk as a best-effort fallback.
 --- @return AETHR.CONFIG self Framework instance for chaining.
 function AETHR.CONFIG:initConfig()
     -- Attempt to read existing config from storage; merge if present, otherwise persist defaults.
@@ -222,6 +336,9 @@ function AETHR.CONFIG:initConfig()
     return self
 end
 
+--- Load persisted config from disk using FILEOPS helper.
+--- Defensive guards ensure required STORAGE PATHS and FILENAMES exist before attempting load.
+--- @return table|nil configData The loaded config table, or nil if not present/failed.
 function AETHR.CONFIG:loadConfig()
     -- Defensive guards
     if not (self and self.MAIN and self.MAIN.STORAGE and self.MAIN.STORAGE.PATHS) then
@@ -243,6 +360,9 @@ function AETHR.CONFIG:loadConfig()
     return nil
 end
 
+--- Persist current MAIN configuration to disk via FILEOPS.
+--- Performs defensive checks and logs debug information via AETHR.UTILS on failure (best-effort).
+--- @return boolean True on success, false on failure.
 function AETHR.CONFIG:saveConfig()
     -- Defensive guards
     if not (self and self.MAIN and self.MAIN.STORAGE and self.MAIN.STORAGE.PATHS) then

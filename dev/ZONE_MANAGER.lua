@@ -12,8 +12,8 @@
 --- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
---- @field MARKERS AETHR.MARKERS
---- @field DATA table Container for zone management data.
+--- @field MARKERS AETHR.MARKERS Markers helper submodule attached per-instance.
+--- @field DATA _GameBounds|table Container for zone management data.
 --- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
@@ -125,6 +125,7 @@ end
 --- Generates mission trigger zone data based on configured zone names and environment data.
 --- Guards against missing env structures and missing constructors.
 --- @function AETHR:generateMizZoneData
+--- @param allZoneNames string[]|nil Optional list of zone names to generate (defaults to config list)
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:generateMizZoneData(allZoneNames)
     local zoneNames = allZoneNames or self.CONFIG.MAIN.MIZ_ZONES.ALL
@@ -149,8 +150,9 @@ function AETHR.ZONE_MANAGER:generateMizZoneData(allZoneNames)
 end
 
 --- Determine bordering zones.
+--- Compares every pair of zones and populates BorderingZones for each zone with arrays of _BorderInfo objects.
 --- @param MIZ_ZONES table<string, _MIZ_ZONE> Map of mission trigger zones.
---- @return table Updated MIZ_ZONES with .BorderingZones populated.
+--- @return table<string, _MIZ_ZONE> Updated MIZ_ZONES with .BorderingZones populated.
 function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
     --- @type AETHR.POLY
     local POLY = self.POLY
@@ -159,6 +161,9 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
             -- Ensure we're not comparing a zone with itself
             if zoneName1 ~= zoneName2 then
                 local borderIndex = 0 -- Initialize index for potential borders
+
+                -- Ensure BorderingZones tables exist
+                MIZ_ZONES[zoneName1].BorderingZones = MIZ_ZONES[zoneName1].BorderingZones or {}
 
                 -- Compare borders of zone1 with zone2
                 for _, lineA in ipairs(zone1.LinesVec2) do
@@ -190,25 +195,6 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                                 [1] = 0,
                                 [2] = 0,
                             }
-
-                            -- -- Populate border details
-                            -- local currentBorder = zoneBorder[borderIndex]
-                            -- currentBorder.OwnedByCoalition = 0
-                            -- currentBorder.ZoneLine = lineA
-                            -- currentBorder.ZoneLineLen = POLY:lineLength(lineA)
-                            -- currentBorder.ZoneLineMidP = POLY:getMidpoint(lineA)
-                            -- currentBorder.ZoneLineSlope = POLY:calculateLineSlope(lineA)
-                            -- currentBorder.ZoneLinePerpendicularPoint = {}
-                            -- currentBorder.NeighborLine = lineB
-                            -- currentBorder.NeighborLineLen = POLY:lineLength(lineB)
-                            -- currentBorder.NeighborLineMidP = POLY:getMidpoint(lineB)
-                            -- currentBorder.NeighborLineSlope = POLY:calculateLineSlope(lineB)
-                            -- currentBorder.NeighborLinePerpendicularPoint = {}
-                            -- currentBorder.MarkID = {
-                            --     [0] = 0,
-                            --     [1] = 0,
-                            --     [2] = 0,
-                            -- }
 
                             -- Determine the perpendicular points and update them
                             local ArrowMP, line_, NeighborLine_, length_, NeighborLength_
@@ -374,9 +360,9 @@ function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
 end
 
 --- Processes a perimeter hull to produce out-of-bounds quads and stores them on DATA.GAME_BOUNDS.outOfBounds.
---- @param hull _PolygonVec2
---- @param polygons _PolygonList
---- @param worldBounds _WorldBounds
+--- @param hull _PolygonVec2 Hull polygon loop to process
+--- @param polygons _PolygonList List of contributing polygons (used for densify)
+--- @param worldBounds _WorldBounds World bounds for ray-clipping
 --- @param opts table Options: { samplesPerEdge: integer|nil, snapDistance: number|nil }
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:_processHullLoop(hull, polygons, worldBounds, opts)
@@ -456,10 +442,8 @@ function AETHR.ZONE_MANAGER:getMasterZonePolygon()
     -- 3) Walk remaining perimeter edges, cluster/snap nearby endpoints and create joining edges for gaps
     -- 4) Return the largest closed perimeter loop as the Master Polygon (array of {x,y})
 
-
     local ChildZoneTables = self.DATA.MIZ_ZONES
     local zoneOffset = self.CONFIG.MAIN.Zone.BorderOffsetThreshold
-
 
     local masterPolyLines = {}
 

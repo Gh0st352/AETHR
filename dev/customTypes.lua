@@ -709,3 +709,26 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
     return instance ---@diagnostic disable-line
 end
+
+--- @class _GameBounds
+--- @field outOfBounds table
+--- @field outOfBounds.HullPolysNoSample _PolygonList
+--- @field outOfBounds.HullPolysWithSample _PolygonList
+--- @field outOfBounds.centerPoly _PolygonVec2
+--- @field outOfBounds.masterPoly _PolygonVec2
+--- @field inBounds table
+--- @field inBounds.polyLines _LineVec2[]
+--- @field inBounds.polyVerts _PolygonVec2
+--- @field inOutBoundsGaps table
+--- @field inOutBoundsGaps.overlaid _PolygonList
+--- @field inOutBoundsGaps.convex _PolygonList
+--- @field inOutBoundsGaps.concave _PolygonList
+
+--- @alias AETHR.PointLike table{x?: number, y?: number, z?: number}
+--- @alias AETHR.NormalizedPoint table{x: number, y: number}
+--- @alias AETHR.Color table{r: number, g: number, b: number, a?: number}
+---
+--- @class AETHR.AirbaseDescriptor
+--- @field displayName string Human-readable airbase name (display key used in DATA.AIRBASES)
+--- @field coords table Optional coordinate descriptor (format may vary)
+--- @field [any] any Additional provider-specific fields.
