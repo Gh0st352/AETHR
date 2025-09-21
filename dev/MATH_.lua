@@ -231,7 +231,6 @@ end
 --- @return number|integer returnValue The calculated nudge value, a decimal between the determined lower and upper bounds.
 --- @usage local nudgeValue = SPECTRE.UTILS.generateNudge(0.5) -- Returns a random decimal between 0.01 and 0.99, based on the calculated bounds.
 function AETHR.MATH:generateNudge(NudgeFactor)
-  --SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : " .. NudgeFactor )
   -- Check if NudgeFactor is 1 or 0
   if NudgeFactor == 1 or NudgeFactor == 0 then
     return NudgeFactor
@@ -241,9 +240,6 @@ function AETHR.MATH:generateNudge(NudgeFactor)
   local upperBound = math.min((NudgeFactor + ((NudgeFactor * NudgeFactor))), 0.99)
 
   -- Generate random number between lowerBound and upperBound
-  local returnValue =  self:randomDecimalBetween(lowerBound, upperBound) --SPECTRE.UTILS.math_random(lowerBound,upperBound)
-  --  SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : lowerBound: " .. lowerBound )
-  --  SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : upperBound: " .. upperBound )
-  --  SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : returnValue: " .. returnValue )
+  local returnValue =  self:randomDecimalBetween(lowerBound, upperBound) 
   return returnValue
 end

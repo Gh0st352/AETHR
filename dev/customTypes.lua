@@ -13,10 +13,10 @@ function AETHR.__template:New(c)
 end
 
 --- @class _ColorRGBA
---- @field r number
---- @field g number
---- @field b number
---- @field a number
+--- @field r number Red channel (0..255)
+--- @field g number Green channel (0..255)
+--- @field b number Blue channel (0..255)
+--- @field a number Alpha channel (0..255)
 AETHR._ColorRGBA = {} ---@diagnostic disable-line
 --- Create a new RGBA color
 --- @param r number|nil
@@ -41,8 +41,8 @@ end
 
 
 --- @class _WorldBoundsAxis
---- @field min number
---- @field max number
+--- @field min number Minimum axis value
+--- @field max number Maximum axis value
 AETHR._WorldBoundsAxis = {} ---@diagnostic disable-line
 --- Create a new axis bounds descriptor
 --- @param min number|nil
@@ -234,7 +234,7 @@ end
 --- @field ArrowTip _vec3                            Point defining the arrow tip
 --- @field ArrowEnd _vec3                            Point defining the arrow base
 --- @field MarkID table<integer, integer>            Map of segment index -> DCS mark ID(s)
---- @field ArrowObjects table<integer, _Marker>      Map of segment index -> DCS marker objects for arrows
+--- @field ArrowObjects table<integer, table>      Map of segment index -> DCS marker objects for arrows
 AETHR._BorderInfo = {} ---@diagnostic disable-line
 --- Create a new border info descriptor
 --- @param ZoneLine _LineVec2|nil Zone's edge line segment [p1,p2]
@@ -277,7 +277,7 @@ end
 --- @field ownedBy number                                     Current owning coalition (AETHR.ENUMS.Coalition)
 --- @field oldOwnedBy number                                  Previous owning coalition
 --- @field shapeID number                                     Marker shape type (AETHR.ENUMS.MarkerTypes)
---- @field markerObject _Marker                               Marker object used for drawing the zone
+--- @field markerObject table|_Marker                   Marker object used for drawing the zone
 --- @field readOnly boolean                                   True if zone cannot be edited
 --- @field BorderingZones table<string, _BorderInfo[]>        Map: neighbor zone name -> list of border segment descriptors
 --- @field Airbases table<string, _airbase>                   Airbases within this zone keyed by displayName
@@ -346,15 +346,15 @@ end
 --- @class _Marker
 --- @field markID number                               Unique marker ID
 --- @field string string                               Label/text shown with the marker
---- @field vec3Origin _vec3                            Origin point for the marker (vec3)
+--- @field vec3Origin _vec3                       Origin point for the marker (vec3)
 --- @field readOnly boolean                            If true, marker is not editable
 --- @field message string                              Optional message text
 --- @field shapeId number                              Shape type enum (e.g., freeform, line, circle)
 --- @field coalition number                            Coalition ID (-1 = neutral/all)
 --- @field lineType number                             Line style enum
---- @field lineColor _ColorRGBA|number[]               Line color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
---- @field fillColor _ColorRGBA|number[]               Fill color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
---- @field freeFormVec2Table _vec2[]                   Vertices used for freeform/drawn shapes
+--- @field lineColor _ColorRGBA|number[]         Line color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
+--- @field fillColor _ColorRGBA|number[]         Fill color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
+--- @field freeFormVec2Table _vec2[]             Vertices used for freeform/drawn shapes
 --- @field radius number                               Radius for circles (if shape is circle)
 AETHR._Marker = {} ---@diagnostic disable-line
 
@@ -399,7 +399,7 @@ end
 --- @class _airbase
 --- @field id table                                    Raw engine-provided airbase identifier object
 --- @field id_ number                                  Numeric ID
---- @field coordinates _vec3                           World coordinates of the airbase
+--- @field coordinates _vec3                     World coordinates of the airbase
 --- @field description table                            Engine description (e.g., from Airbase.getDescByName)
 --- @field name string                                  Airbase name
 --- @field category number                              Category enum
@@ -407,7 +407,7 @@ end
 --- @field previousCoalition number                     Previous coalition
 --- @field categoryText string                          Category text
 --- @field zoneName string                              Zone name this airbase belongs to (if any)
---- @field zoneObject _MIZ_ZONE|nil                     Zone object this airbase belongs to (if any)
+--- @field zoneObject _MIZ_ZONE|nil               Zone object this airbase belongs to (if any)
 AETHR._airbase = {} ---@diagnostic disable-line
 --- Create a new airbase descriptor
 --- @param id table|nil Raw engine-provided airbase identifier object
@@ -557,9 +557,9 @@ end
 --- @field postition _vec3|nil
 --- @field groupUnitNames string[] List of unit names in the same group
 --- @field AETHR table
---- @field AETHR.spawned boolean
---- @field AETHR.divisionID number|nil
---- @field AETHR.groundUnitID number
+--- @field spawned boolean
+--- @field divisionID number|nil
+--- @field groundUnitID number
 AETHR._foundObject = {} ---@diagnostic disable-line
 ---
 --- @param OBJ any
@@ -723,24 +723,32 @@ end
 --- @field inOutBoundsGaps.overlaid _PolygonList
 --- @field inOutBoundsGaps.convex _PolygonList
 --- @field inOutBoundsGaps.concave _PolygonList
+AETHR._GameBounds = {} ---@diagnostic disable-line
 
---- @alias AETHR.PointLike table{x?: number, y?: number, z?: number}
---- @alias AETHR.NormalizedPoint table{x: number, y: number}
---- @alias AETHR.Color table{r: number, g: number, b: number, a?: number}
+--- @alias PointLike table{x?: number, y?: number, z?: number}
+--- @alias NormalizedPoint table{x: number, y: number}
+--- @alias Color table{r: number, g: number, b: number, a?: number}
 ---
---- @class AETHR.AirbaseDescriptor
+--- @class AirbaseDescriptor
 --- @field displayName string Human-readable airbase name (display key used in DATA.AIRBASES)
 --- @field coords table Optional coordinate descriptor (format may vary)
 --- @field [any] any Additional provider-specific fields.
-
+---
 
 --- @class _dynamicSpawner
---- @field c table
+--- @field zones table
+--- @field zones.main _spawnerZone|nil
+--- @field zones.sub _spawnerZone[]
+--- @field zones.restricted _spawnerZone[]
+--- @field spawnTypes table
+--- @field LimitedSpawnTypes table
+--- @field extraTypes table
+--- @field numExtraTypes number
+--- @field numExtraUnits number
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
---- @param c table
 --- @return _dynamicSpawner instance
-function AETHR._dynamicSpawner:New(c)
+function AETHR._dynamicSpawner:New()
     local instance = {
         zones = {
             main = {}, -- single AETHR._zoneObject:New(),
@@ -753,25 +761,59 @@ function AETHR._dynamicSpawner:New(c)
         numExtraTypes = 0,
         numExtraUnits = 0,
     }
+
+
     return instance ---@diagnostic disable-line
 end
 
 --- @class _spawnerZone
---- @field c table
+--- @field name string
+--- @field minRadius number Minimum size of the main zone.
+--- @field maxRadius number Maximum size of the main zone.
+--- @field nominalRadius number Default size of the main zone.
+--- @field nudgeFactor number Adjustment factor for the main zone size.
+--- @field actualRadius number Actual calculated size of the main zone.
+--- @field area number
+--- @field weight number
+--- @field center _vec2xz
+--- @field triggerZone table
+--- @field numSubZonesMin number
+--- @field numSubZonesMax number
+--- @field numSubZonesNominal number
+--- @field numSubZonesNudgeFactor number
+--- @field numSubZones number
+--- @field avgDistribution number
+--- @field worldDivisions _WorldDivision[]
+--- @field staticObjects table
+--- @field baseObjects table
+--- @field sceneryObjects table
+--- @field spawnGroups table
+--- @field groupSizePrioMax number
+--- @field groupSizePrioMin number
+--- @field groupSizesPrio number[]
+--- @field groupSettings table
+--- @field spawnSettings table
+--- @field spawnSettings.base _spawnSettings
+--- @field spawnSettings.generated _spawnSettings
+--- @field seperationSettings table
+--- @field seperationSettings.minGroups number
+--- @field seperationSettings.maxGroups number
+--- @field seperationSettings.minUnits number
+--- @field seperationSettings.maxUnits number
+--- @field seperationSettings.minBuildings number
 AETHR._spawnerZone = {} ---@diagnostic disable-line
 ---
---- @param c table
 --- @return _spawnerZone instance
-function AETHR._spawnerZone:New(c)
+function AETHR._spawnerZone:New()
     local instance = {
-        name = "",
+        name = nil,
         -- Minimum size of the main zone.
         minRadius = 1000,
         -- Maximum size of the main zone.
         maxRadius = 10000,
         -- Default size of the main zone.
         nominalRadius = 5000,
-        -- Adjustment factor for the main zone size.
+        -- Adjustment factor for the zone radius.
         nudgeFactor = 0.5,
         -- Actual calculated size of the main zone.
         actualRadius = 5000,
@@ -779,7 +821,11 @@ function AETHR._spawnerZone:New(c)
         weight = 0,
         center = { x = 0, y = 0 },
         triggerZone = {},
-        numSubZones = 0,
+        numSubZonesMin = 2,
+        numSubZonesMax = 4,
+        numSubZonesNominal = 3,
+        numSubZonesNudgeFactor = 0.9,
+        numSubZones = 3,
         avgDistribution = 0,
         worldDivisions = {},
         staticObjects = {},
@@ -814,12 +860,27 @@ function AETHR._spawnerZone:New(c)
         },
     }
 
+    if not instance.name then instance.name = "Zone_" .. tostring(os.time) end
 
     local counter = 1
     for i = instance.groupSizePrioMax, instance.groupSizePrioMin, -1 do
         instance.groupSizesPrio[counter] = i
         counter = counter + 1
     end
+
+    instance.actualRadius = math.ceil(AETHR.MATH:generateNominal(
+        instance.nominalRadius,
+        instance.minRadius,
+        instance.maxRadius,
+        instance.nudgeFactor))
+
+    instance.area = math.pi * (instance.actualRadius ^ 2)
+
+    instance.numSubZones = math.ceil(AETHR.MATH:generateNominal(
+        instance.numSubZonesNominal,
+        instance.numSubZonesMin,
+        instance.numSubZonesMax,
+        instance.numSubZonesNudgeFactor))
 
     ---Base spawn settings calculations
     local spawnSettings              = instance.spawnSettings.base
@@ -879,12 +940,28 @@ function AETHR._spawnerZone:New(c)
 end
 
 --- @class _spawnSettings
---- @field c table
+--- @field nudgeFactor number
+--- @field nudgeReciprocal number
+--- @field nominal number
+--- @field ratioMax number
+--- @field ratioMin number
+--- @field max number
+--- @field min number
+--- @field weighted number
+--- @field divisionFactor number
+--- @field actual number
+--- @field actualWeighted number
+--- @field thresholds table
+--- @field thresholds.overNom number
+--- @field thresholds.underNom number
+--- @field thresholds.overMax number
+--- @field thresholds.underMax number
+--- @field thresholds.overMin number
+--- @field thresholds.underMin number
 AETHR._spawnSettings = {} ---@diagnostic disable-line
 ---
---- @param c table
 --- @return _spawnSettings instance
-function AETHR._spawnSettings:New(c)
+function AETHR._spawnSettings:New()
     local instance = {
         nudgeFactor = 0.5,
         nudgeReciprocal = 0,
