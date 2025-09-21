@@ -742,13 +742,16 @@ AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 --- @return _dynamicSpawner instance
 function AETHR._dynamicSpawner:New(c)
     local instance = {
-        Zones = {
-            Main = {}, -- single AETHR._zoneObject:New(),
-            Sub = {},  --array of AETHR._zoneObject:New(),
-            Restricted = {},
+        zones = {
+            main = {}, -- single AETHR._zoneObject:New(),
+            sub = {},  --array of AETHR._zoneObject:New(),
+            restricted = {},
         },
-        SpawnTypes = {},
+        spawnTypes = {},
         LimitedSpawnTypes = {},
+        extraTypes = {},
+        numExtraTypes = 0,
+        numExtraUnits = 0,
     }
     return instance ---@diagnostic disable-line
 end
@@ -762,24 +765,146 @@ AETHR._spawnerZone = {} ---@diagnostic disable-line
 function AETHR._spawnerZone:New(c)
     local instance = {
         name = "",
-        size = {
-            -- Minimum size of the main zone.
-            minRadius = 1000,
-            -- Maximum size of the main zone.
-            maxRadius = 10000,
-            -- Default size of the main zone.
-            nominalRadius = 5000,
-            -- Adjustment factor for the main zone size.
-            nudgeFactor = 0.5,
-            -- Actual calculated size of the main zone.
-            actualRadius = 5000
-        },
+        -- Minimum size of the main zone.
+        minRadius = 1000,
+        -- Maximum size of the main zone.
+        maxRadius = 10000,
+        -- Default size of the main zone.
+        nominalRadius = 5000,
+        -- Adjustment factor for the main zone size.
+        nudgeFactor = 0.5,
+        -- Actual calculated size of the main zone.
+        actualRadius = 5000,
+        area = 0,
+        weight = 0,
+        center = { x = 0, y = 0 },
         triggerZone = {},
         numSubZones = 0,
         avgDistribution = 0,
+        worldDivisions = {},
+        staticObjects = {},
+        baseObjects = {},
+        sceneryObjects = {},
+        spawnGroups = {},
+        groupSizePrioMax = 5,
+        groupSizePrioMin = 1,
+        groupSizesPrio = {
+            -- [1] = 10,
+            -- [2] = 9,
+            -- [3] = 8,
+            -- [4] = 7,
+            -- [5] = 6,
+            -- [6] = 5,
+            -- [7] = 4,
+            -- [8] = 3,
+            -- [9] = 2,
+            -- [10] = 1,
+        },
+        groupSettings = {},
+        spawnSettings = {
+            base = AETHR._spawnSettings:New(),
+            generated = AETHR._spawnSettings:New(),
+        },
+        seperationSettings = {
+            minGroups = 0,
+            maxGroups = 0,
+            minUnits = 0,
+            maxUnits = 0,
+            minBuildings = 0,
+        },
+    }
 
 
+    local counter = 1
+    for i = instance.groupSizePrioMax, instance.groupSizePrioMin, -1 do
+        instance.groupSizesPrio[counter] = i
+        counter = counter + 1
+    end
 
+    ---Base spawn settings calculations
+    local spawnSettings              = instance.spawnSettings.base
+    spawnSettings.nudgeReciprocal    = spawnSettings.nudgeFactor ~= 0 and
+        (1 / spawnSettings.nudgeFactor) or 0
+    spawnSettings.nominal            = math.ceil(spawnSettings.nominal)
+    spawnSettings.ratioMax           = spawnSettings.max / spawnSettings.nominal - 1
+    spawnSettings.ratioMin           = spawnSettings.min / spawnSettings.nominal
+    spawnSettings.weighted           = math.ceil(spawnSettings.nominal * instance.weight)
+    spawnSettings.divisionFactor     = spawnSettings.nominal / spawnSettings.weighted
+    spawnSettings.actual             = math.ceil(AETHR.MATH:generateNominal(
+        spawnSettings.nominal,
+        spawnSettings.min,
+        spawnSettings.max,
+        spawnSettings.nudgeFactor))
+    spawnSettings.actualWeighted     = math.ceil(spawnSettings.actual * instance.weight)
+
+    local thresholds                 = spawnSettings.thresholds
+    thresholds.overNom               = math.max(0, spawnSettings.actual - spawnSettings.nominal)
+    thresholds.underNom              = math.max(0, spawnSettings.nominal - spawnSettings.actual)
+    thresholds.overMax               = math.max(0, spawnSettings.actual - spawnSettings.max)
+    thresholds.underMax              = math.max(0, spawnSettings.max - spawnSettings.actual)
+    thresholds.overMin               = math.max(0, spawnSettings.actual - spawnSettings.min)
+    thresholds.underMin              = math.max(0, spawnSettings.min - spawnSettings.actual)
+
+    --- generated spawn settings calculations
+    local genSpawnSettings           = instance.spawnSettings.generated
+    genSpawnSettings.nudgeFactor     = AETHR.MATH:generateNudge(spawnSettings.nudgeFactor)
+    genSpawnSettings.nudgeReciprocal = genSpawnSettings.nudgeFactor ~= 0 and
+        (1 / genSpawnSettings.nudgeFactor) or 0
+    genSpawnSettings.nominal         = math.ceil(AETHR.MATH:generateNominal(spawnSettings.actual, spawnSettings.min,
+        spawnSettings.max, genSpawnSettings.nudgeFactor))
+    genSpawnSettings.ratioMax        = spawnSettings.ratioMax
+    genSpawnSettings.ratioMin        = spawnSettings.ratioMin
+    genSpawnSettings.max             = math.ceil(math.min(
+    genSpawnSettings.nominal + (genSpawnSettings.nominal * genSpawnSettings.ratioMax), spawnSettings.max))
+    genSpawnSettings.min             = math.ceil(math.max(
+    genSpawnSettings.nominal - (genSpawnSettings.nominal * genSpawnSettings.ratioMin), spawnSettings.min))
+    genSpawnSettings.weighted        = math.ceil(genSpawnSettings.nominal * instance.weight)
+    genSpawnSettings.divisionFactor  = genSpawnSettings.nominal / genSpawnSettings.weighted
+    genSpawnSettings.actual          = math.ceil(AETHR.MATH:generateNominal(
+        genSpawnSettings.nominal,
+        genSpawnSettings.min,
+        genSpawnSettings.max,
+        genSpawnSettings.nudgeFactor))
+    genSpawnSettings.actualWeighted  = math.ceil(genSpawnSettings.actual * instance.weight)
+
+    local genthresholds                 = genSpawnSettings.thresholds
+    genthresholds.overNom               = math.max(0, genSpawnSettings.actual - spawnSettings.nominal)
+    genthresholds.underNom              = math.max(0, spawnSettings.nominal - genSpawnSettings.actual)
+    genthresholds.overMax               = math.max(0, genSpawnSettings.actual - spawnSettings.max)
+    genthresholds.underMax              = math.max(0, spawnSettings.max - genSpawnSettings.actual)
+    genthresholds.overMin               = math.max(0, genSpawnSettings.actual - spawnSettings.min)
+    genthresholds.underMin              = math.max(0, spawnSettings.min - genSpawnSettings.actual)
+
+    return instance ---@diagnostic disable-line
+end
+
+--- @class _spawnSettings
+--- @field c table
+AETHR._spawnSettings = {} ---@diagnostic disable-line
+---
+--- @param c table
+--- @return _spawnSettings instance
+function AETHR._spawnSettings:New(c)
+    local instance = {
+        nudgeFactor = 0.5,
+        nudgeReciprocal = 0,
+        nominal = 0,
+        ratioMax = 0,
+        ratioMin = 0,
+        max = 0,
+        min = 0,
+        weighted = 0,
+        divisionFactor = 0,
+        actual = 0,
+        actualWeighted = 0,
+        thresholds = {
+            overNom  = 0,
+            underNom = 0,
+            overMax  = 0,
+            underMax = 0,
+            overMin  = 0,
+            underMin = 0,
+        },
     }
     return instance ---@diagnostic disable-line
 end

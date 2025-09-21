@@ -164,3 +164,86 @@ function AETHR.MATH:centroid(pts)
     end
     return cx / #pts, cy / #pts
 end
+
+--- Generates a nominal value based on a given range, nudged by a specified factor.
+---
+--- This function calculates a value within a range around 'Nominal', nudged by 'NudgeFactor'.
+--- If 'NudgeFactor' is 1, it returns 'Nominal'.
+--- If 'NudgeFactor' is 0, it randomly returns either 'Min' or 'Max'.
+--- Otherwise, it calculates a 'nudged' range around 'Nominal' and returns a random decimal within this range.
+---
+--- @param Nominal number|integer The central value around which the range is calculated.
+--- @param Min number|integer The minimum possible value.
+--- @param Max number|integer The maximum possible value.
+--- @param NudgeFactor number|integer The factor determining the extent of the nudge from 'Nominal'.
+--- @return number|integer returnValue  A number within the nudged range around 'Nominal'.
+--- @usage local nominalValue = SPECTRE.UTILS.generateNominal(50, 40, 60, 0.5) -- Returns a value in a nudged range around 50.
+function AETHR.MATH:generateNominal(Nominal, Min, Max, NudgeFactor)
+  -- If NudgeFactor is 1, return Nominal
+  if NudgeFactor == 1 then
+    return Nominal
+  end
+
+  -- If NudgeFactor is 0, return either Min or Max randomly
+  if NudgeFactor == 0 then
+    if math.random() < 0.5 then
+      return Min
+    else
+      return Max
+    end
+  end
+
+  -- Calculate the nudged range
+  local nudgedMin = math.max(Nominal - (NudgeFactor * ((Nominal - Min) / 2)), Min)
+  local nudgedMax = math.min(Nominal + (NudgeFactor * ((Max - Nominal) / 2)), Max)
+  local returnValue  = self:randomDecimalBetween(nudgedMin, nudgedMax)
+
+  -- Return a number from the nudged range
+  return returnValue
+end
+
+--- Generates a random decimal number between two values.
+---
+--- This function returns a random decimal number within the range of two specified values 'a' and 'b'.
+--- If 'a' is greater than 'b', their values are swapped to ensure a valid range.
+--- It ensures randomness by calling 'math.random()' twice before calculation.
+---
+--- @param a number|integer The lower bound of the range.
+--- @param b number|integer The upper bound of the range.
+--- @return number|integer return  A random decimal number between 'a' and 'b'.
+--- @usage local randomNum = SPECTRE.UTILS.randomDecimalBetween(1.0, 2.0) -- Returns a random decimal between 1.0 and 2.0.
+function AETHR.MATH:randomDecimalBetween(a, b)
+  if a > b then
+    a, b = b, a
+  end
+  return a + (b - a) * math.random()
+end
+
+--- Generates a nudge value based on a provided factor.
+---
+--- This function calculates a nudge value within a dynamic range based on the 'NudgeFactor'.
+--- If 'NudgeFactor' is 1 or 0, it returns the 'NudgeFactor' itself.
+--- Otherwise, it calculates a random decimal between a lower and an upper bound, derived from 'NudgeFactor'.
+--- The lower bound is the greater of 'NudgeFactor' minus its square, and 0.01.
+--- The upper bound is the lesser of 'NudgeFactor' plus its square, and 0.99.
+---
+--- @param NudgeFactor number|integer The factor based on which the nudge value is generated.
+--- @return number|integer returnValue The calculated nudge value, a decimal between the determined lower and upper bounds.
+--- @usage local nudgeValue = SPECTRE.UTILS.generateNudge(0.5) -- Returns a random decimal between 0.01 and 0.99, based on the calculated bounds.
+function AETHR.MATH:generateNudge(NudgeFactor)
+  --SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : " .. NudgeFactor )
+  -- Check if NudgeFactor is 1 or 0
+  if NudgeFactor == 1 or NudgeFactor == 0 then
+    return NudgeFactor
+  end
+
+  local lowerBound = math.max((NudgeFactor - ((NudgeFactor * NudgeFactor))), 0.01)
+  local upperBound = math.min((NudgeFactor + ((NudgeFactor * NudgeFactor))), 0.99)
+
+  -- Generate random number between lowerBound and upperBound
+  local returnValue =  self:randomDecimalBetween(lowerBound, upperBound) --SPECTRE.UTILS.math_random(lowerBound,upperBound)
+  --  SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : lowerBound: " .. lowerBound )
+  --  SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : upperBound: " .. upperBound )
+  --  SPECTRE.UTILS.debugInfo("SPECTRE.UTILS.generateNudge : returnValue: " .. returnValue )
+  return returnValue
+end
