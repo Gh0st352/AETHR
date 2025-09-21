@@ -109,6 +109,15 @@ AETHR.BRAIN.DATA = {
             yieldCounter = 0,
             desc = "updateGroundUnitsDB",
         },
+        spawnGroundGroups = {
+            interval = 30, -- make ground DB updates less frequent by default
+            phase = 3,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 10, -- yield more often
+            yieldCounter = 0,
+            desc = "spawnGroundGroups",
+        },
     },
     BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
 }

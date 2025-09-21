@@ -21,6 +21,7 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 AETHR.SPAWNER.DATA = {
     generatedGroups = {},
     generatedUnits = {},
+    spawnQueue = {},
 }
 
 
@@ -59,7 +60,8 @@ function AETHR.SPAWNER:buildGroundUnit(type, x, y, skill, name, heading, playerC
         "AETHR_GROUND_UNIT#" .. tostring(self.CONFIG.MAIN.COUNTERS.UNITS)
     self.CONFIG.MAIN.COUNTERS.UNITS = self.CONFIG.MAIN.COUNTERS.UNITS + 1
 
-    local groundUnit = self.AETHR._groundUnit:New(type, skill, x, y, groundUnitName, heading, playerCanDrive, randomTransportable)
+    local groundUnit = self.AETHR._groundUnit:New(type, skill, x, y, groundUnitName, heading, playerCanDrive,
+        randomTransportable)
     self.DATA.generatedUnits[groundUnitName] = groundUnit
 
     return groundUnitName
@@ -106,7 +108,7 @@ function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tas
 
     local groundGroup = self.AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, hiddenOnPlanner,
         hiddenOnMFD,
-        route, tasks, units, y, x, groundGroupName, start_time, task, uncontrollable)
+        route, tasks, units, y, x, groundGroupName, start_time, task, uncontrollable, countryID)
 
     self.DATA.generatedGroups[groundGroupName] = groundGroup
 
@@ -114,7 +116,6 @@ function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tas
 
     return groundGroupName
 end
-
 
 function AETHR.SPAWNER:assembleUnitsForGroup(UnitNames)
     local units = {}
@@ -133,42 +134,39 @@ function AETHR.SPAWNER:activateGroup(groupName)
 end
 
 function AETHR.SPAWNER:deactivateGroup(groupName)
-
-
     self:updateDBGroupInfo(groupName)
-     trigger.action.deactivateGroup(Group.getByName(groupName))
+    trigger.action.deactivateGroup(Group.getByName(groupName))
     return self
 end
 
-
 function AETHR.SPAWNER:updateDBGroupInfo(Name)
-local groupObj = Group.getByName(Name)
-local unitsObj = groupObj:getUnits()
-local DB = self.DATA.generatedGroups[Name]
+    local groupObj = Group.getByName(Name)
+    local unitsObj = groupObj:getUnits()
+    local DB = self.DATA.generatedGroups[Name]
 
-for index, _unit in pairs(unitsObj) do
-    local unitName = _unit:getName()
-    local unitPos = _unit:getPoint()
+    local unitPoints = {}
 
-    DB.units[index].x = unitPos.x
-    DB.units[index].y = unitPos.z
+    for index, _unit in pairs(unitsObj) do
+        local unitName = _unit:getName()
+        local unitPos = _unit:getPoint()
+        local unitLife = _unit:getLife()
+        if unitLife > 1 then
+            table.insert(unitPoints, { x = unitPos.x, y = unitPos.z })
+        end
+        DB.units[index].x = unitPos.x
+        DB.units[index].y = unitPos.z
+    end
+
+    local groupCenter = self.POLY:getCenterPoint(unitPoints)
+    DB.x = groupCenter.x
+    DB.y = groupCenter.y
+
+    return self
 end
 
-
-
-
-local pause_ = "pause"
-return self
+function AETHR.SPAWNER:spawnGroup(groupName)
+    local _group = self.DATA.generatedGroups[groupName]
+    coalition.addGroup(_group.countryID, Group.Category.GROUND, _group)
+    table.insert(self.DATA.spawnQueue, groupName)
+    return self
 end
-
-
-function AETHR.SPAWNER:getUnitInfo(Name)
-local Info = {}
-local Obj = Unit.getByName(Name)
-local DB = self.DATA.generatedGroups[Name]
-
-local pause_ = "pause"
-return Info
-end
-
-

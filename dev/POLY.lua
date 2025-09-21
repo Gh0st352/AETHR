@@ -1472,3 +1472,69 @@ function AETHR.POLY:getCenterPoint(vertTable)
 
     return { x = cx, y = cy }
 end
+
+--- Computes the area-weighted centroid of a polygon using the shoelace formula.
+--- Behavior:
+--- - If fewer than 3 vertices are provided, falls back to simple rules:
+---   * 0 vertices -> {x=0,y=0}
+---   * 1 vertex  -> that vertex
+---   * 2 vertices -> midpoint
+--- - Accepts vertices that use .y or .z for the vertical coordinate; output uses .y.
+--- @function AETHR.POLY:getCentroidPoint
+--- @param vertTable table Array of points `{x,y}` or `{x,z}`
+--- @return table { x = number, y = number }
+function AETHR.POLY:getCentroidPoint(vertTable)
+    -- Validate input
+    if type(vertTable) ~= "table" or #vertTable == 0 then
+        return { x = 0, y = 0 }
+    end
+
+    -- 1 or 2 point fallbacks
+    if #vertTable == 1 then
+        local p = self:normalizePoint(vertTable[1])
+        return { x = p.x, y = p.y }
+    end
+    if #vertTable == 2 then
+        local a = self:normalizePoint(vertTable[1])
+        local b = self:normalizePoint(vertTable[2])
+        return { x = (a.x + b.x) / 2, y = (a.y + b.y) / 2 }
+    end
+
+    -- Normalize points to {x,y}
+    local pts = {}
+    for i = 1, #vertTable do
+        pts[i] = self:normalizePoint(vertTable[i])
+    end
+
+    -- Shoelace accumulators
+    local A2 = 0 -- 2 * area (signed)
+    local cxAcc = 0
+    local cyAcc = 0
+    local n = #pts
+
+    for i = 1, n do
+        local j = (i % n) + 1
+        local xi, yi = pts[i].x, pts[i].y
+        local xj, yj = pts[j].x, pts[j].y
+        local cross = xi * yj - xj * yi
+        A2 = A2 + cross
+        cxAcc = cxAcc + (xi + xj) * cross
+        cyAcc = cyAcc + (yi + yj) * cross
+    end
+
+    local area = A2 / 2
+    -- Degenerate polygon (area zero) fallback to arithmetic centroid
+    if area == 0 then
+        local sx, sy = 0, 0
+        for i = 1, n do
+            sx = sx + pts[i].x
+            sy = sy + pts[i].y
+        end
+        return { x = sx / n, y = sy / n }
+    end
+
+    local cx = cxAcc / (6 * area)
+    local cy = cyAcc / (6 * area)
+
+    return { x = cx, y = cy }
+end

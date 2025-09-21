@@ -5,8 +5,17 @@ function _testFunc()
     table.insert(UnitArr, G_AETHR.SPAWNER:buildGroundUnit("Leopard1A3", -27622, 457042))
     local assembledUnits = AETHR.SPAWNER:assembleUnitsForGroup(UnitArr)
     local groupName = AETHR.SPAWNER:buildGroundGroup(country.id.CJTF_RED, nil, -27626, 457048, assembledUnits)
-    G_AETHR.SPAWNER:activateGroup(groupName)
-    G_AETHR.SPAWNER:getGroupInfo(groupName)
+    --G_AETHR.SPAWNER:activateGroup(groupName)
+    -- G_AETHR.SPAWNER:updateDBGroupInfo(groupName)
+
+--     G_AETHR.SPAWNER:activateGroup("AETHR_GROUND_GROUP#1")
+-- G_AETHR.SPAWNER:deactivateGroup("AETHR_GROUND_GROUP#1")
+
+
+-- _testFunc()
+
+-- G_AETHR.SPAWNER:activateGroup("AETHR_GROUND_GROUP#1")
+-- G_AETHR.SPAWNER:updateDBGroupInfo("AETHR_GROUND_GROUP#1")
 end
 
 --  local    fillColor_ = { r = 0.1, g = 0.1, b = 0.1, a = 0.2 }

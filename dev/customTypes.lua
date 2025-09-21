@@ -660,6 +660,7 @@ end
 --- @field start_time number
 --- @field task string
 --- @field uncontrollable boolean
+--- @field countryID number
 AETHR._groundGroup = {} ---@diagnostic disable-line
 ---
 --- @param visible boolean|nil
@@ -677,9 +678,10 @@ AETHR._groundGroup = {} ---@diagnostic disable-line
 --- @param start_time number|nil
 --- @param task string|nil
 --- @param uncontrollable boolean|nil
+--- @param countryID number|nil
 --- @return _groundGroup instance
 function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, hiddenOnPlanner, hiddenOnMFD,
-                                route, tasks, units, y, x, name, start_time, task, uncontrollable)
+                                route, tasks, units, y, x, name, start_time, task, uncontrollable,countryID)
     local instance = {
         visible = visible or false,
         uncontrollable = uncontrollable or false,
@@ -702,6 +704,7 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         name = name or nil,
         start_time = start_time or 0, -- time in seconds from mission start when the group will be spawned
         task = task or "Ground Nothing",
+        countryID   = countryID or 0,
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
     return instance ---@diagnostic disable-line

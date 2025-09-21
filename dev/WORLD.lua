@@ -9,6 +9,9 @@
 --- @field BRAIN AETHR.BRAIN
 --- @field ENUMS AETHR.ENUMS Enumeration constants submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field MARKERS AETHR.MARKERS
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA AETHR.WORLD.Data Container for zone management data.
@@ -332,6 +335,30 @@ function AETHR.WORLD:updateAirbaseOwnership()
                 end
             end
         end
+    end
+    return self
+end
+
+function AETHR.WORLD:spawnGroundGroups()
+    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups -------------")
+    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
+
+    for _, name in ipairs(self.SPAWNER.DATA.spawnQueue) do
+        self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | " .. name)
+            
+            Group.activate(Group.getByName(name))
+            self.SPAWNER.DATA.spawnQueue[_] = nil
+
+            if co_.thread then
+                co_.yieldCounter = co_.yieldCounter + 1
+                if co_.yieldCounter >= co_.yieldThreshold then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
+                    coroutine.yield()
+                end
+            end
+       
     end
     return self
 end

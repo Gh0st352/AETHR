@@ -257,6 +257,11 @@ function AETHR:BackgroundProcesses()
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateGroundUnitsDB, function(parentAETHR)
         parentAETHR.WORLD:updateGroundUnitsDB()
     end, self)
+
+    --Spawn queued ground Groups
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnGroundGroups, function(parentAETHR)
+        parentAETHR.WORLD:spawnGroundGroups()
+    end, self)
     
 
     self.BRAIN:runScheduledTasks(2)
