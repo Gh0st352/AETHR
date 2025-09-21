@@ -341,7 +341,6 @@ end
 
 function AETHR.WORLD:spawnGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups -------------")
-    local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
 
     for _, name in ipairs(self.SPAWNER.DATA.spawnQueue) do
@@ -355,6 +354,29 @@ function AETHR.WORLD:spawnGroundGroups()
                 if co_.yieldCounter >= co_.yieldThreshold then
                     co_.yieldCounter = 0
                     self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
+                    coroutine.yield()
+                end
+            end
+       
+    end
+    return self
+end
+
+function AETHR.WORLD:despawnGroundGroups()
+    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups -------------")
+    local co_ = self.BRAIN.DATA.coroutines.despawnGroundGroups
+
+    for _, name in ipairs(self.SPAWNER.DATA.despawnQueue) do
+        self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | " .. name)
+            
+            trigger.action.deactivateGroup(Group.getByName(name))
+            self.SPAWNER.DATA.despawnQueue[_] = nil
+
+            if co_.thread then
+                co_.yieldCounter = co_.yieldCounter + 1
+                if co_.yieldCounter >= co_.yieldThreshold then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups --> YIELD")
                     coroutine.yield()
                 end
             end

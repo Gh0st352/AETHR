@@ -110,20 +110,20 @@ AETHR.BRAIN.DATA = {
             desc = "updateGroundUnitsDB",
         },
         spawnGroundGroups = {
-            interval = 30, -- make ground DB updates less frequent by default
+            interval = 10, -- make ground DB updates less frequent by default
             phase = 3,
             counter = 0,
             thread = nil,
-            yieldThreshold = 10, -- yield more often
+            yieldThreshold = 3, -- yield more often
             yieldCounter = 0,
             desc = "spawnGroundGroups",
         },
         despawnGroundGroups = {
-            interval = 30, -- make ground DB updates less frequent by default
+            interval = 10, -- make ground DB updates less frequent by default
             phase = 1,
             counter = 0,
             thread = nil,
-            yieldThreshold = 10, -- yield more often
+            yieldThreshold = 3, -- yield more often
             yieldCounter = 0,
             desc = "despawnGroundGroups",
         },

@@ -22,6 +22,7 @@ AETHR.SPAWNER.DATA = {
     generatedGroups = {},
     generatedUnits = {},
     spawnQueue = {},
+    despawnQueue = {},
 }
 
 
