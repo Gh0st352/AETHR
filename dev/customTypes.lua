@@ -750,11 +750,20 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field numSubZonesNominal number
 --- @field numSubZonesNudgeFactor number
 --- @field numSubZones number
+--- @field spawnAmountMin number
+--- @field spawnAmountMax number
+--- @field spawnAmountNominal number
+--- @field spawnAmountNudgeFactor number
+--- @field spawnAmount number
+--- @field spawnAmountCounter number
+--- @field name string
+--- @field spawnedNamePrefix string
+--- @field parentAETHR AETHR|nil
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
 --- @param name string Name of the dynamic spawner instance
 --- @return _dynamicSpawner instance
-function AETHR._dynamicSpawner:New(name)
+function AETHR._dynamicSpawner:New(name, parentAETHR)
     local instance = {
         zones = {
             main = {}, -- single AETHR._zoneObject:New(),
@@ -772,6 +781,14 @@ function AETHR._dynamicSpawner:New(name)
         numSubZonesNominal = 3,
         numSubZonesNudgeFactor = 0.9,
         numSubZones = 3,
+        spawnAmountMin = 0,
+        spawnAmountMax = 0,
+        spawnAmountNominal = 0,
+        spawnAmountNudgeFactor = 0.9,
+        spawnAmount = 0,
+        spawnAmountCounter = 0,
+        spawnedNamePrefix = "",
+        parentAETHR = parentAETHR or AETHR,
     }
     return instance ---@diagnostic disable-line
 end
@@ -782,19 +799,52 @@ end
 --- @param numSubZonesMax number|nil Maximum number of sub-zones
 --- @param numSubZonesNudgeFactor number|nil Adjustment factor for randomization (0 = no variation, 1 = full variation)
 --- @return self
-function AETHR._dynamicSpawner:setNumSpawnZones(numSubZonesNominal,numSubZonesMin,  numSubZonesMax, numSubZonesNudgeFactor)
+function AETHR._dynamicSpawner:setNumSpawnZones(numSubZonesNominal, numSubZonesMin, numSubZonesMax,
+                                                numSubZonesNudgeFactor)
     local instance = self
+    local pAETHR = instance.parentAETHR
     instance.numSubZonesNominal = numSubZonesNominal
     instance.numSubZonesMin = numSubZonesMin and numSubZonesMin or numSubZonesNominal
     instance.numSubZonesMax = numSubZonesMax and numSubZonesMax or numSubZonesNominal
     instance.numSubZonesNudgeFactor = numSubZonesNudgeFactor and numSubZonesNudgeFactor or
         instance.numSubZonesNudgeFactor
 
-    instance.numSubZones = math.ceil(AETHR.MATH:generateNominal(
+    instance.numSubZones = math.ceil(pAETHR.MATH:generateNominal(
         instance.numSubZonesNominal,
         instance.numSubZonesMin,
         instance.numSubZonesMax,
         instance.numSubZonesNudgeFactor))
+    return self
+end
+
+function AETHR._dynamicSpawner:setSpawnAmount(spawnAmountNominal, spawnAmountMin, spawnAmountMax, spawnAmountNudgeFactor)
+    local instance = self
+    local pAETHR = instance.parentAETHR
+    instance.spawnAmountNominal = spawnAmountNominal
+    instance.spawnAmountMin = spawnAmountMin and spawnAmountMin or spawnAmountNominal
+    instance.spawnAmountMax = spawnAmountMax and spawnAmountMax or spawnAmountNominal
+    instance.spawnAmountNudgeFactor = spawnAmountNudgeFactor and spawnAmountNudgeFactor or
+        instance.spawnAmountNudgeFactor
+
+    instance.spawnAmount = math.ceil(pAETHR.MATH:generateNominal(
+            instance.spawnAmountNominal,
+            instance.spawnAmountMin,
+            instance.spawnAmountMax,
+            instance.spawnAmountNudgeFactor))
+    return self
+end
+
+function AETHR._dynamicSpawner:setNamePrefix(spawnedNamePrefix)
+    local instance = self
+    instance.spawnedNamePrefix = spawnedNamePrefix and spawnedNamePrefix or ""
+    return self
+end
+
+function AETHR._dynamicSpawner:setSpawnTypeAmount(spawnTypeENUM, max, limited, min)
+    local instance = self
+    local pAETHR = instance.parentAETHR
+    local spawnTypeConfig = pAETHR._spawnerTypeConfig:New(spawnTypeENUM, nil, min, max, nil, limited)
+    instance.spawnTypes[spawnTypeENUM] = spawnTypeConfig
     return self
 end
 
@@ -1016,22 +1066,22 @@ end
 AETHR._spawnerTypeConfig = {} ---@diagnostic disable-line
 ---
 --- @param typeName string
---- @param count number
---- @param min number
---- @param max number
---- @param nominal number
---- @param limited boolean
+--- @param count number|nil
+--- @param min number|nil
+--- @param max number|nil
+--- @param nominal number|nil
+--- @param limited boolean|nil
 --- @return _spawnerTypeConfig instance
 function AETHR._spawnerTypeConfig:New(typeName, count, min, max, nominal, limited)
     local instance = {
         typeName = typeName,
-        count = 0,
-        min = 0,
-        max = 0,
-        nominal = 0,
+        count = count or 0,
+        min = min or 0,
+        max = max or 0,
+        nominal = nominal or 0,
         actual = 0,
-        limited = true,
-        typesDB = {}
+        limited = limited or false,
+        -- typesDB = {}
     }
 
     return instance ---@diagnostic disable-line

@@ -38,9 +38,15 @@ function _testFunc()
 -- AETHR.SPAWNER:despawnGroup("AETHR_GROUND_GROUP#3")
 end
 
+local spawnTypes = G_AETHR.ENUMS.spawnTypes
 local airbaseENUM = G_AETHR.ENUMS.dynamicSpawnerTypes.Airbase
 local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseENUM)
 :setNumSpawnZones(3, 2, 4, 0.9)
+:setSpawnAmount(6, 6, 6, 0.5)
+:setNamePrefix("Airbase_")
+:setSpawnTypeAmount(spawnTypes.APC, 3, false)
+:setSpawnTypeAmount(spawnTypes.ModernTanks, 3, false)
+
 
 
 local pause = ""
