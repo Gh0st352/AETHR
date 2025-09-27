@@ -1082,3 +1082,4 @@ function AETHR.WORLD:initStaticInDivisions()
         "divisionStaticObjects"
     )
 end
+

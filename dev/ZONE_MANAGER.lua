@@ -19,7 +19,7 @@ AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 --- Container for zone management data.
 AETHR.ZONE_MANAGER.DATA = {
-    --- @type _MIZ_ZONE[]
+    --- @type _MIZ_ZONES[]
     MIZ_ZONES = {}, -- Mission trigger zones keyed by name.
     GAME_BOUNDS = {
         outOfBounds = {

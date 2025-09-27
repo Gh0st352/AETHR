@@ -14,24 +14,28 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
---- @field DATA AETHR.SPAWNER.Data Container for spawner-managed data.
+--- @field DATA AETHR.SPAWNER.DATA Container for spawner-managed data.
 AETHR.SPAWNER = {} ---@diagnostic disable-line
 
 --- Spawner-managed data container.
---- @class AETHR.SPAWNER.Data
+--- @class AETHR.SPAWNER.DATA
 --- @field generatedGroups table<string, _groundGroup> Generated ground groups keyed by name.
 --- @field generatedUnits table<string, _groundUnit> Generated ground units keyed by name.
 --- @field spawnQueue string[] Names of groups scheduled to spawn (processed by WORLD:spawnGroundGroups).
 --- @field despawnQueue string[] Names of groups scheduled to despawn (processed by WORLD:despawnGroundGroups).
 --- @field dynamicSpawners table<string, table<string, _dynamicSpawner>> Dynamic spawners keyed by type and name.
+--- @field CONFIG table Configuration for spawner-managed data.
 
 --- @class AETHR.SPAWNER.DATA.dynamicSpawners
 --- @field dynamicSpawners.Airbase table<string, _dynamicSpawner> Dynamic spawners of type "Airbase" keyed by name.
 --- @field dynamicSpawners.Zone table<string, _dynamicSpawner> Dynamic spawners of type "Zone" keyed by name.
 --- @field dynamicSpawners.Point table<string, _dynamicSpawner> Dynamic spawners of type "Point" keyed by name.
 
+--- @class AETHR.SPAWNER.DATA.CONFIG
+--- @field operationLimit number Maximum number of spawn/despawn operations to process per WORLD cycle (
+
 --- Container for spawner-managed data.
----@type AETHR.SPAWNER.Data
+---@type AETHR.SPAWNER.DATA
 AETHR.SPAWNER.DATA = {
     ---@type table<string, _groundGroup>
     generatedGroups = {},
@@ -46,7 +50,16 @@ AETHR.SPAWNER.DATA = {
         Zone = {},
         Point = {},
     },
+    CONFIG = {
+        operationLimit = 50,
+        NoGoSurfaces = {
+            AETHR.ENUMS.SurfaceType.WATER,
+            AETHR.ENUMS.SurfaceType.RUNWAY,
+            AETHR.ENUMS.SurfaceType.SHALLOW_WATER
+        },
+    },
 }
+
 
 
 --- Creates a new AETHR.SPAWNER submodule instance.
@@ -240,9 +253,127 @@ function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
     local name = "AETHR_DYNAMIC_SPAWNER#" .. tostring(self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS)
     self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS = self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS + 1
 
-    local dynamicSpawner = self.AETHR._dynamicSpawner:New(name,self.AETHR)
+    local dynamicSpawner = self.AETHR._dynamicSpawner:New(name, self.AETHR)
 
 
     self.DATA.dynamicSpawners[dynamicSpawnerType][dynamicSpawner.name] = dynamicSpawner
     return dynamicSpawner
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+---@param vec2 _vec2 Center point for the spawner to generate around.
+---@param minRadius number|nil Minimum radius in meters. Defaults to dynamicSpawner.minRadius if nil.
+---@param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominal if nil.
+---@param maxRadius number|nil Maximum radius in meters. Defaults to dynamicSpawner.maxRadius if nil.
+---@param nudgeFactorRadius number|nil Nudge factor for radius adjustment (0.0-1.0). Defaults to dynamicSpawner.nudgeFactorRadius if nil.
+function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
+                                              nudgeFactorRadius)
+    dynamicSpawner.minRadius = minRadius or dynamicSpawner.minRadius
+    dynamicSpawner.nominalRadius = nominalRadius or dynamicSpawner.nominalRadius
+    dynamicSpawner.maxRadius = maxRadius or dynamicSpawner.maxRadius
+    dynamicSpawner.nudgeFactorRadius = nudgeFactorRadius or dynamicSpawner.nudgeFactorRadius
+    dynamicSpawner.vec2 = vec2
+    self:generateSpawnerZones(dynamicSpawner)
+
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
+    local mainZone = dynamicSpawner.zones.main
+    mainZone = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
+
+
+    local mainZoneCenter = mainZone.center
+    local mainZoneRadius = mainZone.actualRadius
+    local numSubZones = dynamicSpawner.numSubZones
+    local subZoneMinRadius = (mainZoneRadius / numSubZones) / 2
+
+    local generatedSubZones = {}
+    local attempts = 0
+    local operationLimit = self.DATA.CONFIG.operationLimit
+    local attemptLimit = numSubZones * operationLimit
+
+    repeat
+        local flagGoodCoord = true
+        local glassBreak = 0
+        local subZone = {}
+        local subZoneRadius
+
+        repeat
+            flagGoodCoord = true
+            subZoneRadius = math.random(subZoneMinRadius, mainZoneRadius) / 2
+            local angle = math.random() * 2 * math.pi
+            local maxDistFromCenter = math.floor(mainZoneRadius - subZoneRadius)
+            local minDistFromCenter = math.floor(subZoneRadius)
+            local distFromCenter = math.random(minDistFromCenter, maxDistFromCenter)
+            local subZoneCenter = {
+                x = mainZoneCenter.x + distFromCenter * math.cos(angle),
+                y = mainZoneCenter.y + distFromCenter * math.sin(angle)
+            }
+
+            flagGoodCoord = not self:checkIsInNOGO(subZoneCenter, dynamicSpawner.zones.restricted)
+
+            if glassBreak >= operationLimit then flagGoodCoord = true end
+
+            if flagGoodCoord then subZone = self.AETHR._circle:New(subZoneCenter, subZoneRadius) end
+
+            glassBreak = glassBreak + 1
+        until flagGoodCoord
+
+        if self.POLY.isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, 0.75) then
+            table.insert(generatedSubZones, subZone)
+        end
+
+        if attempts >= attemptLimit then
+            flagGoodCoord = true
+        end
+        attempts = attempts + 1
+    until #generatedSubZones == numSubZones and flagGoodCoord
+
+
+    
+
+    return self
+end
+
+--- Check if a vector position is within a no-go area.
+---
+--- This function determines whether a given vector position (`vec2`) falls within any restricted
+--- areas or surfaces defined in the SPAWNER system. It first checks against no-go surfaces and then against
+--- restricted zones. The function returns a flag indicating whether the position is suitable (not within
+--- no-go areas) for spawning purposes.
+---
+--- @param vec2 _vec2 The vector position to be checked.
+--- @param restrictedZones table A list of restricted zones to check against.
+--- @return boolean isNOGO A boolean flag indicating if the position is outside no-go areas (true if unsuitable, false otherwise).
+function AETHR.SPAWNER:checkIsInNOGO(vec2, restrictedZones)
+    local isNOGO = false
+    if self:vec2AtNoGoSurface(vec2) then isNOGO = true end
+    -- if not isNOGO then
+    --     if self:Vec2inZones(vec2, restrictedZones) then
+    --         isNOGO = true
+    --     end
+    -- end
+    return isNOGO
+end
+
+--- Check if a given vector position is on a no-go surface.
+---
+--- This function evaluates the surface type at a specified vector position (`vec2`) and determines whether
+--- it matches any of the defined no-go surface types in the SPAWNER. If the surface type at the vector position
+--- is listed as a no-go surface, the function returns true, indicating that the location is unsuitable for certain
+--- operations like spawning. This check is crucial for ensuring that activities such as spawning occur only in
+--- appropriate areas.
+---
+--- @param vec2 _vec2 The vector position to be checked.
+--- @return boolean true if the vector position is on a no-go surface, false otherwise.
+function AETHR.SPAWNER:vec2AtNoGoSurface(vec2)
+    local surfaceType = land.getSurfaceType(vec2)
+    for _, noGoSurface in ipairs(self.DATA.CONFIG.NoGoSurfaces) do
+        if noGoSurface == surfaceType then
+            return true
+        end
+    end
+    return false
 end
