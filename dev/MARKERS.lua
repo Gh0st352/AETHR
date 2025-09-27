@@ -7,6 +7,11 @@
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field UTILS AETHR.UTILS Utility helper table attached per-instance.
+--- @field IO AETHR.IO Input/output helper table attached per-instance.
+--- @field ENUMS AETHR.ENUMS Enumeration table attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per
 --- @field MARKERS AETHR.MARKERS
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.MARKERS = {} ---@diagnostic disable-line
@@ -63,7 +68,7 @@ function AETHR.MARKERS:markFreeform(_Marker, storageLocation)
     return self
 end
 
---- Draws a polygon with an arbitrary number of vec2 vertices.
+--- Draws a polygon with an arbitrary number of vec2 vertices on the Map.
 --- Supported call forms:
 ---   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, {v1, v2, v3, ...})
 ---   drawPolygon(coalition, fillColor, borderColor, linetype, markerID, v1, v2, v3, ...)
@@ -99,7 +104,8 @@ function AETHR.MARKERS:drawPolygon(coalition, fillColor, borderColor, linetype, 
 
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
-    local shapeTypeID    = self.ENUMS.MarkerTypes.Freeform                                                          -- Polygon shape type
+    local shapeTypeID    = self.ENUMS.MarkerTypes
+    .Freeform                                                                         -- Polygon shape type
     markerID             = markerID or 0
 
     -- Build argument list for trigger.action.markupToAll:
@@ -157,7 +163,7 @@ function AETHR.MARKERS:markArrow(_Marker, storageLocation)
     return self
 end
 
---- Draws an Arrow.
+--- Draws an Arrow on the Map.
 --- @function AETHR.MARKERS:drawArrow
 --- @param coalition number Coalition id (e.g., -1 for all)
 --- @param fillColor table Fill color table {r,g,b,a} or object with .r .g .b .a
@@ -189,7 +195,8 @@ function AETHR.MARKERS:drawArrow(coalition, fillColor, borderColor, linetype, ma
 
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
-    local shapeTypeID    = self.ENUMS.MarkerTypes.Arrow                                                          --  Arrow shape type
+    local shapeTypeID    = self.ENUMS.MarkerTypes
+    .Arrow                                                                            --  Arrow shape type
     markerID             = markerID or 0
 
     -- Build argument list for trigger.action.markupToAll:
@@ -197,11 +204,44 @@ function AETHR.MARKERS:drawArrow(coalition, fillColor, borderColor, linetype, ma
     local margs          = { shapeTypeID, coalition, markerID }
 
     -- Preserve original drawZone orientation by reversing corner order
-    for i = 1,#corners, 1 do
+    for i = 1, #corners, 1 do
         local v = corners[i]
         table.insert(margs, { x = v.x, y = 0, z = v.y })
     end
 
+    table.insert(margs, { r2, g2, b2, a2 }) -- Border color
+    table.insert(margs, { r1, g1, b1, a1 }) -- Fill color
+    table.insert(margs, linetype)
+    table.insert(margs, true)
+
+    -- Call markupToAll with the constructed argument list
+    trigger.action.markupToAll(unpack(margs)) ---@diagnostic disable-line
+
+    return self
+end
+
+--- Draws a Circle on the Map.
+--- @function AETHR.MARKERS:drawArrow
+--- @param coalition number Coalition id (e.g., -1 for all)
+--- @param fillColor table Fill color table {r,g,b,a} or object with .r .g .b .a
+--- @param borderColor table Border color table {r,g,b,a} or object with .r .g .b .a
+--- @param linetype number Line type enum value
+--- @param markerID number|nil Marker identifier (optional)
+--- @param vec2 _vec2 Center vec2 of circle
+--- @param radius number Radius of circle in meters
+--- @return AETHR.MARKERS self
+function AETHR.MARKERS:drawCircle(coalition, fillColor, borderColor, linetype, markerID, vec2, radius)
+    local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
+    local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
+    local shapeTypeID    = self.ENUMS.MarkerTypes.Circle      
+    markerID             = markerID or 0
+
+    -- Build argument list for trigger.action.markupToAll:
+    -- shapeTypeID, coalition, markerID, <vec3 points...>, borderColor, fillColor, linetype, true
+    local margs          = { shapeTypeID, coalition, markerID }
+
+    table.insert(margs, { x = vec2.x, y = 0, z = vec2.y })
+    table.insert(margs, radius)
     table.insert(margs, { r2, g2, b2, a2 }) -- Border color
     table.insert(margs, { r1, g1, b1, a1 }) -- Fill color
     table.insert(margs, linetype)

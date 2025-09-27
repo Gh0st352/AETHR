@@ -289,6 +289,18 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     local numSubZones = dynamicSpawner.numSubZones
     local subZoneMinRadius = (mainZoneRadius / numSubZones) / 2
 
+    -------------------------------------------------------------------
+    self.MARKERS:drawCircle(-1,
+        self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+        self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+        self.CONFIG.MAIN.Zone.paintColors.lineType,
+        self.CONFIG.MAIN.COUNTERS.MARKERS,
+        mainZoneCenter,
+        mainZoneRadius
+    )
+    self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+    -------------------------------------------------------------------
+
     local generatedSubZones = {}
     local attempts = 0
     local operationLimit = self.DATA.CONFIG.operationLimit
@@ -323,6 +335,17 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
 
         if self.POLY.isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, 0.75) then
             table.insert(generatedSubZones, subZone)
+            -------------------------------------------------------------------
+            self.MARKERS:drawCircle(-1,
+                self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+                self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+                self.CONFIG.MAIN.Zone.paintColors.lineType,
+                self.CONFIG.MAIN.COUNTERS.MARKERS,
+                subZone.center,
+                subZone.radius
+            )
+            self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+            -------------------------------------------------------------------
         end
 
         if attempts >= attemptLimit then
@@ -332,7 +355,7 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     until #generatedSubZones == numSubZones and flagGoodCoord
 
 
-    
+
 
     return self
 end

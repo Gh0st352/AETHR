@@ -106,6 +106,7 @@
 --- @field LineColors table<number, AETHR.CONFIG.Color> Indexed mapping for line color sets
 --- @field FillColors table<number, AETHR.CONFIG.Color> Indexed mapping for fill color sets
 --- @field ArrowColors table<number, AETHR.CONFIG.Color> Indexed mapping for arrow colors (may include alpha)
+--- @field CircleColors table<number, AETHR.CONFIG.Color> Indexed mapping for circle colors (may include alpha)
 --- @field FillAlpha number Default fill transparency (0..1)
 --- @field LineAlpha number Default line transparency (0..1)
 --- @field lineType number Enum value from AETHR.ENUMS.LineTypes
@@ -170,31 +171,31 @@ AETHR.CONFIG.MAIN = {
     DefaultRedCountry = country.id.CJTF_BLUE,
     DefaultBlueCountry = country.id.CJTF_RED,
     spawnTemplateSearchString = "SPECTRESPAWNERTemplate",
-    MIZ_ZONES = {         -- Lists of mission trigger zone names.
+    MIZ_ZONES = { -- Lists of mission trigger zone names.
         ALL = {},
         REDSTART = {},
         BLUESTART = {},
     },
-    FLAGS = {                           -- Runtime feature flags.
-        AETHR_FIRST_RUN     = true,     -- True on first mission run.
-        AETHR_LEARNING_MODE = false,    -- Enable learning mode.
-        AETHR_DEBUG_MODE    = false,    -- Enable debug mode.
-        LEARN_WORLD_OBJECTS = false,    -- Enable world item learning.
+    FLAGS = {                        -- Runtime feature flags.
+        AETHR_FIRST_RUN     = true,  -- True on first mission run.
+        AETHR_LEARNING_MODE = false, -- Enable learning mode.
+        AETHR_DEBUG_MODE    = false, -- Enable debug mode.
+        LEARN_WORLD_OBJECTS = false, -- Enable world item learning.
     },
-    COUNTERS = {                        -- Counters for generating unique IDs.
-        MARKERS = 3523523,              -- Base ID for zone markers.
-        UNITS = 1,                -- Base ID for dynamically spawned units.
-        GROUPS = 1,               -- Base ID for dynamically spawned groups.
-        OBJECTS = 1,              -- Base ID for dynamically spawned objects.
-        SCENERY_OBJECTS = 1,      -- Base ID for dynamically spawned scenery objects.
-        STATIC_OBJECTS = 1,       -- Base ID for dynamically spawned static objects
-        DYNAMIC_SPAWNERS = 1,     -- Base ID for dynamic spawners.
+    COUNTERS = {                     -- Counters for generating unique IDs.
+        MARKERS = 3523523,           -- Base ID for zone markers.
+        UNITS = 1,                   -- Base ID for dynamically spawned units.
+        GROUPS = 1,                  -- Base ID for dynamically spawned groups.
+        OBJECTS = 1,                 -- Base ID for dynamically spawned objects.
+        SCENERY_OBJECTS = 1,         -- Base ID for dynamically spawned scenery objects.
+        STATIC_OBJECTS = 1,          -- Base ID for dynamically spawned static objects
+        DYNAMIC_SPAWNERS = 1,        -- Base ID for dynamic spawners.
     },
-    STORAGE = {                         -- Filesystem storage configuration.
-        SAVEGAME_DIR  = "",             -- Absolute path to the DCS savegame writable directory root.
-        ROOT_FOLDER   = "AETHR",        -- Root AETHR directory under writable path.
-        CONFIG_FOLDER = "CONFIG",       -- Subdirectory for config files.
-        SUB_FOLDERS   = {               -- Additional subdirectories.
+    STORAGE = {                      -- Filesystem storage configuration.
+        SAVEGAME_DIR  = "",          -- Absolute path to the DCS savegame writable directory root.
+        ROOT_FOLDER   = "AETHR",     -- Root AETHR directory under writable path.
+        CONFIG_FOLDER = "CONFIG",    -- Subdirectory for config files.
+        SUB_FOLDERS   = {            -- Additional subdirectories.
             LEARNING_FOLDER = "LEARNING",
             MAP_FOLDER      = "MAP",
             UNITS_FOLDER    = "UNITS",
@@ -210,18 +211,18 @@ AETHR.CONFIG.MAIN = {
             USER_FOLDER     = "",
         },
         FILENAMES     = { -- lua filenames for data persistence.
-            AETHER_CONFIG_FILE   = "AETHR_Config.lua",
-            WORLD_DIVISIONS_FILE = "worldDivisions.lua",
-            USER_STORAGE_FILE    = "userStorage.lua",
-            AIRBASES_FILE        = "airbases.lua",
-            MIZ_ZONES_FILE       = "mizZones.lua",
-            SAVE_DIVS_FILE       = "saveDivs.lua",
-            OBJECTS_FILE         = "objects.lua",
-            SCENERY_OBJECTS_FILE = "sceneryObjects.lua",
-            STATIC_OBJECTS_FILE  = "staticObjects.lua",
-            BASE_OBJECTS_FILE    = "baseObjects.lua",
-            GAME_BOUNDS_FILE     = "gameBounds.lua",
-            MIZ_CACHE_DB         = "mizCacheDB.lua",
+            AETHER_CONFIG_FILE    = "AETHR_Config.lua",
+            WORLD_DIVISIONS_FILE  = "worldDivisions.lua",
+            USER_STORAGE_FILE     = "userStorage.lua",
+            AIRBASES_FILE         = "airbases.lua",
+            MIZ_ZONES_FILE        = "mizZones.lua",
+            SAVE_DIVS_FILE        = "saveDivs.lua",
+            OBJECTS_FILE          = "objects.lua",
+            SCENERY_OBJECTS_FILE  = "sceneryObjects.lua",
+            STATIC_OBJECTS_FILE   = "staticObjects.lua",
+            BASE_OBJECTS_FILE     = "baseObjects.lua",
+            GAME_BOUNDS_FILE      = "gameBounds.lua",
+            MIZ_CACHE_DB          = "mizCacheDB.lua",
             SPAWNER_TEMPLATE_DB   = "spawnerTemplateDB.lua",
             SPAWNER_ATTRIBUTE_DB  = "spawnerAttributesDB.lua",
             SPAWNER_UNIT_CACHE_DB = "spawnerUnitInfoCache.lua",
@@ -280,47 +281,52 @@ AETHR.CONFIG.MAIN = {
     },
     Zone = { -- Default visualization settings for trigger zones.
         paintColors           = {
-            LineColors  = {
+            LineColors   = {
                 [0] = { r = 0, g = 0, b = 0 },
                 [1] = { r = 1, g = 0, b = 0 },
                 [2] = { r = 0, g = 0, b = 1 },
             },
-            FillColors  = {
+            FillColors   = {
                 [0] = { r = 0, g = 0, b = 0 },
                 [1] = { r = 1, g = 0, b = 0 },
                 [2] = { r = 0, g = 0, b = 1 },
             },
-            ArrowColors = {
+            ArrowColors  = {
                 [0] = { r = 0, g = 0, b = 0, a = 0.5 },
                 [1] = { r = 1, g = 0, b = 0, a = 0.5 },
                 [2] = { r = 0, g = 0, b = 1, a = 0.5 },
             },
-            FillAlpha   = 0.20,                           -- Transparency for filled zones.
-            LineAlpha   = 0.5,                           -- Transparency for zone borders.
-            lineType    = AETHR.ENUMS.LineTypes.DashDot, -- Default line style.
+            CircleColors = {
+                [0] = { r = 0.941, g = 0.941, b = 0.941, a = 0.45 },
+                [1] = { r = 0.941, g = 0.941, b = 0.941, a = 0.45 },
+                [2] = { r = 0.941, g = 0.941, b = 0.941, a = 0.45 },
+            },
+            FillAlpha    = 0.20,                         -- Transparency for filled zones.
+            LineAlpha    = 0.5,                          -- Transparency for zone borders.
+            lineType     = AETHR.ENUMS.LineTypes.DashDot, -- Default line style.
         },
         gameBounds            = {
             LineColors     = { r = 0.1, g = 0.1, b = 0.1 },
             FillColors     = { r = 0.1, g = 0.1, b = 0.1 },
-            FillAlpha      = 0.4,                      -- Transparency for filled zones.
-            LineAlpha      = 0.30,                      -- Transparency for zone borders.
+            FillAlpha      = 0.4,                          -- Transparency for filled zones.
+            LineAlpha      = 0.30,                         -- Transparency for zone borders.
             lineType       = AETHR.ENUMS.LineTypes.NoLine, -- Default line style.
             getOutOfBounds = {
-                samplesPerEdge       = 20,              -- Number of samples to generate per edge of the world bounds.
-                useHoleSinglePolygon = false,           -- If true, generates a single polygon with a hole for the in-bounds area. Otherwise, generates multiple convex polygons.
-                snapDistance         = 0,               -- Distance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity.
+                samplesPerEdge       = 20,                 -- Number of samples to generate per edge of the world bounds.
+                useHoleSinglePolygon = false,              -- If true, generates a single polygon with a hole for the in-bounds area. Otherwise, generates multiple convex polygons.
+                snapDistance         = 0,                  -- Distance (meters) under which densified samples will be snapped to the nearest original polygon segment to enforce colinearity.
             },
         },
-        BorderOffsetThreshold = 800,   -- Distance threshold for bordering detection.
+        BorderOffsetThreshold = 800,  -- Distance threshold for bordering detection.
         ArrowLength           = 15000 --20000, -- Length of directional arrows.
     },
     outTextSettings = {
         airbaseOwnershipChange = {
-            displayTime = 10,   -- Seconds to display the message.
+            displayTime = 10,    -- Seconds to display the message.
             clearView   = false, -- Clear previous messages before displaying new one.
         },
         zoneOwnershipChange = {
-            displayTime = 10,   -- Seconds to display the message.
+            displayTime = 10,    -- Seconds to display the message.
             clearView   = false, -- Clear previous messages before displaying new one.
         },
     },

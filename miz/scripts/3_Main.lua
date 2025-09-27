@@ -53,7 +53,7 @@ local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
 
 
  G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -27626, y = 457048 }, 
- 1000, 2000, 3000, .5)
+ 1000, 5000, 10000, .5)
 
 local pause = ""
 
