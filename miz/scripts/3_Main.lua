@@ -42,7 +42,7 @@ function _testFunc()
     local airbaseSpawnerENUM = G_AETHR.ENUMS.dynamicSpawnerTypes.Airbase
     local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
         :setNumSpawnZones(3, 2, 4, 0.9)
-        :setSpawnAmount(6, 6, 6, 0.5)
+        :setSpawnAmount(15, 10, 25, 0.5)
         :setGroupSizes(5, 1)
         :setNamePrefix("Airbase_")
         :addExtraTypeToGroups(spawnTypes.GroundUnits, 1)

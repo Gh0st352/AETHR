@@ -275,20 +275,88 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     dynamicSpawner.nudgeFactorRadius = nudgeFactorRadius or dynamicSpawner.nudgeFactorRadius
     dynamicSpawner.vec2 = vec2
     self:generateSpawnerZones(dynamicSpawner)
+    self:weightZones(dynamicSpawner)
+    self:generateSpawnAmounts(dynamicSpawner)
 
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:generateSpawnAmounts(dynamicSpawner)
+    ---@type _spawnerZone
+    local mainZone = dynamicSpawner.zones.main
+    ---@type _spawnerZone[]
+    local subZones = dynamicSpawner.zones.sub
+    local numSubZones = dynamicSpawner.numSubZones
+    mainZone:setSpawnAmounts():rollSpawnAmounts()
+    ---@type _spawnSettings
+    local spawnSettingsMainGenerated = mainZone.spawnSettings.generated
+
+
+    -- Calculate spawn configurations for subzones
+    local avgDistribution = spawnSettingsMainGenerated.actual / numSubZones
+    dynamicSpawner.averageDistribution = avgDistribution
+
+    local spawnsMax = math.min(
+        avgDistribution + avgDistribution * spawnSettingsMainGenerated.ratioMax,
+        spawnSettingsMainGenerated.max / numSubZones)
+    local spawnsMin = math.max(
+        avgDistribution - avgDistribution * spawnSettingsMainGenerated.ratioMin,
+        spawnSettingsMainGenerated.min / numSubZones)
+
+    -- Set spawn amounts for each subzone
+    ---@param zoneObject_ _spawnerZone
+    for _, zoneObject_ in pairs(subZones) do
+        ---@type _spawnSettings
+        local spawnSettingsZO = zoneObject_.spawnSettings.base
+        spawnSettingsZO.nominal = avgDistribution
+        spawnSettingsZO.min = spawnsMin
+        spawnSettingsZO.max = spawnsMax
+        spawnSettingsZO.nudgeFactor = self.MATH:generateNudge(spawnSettingsMainGenerated.nudgeFactor)
+        zoneObject_:setSpawnAmounts():rollSpawnAmounts()
+    end
+    self:_Jiggle(dynamicSpawner)
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:_Jiggle(dynamicSpawner)
+    ---@type _spawnerZone
+    local mainZone = dynamicSpawner.zones.main
+    ---@type _spawnSettings
+    local spawnSettingsMainGenerated = mainZone.spawnSettings.generated
+
+    for _ = 1, spawnSettingsMainGenerated.nudgeReciprocal do
+        self:_RollUpdates(dynamicSpawner)
+    end
+    return self
+end
+
+--- Execute a sequence of updates on the _dynamicSpawner object.
+--
+-- This function orchestrates a series of method calls to update the `_dynamicSpawner` object.
+-- It sequentially executes the following methods:
+-- 1. `_seedRollUpdates` - Initiates updates based on seed rolls.
+-- 2. `_introduceRandomness` - Injects randomness into the spawning process.
+-- 3. `_distributeDifference` - Balances spawn distribution across subzones.
+-- 4. `_assignAndUpdateSubZones` - Assigns spawns and updates subzone details.
+-- This method chain is crucial for maintaining the operational integrity and dynamic behavior of the spawner.
+--
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:_RollUpdates(dynamicSpawner)
+    dynamicSpawner:_seedRollUpdates():_introduceRandomness():_distributeDifference():_assignAndUpdateSubZones()
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     if self.CONFIG.MAIN.DEBUG_ENABLED then
-        -- for markID, Marker in pairs(self.DATA.debugMarkers) do
         self.MARKERS:removeMarksByID(self.DATA.debugMarkers)
         self.DATA.debugMarkers = {}
-        -- end
     end
 
     local mainZone = dynamicSpawner.zones.main
+    local subZones = dynamicSpawner.zones.sub
     mainZone = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
 
     local mainZoneCenter = mainZone.center
@@ -307,13 +375,21 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     local generatedSubZones = self.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter,
         mainZoneRadius, overlapFactor, checkNOGO, restrictedZones)
 
-
     if self.CONFIG.MAIN.DEBUG_ENABLED then
         for _, subZone in ipairs(generatedSubZones) do
             self.MARKERS:drawGenericCircle(subZone.center, subZone.radius, self.DATA.debugMarkers)
         end
     end
 
+    --- @param subZone _circle
+    for _, subZone in ipairs(generatedSubZones) do
+        local _subZone = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
+        _subZone.center = subZone.center
+        _subZone.actualRadius = subZone.radius
+        _subZone.area = subZone.area
+        _subZone.diameter = subZone.diameter
+        subZones[#subZones + 1] = _subZone
+    end
 
     return self
 end
@@ -357,4 +433,31 @@ function AETHR.SPAWNER:vec2AtNoGoSurface(vec2)
         end
     end
     return false
+end
+
+--- Calculate and assign weight to the main zone and its subzones.
+---
+--- This function is responsible for computing and assigning weights to both the main zone and its subzones
+--- within the SPAWNER system. The weight of each subzone is calculated based on its area relative to the main zone's area.
+--- After determining the weights for all subzones, the main zone's weight is adjusted accordingly to ensure
+--- that the total of all weights equals 1. This ensures a balanced distribution of importance or influence among
+--- the zones.
+---
+--- @param dynamicSpawner _dynamicSpawner The dynamic spawner instance containing the zones to be weighted.
+--- @return self
+function AETHR.SPAWNER:weightZones(dynamicSpawner)
+    local mainZone = dynamicSpawner.zones.main
+    local subZones = dynamicSpawner.zones.sub
+    local totalWeight = 0
+
+    -- Calculate weights for each subzone
+    for _, zoneObject_ in pairs(subZones) do
+        zoneObject_.weight = zoneObject_.area / mainZone.area
+        totalWeight = totalWeight + zoneObject_.weight
+    end
+
+    -- Adjust main zone's weight
+    mainZone.weight = 1 - totalWeight
+
+    return self
 end

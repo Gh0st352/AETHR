@@ -755,6 +755,7 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field spawnAmountNudgeFactor number
 --- @field spawnAmount number
 --- @field spawnAmountCounter number
+--- @field averageDistribution number
 --- @field name string
 --- @field spawnedNamePrefix string
 --- @field groupSizeMax number
@@ -764,6 +765,9 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field nominalRadius number
 --- @field nudgeFactorRadius number
 --- @field vec2 _vec2|nil
+--- @field _keys table
+--- @field _spawnsManip table
+--- @field _spawnsManipTotal number|integer
 --- @field parentAETHR AETHR|nil
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
@@ -797,9 +801,13 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         spawnAmountNudgeFactor = 0.9,
         spawnAmount = 0,
         spawnAmountCounter = 0,
+        averageDistribution = 0,
         spawnedNamePrefix = "",
         groupSizeMax = 5,
         groupSizeMin = 1,
+        _keys = {},
+        _spawnsManip = {},
+        _spawnsManipTotal = 0,
         parentAETHR = parentAETHR or AETHR,
     }
     setmetatable(instance, { __index = self })
@@ -861,7 +869,6 @@ function AETHR._dynamicSpawner:setSpawnTypeAmount(spawnTypeENUM, max, limited, m
     return self
 end
 
-
 function AETHR._dynamicSpawner:setGroupSizes(max, min)
     self.groupSizeMax = max or 5
     self.groupSizeMin = min or 1
@@ -873,6 +880,147 @@ function AETHR._dynamicSpawner:addExtraTypeToGroups(typeENUM, numberToAdd)
     return self
 end
 
+function AETHR._dynamicSpawner:_seedRollUpdates()
+    self._keys = {}
+    self._spawnsManip = {}
+    self._spawnsManipTotal = 0
+    for k, zoneObject in pairs(self.zones.sub) do
+        table.insert(self._keys, k)
+        ---@type _spawnSettings
+        local spawnSettingsMainGenerated = zoneObject.spawnSettings.generated
+        self._spawnsManip[k] = spawnSettingsMainGenerated.actual
+        self._spawnsManipTotal = self._spawnsManipTotal + self._spawnsManip[k]
+    end
+    return self
+end
+
+function AETHR._dynamicSpawner:_introduceRandomness()
+    ---@type _spawnerZone
+    local mainZone = self.zones.main
+    ---@type _spawnerZone[]
+    local subZones = self.zones.sub
+    ---@type _spawnSettings
+    local spawnSettingsMainGenerated = mainZone.spawnSettings.generated
+    local numSubZones = self.numSubZones
+    -- Iterate over the zones as defined by the nudge reciprocation number
+    for _ = 1, spawnSettingsMainGenerated.nudgeReciprocal do
+        local subZoneKey_ = self._keys[math.random(numSubZones)]
+        local random_value = math.random(-2, 2)
+        local newActual = self._spawnsManip[subZoneKey_] + random_value
+        local newTotal = self._spawnsManipTotal + random_value
+
+        -- Check if the new actual value and the new total value are within the allowed range
+        local subZone = subZones[subZoneKey_]
+        ---@type _spawnSettings
+        local spawnSettingsSubZone = mainZone.spawnSettings.generated
+        if newActual > spawnSettingsSubZone.min
+            and newTotal <= spawnSettingsMainGenerated.max
+            and newActual < spawnSettingsSubZone.max then
+            -- Update the actual value and the total value with the new randomized numbers
+            self._spawnsManip[subZoneKey_] = newActual
+            self._spawnsManipTotal = newTotal
+        end
+    end
+    return self
+end
+
+function AETHR._dynamicSpawner:_distributeDifference()
+    ---@type _spawnerZone
+    local mainZone = self.zones.main
+    ---@type _spawnerZone[]
+    local subZones = self.zones.sub
+    ---@type _spawnSettings
+    local spawnSettingsMainGenerated = mainZone.spawnSettings.generated
+    local numSubZones = self.numSubZones
+
+    -- Calculate the difference between the expected and current total spawn amount
+    local difference = spawnSettingsMainGenerated.actual - self._spawnsManipTotal
+
+    -- Distribute the difference across the subzones
+    for _ = 1, math.abs(difference) do
+        local subZoneKey_ = self._keys[math.random(numSubZones)]
+        local _val = (difference > 0 and 1 or -1) -- Determine if we need to add or subtract
+        -- Update the spawn amounts for the subzone and the total
+        self._spawnsManip[subZoneKey_] = self._spawnsManip[subZoneKey_] + _val
+        self._spawnsManipTotal = self._spawnsManipTotal + _val
+    end
+    return self
+end
+
+function AETHR._dynamicSpawner:_assignAndUpdateSubZones()
+    ---@type _spawnerZone[]
+    local subZones = self.zones.sub
+    -- Assign computed values to subzones and update them
+    for zoneName, newActual in pairs(self._spawnsManip) do
+        ---@type _spawnerZone
+        local zoneObject = subZones[zoneName]
+        ---@type _spawnSettings
+        local spawnSettingsZoneObject = zoneObject.spawnSettings.generated
+        -- Assign new actual spawn value
+        spawnSettingsZoneObject.actual = newActual
+        -- Update generation thresholds and clamp them
+        zoneObject:_UpdateGenThresholds()
+        self:_thresholdClamp(zoneName)
+    end
+
+    -- Confirm the updated totals
+    self:_confirmTotals()
+
+    return self
+end
+
+---@param zoneObject _spawnerZone
+function AETHR._dynamicSpawner:_thresholdClamp(zoneObject)
+    ---@type _spawnerZone[]
+    local subZones = self.zones.sub
+    ---@type _spawnSettings
+    local spawnSettingsGenerated = zoneObject.spawnSettings.generated
+    local thresholds = spawnSettingsGenerated.thresholds
+
+    -- Check for threshold violations and adjust spawn values accordingly
+    if thresholds.overMax > 0 or thresholds.underMin > 0 then
+        local action
+        if thresholds.overMax > 0 then
+            action = -1
+        elseif thresholds.underMin > 0 then
+            action = 1
+        elseif thresholds.overNom > 0 then
+            action = -1
+        elseif thresholds.underNom > 0 then
+            action = 1
+        end
+
+        for _ = 1, math.abs(action * (thresholds.overMax + thresholds.underMin + thresholds.overNom + thresholds.underNom)) do
+            local index = self._keys[math.random(#self._keys)]
+            ---@type _spawnerZone
+            local _zone = subZones[index]
+            ---@type _spawnSettings
+            local spawnSettings_zone = _zone.spawnSettings.generated
+            spawnSettings_zone.actual = spawnSettings_zone.actual + action
+        end
+    end
+
+    return self
+end
+
+function AETHR._dynamicSpawner:_confirmTotals()
+    ---@type _spawnerZone[]
+    local subZones = self.zones.sub
+    local confirmedTotal = 0
+
+    ---@param zoneObj _spawnerZone
+    for zoneName, zoneObj in pairs(subZones) do
+        ---@type _spawnSettings
+        local spawnSettingsGenerated = zoneObj.spawnSettings.generated
+        local currentZoneActual = spawnSettingsGenerated.actual
+        -- Update the confirmed total
+        confirmedTotal = confirmedTotal + currentZoneActual
+    end
+
+
+    return self
+end
+
 --- @class _spawnerZone
 --- @field name string
 --- @field minRadius number|integer Minimum size of the main zone.
@@ -880,6 +1028,7 @@ end
 --- @field nominalRadius number|integer Default size of the main zone.
 --- @field nudgeFactor number|integer Adjustment factor for the main zone size.
 --- @field actualRadius number|integer Actual calculated size of the main zone.
+--- @field diameter number|integer
 --- @field area number|integer
 --- @field weight number
 --- @field center _vec2
@@ -923,6 +1072,7 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         nudgeFactor = parentSpawner and parentSpawner.nudgeFactorRadius or 0.5,
         -- Actual calculated size of the main zone.
         actualRadius = 5000,
+        diameter = 10000,
         area = 0,
         weight = 0,
         center = parentSpawner and parentSpawner.vec2 or { x = 0, y = 0 },
@@ -978,64 +1128,85 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         instance.nudgeFactor))
 
     instance.area = math.pi * (instance.actualRadius ^ 2)
+    instance.diameter = instance.actualRadius * 2
 
-
-
-    -- ---Base spawn settings calculations
-    -- local spawnSettings              = instance.spawnSettings.base
-    -- spawnSettings.nudgeReciprocal    = spawnSettings.nudgeFactor ~= 0 and
-    --     (1 / spawnSettings.nudgeFactor) or 0
-    -- spawnSettings.nominal            = math.ceil(spawnSettings.nominal)
-    -- spawnSettings.ratioMax           = spawnSettings.max / spawnSettings.nominal - 1
-    -- spawnSettings.ratioMin           = spawnSettings.min / spawnSettings.nominal
-    -- spawnSettings.weighted           = math.ceil(spawnSettings.nominal * instance.weight)
-    -- spawnSettings.divisionFactor     = spawnSettings.nominal / spawnSettings.weighted
-    -- spawnSettings.actual             = math.ceil(AETHR.MATH:generateNominal(
-    --     spawnSettings.nominal,
-    --     spawnSettings.min,
-    --     spawnSettings.max,
-    --     spawnSettings.nudgeFactor))
-    -- spawnSettings.actualWeighted     = math.ceil(spawnSettings.actual * instance.weight)
-
-    -- local thresholds                 = spawnSettings.thresholds
-    -- thresholds.overNom               = math.max(0, spawnSettings.actual - spawnSettings.nominal)
-    -- thresholds.underNom              = math.max(0, spawnSettings.nominal - spawnSettings.actual)
-    -- thresholds.overMax               = math.max(0, spawnSettings.actual - spawnSettings.max)
-    -- thresholds.underMax              = math.max(0, spawnSettings.max - spawnSettings.actual)
-    -- thresholds.overMin               = math.max(0, spawnSettings.actual - spawnSettings.min)
-    -- thresholds.underMin              = math.max(0, spawnSettings.min - spawnSettings.actual)
-
-    -- --- generated spawn settings calculations
-    -- local genSpawnSettings           = instance.spawnSettings.generated
-    -- genSpawnSettings.nudgeFactor     = AETHR.MATH:generateNudge(spawnSettings.nudgeFactor)
-    -- genSpawnSettings.nudgeReciprocal = genSpawnSettings.nudgeFactor ~= 0 and
-    --     (1 / genSpawnSettings.nudgeFactor) or 0
-    -- genSpawnSettings.nominal         = math.ceil(AETHR.MATH:generateNominal(spawnSettings.actual, spawnSettings.min,
-    --     spawnSettings.max, genSpawnSettings.nudgeFactor))
-    -- genSpawnSettings.ratioMax        = spawnSettings.ratioMax
-    -- genSpawnSettings.ratioMin        = spawnSettings.ratioMin
-    -- genSpawnSettings.max             = math.ceil(math.min(
-    --     genSpawnSettings.nominal + (genSpawnSettings.nominal * genSpawnSettings.ratioMax), spawnSettings.max))
-    -- genSpawnSettings.min             = math.ceil(math.max(
-    --     genSpawnSettings.nominal - (genSpawnSettings.nominal * genSpawnSettings.ratioMin), spawnSettings.min))
-    -- genSpawnSettings.weighted        = math.ceil(genSpawnSettings.nominal * instance.weight)
-    -- genSpawnSettings.divisionFactor  = genSpawnSettings.nominal / genSpawnSettings.weighted
-    -- genSpawnSettings.actual          = math.ceil(AETHR.MATH:generateNominal(
-    --     genSpawnSettings.nominal,
-    --     genSpawnSettings.min,
-    --     genSpawnSettings.max,
-    --     genSpawnSettings.nudgeFactor))
-    -- genSpawnSettings.actualWeighted  = math.ceil(genSpawnSettings.actual * instance.weight)
-
-    -- local genthresholds              = genSpawnSettings.thresholds
-    -- genthresholds.overNom            = math.max(0, genSpawnSettings.actual - spawnSettings.nominal)
-    -- genthresholds.underNom           = math.max(0, spawnSettings.nominal - genSpawnSettings.actual)
-    -- genthresholds.overMax            = math.max(0, genSpawnSettings.actual - spawnSettings.max)
-    -- genthresholds.underMax           = math.max(0, spawnSettings.max - genSpawnSettings.actual)
-    -- genthresholds.overMin            = math.max(0, genSpawnSettings.actual - spawnSettings.min)
-    -- genthresholds.underMin           = math.max(0, spawnSettings.min - genSpawnSettings.actual)
-
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
+end
+
+function AETHR._spawnerZone:setSpawnAmounts()
+    ---Base spawn settings calculations
+    local spawnSettings           = self.spawnSettings.base
+    spawnSettings.nudgeReciprocal = spawnSettings.nudgeFactor ~= 0 and
+        (1 / spawnSettings.nudgeFactor) or 0
+    spawnSettings.nominal         = math.ceil(spawnSettings.nominal)
+    spawnSettings.ratioMax        = spawnSettings.max / spawnSettings.nominal - 1
+    spawnSettings.ratioMin        = spawnSettings.min / spawnSettings.nominal
+    spawnSettings.weighted        = math.ceil(spawnSettings.nominal * self.weight)
+    spawnSettings.divisionFactor  = spawnSettings.nominal / spawnSettings.weighted
+    spawnSettings.actual          = math.ceil(AETHR.MATH:generateNominal(
+        spawnSettings.nominal,
+        spawnSettings.min,
+        spawnSettings.max,
+        spawnSettings.nudgeFactor))
+    spawnSettings.actualWeighted  = math.ceil(spawnSettings.actual * self.weight)
+
+    local thresholds              = spawnSettings.thresholds
+    thresholds.overNom            = math.max(0, spawnSettings.actual - spawnSettings.nominal)
+    thresholds.underNom           = math.max(0, spawnSettings.nominal - spawnSettings.actual)
+    thresholds.overMax            = math.max(0, spawnSettings.actual - spawnSettings.max)
+    thresholds.underMax           = math.max(0, spawnSettings.max - spawnSettings.actual)
+    thresholds.overMin            = math.max(0, spawnSettings.actual - spawnSettings.min)
+    thresholds.underMin           = math.max(0, spawnSettings.min - spawnSettings.actual)
+    return self
+end
+
+function AETHR._spawnerZone:rollSpawnAmounts()
+    --- generated spawn settings calculations
+    local spawnSettings              = self.spawnSettings.base
+    local genSpawnSettings           = self.spawnSettings.generated
+    genSpawnSettings.nudgeFactor     = AETHR.MATH:generateNudge(spawnSettings.nudgeFactor)
+    genSpawnSettings.nudgeReciprocal = genSpawnSettings.nudgeFactor ~= 0 and
+        (1 / genSpawnSettings.nudgeFactor) or 0
+    genSpawnSettings.nominal         = math.ceil(AETHR.MATH:generateNominal(spawnSettings.actual, spawnSettings.min,
+        spawnSettings.max, genSpawnSettings.nudgeFactor))
+    genSpawnSettings.ratioMax        = spawnSettings.ratioMax
+    genSpawnSettings.ratioMin        = spawnSettings.ratioMin
+    genSpawnSettings.max             = math.ceil(math.min(
+        genSpawnSettings.nominal + (genSpawnSettings.nominal * genSpawnSettings.ratioMax), spawnSettings.max))
+    genSpawnSettings.min             = math.ceil(math.max(
+        genSpawnSettings.nominal - (genSpawnSettings.nominal * genSpawnSettings.ratioMin), spawnSettings.min))
+    genSpawnSettings.weighted        = math.ceil(genSpawnSettings.nominal * self.weight)
+    genSpawnSettings.divisionFactor  = genSpawnSettings.nominal / genSpawnSettings.weighted
+    genSpawnSettings.actual          = math.ceil(AETHR.MATH:generateNominal(
+        genSpawnSettings.nominal,
+        genSpawnSettings.min,
+        genSpawnSettings.max,
+        genSpawnSettings.nudgeFactor))
+    genSpawnSettings.actualWeighted  = math.ceil(genSpawnSettings.actual * self.weight)
+
+    local genthresholds              = genSpawnSettings.thresholds
+    genthresholds.overNom            = math.max(0, genSpawnSettings.actual - spawnSettings.nominal)
+    genthresholds.underNom           = math.max(0, spawnSettings.nominal - genSpawnSettings.actual)
+    genthresholds.overMax            = math.max(0, genSpawnSettings.actual - spawnSettings.max)
+    genthresholds.underMax           = math.max(0, spawnSettings.max - genSpawnSettings.actual)
+    genthresholds.overMin            = math.max(0, genSpawnSettings.actual - spawnSettings.min)
+    genthresholds.underMin           = math.max(0, spawnSettings.min - genSpawnSettings.actual)
+
+    return self
+end
+
+function AETHR._spawnerZone:_UpdateGenThresholds()
+    local spawnSettings    = self.spawnSettings.base
+    local genSpawnSettings = self.spawnSettings.generated
+    local genthresholds    = genSpawnSettings.thresholds
+    genthresholds.overNom  = math.max(0, genSpawnSettings.actual - spawnSettings.nominal)
+    genthresholds.underNom = math.max(0, spawnSettings.nominal - genSpawnSettings.actual)
+    genthresholds.overMax  = math.max(0, genSpawnSettings.actual - spawnSettings.max)
+    genthresholds.underMax = math.max(0, spawnSettings.max - genSpawnSettings.actual)
+    genthresholds.overMin  = math.max(0, genSpawnSettings.actual - spawnSettings.min)
+    genthresholds.underMin = math.max(0, spawnSettings.min - genSpawnSettings.actual)
+    return self
 end
 
 --- @class _spawnSettings
