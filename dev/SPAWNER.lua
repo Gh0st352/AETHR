@@ -352,7 +352,7 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
             glassBreak = glassBreak + 1
         until flagGoodCoord
 
-        if self.POLY.isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, 0.75) then
+        if self.POLY:isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, 0.75) then
             table.insert(generatedSubZones, subZone)
             -------------------------------------------------------------------
             if self.CONFIG.MAIN.DEBUG_ENABLED then

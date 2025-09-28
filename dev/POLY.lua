@@ -1582,13 +1582,13 @@ end
 --- @param mainRadius number|integer The radius of the main circle.
 --- @param threshold any The threshold for allowed proximity to the main circle's edge (0 to 1).
 --- @return boolean true|false Returns true if the subcircle is entirely within the main circle; otherwise, false.
-function AETHR.POLY.isSubCircleValidThreshold(subCircle, generatedSubCircles, mainCircleVec2, mainRadius, threshold)
+function AETHR.POLY:isSubCircleValidThreshold(subCircle, generatedSubCircles, mainCircleVec2, mainRadius, threshold)
   for _, existingSubCircle in ipairs(generatedSubCircles) do
-    if AETHR.POLY.doesCircleOverlapThreshold(subCircle, existingSubCircle, threshold) then
+    if self:doesCircleOverlapThreshold(subCircle, existingSubCircle, threshold) then
       return false
     end
   end
-  return AETHR.POLY.isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
+  return self:isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
 end
 
 --- Checks if two circles overlap with a specified threshold.
@@ -1599,7 +1599,7 @@ end
 --- @param subCircle2 _circle The second circle to check for overlap.
 --- @param threshold any The threshold for allowed overlap (0 to 1).
 --- @return boolean true|false Returns true if the circles overlap within the given threshold; otherwise, false.
-function AETHR.POLY.doesCircleOverlapThreshold(subCircle1, subCircle2, threshold)
+function AETHR.POLY:doesCircleOverlapThreshold(subCircle1, subCircle2, threshold)
   local dx = subCircle1.center.x - subCircle2.center.x
   local dy = subCircle1.center.y - subCircle2.center.y
   local distanceBetweenCenters = math.sqrt(dx * dx + dy * dy)
@@ -1610,7 +1610,7 @@ end
 
 
 --- @return boolean true|false Returns true if the circles overlap; otherwise, false.
-function AETHR.POLY.isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
+function AETHR.POLY:isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
   local dx = subCircle.center.x - mainCircleVec2.x
   local dy = subCircle.center.y - mainCircleVec2.y
   local distanceToCenter = math.sqrt(dx * dx + dy * dy)
