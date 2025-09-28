@@ -300,7 +300,33 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
             self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner completed in " ..
             tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
+
+        self.DATA.BenchmarkLog.generateSpawnerGroups = { Time = {}, }
+        self.DATA.BenchmarkLog.generateSpawnerGroups.Time.start = os.clock()
     end
+
+    self:generateSpawnerGroups(dynamicSpawner)
+
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:generateSpawnerGroups(dynamicSpawner)
+    self:RollSpawnGroupTypes(dynamicSpawner)
+    -- self:RollPlacement()
+    -- self:SetupSpawnGroups()
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:RollSpawnGroupTypes(dynamicSpawner)
+    self:_seedTypes(dynamicSpawner)
+
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:_seedTypes(dynamicSpawner)
     return self
 end
 
