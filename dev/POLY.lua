@@ -6,6 +6,8 @@
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field UTILS AETHR.UTILS Utils submodule attached per-instance.
@@ -1600,11 +1602,29 @@ end
 --- @param threshold any The threshold for allowed overlap (0 to 1).
 --- @return boolean true|false Returns true if the circles overlap within the given threshold; otherwise, false.
 function AETHR.POLY:doesCircleOverlapThreshold(subCircle1, subCircle2, threshold)
-  local dx = subCircle1.center.x - subCircle2.center.x
-  local dy = subCircle1.center.y - subCircle2.center.y
+  -- Normalize threshold to [0,1]
+  local t = tonumber(threshold) or 0
+  if t < 0 then t = 0 end
+  if t > 1 then t = 1 end
+
+  local dx = (subCircle1.center.x or 0) - (subCircle2.center.x or 0)
+  local dy = (subCircle1.center.y or 0) - (subCircle2.center.y or 0)
   local distanceBetweenCenters = math.sqrt(dx * dx + dy * dy)
-  local allowedOverlap = (subCircle1.radius + subCircle2.radius) * (1 - threshold)
-  return distanceBetweenCenters < allowedOverlap
+
+  local r1 = subCircle1.radius or 0
+  local r2 = subCircle2.radius or 0
+  local rSum = r1 + r2
+
+  -- overlapDepth is how much the circles penetrate each other (0 = tangent or separated)
+  local overlapDepth = math.max(0, rSum - distanceBetweenCenters)
+
+  -- Interpret threshold `t` such that:
+  --  t == 1.0 -> do not allow any overlap (allowedOverlap == 0)
+  --  t == 0.0 -> allow full overlap up to rSum
+  local allowedOverlap = (1 - t) * rSum
+
+  -- Return true when the actual overlap depth exceeds the allowedOverlap.
+  return overlapDepth > allowedOverlap
 end
 
 
@@ -1616,4 +1636,62 @@ function AETHR.POLY:isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainR
   local distanceToCenter = math.sqrt(dx * dx + dy * dy)
   local allowedOutside = subCircle.diameter / 2 * threshold
   return distanceToCenter + subCircle.diameter / 2 - allowedOutside <= mainRadius
+end
+
+--- Generate sub circles within a main circles, avoiding no-go areas and excessive overlap.
+--- @param numSubZones number Number of sub zones to generate.
+--- @param subZoneMinRadius number Minimum radius for each sub zone in meters.
+--- @param mainZoneCenter _vec2 Center point of the main zone.
+--- @param mainZoneRadius number Radius of the main zone in meters.
+--- @param overlapFactor number Overlap factor (0.0 = no overlap, 1.0 = full overlap allowed).
+--- @param checkNOGO boolean|nil If true, avoid no-go areas. Defaults to false if nil.
+--- @param restrictedZones table List of restricted zones to avoid
+--- @return _circle[] generatedSubZones List of generated sub zones as _circle instances.
+function AETHR.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter, mainZoneRadius, overlapFactor,
+                                          checkNOGO, restrictedZones)
+
+    checkNOGO = checkNOGO and checkNOGO or false
+    local generatedSubZones = {}
+    local attempts = 0
+    local operationLimit = self.SPAWNER.DATA.CONFIG.operationLimit or 100
+    local attemptLimit = numSubZones * operationLimit
+
+    repeat
+        local glassBreak = 0
+        local subZone = {}
+        local subZoneRadius
+
+        repeat
+            -- Try to find a valid non-NOGO coordinate within operationLimit attempts.
+            local found = false
+            -- Continuous random sampling (avoid integer-only math.random(a,b) truncation)
+            subZoneRadius = ((subZoneMinRadius) + (mainZoneRadius - subZoneMinRadius) * math.random()) / 2
+            local angle = 2 * math.pi * math.random()
+            local maxDistFromCenter = mainZoneRadius - subZoneRadius
+            local minDistFromCenter = subZoneRadius
+            local distFromCenter = minDistFromCenter + (maxDistFromCenter - minDistFromCenter) * math.random()
+            local subZoneCenter = {
+                x = mainZoneCenter.x + distFromCenter * math.cos(angle),
+                y = mainZoneCenter.y + distFromCenter * math.sin(angle)
+            }
+
+            if checkNOGO and not self.SPAWNER:checkIsInNOGO(subZoneCenter, restrictedZones) then
+                subZone = self.AETHR._circle:New(subZoneCenter, subZoneRadius)
+                found = true
+            elseif not checkNOGO then
+                subZone = self.AETHR._circle:New(subZoneCenter, subZoneRadius)
+                found = true
+            end
+
+            glassBreak = glassBreak + 1
+        until found or glassBreak >= operationLimit
+
+        if self:isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, overlapFactor) then
+            table.insert(generatedSubZones, subZone)
+        end
+
+        attempts = attempts + 1
+    until #generatedSubZones == numSubZones or attempts >= attemptLimit -- budget exhausted; exit after this iteration
+
+    return generatedSubZones
 end

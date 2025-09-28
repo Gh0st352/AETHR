@@ -53,7 +53,7 @@ function _testFunc()
 
 
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -27626, y = 457048 },
-        1000, 5000, 10000, .5)
+        3000, 4500, 6000, .5)
 end
 
 function _testFunc2()

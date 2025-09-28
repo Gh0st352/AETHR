@@ -748,6 +748,7 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field numSubZonesNominal number
 --- @field numSubZonesNudgeFactor number
 --- @field numSubZones number
+--- @field subZoneOverlapFactor number
 --- @field spawnAmountMin number
 --- @field spawnAmountMax number
 --- @field spawnAmountNominal number
@@ -789,6 +790,7 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         numSubZonesNominal = 3,
         numSubZonesNudgeFactor = 0.9,
         numSubZones = 3,
+        subZoneOverlapFactor = 0.9, -- 0 = no overlap, 1 = full overlap
         spawnAmountMin = 0,
         spawnAmountMax = 0,
         spawnAmountNominal = 0,

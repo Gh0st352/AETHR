@@ -287,14 +287,43 @@ function AETHR.MARKERS:drawCircle(coalition, fillColor, borderColor, linetype, m
     return self
 end
 
+--- Draws a generic circle marker on the map at the specified vec2 and radius for all players using the neutral coalition color settings,
+--- and optionally stores the marker object in a provided table.
+--- @function AETHR.MARKERS:drawGenericCircle
+--- @param vec2 _vec2 Center vec2 of circle
+--- @param radius number Radius of circle in meters
+--- @param storagelocation table|nil Optional table to store the marker object keyed by markID.
+--- @return AETHR.MARKERS self Returns the MARKERS instance for chaining.
+function AETHR.MARKERS:drawGenericCircle(vec2, radius, storagelocation)
+    local circleMarker = self.AETHR._Marker:New(
+        self.CONFIG.MAIN.COUNTERS.MARKERS,
+        nil,
+        vec2,
+        true,
+        nil,
+        nil,
+        -1,
+        self.CONFIG.MAIN.Zone.paintColors.lineType,
+        self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+        self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+        nil,
+        radius
+    )
+    self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+    self:markCircle(circleMarker, storagelocation)
+    return self
+end
+
 function AETHR.MARKERS:removeMarksByID(markID)
     if not markID then
         return self
     end
-    if type(markID) == "table" and #markID > 0 then
-        for id, marker in ipairs(markID) do
+    if type(markID) == "table" and self.UTILS.sumTable(markID) > 0 then
+        for id, marker in pairs(markID) do
             trigger.action.removeMark(id)
         end
+    elseif type(markID) == "table" and self.UTILS.sumTable(markID) == 0 then
+        return self
     else
         trigger.action.removeMark(markID)
     end

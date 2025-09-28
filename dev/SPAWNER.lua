@@ -281,108 +281,38 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
-    -------------------------------------------------------------------
     if self.CONFIG.MAIN.DEBUG_ENABLED then
-        for markID, Marker in pairs(self.DATA.debugMarkers) do
-            self.MARKERS:removeMarksByID(markID)
-            self.DATA.debugMarkers[markID] = nil
-        end
+        -- for markID, Marker in pairs(self.DATA.debugMarkers) do
+        self.MARKERS:removeMarksByID(self.DATA.debugMarkers)
+        self.DATA.debugMarkers = {}
+        -- end
     end
-    -------------------------------------------------------------------
 
     local mainZone = dynamicSpawner.zones.main
     mainZone = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
 
-
     local mainZoneCenter = mainZone.center
     local mainZoneRadius = mainZone.actualRadius
-    local numSubZones = dynamicSpawner.numSubZones
-    local subZoneMinRadius = (mainZoneRadius / numSubZones) / 2
 
-    -------------------------------------------------------------------
     if self.CONFIG.MAIN.DEBUG_ENABLED then
-        local circleMarker = self.AETHR._Marker:New(
-            self.CONFIG.MAIN.COUNTERS.MARKERS,
-            nil,
-            mainZoneCenter,
-            true,
-            nil,
-            nil,
-            -1,
-            self.CONFIG.MAIN.Zone.paintColors.lineType,
-            self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-            self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-            nil,
-            mainZoneRadius
-        )
-        self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
-        self.MARKERS:markCircle(circleMarker, self.DATA.debugMarkers)
+        self.MARKERS:drawGenericCircle(mainZoneCenter, mainZoneRadius, self.DATA.debugMarkers)
     end
-    -------------------------------------------------------------------
 
-    local generatedSubZones = {}
-    local attempts = 0
-    local operationLimit = self.DATA.CONFIG.operationLimit
-    local attemptLimit = numSubZones * operationLimit
+    local numSubZones = dynamicSpawner.numSubZones
+    local subZoneMinRadius = (mainZoneRadius / numSubZones) --/ 2
+    local overlapFactor = dynamicSpawner.subZoneOverlapFactor or 0.75
+    local restrictedZones = dynamicSpawner.zones.restricted or {}
+    local checkNOGO = true
 
-    repeat
-        local flagGoodCoord = true
-        local glassBreak = 0
-        local subZone = {}
-        local subZoneRadius
+    local generatedSubZones = self.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter,
+        mainZoneRadius, overlapFactor, checkNOGO, restrictedZones)
 
-        repeat
-            flagGoodCoord = true
-            subZoneRadius = math.random(subZoneMinRadius, mainZoneRadius) / 2
-            local angle = math.random() * 2 * math.pi
-            local maxDistFromCenter = math.floor(mainZoneRadius - subZoneRadius)
-            local minDistFromCenter = math.floor(subZoneRadius)
-            local distFromCenter = math.random(minDistFromCenter, maxDistFromCenter)
-            local subZoneCenter = {
-                x = mainZoneCenter.x + distFromCenter * math.cos(angle),
-                y = mainZoneCenter.y + distFromCenter * math.sin(angle)
-            }
 
-            flagGoodCoord = not self:checkIsInNOGO(subZoneCenter, dynamicSpawner.zones.restricted)
-
-            if glassBreak >= operationLimit then flagGoodCoord = true end
-
-            if flagGoodCoord then subZone = self.AETHR._circle:New(subZoneCenter, subZoneRadius) end
-
-            glassBreak = glassBreak + 1
-        until flagGoodCoord
-
-        if self.POLY:isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, 0.75) then
-            table.insert(generatedSubZones, subZone)
-            -------------------------------------------------------------------
-            if self.CONFIG.MAIN.DEBUG_ENABLED then
-                local circleMarker = self.AETHR._Marker:New(
-                    self.CONFIG.MAIN.COUNTERS.MARKERS,
-                    nil,
-                    subZone.center,
-                    true,
-                    nil,
-                    nil,
-                    -1,
-                    self.CONFIG.MAIN.Zone.paintColors.lineType,
-                    self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-                    self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-                    nil,
-                    subZone.radius
-                )
-                self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
-                self.MARKERS:markCircle(circleMarker, self.DATA.debugMarkers)
-            end
-            -------------------------------------------------------------------
+    if self.CONFIG.MAIN.DEBUG_ENABLED then
+        for _, subZone in ipairs(generatedSubZones) do
+            self.MARKERS:drawGenericCircle(subZone.center, subZone.radius, self.DATA.debugMarkers)
         end
-
-        if attempts >= attemptLimit then
-            flagGoodCoord = true
-        end
-        attempts = attempts + 1
-    until #generatedSubZones == numSubZones and flagGoodCoord
-
-
+    end
 
 
     return self
