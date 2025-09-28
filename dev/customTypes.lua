@@ -1042,6 +1042,7 @@ end
 --- @field groupSizePrioMax number
 --- @field groupSizePrioMin number
 --- @field groupSizesPrio number[]
+--- @field groupSpacingSettings table
 --- @field groupSettings table
 --- @field spawnSettings table
 --- @field spawnSettings.base _spawnSettings
@@ -1097,28 +1098,33 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
             -- [9] = 2,
             -- [10] = 1,
         },
+        groupSpacingSettings = {},
         groupSettings = {},
         spawnSettings = {
             base = parentAETHR and parentAETHR._spawnSettings:New() or AETHR._spawnSettings:New(),
             generated = parentAETHR and parentAETHR._spawnSettings:New() or AETHR._spawnSettings:New(),
         },
         seperationSettings = {
-            minGroups = 0,
-            maxGroups = 0,
-            minUnits = 0,
-            maxUnits = 0,
-            minBuildings = 0,
+            minGroups = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.minGroups or 30,
+            maxGroups = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.maxGroups or 45,
+            minUnits = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.minUnits or 15,
+            maxUnits = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.maxUnits or 30,
+            minBuildings = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.minBuildings or 20,
         },
         parentAETHR = parentAETHR or AETHR,
         parentSpawner = parentSpawner or {},
     }
-
+    setmetatable(instance, { __index = self })
     if not instance.name then instance.name = "Zone_" .. tostring(os.time) end
 
     local counter = 1
     for i = instance.groupSizePrioMax, instance.groupSizePrioMin, -1 do
         instance.groupSizesPrio[counter] = i
         counter = counter + 1
+    end
+
+    for _, groupSize in ipairs(instance.groupSizesPrio) do
+        instance:setGroupSpacing(groupSize)
     end
 
     instance.actualRadius = math.ceil(AETHR.MATH:generateNominal(
@@ -1130,8 +1136,43 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
     instance.area = math.pi * (instance.actualRadius ^ 2)
     instance.diameter = instance.actualRadius * 2
 
-    setmetatable(instance, { __index = self })
+
     return instance ---@diagnostic disable-line
+end
+
+--- Set the spacing configurations for a specified group size within a zone.
+---
+--- This function configures the spacing settings for groups of a specific size within a zone.
+--- It sets the minimum and maximum separation distances between groups and between units within those groups.
+--- These configurations are vital for ensuring proper spacing and organization of spawned groups,
+--- avoiding overcrowding and ensuring tactical effectiveness. Default values are used if specific
+--- parameters are not provided.
+---
+--- @param groupSize number|integer The size of the group for which spacing settings are being configured.
+--- @param groupMinSep number|integer|nil (Optional) The minimum separation distance between groups.
+--- @param groupMaxSep number|integer|nil (Optional) The maximum separation distance between groups.
+--- @param unitMinSep number|integer|nil (Optional) The minimum separation distance between units within a group.
+--- @param unitMaxSep number|integer|nil (Optional) The maximum separation distance between units within a group.
+--- @param distFromBuildings number|integer|nil (Optional) The minimum distance from nearby buildings.
+function AETHR._spawnerZone:setGroupSpacing(groupSize, groupMinSep, groupMaxSep, unitMinSep, unitMaxSep,
+                                            distFromBuildings)
+    groupMinSep                          = groupMinSep or self.seperationSettings.minGroups
+    groupMaxSep                          = groupMaxSep or self.seperationSettings.maxGroups
+    unitMinSep                           = unitMinSep or self.seperationSettings.minUnits
+    unitMaxSep                           = unitMaxSep or self.seperationSettings.maxUnits
+    distFromBuildings                    = distFromBuildings or self.seperationSettings.minBuildings
+    -- Initialize the spacing settings for the given group size
+    self.groupSpacingSettings[groupSize] = {}
+    local settings                       = self.groupSpacingSettings[groupSize]
+    settings.minGroups                   = groupMinSep
+    settings.maxGroups                   = groupMaxSep
+    settings.minUnits                    = unitMinSep
+    settings.maxUnits                    = unitMaxSep
+    settings.minBuildings                = distFromBuildings
+    settings.size                        = 0
+    settings.numGroups                   = 0
+
+    return self
 end
 
 function AETHR._spawnerZone:setSpawnAmounts()

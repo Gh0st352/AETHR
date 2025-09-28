@@ -57,6 +57,13 @@ AETHR.SPAWNER.DATA = {
             AETHR.ENUMS.SurfaceType.RUNWAY,
             AETHR.ENUMS.SurfaceType.SHALLOW_WATER
         },
+        seperationSettings = {
+            minGroups = 30,
+            maxGroups = 45,
+            minUnits = 15,
+            maxUnits = 30,
+            minBuildings = 20,
+        },
     },
     debugMarkers = {}
 }
@@ -277,7 +284,33 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     self:generateSpawnerZones(dynamicSpawner)
     self:weightZones(dynamicSpawner)
     self:generateSpawnAmounts(dynamicSpawner)
+    self:rollSpawnGroupSizes(dynamicSpawner)
+    return self
+end
 
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
+    ---@type _spawnerZone[]
+    local subZones = dynamicSpawner.zones.sub
+    ---@param zoneObject_ _spawnerZone
+    for zoneName_, zoneObject_ in pairs(subZones) do
+        local groupSizes_ = zoneObject_.groupSizesPrio
+        local SpacingSettings_ = zoneObject_.groupSpacingSettings
+        ---@type _spawnSettings
+        local spawnSettingsGeneratedZO = zoneObject_.spawnSettings.generated
+        local numTypesZone = spawnSettingsGeneratedZO.actual
+        for i = 1, #groupSizes_ do
+            local size = groupSizes_[i]
+            local numGroupSize = math.floor(numTypesZone / size)
+            if numGroupSize > 0 then
+                numTypesZone = numTypesZone - (numGroupSize * size)
+                local index_ = self.UTILS.sumTable(zoneObject_.groupSettings) + 1
+                zoneObject_.groupSettings[index_].size =
+                    size --= self:_createGroupSettings(size, numGroupSize, SpacingSettings_)
+                zoneObject_.groupSettings[index_].numGroups = numGroupSize
+            end
+        end
+    end
     return self
 end
 
