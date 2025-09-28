@@ -639,7 +639,7 @@ function AETHR._groundUnit:New(type, skill, x, y, name, heading, playerCanDrive,
         playerCanDrive = playerCanDrive or true,
         heading = heading or 0, -- number heading of the object in radians
     }
-    if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
+    if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
 
     return instance ---@diagnostic disable-line
 end
@@ -706,7 +706,7 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         task            = task or "Ground Nothing",
         countryID       = countryID or 0,
     }
-    if not instance.name then instance.name = "AETHR_" .. tostring(os.time) end
+    if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
     return instance ---@diagnostic disable-line
 end
 
@@ -768,6 +768,7 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field _keys table
 --- @field _spawnsManip table
 --- @field _spawnsManipTotal number|integer
+--- @field _confirmedTotal number|integer
 --- @field parentAETHR AETHR|nil
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
@@ -808,6 +809,7 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         _keys = {},
         _spawnsManip = {},
         _spawnsManipTotal = 0,
+        _confirmedTotal = 0,
         parentAETHR = parentAETHR or AETHR,
     }
     setmetatable(instance, { __index = self })
@@ -960,7 +962,7 @@ function AETHR._dynamicSpawner:_assignAndUpdateSubZones()
         spawnSettingsZoneObject.actual = newActual
         -- Update generation thresholds and clamp them
         zoneObject:_UpdateGenThresholds()
-        self:_thresholdClamp(zoneName)
+        self:_thresholdClamp(zoneObject)
     end
 
     -- Confirm the updated totals
@@ -1016,7 +1018,7 @@ function AETHR._dynamicSpawner:_confirmTotals()
         -- Update the confirmed total
         confirmedTotal = confirmedTotal + currentZoneActual
     end
-
+    self._confirmedTotal = confirmedTotal
 
     return self
 end
@@ -1098,7 +1100,7 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
             -- [9] = 2,
             -- [10] = 1,
         },
-        groupSpacingSettings = {},
+        --groupSpacingSettings = {},
         groupSettings = {},
         spawnSettings = {
             base = parentAETHR and parentAETHR._spawnSettings:New() or AETHR._spawnSettings:New(),
@@ -1115,7 +1117,7 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         parentSpawner = parentSpawner or {},
     }
     setmetatable(instance, { __index = self })
-    if not instance.name then instance.name = "Zone_" .. tostring(os.time) end
+    if not instance.name then instance.name = "Zone_" .. tostring(os.time()) end
 
     local counter = 1
     for i = instance.groupSizePrioMax, instance.groupSizePrioMin, -1 do
@@ -1156,21 +1158,21 @@ end
 --- @param distFromBuildings number|integer|nil (Optional) The minimum distance from nearby buildings.
 function AETHR._spawnerZone:setGroupSpacing(groupSize, groupMinSep, groupMaxSep, unitMinSep, unitMaxSep,
                                             distFromBuildings)
-    groupMinSep                          = groupMinSep or self.seperationSettings.minGroups
-    groupMaxSep                          = groupMaxSep or self.seperationSettings.maxGroups
-    unitMinSep                           = unitMinSep or self.seperationSettings.minUnits
-    unitMaxSep                           = unitMaxSep or self.seperationSettings.maxUnits
-    distFromBuildings                    = distFromBuildings or self.seperationSettings.minBuildings
+    groupMinSep                   = groupMinSep or self.seperationSettings.minGroups
+    groupMaxSep                   = groupMaxSep or self.seperationSettings.maxGroups
+    unitMinSep                    = unitMinSep or self.seperationSettings.minUnits
+    unitMaxSep                    = unitMaxSep or self.seperationSettings.maxUnits
+    distFromBuildings             = distFromBuildings or self.seperationSettings.minBuildings
     -- Initialize the spacing settings for the given group size
-    self.groupSpacingSettings[groupSize] = {}
-    local settings                       = self.groupSpacingSettings[groupSize]
-    settings.minGroups                   = groupMinSep
-    settings.maxGroups                   = groupMaxSep
-    settings.minUnits                    = unitMinSep
-    settings.maxUnits                    = unitMaxSep
-    settings.minBuildings                = distFromBuildings
-    settings.size                        = 0
-    settings.numGroups                   = 0
+    self.groupSettings[groupSize] = {}
+    local settings                = self.groupSettings[groupSize]
+    settings.minGroups            = groupMinSep
+    settings.maxGroups            = groupMaxSep
+    settings.minUnits             = unitMinSep
+    settings.maxUnits             = unitMaxSep
+    settings.minBuildings         = distFromBuildings
+    settings.size                 = settings.size or 0
+    settings.numGroups            = settings.numGroups or 0
 
     return self
 end

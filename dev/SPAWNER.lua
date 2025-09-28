@@ -50,8 +50,10 @@ AETHR.SPAWNER.DATA = {
         Zone = {},
         Point = {},
     },
+    BenchmarkLog = {},
     CONFIG = {
         operationLimit = 50,
+        Benchmark = true,
         NoGoSurfaces = {
             AETHR.ENUMS.SurfaceType.WATER,
             AETHR.ENUMS.SurfaceType.RUNWAY,
@@ -276,6 +278,11 @@ end
 ---@param nudgeFactorRadius number|nil Nudge factor for radius adjustment (0.0-1.0). Defaults to dynamicSpawner.nudgeFactorRadius if nil.
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                               nudgeFactorRadius)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateDynamicSpawner = { Time = {}, }
+        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start = os.clock()
+    end
+
     dynamicSpawner.minRadius = minRadius or dynamicSpawner.minRadius
     dynamicSpawner.nominalRadius = nominalRadius or dynamicSpawner.nominalRadius
     dynamicSpawner.maxRadius = maxRadius or dynamicSpawner.maxRadius
@@ -285,6 +292,15 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     self:weightZones(dynamicSpawner)
     self:generateSpawnAmounts(dynamicSpawner)
     self:rollSpawnGroupSizes(dynamicSpawner)
+
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop -
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
+    end
     return self
 end
 
@@ -304,10 +320,10 @@ function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
             local numGroupSize = math.floor(numTypesZone / size)
             if numGroupSize > 0 then
                 numTypesZone = numTypesZone - (numGroupSize * size)
-                local index_ = self.UTILS.sumTable(zoneObject_.groupSettings) + 1
-                zoneObject_.groupSettings[index_].size =
+                --local index_ = self.UTILS.sumTable(zoneObject_.groupSettings) + 1
+                zoneObject_.groupSettings[size].size =
                     size --= self:_createGroupSettings(size, numGroupSize, SpacingSettings_)
-                zoneObject_.groupSettings[index_].numGroups = numGroupSize
+                zoneObject_.groupSettings[size].numGroups = numGroupSize
             end
         end
     end
@@ -318,6 +334,12 @@ end
 function AETHR.SPAWNER:generateSpawnAmounts(dynamicSpawner)
     ---@type _spawnerZone
     local mainZone = dynamicSpawner.zones.main
+    ---@type _spawnSettings
+    local spawnSettingsMainBase = mainZone.spawnSettings.base
+    spawnSettingsMainBase.nominal = dynamicSpawner.spawnAmountNominal
+    spawnSettingsMainBase.min = dynamicSpawner.spawnAmountMin
+    spawnSettingsMainBase.max = dynamicSpawner.spawnAmountMax
+    spawnSettingsMainBase.nudgeFactor = dynamicSpawner.spawnAmountNudgeFactor
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
     local numSubZones = dynamicSpawner.numSubZones
@@ -383,21 +405,21 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
-    if self.CONFIG.MAIN.DEBUG_ENABLED then
-        self.MARKERS:removeMarksByID(self.DATA.debugMarkers)
-        self.DATA.debugMarkers = {}
-    end
+    -- if self.CONFIG.MAIN.DEBUG_ENABLED then
+    --     self.MARKERS:removeMarksByID(self.DATA.debugMarkers)
+    --     self.DATA.debugMarkers = {}
+    -- end
 
-    local mainZone = dynamicSpawner.zones.main
+
     local subZones = dynamicSpawner.zones.sub
-    mainZone = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
-
+    dynamicSpawner.zones.main = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
+    local mainZone = dynamicSpawner.zones.main
     local mainZoneCenter = mainZone.center
     local mainZoneRadius = mainZone.actualRadius
 
-    if self.CONFIG.MAIN.DEBUG_ENABLED then
-        self.MARKERS:drawGenericCircle(mainZoneCenter, mainZoneRadius, self.DATA.debugMarkers)
-    end
+    -- if self.CONFIG.MAIN.DEBUG_ENABLED then
+    --     self.MARKERS:drawGenericCircle(mainZoneCenter, mainZoneRadius, self.DATA.debugMarkers)
+    -- end
 
     local numSubZones = dynamicSpawner.numSubZones
     local subZoneMinRadius = (mainZoneRadius / numSubZones) --/ 2
@@ -408,11 +430,11 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     local generatedSubZones = self.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter,
         mainZoneRadius, overlapFactor, checkNOGO, restrictedZones)
 
-    if self.CONFIG.MAIN.DEBUG_ENABLED then
-        for _, subZone in ipairs(generatedSubZones) do
-            self.MARKERS:drawGenericCircle(subZone.center, subZone.radius, self.DATA.debugMarkers)
-        end
-    end
+    -- if self.CONFIG.MAIN.DEBUG_ENABLED then
+    --     for _, subZone in ipairs(generatedSubZones) do
+    --         self.MARKERS:drawGenericCircle(subZone.center, subZone.radius, self.DATA.debugMarkers)
+    --     end
+    -- end
 
     --- @param subZone _circle
     for _, subZone in ipairs(generatedSubZones) do
@@ -484,6 +506,7 @@ function AETHR.SPAWNER:weightZones(dynamicSpawner)
     local totalWeight = 0
 
     -- Calculate weights for each subzone
+    ---@param zoneObject_ _spawnerZone
     for _, zoneObject_ in pairs(subZones) do
         zoneObject_.weight = zoneObject_.area / mainZone.area
         totalWeight = totalWeight + zoneObject_.weight
