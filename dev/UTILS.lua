@@ -152,3 +152,39 @@ function AETHR.UTILS:updateMarkupColors(markupID, lineColor, fillColor)
   trigger.action.setMarkupColorFill(markupID, fillColor)
   return self
 end
+
+--- Pick a random key from a KV table.
+---
+--- Selects and returns a random key from the provided table.
+---
+--- @param t table The table from which to pick a random element.
+--- @return any key The randomly selected element from the table.
+--- @usage local randomElement = SPECTRE.UTILS.PickRandomFromTable({1, 2, 3, 4, 5}) -- Returns a random number from the input list.
+function AETHR.UTILS:pickRandomKeyFromTable(t)
+  local keys = {}
+  for k in pairs(t) do
+    table.insert(keys, k)
+  end
+  local keys = self:Shuffle(keys)
+  local key = keys[math.random(#keys)]
+  return key
+end
+
+--- Shuffle the elements of a table.
+---
+--- Creates a shuffled copy of the input table using the Fisher-Yates algorithm.
+---
+--- @param t table The table to be shuffled.
+--- @return table s A shuffled copy of the input table.
+--- @usage local shuffled = SPECTRE.UTILS.Shuffle({1, 2, 3, 4, 5}) -- Returns a shuffled version of the input list.
+function AETHR.UTILS:Shuffle(t)
+  local s = {}
+  for i = 1, #t do
+    s[i] = t[i]
+  end
+  for i = #s, 2, -1 do
+    local j = math.random(i)  -- Random index from 1 to i
+    s[i], s[j] = s[j], s[i]   -- Swap elements at indices i and j
+  end
+  return s
+end

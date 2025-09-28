@@ -769,6 +769,9 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field _spawnsManip table
 --- @field _spawnsManipTotal number|integer
 --- @field _confirmedTotal number|integer
+--- @field _typesPool table
+--- @field _limitedTypesPool table
+--- @field _nonLimitedTypesPool table
 --- @field parentAETHR AETHR|nil
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
@@ -810,6 +813,9 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         _spawnsManip = {},
         _spawnsManipTotal = 0,
         _confirmedTotal = 0,
+        _typesPool = {},
+        _limitedTypesPool = {},
+        _nonLimitedTypesPool = {},
         parentAETHR = parentAETHR or AETHR,
     }
     setmetatable(instance, { __index = self })
@@ -878,7 +884,11 @@ function AETHR._dynamicSpawner:setGroupSizes(max, min)
 end
 
 function AETHR._dynamicSpawner:addExtraTypeToGroups(typeENUM, numberToAdd)
-    self.extraTypes[typeENUM] = numberToAdd or 1
+    local instance = self
+    local pAETHR = instance.parentAETHR
+    local spawnTypeConfig = pAETHR._spawnerTypeConfig:New(typeENUM, nil, numberToAdd, nil, nil, true)
+    self.extraTypes[typeENUM] = spawnTypeConfig
+    --numberToAdd or 1
     return self
 end
 
@@ -1173,6 +1183,7 @@ function AETHR._spawnerZone:setGroupSpacing(groupSize, groupMinSep, groupMaxSep,
     settings.minBuildings         = distFromBuildings
     settings.size                 = settings.size or 0
     settings.numGroups            = settings.numGroups or 0
+    settings.generatedGroupTypes  = settings.generatedGroupTypes or {}
 
     return self
 end
@@ -1308,6 +1319,7 @@ end
 --- @field limited boolean
 --- @field actual number
 --- @field typesDB table
+--- @field ratioMax number
 AETHR._spawnerTypeConfig = {} ---@diagnostic disable-line
 ---
 --- @param typeName string
@@ -1326,7 +1338,8 @@ function AETHR._spawnerTypeConfig:New(typeName, count, min, max, nominal, limite
         nominal = nominal or 0,
         actual = 0,
         limited = limited or false,
-        -- typesDB = {}
+        ratioMax = 0,
+        typesDB = {},
     }
 
     return instance ---@diagnostic disable-line

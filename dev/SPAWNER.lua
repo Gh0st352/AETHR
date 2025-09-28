@@ -312,21 +312,116 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerGroups(dynamicSpawner)
-    self:RollSpawnGroupTypes(dynamicSpawner)
+    self:rollSpawnGroups(dynamicSpawner)
     -- self:RollPlacement()
     -- self:SetupSpawnGroups()
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
-function AETHR.SPAWNER:RollSpawnGroupTypes(dynamicSpawner)
-    self:_seedTypes(dynamicSpawner)
+function AETHR.SPAWNER:rollSpawnGroups(dynamicSpawner)
+    self:seedTypes(dynamicSpawner)
+    self:generateGroupTypes(dynamicSpawner)
+    self:generateGroupUnitTypes(dynamicSpawner)
 
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
-function AETHR.SPAWNER:_seedTypes(dynamicSpawner)
+function AETHR.SPAWNER:generateGroupUnitTypes(dynamicSpawner)
+
+
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
+    ---@type _spawnerZone[]
+    local subZones = dynamicSpawner.zones.sub
+    local spawnTypes = dynamicSpawner.spawnTypes
+    local typesPool = dynamicSpawner._typesPool
+    local nonLimitedTypesPool = dynamicSpawner._nonLimitedTypesPool
+    local extraTypes = dynamicSpawner.extraTypes
+    ---@param zoneObject _spawnerZone
+    for _, zoneObject in ipairs(subZones) do
+        -- Loop through each group setting.
+        ---@param groupSizeConfig _spawnerTypeConfig
+        for groupSize, groupSizeConfig in ipairs(zoneObject.groupSettings) do
+            local _groupTypes = {}
+            -- Loop for the number of groups specified in the current setting.
+            for _ = 1, groupSizeConfig.numGroups do
+                -- List to store types for this group.
+                local _UnitTypes = {}
+                -- Loop for the size of the group + extra units.
+                for _Unit = 1, groupSizeConfig.size do
+                    local typeToAdd -- Variable to store the type to add for this iteration.
+                    local _TypeK
+
+                    -- -- Pick a random type.
+                    if self.UTILS.sumTable(typesPool) > 0 then
+                        _TypeK = self.UTILS:pickRandomKeyFromTable(typesPool)
+                    else
+                        _TypeK = self.UTILS:pickRandomKeyFromTable(nonLimitedTypesPool)
+                    end
+
+                    local randType = spawnTypes[_TypeK]
+                    -- Increment the number used count for this type.
+                    randType.actual = randType.actual + 1
+
+                    if (randType.actual >= randType.max) then
+                        typesPool[_TypeK] = nil
+                    end
+                    typeToAdd = _TypeK
+                    -- Add the selected type to the group types list, all types list, and the main AllTypes list.
+                    table.insert(_UnitTypes, typeToAdd)
+                end
+
+                for extraType, extraTypeInfo in pairs(extraTypes) do
+                    for _i = 1, extraTypeInfo.min, 1 do
+                        local _TypeK = self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB)
+                        table.insert(_UnitTypes, _TypeK)
+                    end
+                end
+                if _UnitTypes and #_UnitTypes > 0 then
+                    table.insert(_groupTypes, _UnitTypes)
+                end
+            end
+            -- Add the group types list to the main group list for this iteration.
+            if _groupTypes and #_groupTypes > 0 then
+                groupSizeConfig.generatedGroupTypes = _groupTypes --[#groupSizeConfig.generatedGroupTypes + 1]
+            end
+        end
+    end
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:seedTypes(dynamicSpawner)
+    local typesPool = dynamicSpawner._typesPool
+    local spawnTypes = dynamicSpawner.spawnTypes
+    local extraTypes = dynamicSpawner.extraTypes
+    local spawnerAttributesDB = self.WORLD.DATA.spawnerAttributesDB
+    ---@param typeName string
+    ---@param typeData _spawnerTypeConfig
+    for typeName, typeData in pairs(spawnTypes) do
+        typeData.typesDB = spawnerAttributesDB[typeName] or {}
+        typesPool[typeName] = typeName
+    end
+    ---@param typeName string
+    ---@param typeData _spawnerTypeConfig
+    for typeName, typeData in pairs(extraTypes) do
+        typeData.typesDB = spawnerAttributesDB[typeName] or {}
+    end
+
+    for k, v in pairs(typesPool) do
+        local _type = spawnTypes[k]
+        if _type.limited then
+            dynamicSpawner._limitedTypesPool[k] = k
+        else
+            dynamicSpawner._nonLimitedTypesPool[k] = k
+        end
+    end
+
     return self
 end
 
