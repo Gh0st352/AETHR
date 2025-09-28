@@ -1184,6 +1184,11 @@ function AETHR._spawnerZone:setGroupSpacing(groupSize, groupMinSep, groupMaxSep,
     settings.size                 = settings.size or 0
     settings.numGroups            = settings.numGroups or 0
     settings.generatedGroupTypes  = settings.generatedGroupTypes or {}
+    settings.generatedGroupUnitTypes = settings.generatedGroupUnitTypes or {}
+    settings.generatedGroupCenterVec2s = settings.generatedGroupCenterVec2s or {}
+    settings.generatedUnitVec2s  = settings.generatedUnitVec2s or {}
+
+
 
     return self
 end

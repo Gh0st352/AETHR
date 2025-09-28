@@ -271,6 +271,14 @@ function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:getWorldDivisions(dynamicSpawner)
+
+
+
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 ---@param vec2 _vec2 Center point for the spawner to generate around.
 ---@param minRadius number|nil Minimum radius in meters. Defaults to dynamicSpawner.minRadius if nil.
 ---@param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominal if nil.
@@ -292,7 +300,7 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     self:weightZones(dynamicSpawner)
     self:generateSpawnAmounts(dynamicSpawner)
     self:rollSpawnGroupSizes(dynamicSpawner)
-
+    self:getWorldDivisions(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
@@ -307,14 +315,36 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
 
     self:generateSpawnerGroups(dynamicSpawner)
 
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateSpawnerGroups.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateSpawnerGroups.Time.total =
+            self.DATA.BenchmarkLog.generateSpawnerGroups.Time.stop -
+            self.DATA.BenchmarkLog.generateSpawnerGroups.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateSpawnerGroups completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateSpawnerGroups.Time.total) .. " seconds.")
+    end
+
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerGroups(dynamicSpawner)
     self:rollSpawnGroups(dynamicSpawner)
-    -- self:RollPlacement()
+    self:rollGroupPlacement(dynamicSpawner)
+
     -- self:SetupSpawnGroups()
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
+    self:generateVec2GroupCenters(dynamicSpawner)
+    --self:Set_Vec2_UnitTemplates(dynamicSpawner)
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     return self
 end
 
@@ -322,15 +352,6 @@ end
 function AETHR.SPAWNER:rollSpawnGroups(dynamicSpawner)
     self:seedTypes(dynamicSpawner)
     self:generateGroupTypes(dynamicSpawner)
-    self:generateGroupUnitTypes(dynamicSpawner)
-
-    return self
-end
-
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
-function AETHR.SPAWNER:generateGroupUnitTypes(dynamicSpawner)
-
-
     return self
 end
 
@@ -348,10 +369,12 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
         ---@param groupSizeConfig _spawnerTypeConfig
         for groupSize, groupSizeConfig in ipairs(zoneObject.groupSettings) do
             local _groupTypes = {}
+            local _specificGroupTypes = {}
             -- Loop for the number of groups specified in the current setting.
             for _ = 1, groupSizeConfig.numGroups do
                 -- List to store types for this group.
                 local _UnitTypes = {}
+                local _specificUnitTypes = {}
                 -- Loop for the size of the group + extra units.
                 for _Unit = 1, groupSizeConfig.size do
                     local typeToAdd -- Variable to store the type to add for this iteration.
@@ -374,21 +397,25 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
                     typeToAdd = _TypeK
                     -- Add the selected type to the group types list, all types list, and the main AllTypes list.
                     table.insert(_UnitTypes, typeToAdd)
+                    table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(spawnTypes[typeToAdd].typesDB))
                 end
 
                 for extraType, extraTypeInfo in pairs(extraTypes) do
                     for _i = 1, extraTypeInfo.min, 1 do
-                        local _TypeK = self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB)
-                        table.insert(_UnitTypes, _TypeK)
+                        --local _TypeK = self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB)
+                        table.insert(_UnitTypes, extraType)
+                        table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB))
                     end
                 end
                 if _UnitTypes and #_UnitTypes > 0 then
                     table.insert(_groupTypes, _UnitTypes)
+                    table.insert(_specificGroupTypes, _specificUnitTypes)
                 end
             end
             -- Add the group types list to the main group list for this iteration.
             if _groupTypes and #_groupTypes > 0 then
                 groupSizeConfig.generatedGroupTypes = _groupTypes --[#groupSizeConfig.generatedGroupTypes + 1]
+                groupSizeConfig.generatedGroupUnitTypes = _specificGroupTypes
             end
         end
     end
