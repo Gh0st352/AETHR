@@ -1603,7 +1603,7 @@ function AETHR.POLY.doesCircleOverlapThreshold(subCircle1, subCircle2, threshold
   local dx = subCircle1.center.x - subCircle2.center.x
   local dy = subCircle1.center.y - subCircle2.center.y
   local distanceBetweenCenters = math.sqrt(dx * dx + dy * dy)
-  local allowedOverlap = (subCircle1.diameter / 2 + subCircle2.diameter / 2) * (1 - threshold)
+  local allowedOverlap = (subCircle1.radius + subCircle2.radius) * (1 - threshold)
   return distanceBetweenCenters < allowedOverlap
 end
 
@@ -1611,8 +1611,8 @@ end
 
 --- @return boolean true|false Returns true if the circles overlap; otherwise, false.
 function AETHR.POLY.isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
-  local dx = subCircle.vec2.x - mainCircleVec2.x
-  local dy = subCircle.vec2.y - mainCircleVec2.y
+  local dx = subCircle.center.x - mainCircleVec2.x
+  local dy = subCircle.center.y - mainCircleVec2.y
   local distanceToCenter = math.sqrt(dx * dx + dy * dy)
   local allowedOutside = subCircle.diameter / 2 * threshold
   return distanceToCenter + subCircle.diameter / 2 - allowedOutside <= mainRadius

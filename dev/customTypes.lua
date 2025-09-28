@@ -346,7 +346,7 @@ end
 --- @class _Marker
 --- @field markID number                               Unique marker ID
 --- @field string string                               Label/text shown with the marker
---- @field vec3Origin _vec3                       Origin point for the marker (vec3)
+--- @field vec2Origin _vec2                       Origin point for the marker (vec2)
 --- @field readOnly boolean                            If true, marker is not editable
 --- @field message string                              Optional message text
 --- @field shapeId number                              Shape type enum (e.g., freeform, line, circle)
@@ -361,26 +361,26 @@ AETHR._Marker = {} ---@diagnostic disable-line
 ---
 --- @param markID number
 --- @param markString string|nil
---- @param vec3Origin _vec3|nil
+--- @param vec2Origin _vec2|nil
 --- @param readOnly boolean|nil
 --- @param message string|nil
 --- @param shapeId number|nil
 --- @param coalition number|nil
 --- @param lineType number|nil
---- @param lineColor _ColorRGBA|number[]|nil
---- @param fillColor _ColorRGBA|number[]|nil
+--- @param lineColor AETHR.CONFIG.Color|number[]|nil
+--- @param fillColor AETHR.CONFIG.Color|number[]|nil
 --- @param freeFormVec2Table _vec2[]|nil
 --- @param radius number|nil
 --- @return _Marker instance
 function AETHR._Marker:New(
-    markID, markString, vec3Origin, readOnly,
+    markID, markString, vec2Origin, readOnly,
     message, shapeId, coalition,
     lineType, lineColor, fillColor,
     freeFormVec2Table, radius)
     local instance = {
         markID = markID,
         string = markString or "",
-        vec3Origin = vec3Origin or {},
+        vec2Origin = vec2Origin or {},
         readOnly = readOnly or true,
         message = message or "",
         shapeId = shapeId or 0,
@@ -800,6 +800,7 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         groupSizeMin = 1,
         parentAETHR = parentAETHR or AETHR,
     }
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 

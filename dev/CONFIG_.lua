@@ -297,9 +297,9 @@ AETHR.CONFIG.MAIN = {
                 [2] = { r = 0, g = 0, b = 1, a = 0.5 },
             },
             CircleColors = {
-                [0] = { r = 0.941, g = 0.941, b = 0.941, a = 0.45 },
-                [1] = { r = 0.941, g = 0.941, b = 0.941, a = 0.45 },
-                [2] = { r = 0.941, g = 0.941, b = 0.941, a = 0.45 },
+                [0] = { r = 0.941, g = 0.941, b = 0.941, a = 0.15 },
+                [1] = { r = 0.941, g = 0.941, b = 0.941, a = 0.15 },
+                [2] = { r = 0.941, g = 0.941, b = 0.941, a = 0.15 },
             },
             FillAlpha    = 0.20,                         -- Transparency for filled zones.
             LineAlpha    = 0.5,                          -- Transparency for zone borders.

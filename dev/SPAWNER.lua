@@ -58,6 +58,7 @@ AETHR.SPAWNER.DATA = {
             AETHR.ENUMS.SurfaceType.SHALLOW_WATER
         },
     },
+    debugMarkers = {}
 }
 
 
@@ -280,6 +281,15 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
+    -------------------------------------------------------------------
+    if self.CONFIG.MAIN.DEBUG_ENABLED then
+        for markID, Marker in pairs(self.DATA.debugMarkers) do
+            self.MARKERS:removeMarksByID(markID)
+            self.DATA.debugMarkers[markID] = nil
+        end
+    end
+    -------------------------------------------------------------------
+
     local mainZone = dynamicSpawner.zones.main
     mainZone = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
 
@@ -290,15 +300,24 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     local subZoneMinRadius = (mainZoneRadius / numSubZones) / 2
 
     -------------------------------------------------------------------
-    self.MARKERS:drawCircle(-1,
-        self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-        self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-        self.CONFIG.MAIN.Zone.paintColors.lineType,
-        self.CONFIG.MAIN.COUNTERS.MARKERS,
-        mainZoneCenter,
-        mainZoneRadius
-    )
-    self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+    if self.CONFIG.MAIN.DEBUG_ENABLED then
+        local circleMarker = self.AETHR._Marker:New(
+            self.CONFIG.MAIN.COUNTERS.MARKERS,
+            nil,
+            mainZoneCenter,
+            true,
+            nil,
+            nil,
+            -1,
+            self.CONFIG.MAIN.Zone.paintColors.lineType,
+            self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+            self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+            nil,
+            mainZoneRadius
+        )
+        self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+        self.MARKERS:markCircle(circleMarker, self.DATA.debugMarkers)
+    end
     -------------------------------------------------------------------
 
     local generatedSubZones = {}
@@ -336,15 +355,24 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
         if self.POLY.isSubCircleValidThreshold(subZone, generatedSubZones, mainZoneCenter, mainZoneRadius, 0.75) then
             table.insert(generatedSubZones, subZone)
             -------------------------------------------------------------------
-            self.MARKERS:drawCircle(-1,
-                self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-                self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-                self.CONFIG.MAIN.Zone.paintColors.lineType,
-                self.CONFIG.MAIN.COUNTERS.MARKERS,
-                subZone.center,
-                subZone.radius
-            )
-            self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+            if self.CONFIG.MAIN.DEBUG_ENABLED then
+                local circleMarker = self.AETHR._Marker:New(
+                    self.CONFIG.MAIN.COUNTERS.MARKERS,
+                    nil,
+                    subZone.center,
+                    true,
+                    nil,
+                    nil,
+                    -1,
+                    self.CONFIG.MAIN.Zone.paintColors.lineType,
+                    self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+                    self.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+                    nil,
+                    subZone.radius
+                )
+                self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
+                self.MARKERS:markCircle(circleMarker, self.DATA.debugMarkers)
+            end
             -------------------------------------------------------------------
         end
 

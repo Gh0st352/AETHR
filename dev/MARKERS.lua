@@ -105,7 +105,7 @@ function AETHR.MARKERS:drawPolygon(coalition, fillColor, borderColor, linetype, 
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
     local shapeTypeID    = self.ENUMS.MarkerTypes
-    .Freeform                                                                         -- Polygon shape type
+        .Freeform                                                                     -- Polygon shape type
     markerID             = markerID or 0
 
     -- Build argument list for trigger.action.markupToAll:
@@ -196,7 +196,7 @@ function AETHR.MARKERS:drawArrow(coalition, fillColor, borderColor, linetype, ma
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
     local shapeTypeID    = self.ENUMS.MarkerTypes
-    .Arrow                                                                            --  Arrow shape type
+        .Arrow                                                                        --  Arrow shape type
     markerID             = markerID or 0
 
     -- Build argument list for trigger.action.markupToAll:
@@ -220,8 +220,43 @@ function AETHR.MARKERS:drawArrow(coalition, fillColor, borderColor, linetype, ma
     return self
 end
 
+--- Mark an circle marker on the map and optionally store the marker object in a provided table.
+--- @function AETHR.MARKERS:markCircle
+--- @param _Marker _Marker Marker object describing the shape and styles.
+--- @param storageLocation table|nil Optional table to store the marker object keyed by markID.
+--- @return AETHR.MARKERS self Returns the MARKERS instance for chaining.
+function AETHR.MARKERS:markCircle(_Marker, storageLocation)
+    -- Defensive guards: ensure expected fields exist
+    if not _Marker or type(_Marker) ~= "table" then
+        return self
+    end
+    storageLocation = storageLocation or nil
+
+    local coalition = _Marker.coalition or -1
+    local fillColor = _Marker.fillColor or { r = 0, g = 0, b = 0, a = 0 }
+    local lineColor = _Marker.lineColor or { r = 0, g = 0, b = 0, a = 0 }
+    local lineType = _Marker.lineType or 0
+    local markID = _Marker.markID or 0
+    local vec2Origin = _Marker.vec2Origin or {}
+
+    self:drawCircle(
+        coalition,
+        fillColor,
+        lineColor,
+        lineType,
+        markID,
+        vec2Origin,
+        _Marker.radius or 1000
+    )
+
+    if storageLocation and type(storageLocation) == "table" then ---@diagnostic disable-line
+        storageLocation[markID] = _Marker
+    end
+    return self
+end
+
 --- Draws a Circle on the Map.
---- @function AETHR.MARKERS:drawArrow
+--- @function AETHR.MARKERS:drawCircle
 --- @param coalition number Coalition id (e.g., -1 for all)
 --- @param fillColor table Fill color table {r,g,b,a} or object with .r .g .b .a
 --- @param borderColor table Border color table {r,g,b,a} or object with .r .g .b .a
@@ -233,12 +268,11 @@ end
 function AETHR.MARKERS:drawCircle(coalition, fillColor, borderColor, linetype, markerID, vec2, radius)
     local r1, g1, b1, a1 = fillColor.r, fillColor.g, fillColor.b, fillColor.a         -- Fill color RGBA
     local r2, g2, b2, a2 = borderColor.r, borderColor.g, borderColor.b, borderColor.a -- Border color RGBA
-    local shapeTypeID    = self.ENUMS.MarkerTypes.Circle      
     markerID             = markerID or 0
 
     -- Build argument list for trigger.action.markupToAll:
     -- shapeTypeID, coalition, markerID, <vec3 points...>, borderColor, fillColor, linetype, true
-    local margs          = { shapeTypeID, coalition, markerID }
+    local margs          = { coalition, markerID }
 
     table.insert(margs, { x = vec2.x, y = 0, z = vec2.y })
     table.insert(margs, radius)
@@ -247,8 +281,22 @@ function AETHR.MARKERS:drawCircle(coalition, fillColor, borderColor, linetype, m
     table.insert(margs, linetype)
     table.insert(margs, true)
 
-    -- Call markupToAll with the constructed argument list
-    trigger.action.markupToAll(unpack(margs)) ---@diagnostic disable-line
+    -- Call circleToAll with the constructed argument list
+    trigger.action.circleToAll(unpack(margs)) ---@diagnostic disable-line
 
+    return self
+end
+
+function AETHR.MARKERS:removeMarksByID(markID)
+    if not markID then
+        return self
+    end
+    if type(markID) == "table" and #markID > 0 then
+        for id, marker in ipairs(markID) do
+            trigger.action.removeMark(id)
+        end
+    else
+        trigger.action.removeMark(markID)
+    end
     return self
 end
