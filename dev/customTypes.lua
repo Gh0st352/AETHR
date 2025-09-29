@@ -283,32 +283,38 @@ end
 --- @field Airbases table<string, _airbase>                   Airbases within this zone keyed by displayName
 --- @field LinesVec2 _LineVec2[]                              Precomputed line segments from verticies
 --- @field lastMarkColorOwner number                           Coalition that last set the marker color (to avoid redundant updates)
+--- @field activeDivsions table<number, _WorldDivision>        Map of division ID -> division info for divisions intersecting this zone
+--- @field parentAETHR AETHR|nil                             Parent AETHR instance (for access to submodules/config)
 AETHR._MIZ_ZONE = {}
+
 --- Create a new mission zone instance from an env.mission trigger zone
 --- @param envZone { name: string, zoneId: number, type: integer|string, verticies: (_vec2|_vec2xz)[] }
+--- @param parentAETHR AETHR|nil Optional parent AETHR instance for config access
 --- @return _MIZ_ZONE instance
-function AETHR._MIZ_ZONE:New(envZone)
+function AETHR._MIZ_ZONE:New( envZone, parentAETHR)
     local instance = {
         name = envZone.name,
         zoneId = envZone.zoneId,
         type = envZone.type,
-        BorderOffsetThreshold = AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
-        ArrowLength = AETHR.CONFIG.MAIN.Zone.ArrowLength,
+        BorderOffsetThreshold =  parentAETHR and parentAETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold or AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
+        ArrowLength =  parentAETHR and parentAETHR.CONFIG.MAIN.Zone.ArrowLength or AETHR.CONFIG.MAIN.Zone.ArrowLength,
         verticies = envZone.verticies, --AETHR.POLY:ensureConvex(envZone.verticies),
-        ownedBy = AETHR.ENUMS.Coalition.NEUTRAL,
-        oldOwnedBy = AETHR.ENUMS.Coalition.NEUTRAL,
-        shapeID = AETHR.ENUMS.MarkerTypes.Freeform,
+        ownedBy =  parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
+        oldOwnedBy =  parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
+        shapeID =  parentAETHR and parentAETHR.ENUMS.MarkerTypes.Freeform or AETHR.ENUMS.MarkerTypes.Freeform,
         markerObject = {},
         readOnly = true,
         BorderingZones = {},
         Airbases = {},
         LinesVec2 = {},
-        lastMarkColorOwner = AETHR.ENUMS.Coalition.NEUTRAL,
+        lastMarkColorOwner =  parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
+        activeDivsions = {},
+        parentAETHR = parentAETHR and parentAETHR or AETHR,
     }
     -- attach metatable so instance inherits methods from prototype
     setmetatable(instance, { __index = self })
 
-    instance.LinesVec2 = AETHR.POLY:convertPolygonToLines(instance.verticies)
+    instance.LinesVec2 = instance.parentAETHR.POLY:convertPolygonToLines(instance.verticies)
 
     return instance ---@diagnostic disable-line
 end

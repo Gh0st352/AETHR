@@ -58,7 +58,6 @@ AETHR = {
 --- Creates a new AETHR instance with optional mission ID override.
 --- Returns a new table with a metatable pointing back to the prototype.
 --- Mutable sub-tables are shallow-cloned so instance changes won't mutate the prototype.
----@param self AETHR The prototype table (called with colon syntax).
 ---@param mission_id string|nil Optional mission identifier (defaults to configured ID).
 ---@return AETHR instance New instance inheriting AETHR methods.
 function AETHR:New(mission_id)
@@ -233,6 +232,7 @@ function AETHR:Init()
         self.ZONE_MANAGER:drawMissionZones()
         self.ZONE_MANAGER:drawGameBounds()
         self.ZONE_MANAGER:drawZoneArrows()
+        self.ZONE_MANAGER:pairActiveDivisions()
     end
 
     self:loadUSERSTORAGE() -- Load per-user storage data.

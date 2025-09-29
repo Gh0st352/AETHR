@@ -13,13 +13,13 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Markers helper submodule attached per-instance.
---- @field DATA _GameBounds|table Container for zone management data.
+--- @field DATA.GAME_BOUNDS _GameBounds|table Container for zone management data.
 --- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 --- Container for zone management data.
 AETHR.ZONE_MANAGER.DATA = {
-    --- @type _MIZ_ZONES[]
+    --- @type table<string, _MIZ_ZONE>
     MIZ_ZONES = {}, -- Mission trigger zones keyed by name.
     GAME_BOUNDS = {
         outOfBounds = {
@@ -122,6 +122,25 @@ function AETHR.ZONE_MANAGER:saveMizZoneData()
     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
 end
 
+---determines active world divisions in each zone and adds to zone table
+function AETHR.ZONE_MANAGER:pairActiveDivisions()
+    local globalActiveDivisions = self.WORLD.DATA.saveDivisions
+    ---@param zone _MIZ_ZONE
+    for zoneName, zone in pairs(self.DATA.MIZ_ZONES) do
+        local divsInZone = {}
+        local zoneVerts = zone.verticies
+        ---@param div _WorldDivision
+        for divID, div in pairs(globalActiveDivisions) do
+            local divVerts = div.corners
+            if self.POLY:polygonsOverlap(zoneVerts,divVerts) then
+                divsInZone[divID] = div
+            end
+        end
+        zone.activeDivsions = divsInZone
+    end
+    return self
+end
+
 --- Generates mission trigger zone data based on configured zone names and environment data.
 --- Guards against missing env structures and missing constructors.
 --- @function AETHR:generateMizZoneData
@@ -140,7 +159,7 @@ function AETHR.ZONE_MANAGER:generateMizZoneData(allZoneNames)
     for _, zoneName in ipairs(zoneNames) do
         for _, envZone in ipairs(envZones) do
             if envZone and envZone.name == zoneName then
-                self.DATA.MIZ_ZONES[zoneName] = mzCtor:New(envZone)
+                self.DATA.MIZ_ZONES[zoneName] = mzCtor:New(envZone, self.AETHR)
                 break
             end
         end
@@ -932,7 +951,7 @@ end
 
 function AETHR.ZONE_MANAGER:drawZoneArrows()
     local _zones = self.DATA.MIZ_ZONES
-     local ArrowColors = self.CONFIG.MAIN.Zone.paintColors.ArrowColors
+    local ArrowColors = self.CONFIG.MAIN.Zone.paintColors.ArrowColors
     for zName, zObj in pairs(_zones) do
         local ownedBy = zObj.ownedBy
         for bzName, bzObj in pairs(zObj.BorderingZones) do

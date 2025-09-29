@@ -12,7 +12,9 @@
 --- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- Additional top-level convenience fields (documented in MAIN below)
---- @field MAIN AETHR.CONFIG.MAIN General Config Data Table (defaults)
+AETHR.CONFIG = {} ---@diagnostic disable-line
+
+--- @class AETH.CONFIG.MAIN AETHR.CONFIG.MAIN General Config Data Table (defaults)
 --- @field VERSION string Framework version identifier.
 --- @field AUTHOR string Package author.
 --- @field GITHUB string GitHub repository URL.
@@ -153,8 +155,7 @@
 --- @field Zone AETHR.CONFIG.ZoneSettings
 --- @field outTextSettings AETHR.CONFIG.OutTextSettings
 
---- @type AETHR.CONFIG
-AETHR.CONFIG = {} ---@diagnostic disable-line
+
 AETHR.CONFIG.MAIN = {
     VERSION = "0.1.0",                      -- Library version.
     AUTHOR = "Gh0st352",                    -- Package author.

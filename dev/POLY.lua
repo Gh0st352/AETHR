@@ -69,11 +69,11 @@ function AETHR.POLY:pointInPolygon(pt, poly)
 
     -- Cast a horizontal ray and count intersections.
     for i = 1, #poly do
-        local xi, yi = poly[i].x, poly[i].y
-        local xj, yj = poly[j].x, poly[j].y
+        local xi, yi = poly[i].x, (poly[i].y and poly[i].y or poly[i].z)
+        local xj, yj = poly[j].x, (poly[j].y and poly[j].y or poly[j].z)
 
-        if ((yi > pt.y) ~= (yj > pt.y)) then
-            local xint = (xj - xi) * (pt.y - yi) / (yj - yi) + xi
+        if ((yi > (pt.y and pt.y or pt.z)) ~= (yj > (pt.y and pt.y or pt.z))) then
+            local xint = (xj - xi) * ((pt.y and pt.y or pt.z) - yi) / (yj - yi) + xi
             if xint > pt.x then
                 inside = not inside
             end
@@ -118,6 +118,9 @@ end
 --- @param c Vec2Like Point C.
 --- @return number >0 if counter-clockwise, <0 if clockwise, 0 if colinear.
 function AETHR.POLY:orientation(a, b, c)
+    a = self:normalizePoint(a)
+    b = self:normalizePoint(b)
+    c = self:normalizePoint(c)
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
 end
 
@@ -215,14 +218,14 @@ function AETHR.POLY:PointWithinShape(P, Polygon)
         -- Create normalized points with consistent coordinate naming
         local p1 = {
             x = Polygon[i].x, ---@diagnostic disable-line
-            y = self:getY(Polygon[i])---@diagnostic disable-line
+            y = self:getY(Polygon[i]) ---@diagnostic disable-line
         }
 
         local p2 = {
             x = Polygon[next].x, ---@diagnostic disable-line
             y = self:getY(Polygon[next]) ---@diagnostic disable-line
         }
-        
+
         local side = { p1 = p1, p2 = p2 }
         local normalizedP = { x = P.x, y = vertCoord }
 
@@ -1585,12 +1588,12 @@ end
 --- @param threshold any The threshold for allowed proximity to the main circle's edge (0 to 1).
 --- @return boolean true|false Returns true if the subcircle is entirely within the main circle; otherwise, false.
 function AETHR.POLY:isSubCircleValidThreshold(subCircle, generatedSubCircles, mainCircleVec2, mainRadius, threshold)
-  for _, existingSubCircle in ipairs(generatedSubCircles) do
-    if self:doesCircleOverlapThreshold(subCircle, existingSubCircle, threshold) then
-      return false
+    for _, existingSubCircle in ipairs(generatedSubCircles) do
+        if self:doesCircleOverlapThreshold(subCircle, existingSubCircle, threshold) then
+            return false
+        end
     end
-  end
-  return self:isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
+    return self:isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
 end
 
 --- Checks if two circles overlap with a specified threshold.
@@ -1602,40 +1605,38 @@ end
 --- @param threshold any The threshold for allowed overlap (0 to 1).
 --- @return boolean true|false Returns true if the circles overlap within the given threshold; otherwise, false.
 function AETHR.POLY:doesCircleOverlapThreshold(subCircle1, subCircle2, threshold)
-  -- Normalize threshold to [0,1]
-  local t = tonumber(threshold) or 0
-  if t < 0 then t = 0 end
-  if t > 1 then t = 1 end
+    -- Normalize threshold to [0,1]
+    local t = tonumber(threshold) or 0
+    if t < 0 then t = 0 end
+    if t > 1 then t = 1 end
 
-  local dx = (subCircle1.center.x or 0) - (subCircle2.center.x or 0)
-  local dy = (subCircle1.center.y or 0) - (subCircle2.center.y or 0)
-  local distanceBetweenCenters = math.sqrt(dx * dx + dy * dy)
+    local dx = (subCircle1.center.x or 0) - (subCircle2.center.x or 0)
+    local dy = (subCircle1.center.y or 0) - (subCircle2.center.y or 0)
+    local distanceBetweenCenters = math.sqrt(dx * dx + dy * dy)
 
-  local r1 = subCircle1.radius or 0
-  local r2 = subCircle2.radius or 0
-  local rSum = r1 + r2
+    local r1 = subCircle1.radius or 0
+    local r2 = subCircle2.radius or 0
+    local rSum = r1 + r2
 
-  -- overlapDepth is how much the circles penetrate each other (0 = tangent or separated)
-  local overlapDepth = math.max(0, rSum - distanceBetweenCenters)
+    -- overlapDepth is how much the circles penetrate each other (0 = tangent or separated)
+    local overlapDepth = math.max(0, rSum - distanceBetweenCenters)
 
-  -- Interpret threshold `t` such that:
-  --  t == 1.0 -> do not allow any overlap (allowedOverlap == 0)
-  --  t == 0.0 -> allow full overlap up to rSum
-  local allowedOverlap = (1 - t) * rSum
+    -- Interpret threshold `t` such that:
+    --  t == 1.0 -> do not allow any overlap (allowedOverlap == 0)
+    --  t == 0.0 -> allow full overlap up to rSum
+    local allowedOverlap = (1 - t) * rSum
 
-  -- Return true when the actual overlap depth exceeds the allowedOverlap.
-  return overlapDepth > allowedOverlap
+    -- Return true when the actual overlap depth exceeds the allowedOverlap.
+    return overlapDepth > allowedOverlap
 end
-
-
 
 --- @return boolean true|false Returns true if the circles overlap; otherwise, false.
 function AETHR.POLY:isWithinMainCircleThreshold(subCircle, mainCircleVec2, mainRadius, threshold)
-  local dx = subCircle.center.x - mainCircleVec2.x
-  local dy = subCircle.center.y - mainCircleVec2.y
-  local distanceToCenter = math.sqrt(dx * dx + dy * dy)
-  local allowedOutside = subCircle.diameter / 2 * threshold
-  return distanceToCenter + subCircle.diameter / 2 - allowedOutside <= mainRadius
+    local dx = subCircle.center.x - mainCircleVec2.x
+    local dy = subCircle.center.y - mainCircleVec2.y
+    local distanceToCenter = math.sqrt(dx * dx + dy * dy)
+    local allowedOutside = subCircle.diameter / 2 * threshold
+    return distanceToCenter + subCircle.diameter / 2 - allowedOutside <= mainRadius
 end
 
 --- Generate sub circles within a main circles, avoiding no-go areas and excessive overlap.
@@ -1648,8 +1649,7 @@ end
 --- @param restrictedZones table List of restricted zones to avoid
 --- @return _circle[] generatedSubZones List of generated sub zones as _circle instances.
 function AETHR.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter, mainZoneRadius, overlapFactor,
-                                          checkNOGO, restrictedZones)
-
+                                       checkNOGO, restrictedZones)
     checkNOGO = checkNOGO and checkNOGO or false
     local generatedSubZones = {}
     local attempts = 0
