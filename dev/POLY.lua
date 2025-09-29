@@ -86,8 +86,8 @@ end
 
 --- @function AETHR.POLY.polygonsOverlap
 --- @brief Determines if two polygons overlap by vertex-in-polygon or edge intersection.
---- @param A Vec2Like[] Array of vertices for polygon A.
---- @param B Vec2Like[] Array of vertices for polygon B.
+--- @param A _vec2[]|_vec2xz[] Array of vertices for polygon A.
+--- @param B _vec2[]|_vec2xz[] Array of vertices for polygon B.
 --- @return boolean True if any overlap detected.
 function AETHR.POLY:polygonsOverlap(A, B)
     -- Check if any A vertex lies in B.
@@ -108,6 +108,66 @@ function AETHR.POLY:polygonsOverlap(A, B)
             end
         end
     end
+    return false
+end
+
+--- @function AETHR.POLY.circleOverlapPoly
+--- @brief Determines if a circle overlaps or touches a polygon.
+--- @param radius number Circle radius (> 0).
+--- @param vec2 _vec2|_vec2xz Circle center (supports {x,y} or {x,z}).
+--- @param B _vec2[]|_vec2xz[] Polygon vertices (each supports {x,y} or {x,z}).
+--- @return boolean True if overlap/touch detected.
+function AETHR.POLY:circleOverlapPoly(radius, vec2, B)
+    local r = tonumber(radius) or 0
+    if r <= 0 then return false end
+    if type(vec2) ~= "table" then return false end
+    if type(B) ~= "table" or #B == 0 then return false end
+
+    local c = self:normalizePoint(vec2)
+    local r2 = r * r
+    local n = #B
+
+    -- Degenerate: single vertex
+    if n == 1 then
+        local p = self:normalizePoint(B[1])
+        local dx = p.x - c.x
+        local dy = p.y - c.y
+        return dx * dx + dy * dy <= r2
+    end
+
+    -- Degenerate: segment
+    if n == 2 then
+        local a = self:normalizePoint(B[1])
+        local b = self:normalizePoint(B[2])
+        local d2 = self:pointToSegmentSquared(c.x, c.y, a.x, a.y, b.x, b.y)
+        return d2 <= r2
+    end
+
+    -- If circle center is inside polygon -> overlap
+    if self:pointInPolygon(c, B) then
+        return true
+    end
+
+    -- If any polygon vertex lies within the circle -> overlap
+    for i = 1, n do
+        local p = self:normalizePoint(B[i])
+        local dx = p.x - c.x
+        local dy = p.y - c.y
+        if dx * dx + dy * dy <= r2 then
+            return true
+        end
+    end
+
+    -- If distance from center to any polygon edge <= radius -> overlap
+    for i = 1, n do
+        local a = self:normalizePoint(B[i])
+        local b = self:normalizePoint(B[(i % n) + 1])
+        local d2 = self:pointToSegmentSquared(c.x, c.y, a.x, a.y, b.x, b.y)
+        if d2 <= r2 then
+            return true
+        end
+    end
+
     return false
 end
 

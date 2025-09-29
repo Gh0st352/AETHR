@@ -271,11 +271,6 @@ function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
-function AETHR.SPAWNER:getWorldDivisions(dynamicSpawner)
-    return self
-end
-
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 ---@param vec2 _vec2 Center point for the spawner to generate around.
 ---@param minRadius number|nil Minimum radius in meters. Defaults to dynamicSpawner.minRadius if nil.
 ---@param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominal if nil.
@@ -293,11 +288,11 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     dynamicSpawner.maxRadius = maxRadius or dynamicSpawner.maxRadius
     dynamicSpawner.nudgeFactorRadius = nudgeFactorRadius or dynamicSpawner.nudgeFactorRadius
     dynamicSpawner.vec2 = vec2
+    
     self:generateSpawnerZones(dynamicSpawner)
     self:weightZones(dynamicSpawner)
     self:generateSpawnAmounts(dynamicSpawner)
     self:rollSpawnGroupSizes(dynamicSpawner)
-    self:getWorldDivisions(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
@@ -342,6 +337,52 @@ function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
     end
     self:generateVec2GroupCenters(dynamicSpawner)
     --self:Set_Vec2_UnitTemplates(dynamicSpawner)
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:pairActiveZones(dynamicSpawner)
+    ---@type table<string, _MIZ_ZONE>
+    local mizZones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    ---@type _spawnerZone
+    local mainZone = dynamicSpawner.zones.main
+    ---@type _spawnerZone[]
+    local subZones = dynamicSpawner.zones.sub
+
+    local mainZoneMizZones = {}
+    local mainZoneActiveDivisions = {}
+    ---@param mizZoneName string
+    ---@param mizZone _MIZ_ZONE
+    for mizZoneName, mizZone in pairs(mizZones) do
+        local mizZoneVerts = mizZone.verticies
+        local mainZoneRadius = mainZone.actualRadius
+        local mainZoneCenter = mainZone.center
+
+        if self.POLY:circleOverlapPoly(mainZoneRadius, mainZoneCenter, mizZoneVerts) then
+            table.insert(mainZoneMizZones, mizZone)
+            for _ID, div in pairs(mizZone.activeDivsions) do
+                mainZoneActiveDivisions[_ID] = div
+            end
+        end
+    end
+    mainZone.mizZones = mainZoneMizZones
+    mainZone.worldDivisions = mainZoneActiveDivisions
+
+
+    ---@param subZone _spawnerZone
+    for _, subZone in pairs(subZones) do
+        local subZoneActiveDivisions = {}
+        local subZoneRadius = subZone.actualRadius
+        local subZoneCenter = subZone.center
+        ---@param div _WorldDivision
+        for id, div in pairs(mainZoneActiveDivisions) do
+            local divVerts = div.corners
+            if self.POLY:circleOverlapPoly(subZoneRadius, subZoneCenter, divVerts) then
+                subZoneActiveDivisions[id] = div
+            end
+        end
+        subZone.worldDivisions = subZoneActiveDivisions
+    end
     return self
 end
 

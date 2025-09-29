@@ -778,7 +778,9 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field _typesPool table
 --- @field _limitedTypesPool table
 --- @field _nonLimitedTypesPool table
+--- @field worldDivisions table<number, _WorldDivision>
 --- @field parentAETHR AETHR|nil
+--- @field mizZones table<string, _MIZ_ZONE>
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
 --- @param name string Name of the dynamic spawner instance
@@ -822,6 +824,8 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         _typesPool = {},
         _limitedTypesPool = {},
         _nonLimitedTypesPool = {},
+        worldDivisions = {},
+        mizZones = {},
         parentAETHR = parentAETHR or AETHR,
     }
     setmetatable(instance, { __index = self })
@@ -1052,7 +1056,8 @@ end
 --- @field center _vec2
 --- @field triggerZone table
 --- @field avgDistribution number
---- @field worldDivisions _WorldDivision[]
+--- @field worldDivisions table<number, _WorldDivision>
+--- @field mizZones table<string, _MIZ_ZONE>
 --- @field staticObjects table
 --- @field baseObjects table
 --- @field sceneryObjects table
@@ -1098,6 +1103,7 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         triggerZone = {},
         avgDistribution = 0,
         worldDivisions = {},
+        mizZones = {},
         staticObjects = {},
         baseObjects = {},
         sceneryObjects = {},
