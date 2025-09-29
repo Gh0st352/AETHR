@@ -272,9 +272,6 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:getWorldDivisions(dynamicSpawner)
-
-
-
     return self
 end
 
@@ -338,6 +335,11 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
+    if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
+        self:pairActiveZones(dynamicSpawner)
+    else
+        self:pairActiveDivisions(dynamicSpawner)
+    end
     self:generateVec2GroupCenters(dynamicSpawner)
     --self:Set_Vec2_UnitTemplates(dynamicSpawner)
     return self
