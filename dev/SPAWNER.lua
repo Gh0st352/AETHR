@@ -25,6 +25,7 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field despawnQueue string[] Names of groups scheduled to despawn (processed by WORLD:despawnGroundGroups).
 --- @field dynamicSpawners table<string, table<string, _dynamicSpawner>> Dynamic spawners keyed by type and name.
 --- @field CONFIG table Configuration for spawner-managed data.
+--- @field BenchmarkLog table<string, table> Internal container for benchmark logs.
 
 --- @class AETHR.SPAWNER.DATA.dynamicSpawners
 --- @field dynamicSpawners.Airbase table<string, _dynamicSpawner> Dynamic spawners of type "Airbase" keyed by name.
@@ -32,7 +33,18 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field dynamicSpawners.Point table<string, _dynamicSpawner> Dynamic spawners of type "Point" keyed by name.
 
 --- @class AETHR.SPAWNER.DATA.CONFIG
---- @field operationLimit number Maximum number of spawn/despawn operations to process per WORLD cycle (
+--- @field operationLimit number Maximum number of spawn/despawn operations to process per WORLD cycle (>0).
+--- @field UseDivisionAABBReject boolean If true, use division AABB rejection to speed up placement (may skip some valid placements).
+--- @field UseDivisionAABBFullInclude boolean If true, use division AABB full inclusion to speed up placement (may skip some valid placements).
+--- @field Benchmark boolean If true, enables benchmarking logs for spawner operations.
+--- @field NoGoSurfaces AETHR.ENUMS.SurfaceType[] List of surface types that are not valid for spawning.
+--- @field seperationSettings table Settings for minimum separation of spawned groups/units from each other and buildings.
+--- @field seperationSettings.minGroups number Minimum distance in meters between spawned groups.
+--- @field seperationSettings.maxGroups number Maximum distance in meters between spawned groups.
+--- @field seperationSettings.minUnits number Minimum distance in meters between spawned units within a group.
+--- @field seperationSettings.maxUnits number Maximum distance in meters between spawned units within a group.
+--- @field seperationSettings.minBuildings number Minimum distance in meters between spawned units and buildings.
+--- @field debugMarkers table<number, _Marker> Internal container for debug markers keyed by marker ID.
 
 --- Container for spawner-managed data.
 ---@type AETHR.SPAWNER.DATA
@@ -52,6 +64,8 @@ AETHR.SPAWNER.DATA = {
     },
     BenchmarkLog = {},
     CONFIG = {
+        UseDivisionAABBReject = true,
+        UseDivisionAABBFullInclude = true,
         operationLimit = 50,
         Benchmark = true,
         NoGoSurfaces = {
@@ -456,6 +470,14 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local staticObjectsDB = self.WORLD.DATA.divisionStaticObjects   -- Loaded statics per division.
     local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
 
+    -- initialize per-division AABB cache
+    dynamicSpawner._cache.worldDivAABB = {}--dynamicSpawner._cache.worldDivAABB or {}
+    local aabbCache = dynamicSpawner._cache.worldDivAABB
+
+    -- configuration toggles (default: enabled unless explicitly false)
+    local useAABB = (self.DATA.CONFIG.UseDivisionAABBReject ~= false)
+    local useFullInclude = (self.DATA.CONFIG.UseDivisionAABBFullInclude ~= false)
+
     ---@param subZone _spawnerZone
     for _, subZone in ipairs(subZones) do
         local subZoneDivisions = subZone.worldDivisions
@@ -479,47 +501,114 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
             local r2 = r * r
 
             -- iterate each division once and test objects from all three DBs
-            for divID, _ in pairs(subZoneDivisions) do
-                -- Scenery
-                local divScenery = sceneryObjectsDB and sceneryObjectsDB[divID]
-                if divScenery then
-                    for _, obj in pairs(divScenery) do
-                        local p = obj and obj.position
-                        if p and p.x and p.z then
-                            local dx = p.x - cx
-                            local dz = p.z - cy
-                            if dx * dx + dz * dz <= r2 then
-                                zoneDivSceneryObjects[#zoneDivSceneryObjects + 1] = obj
-                            end
-                        end
+            for divID, div in pairs(subZoneDivisions) do
+                -- compute or retrieve cached AABB for division
+                local aabb = aabbCache[divID]
+                if not aabb and div and div.corners then
+                    local minX, maxX = math.huge, -math.huge
+                    local minZ, maxZ = math.huge, -math.huge
+                    for _, c in ipairs(div.corners) do
+                        if c.x < minX then minX = c.x end
+                        if c.x > maxX then maxX = c.x end
+                        if c.z < minZ then minZ = c.z end
+                        if c.z > maxZ then maxZ = c.z end
+                    end
+                    aabb = { minX = minX, maxX = maxX, minZ = minZ, maxZ = maxZ }
+                    aabbCache[divID] = aabb
+                end
+
+                local skip = false
+                local fullInclude = false
+
+                -- early reject: circle vs AABB distance test (safe)
+                if useAABB and aabb then
+                    local qx = cx
+                    if qx < aabb.minX then qx = aabb.minX elseif qx > aabb.maxX then qx = aabb.maxX end
+                    local qz = cy
+                    if qz < aabb.minZ then qz = aabb.minZ elseif qz > aabb.maxZ then qz = aabb.maxZ end
+                    local dx = qx - cx
+                    local dz = qz - cy
+                    if dx * dx + dz * dz > r2 then
+                        skip = true
                     end
                 end
 
-                -- Statics
-                local divStatic = staticObjectsDB and staticObjectsDB[divID]
-                if divStatic then
-                    for _, obj in pairs(divStatic) do
-                        local p = obj and obj.position
-                        if p and p.x and p.z then
-                            local dx = p.x - cx
-                            local dz = p.z - cy
-                            if dx * dx + dz * dz <= r2 then
-                                zoneDivStaticObjects[#zoneDivStaticObjects + 1] = obj
-                            end
+                -- quick full-include check: if all four AABB corners are inside the circle, include entire division
+                if (not skip) and useFullInclude and aabb then
+                    local corners = {
+                        { x = aabb.minX, z = aabb.minZ },
+                        { x = aabb.maxX, z = aabb.minZ },
+                        { x = aabb.maxX, z = aabb.maxZ },
+                        { x = aabb.minX, z = aabb.maxZ },
+                    }
+                    local allInside = true
+                    for i = 1, 4 do
+                        local dx = corners[i].x - cx
+                        local dz = corners[i].z - cy
+                        if dx * dx + dz * dz > r2 then
+                            allInside = false
+                            break
                         end
                     end
+                    fullInclude = allInside
                 end
 
-                -- Base objects
-                local divBase = baseObjectsDB and baseObjectsDB[divID]
-                if divBase then
-                    for _, obj in pairs(divBase) do
-                        local p = obj and obj.position
-                        if p and p.x and p.z then
-                            local dx = p.x - cx
-                            local dz = p.z - cy
-                            if dx * dx + dz * dz <= r2 then
-                                zoneDivBaseObjects[#zoneDivBaseObjects + 1] = obj
+                if not skip then
+                    if fullInclude then
+                        -- append all objects from this division without per-object distance checks
+                        local list = sceneryObjectsDB and sceneryObjectsDB[divID]
+                        if list then
+                            for _, obj in pairs(list) do zoneDivSceneryObjects[#zoneDivSceneryObjects + 1] = obj end
+                        end
+                        list = staticObjectsDB and staticObjectsDB[divID]
+                        if list then
+                            for _, obj in pairs(list) do zoneDivStaticObjects[#zoneDivStaticObjects + 1] = obj end
+                        end
+                        list = baseObjectsDB and baseObjectsDB[divID]
+                        if list then
+                            for _, obj in pairs(list) do zoneDivBaseObjects[#zoneDivBaseObjects + 1] = obj end
+                        end
+                    else
+                        -- per-object checks (pairs-based to support non-array tables)
+                        local list = sceneryObjectsDB and sceneryObjectsDB[divID]
+                        if list then
+                            for _, obj in pairs(list) do
+                                local p = obj and obj.position
+                                if p and p.x and p.z then
+                                    local dx = p.x - cx
+                                    local dz = p.z - cy
+                                    if dx * dx + dz * dz <= r2 then
+                                        zoneDivSceneryObjects[#zoneDivSceneryObjects + 1] = obj
+                                    end
+                                end
+                            end
+                        end
+
+                        list = staticObjectsDB and staticObjectsDB[divID]
+                        if list then
+                            for _, obj in pairs(list) do
+                                local p = obj and obj.position
+                                if p and p.x and p.z then
+                                    local dx = p.x - cx
+                                    local dz = p.z - cy
+                                    if dx * dx + dz * dz <= r2 then
+                                        zoneDivStaticObjects[#zoneDivStaticObjects + 1] = obj
+                                    end
+                                end
+                            end
+                        end
+
+                        list = baseObjectsDB and baseObjectsDB[divID]
+                        if list then
+                            for _, obj in pairs(list) do
+                                local p = obj and obj.position
+                                if p and p.x and p.z then
+                                    local dx = p.x - cx
+                                    local dz = p.z - cy
+                                    if dx * dx + dz * dz <= r2 then
+                                        zoneDivBaseObjects[#zoneDivBaseObjects + 1] = obj
+                                    end
+                                end
                             end
                         end
                     end

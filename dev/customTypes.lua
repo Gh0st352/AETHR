@@ -781,6 +781,8 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field worldDivisions table<number, _WorldDivision>
 --- @field parentAETHR AETHR|nil
 --- @field mizZones table<string, _MIZ_ZONE>
+--- @field _cache table
+--- @field _cache.worldDivAABB table<number, _BBox>
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
 --- @param name string Name of the dynamic spawner instance
@@ -826,6 +828,9 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         _nonLimitedTypesPool = {},
         worldDivisions = {},
         mizZones = {},
+        _cache = {
+            worldDivAABB = {},
+        },
         parentAETHR = parentAETHR or AETHR,
     }
     setmetatable(instance, { __index = self })
