@@ -422,6 +422,13 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
+
+
+
+
+
+
+
     return self
 end
 

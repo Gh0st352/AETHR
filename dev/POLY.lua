@@ -239,6 +239,41 @@ function AETHR.POLY:normalizePoint(pt)
     return { x = pt.x or 0, y = (pt.y ~= nil) and pt.y or (pt.z or 0) }
 end
 
+--- @function AETHR.POLY.getRandomVec2inCircle
+--- @brief Returns a uniformly random point within a circle, or within an annulus when minRadius is provided.
+--- @param radius number Outer radius (> 0).
+--- @param centerVec2 Vec2Like Circle center ({x,y} or {x,z}).
+--- @param minRadius number|nil Optional inner radius (>= 0, < radius) to sample from the donut region.
+--- @return Vec2 Random point { x = number, y = number }.
+function AETHR.POLY:getRandomVec2inCircle(radius, centerVec2, minRadius)
+    local R = tonumber(radius) or 0
+    if R <= 0 then
+        -- Degenerate: no area to sample, return normalized center
+        return self:normalizePoint(centerVec2 or { x = 0, y = 0 })
+    end
+
+    -- Normalize center to {x,y} (supports input with .z)
+    local c = self:normalizePoint(centerVec2 or { x = 0, y = 0 })
+
+    -- Clamp inner radius to [0, R]
+    local r0 = tonumber(minRadius) or 0
+    if r0 < 0 then r0 = 0 end
+    if r0 > R then r0 = R end
+
+    -- Uniform area sampling:
+    --  r^2 ~ Uniform[r0^2, R^2]  ->  r = sqrt(r0^2 + u * (R^2 - r0^2))
+    local u = math.random()
+    local r = math.sqrt(r0 * r0 + u * (R * R - r0 * r0))
+
+    -- Uniform angle
+    local theta = 2 * math.pi * math.random()
+
+    return {
+        x = c.x + r * math.cos(theta),
+        y = c.y + r * math.sin(theta)
+    }
+end
+
 --------------------------------------------------------------------------------
 --- Determines whether a 2D point lies strictly inside a polygon using the ray-casting algorithm.
 ---
