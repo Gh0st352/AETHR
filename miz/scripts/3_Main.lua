@@ -52,7 +52,7 @@ function _testFunc()
         :setSpawnTypeAmount(spawnTypes.IFV, 3, false)
 
 
-    G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -27626, y = 457048 },
+    G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
         3000, 4500, 6000, .5)
 end
 
