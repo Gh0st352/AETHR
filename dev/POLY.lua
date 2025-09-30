@@ -274,6 +274,162 @@ function AETHR.POLY:getRandomVec2inCircle(radius, centerVec2, minRadius)
     }
 end
 
+function AETHR.POLY:triSample(a, b, c)
+    local u = math.random()
+    local v = math.random()
+    if u + v > 1 then
+        u = 1 - u
+        v = 1 - v
+    end
+    return {
+        x = a.x + u * (b.x - a.x) + v * (c.x - a.x),
+        y = a.y + u * (b.y - a.y) + v * (c.y - a.y)
+    }
+end
+
+function AETHR.POLY:triAreaAbs(a, b, c)
+    return math.abs(self:orientation(a, b, c)) * 0.5
+end
+
+function AETHR.POLY:isConvex(a, b, c)
+    local eps = 1e-12
+    return self:orientation(a, b, c) > eps
+end
+
+function AETHR.POLY:pointInTriangle(p, a, b, c)
+    local eps = 1e-12
+    local ab = self:orientation(a, b, p)
+    local bc = self:orientation(b, c, p)
+    local ca = self:orientation(c, a, p)
+    local hasNeg = (ab < -eps) or (bc < -eps) or (ca < -eps)
+    local hasPos = (ab > eps) or (bc > eps) or (ca > eps)
+    return not (hasNeg and hasPos)
+end
+
+--- @function AETHR.POLY.getRandomVec2inPolygon
+--- @brief Returns a uniformly random point inside a (possibly concave) polygon.
+--- @param vertices Vec2Like[] Array of points ({x,y} or {x,z})
+--- @return Vec2 { x = number, y = number }
+function AETHR.POLY:getRandomVec2inPolygon(vertices)
+    -- Validate inputs and trivial cases
+    if type(vertices) ~= "table" or #vertices == 0 then
+        return { x = 0, y = 0 }
+    end
+    if #vertices == 1 then
+        return self:normalizePoint(vertices[1])
+    end
+    if #vertices == 2 then
+        local a = self:normalizePoint(vertices[1])
+        local b = self:normalizePoint(vertices[2])
+        return { x = (a.x + b.x) / 2, y = (a.y + b.y) / 2 }
+    end
+
+    -- Normalize to {x,y}
+    local pts = {}
+    for i = 1, #vertices do
+        pts[i] = self:normalizePoint(vertices[i])
+    end
+
+    -- Ensure consistent ordering and attempt to untangle
+    local poly = self:ensureConvexN(pts)
+    local n = #poly
+    if n < 3 then
+        return self:getCenterPoint(poly)
+    end
+
+    -- Ear clipping triangulation (operate on indices)
+    local triangles = {}
+    do
+        local idx = {}
+        for i = 1, n do idx[i] = i end
+
+        local iter = 0
+        local maxIter = n * n
+        while #idx > 2 and iter < maxIter do
+            iter = iter + 1
+            local earFound = false
+
+            for i = 1, #idx do
+                local i0 = idx[(i - 2) % #idx + 1]
+                local i1 = idx[i]
+                local i2 = idx[i % #idx + 1]
+                local a, b, c = poly[i0], poly[i1], poly[i2]
+
+                if self:isConvex(a, b, c) then
+                    local anyInside = false
+                    for j = 1, #idx do
+                        local k = idx[j]
+                        if k ~= i0 and k ~= i1 and k ~= i2 then
+                            if self:pointInTriangle(poly[k], a, b, c) then
+                                anyInside = true
+                                break
+                            end
+                        end
+                    end
+                    if not anyInside then
+                        triangles[#triangles + 1] = { a, b, c }
+                        table.remove(idx, i)
+                        earFound = true
+                        break
+                    end
+                end
+            end
+
+            if not earFound then
+                break
+            end
+        end
+    end
+
+    -- If triangulation succeeded, area-weighted sample a triangle then sample inside it
+    if triangles and #triangles > 0 then
+        local areas = {}
+        local total = 0
+        for i, t in ipairs(triangles) do
+            local A = self:triAreaAbs(t[1], t[2], t[3])
+            areas[i] = A
+            total = total + A
+        end
+        if total > 0 then
+            local r = math.random() * total
+            local acc = 0
+            for i, t in ipairs(triangles) do
+                acc = acc + areas[i]
+                if r <= acc then
+                    return self:triSample(t[1], t[2], t[3])
+                end
+            end
+            local t = triangles[#triangles]
+            return self:triSample(t[1], t[2], t[3])
+        end
+    end
+
+    -- Fallback: rejection sampling inside AABB
+    local minX, maxX = math.huge, -math.huge
+    local minY, maxY = math.huge, -math.huge
+    for i = 1, n do
+        local p = poly[i]
+        if p.x < minX then minX = p.x end
+        if p.x > maxX then maxX = p.x end
+        if p.y < minY then minY = p.y end
+        if p.y > maxY then maxY = p.y end
+    end
+
+    local attempts, limit = 0, 2000
+    while attempts < limit do
+        attempts = attempts + 1
+        local x = minX + (maxX - minX) * math.random()
+        local y = minY + (maxY - minY) * math.random()
+        local candidate = { x = x, y = y }
+        if self:pointInPolygon(candidate, poly) then
+            return candidate
+        end
+    end
+
+    -- Last resort
+    return self:getCenterPoint(poly)
+end
+
 --------------------------------------------------------------------------------
 --- Determines whether a 2D point lies strictly inside a polygon using the ray-casting algorithm.
 ---
