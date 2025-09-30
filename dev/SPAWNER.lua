@@ -784,6 +784,10 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateSpawnerZones = { Time = {}, }
+        self.DATA.BenchmarkLog.generateSpawnerZones.Time.start = os.clock()
+    end
     -- if self.CONFIG.MAIN.DEBUG_ENABLED then
     --     self.MARKERS:removeMarksByID(self.DATA.debugMarkers)
     --     self.DATA.debugMarkers = {}
@@ -824,7 +828,14 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
         _subZone.diameter = subZone.diameter
         subZones[#subZones + 1] = _subZone
     end
-
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateSpawnerZones.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateSpawnerZones.Time.total =
+            self.DATA.BenchmarkLog.generateSpawnerZones.Time.stop -
+            self.DATA.BenchmarkLog.generateSpawnerZones.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateSpawnerZones completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateSpawnerZones.Time.total) .. " seconds.")
+    end
     return self
 end
 
