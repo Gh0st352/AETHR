@@ -241,7 +241,7 @@ end
 
 --- @function AETHR.POLY.pointInCircle
 --- @brief Tests if a point lies inside or on a circle.
---- @param vec2 Vec2Like Point to test ({x,y} or {x,z}).
+--- @param vec2 _vec2|_vec2xz Point to test ({x,y} or {x,z}).
 --- @param circleCenterVec2 _vec2|_vec2xz Circle center ({x,y} or {x,z}).
 --- @param radius number Circle radius (>= 0).
 --- @return boolean True if inside or on the boundary, false otherwise.

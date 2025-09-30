@@ -469,28 +469,35 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
 
         ---@param div _WorldDivision
         for _ID, div in pairs(subZoneDivisions) do
-            allDivSceneryObjects[_ID] = sceneryObjectsDB[_ID] or nil
-            allDivStaticObjects[_ID] = staticObjectsDB[_ID] or nil
-            allDivBaseObjects[_ID] = baseObjectsDB[_ID] or nil
+            allDivSceneryObjects[_ID] = sceneryObjectsDB[_ID]
+            allDivStaticObjects[_ID] = staticObjectsDB[_ID]
+            allDivBaseObjects[_ID] = baseObjectsDB[_ID]
         end
-        for id, obj in pairs(allDivSceneryObjects) do
-            local objVec2 = { x = obj.x, y = obj.z }
-            if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                table.insert(zoneDivSceneryObjects, obj)
+        for divID, divObj in pairs(allDivSceneryObjects) do
+            for objID, obj in pairs(divObj) do
+                local objVec2 = { x = obj.position.x, y = obj.position.z }
+                if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
+                    table.insert(zoneDivSceneryObjects, obj)
+                end
             end
         end
-        for id, obj in pairs(allDivStaticObjects) do
-            local objVec2 = { x = obj.x, y = obj.z }
-            if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                table.insert(zoneDivStaticObjects, obj)
+        for divID, divObj in pairs(allDivStaticObjects) do
+            for objID, obj in pairs(divObj) do
+                local objVec2 = { x = obj.position.x, y = obj.position.z }
+                if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
+                    table.insert(zoneDivStaticObjects, obj)
+                end
             end
         end
-        for id, obj in pairs(allDivBaseObjects) do
-            local objVec2 = { x = obj.x, y = obj.z }
-            if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                table.insert(zoneDivBaseObjects, obj)
+        for divID, divObj in pairs(allDivBaseObjects) do
+            for objID, obj in pairs(divObj) do
+                local objVec2 = { x = obj.position.x, y = obj.position.z }
+                if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
+                    table.insert(zoneDivBaseObjects, obj)
+                end
             end
         end
+
         subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
         subZone.zoneDivStaticObjects = zoneDivStaticObjects
         subZone.zoneDivBaseObjects = zoneDivBaseObjects
