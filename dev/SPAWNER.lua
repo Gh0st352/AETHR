@@ -424,13 +424,50 @@ end
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
-    local sceneryObjects = self.WORLD.DATA.divisionSceneryObjects  -- Loaded scenery per division.
-    local staticObjects = self.WORLD.DATA.divisionStaticObjects    -- Loaded statics per division.
-    local baseObjects = self.WORLD.DATA.divisionBaseObjects        -- Loaded Base per division.
-    local unitsDB = self.WORLD.DATA.groundUnitsDB                  -- Loaded units per division.
+    local sceneryObjectsDB = self.WORLD.DATA.divisionSceneryObjects -- Loaded scenery per division.
+    local staticObjectsDB = self.WORLD.DATA.divisionStaticObjects   -- Loaded statics per division.
+    local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
+    local unitsDB = self.WORLD.DATA.groundUnitsDB                   -- Loaded units per division.
+
+    --- Get divisions Objects
+    ---@param subZone _spawnerZone
+    for _, subZone in ipairs(subZones) do
+        local groupSettings = subZone.groupSettings
+        local subZoneRadius = subZone.actualRadius
+        local subZoneCenter = subZone.center
+        local subZoneDivisions = subZone.worldDivisions
+        local allDivSceneryObjects = {}
+        local allDivStaticObjects = {}
+        local allDivBaseObjects = {}
+        local zoneSceneryObjects = {}
+        local zoneDivStaticObjects = {}
+        local zoneDivBaseObjects = {}
+        local zoneUnits = {}
+        local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter, subZoneRadius)
+
+        ---@param div _WorldDivision
+        for _ID, div in pairs(subZoneDivisions) do
+            allDivSceneryObjects[_ID] = sceneryObjectsDB[_ID] or nil
+            allDivStaticObjects[_ID] = staticObjectsDB[_ID] or nil
+            allDivBaseObjects[_ID] = baseObjectsDB[_ID] or nil
+        end
+
+        for id, obj in pairs(allDivSceneryObjects) do
+            local objVec2 = { x = obj.x, y = obj.z }
+            if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
+                table.insert(zoneSceneryObjects, obj)
+            end
+        end
+        
+
+
+        local p = ""
+    end
 
 
 
+    --    local generatedGroupCenters = self.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter,
+    --         mainZoneRadius, overlapFactor, checkNOGO, restrictedZones)
 
 
 
