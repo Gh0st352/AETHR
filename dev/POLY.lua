@@ -520,6 +520,23 @@ function AETHR.POLY:createBox(WS_Vec3, EN_Vec3)
     return box
 end
 
+--- Constructs a volume descriptor representing a sphere used by the runtime/world layer.
+--- @param centerVec2 _vec2|_vec2xz Center point of the sphere ({x,y} or {x,z}).
+--- @param radius number Sphere radius (> 0).
+--- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
+--- @return table Volume descriptor in the form { id = world.VolumeType.SPHERE, params = { point = {x=...,y=...,z=...}, radius = ... } }.
+function AETHR.POLY:createSphere(centerVec2, radius, yHeight)
+    centerVec2 = self:normalizePoint(centerVec2)
+    local sphere = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = { x = centerVec2.x, y = (yHeight and yHeight or 0), z = centerVec2.y },
+            radius = radius
+        }
+    }
+    return sphere
+end
+
 --- Convert unordered line segments into an ordered polygon vertex chain without mutating coordinates.
 --- Behavior:
 --- - Endpoints within `vertOffset` are considered connected (consecutive) but original coordinates are preserved.

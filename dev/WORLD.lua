@@ -263,13 +263,24 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Callback for world.searchObjects
     local function ifFound(item)
         found[item:getName()] = self.AETHR._foundObject:New(item)
-        --found[item.id_] = self.AETHR._foundObject:New(item)
-        -- found[item.id_] = {
-        --     id = item.id_,
-        --     desc = item:getDesc(),
-        --     position = item:getPoint(),
-        --     name = item:getName() or nil,
-        -- }
+    end
+
+    world.searchObjects(objectCategory, vol, ifFound)
+    return found
+end
+
+--- Searches for objects of a given category within a 3D box volume.
+--- @param centerVec2 _vec2|_vec2xz Center point of the sphere ({x,y} or {x,z}).
+--- @param radius number Sphere radius (> 0).
+--- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
+--- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
+function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHeight)
+    local vol = self.POLY:createSphere( centerVec2, radius, yHeight )
+    local found = {} ---@type table<number, _FoundObject>
+
+    -- Callback for world.searchObjects
+    local function ifFound(item)
+        found[item:getName()] = self.AETHR._foundObject:New(item)
     end
 
     world.searchObjects(objectCategory, vol, ifFound)

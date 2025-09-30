@@ -422,7 +422,12 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
-
+    ---@type _spawnerZone[]
+    local subZones = dynamicSpawner.zones.sub
+    local sceneryObjects = self.WORLD.DATA.divisionSceneryObjects  -- Loaded scenery per division.
+    local staticObjects = self.WORLD.DATA.divisionStaticObjects    -- Loaded statics per division.
+    local baseObjects = self.WORLD.DATA.divisionBaseObjects        -- Loaded Base per division.
+    local unitsDB = self.WORLD.DATA.groundUnitsDB                  -- Loaded units per division.
 
 
 
