@@ -449,6 +449,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
         self.DATA.BenchmarkLog.determineZoneDivObjects = { Time = {}, }
         self.DATA.BenchmarkLog.determineZoneDivObjects.Time.start = os.clock()
     end
+
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
     local sceneryObjectsDB = self.WORLD.DATA.divisionSceneryObjects -- Loaded scenery per division.
@@ -460,47 +461,75 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
         local subZoneDivisions = subZone.worldDivisions
         local subZoneRadius = subZone.actualRadius
         local subZoneCenter = subZone.center
-        local allDivSceneryObjects = {}
-        local allDivStaticObjects = {}
-        local allDivBaseObjects = {}
+
         local zoneDivSceneryObjects = {}
         local zoneDivStaticObjects = {}
         local zoneDivBaseObjects = {}
 
-        ---@param div _WorldDivision
-        for _ID, div in pairs(subZoneDivisions) do
-            allDivSceneryObjects[_ID] = sceneryObjectsDB[_ID]
-            allDivStaticObjects[_ID] = staticObjectsDB[_ID]
-            allDivBaseObjects[_ID] = baseObjectsDB[_ID]
-        end
-        for divID, divObj in pairs(allDivSceneryObjects) do
-            for objID, obj in pairs(divObj) do
-                local objVec2 = { x = obj.position.x, y = obj.position.z }
-                if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                    table.insert(zoneDivSceneryObjects, obj)
-                end
-            end
-        end
-        for divID, divObj in pairs(allDivStaticObjects) do
-            for objID, obj in pairs(divObj) do
-                local objVec2 = { x = obj.position.x, y = obj.position.z }
-                if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                    table.insert(zoneDivStaticObjects, obj)
-                end
-            end
-        end
-        for divID, divObj in pairs(allDivBaseObjects) do
-            for objID, obj in pairs(divObj) do
-                local objVec2 = { x = obj.position.x, y = obj.position.z }
-                if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                    table.insert(zoneDivBaseObjects, obj)
-                end
-            end
-        end
+        -- fast-path: if no divisions, set empty lists and continue
+        if not subZoneDivisions or next(subZoneDivisions) == nil then
+            subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
+            subZone.zoneDivStaticObjects = zoneDivStaticObjects
+            subZone.zoneDivBaseObjects = zoneDivBaseObjects
+        else
+            -- localize for performance
+            local cx = subZoneCenter and subZoneCenter.x or 0
+            local cy = subZoneCenter and subZoneCenter.y or 0
+            local r = tonumber(subZoneRadius) or 0
+            local r2 = r * r
 
-        subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
-        subZone.zoneDivStaticObjects = zoneDivStaticObjects
-        subZone.zoneDivBaseObjects = zoneDivBaseObjects
+            -- iterate each division once and test objects from all three DBs
+            for divID, _ in pairs(subZoneDivisions) do
+                -- Scenery
+                local divScenery = sceneryObjectsDB and sceneryObjectsDB[divID]
+                if divScenery then
+                    for _, obj in pairs(divScenery) do
+                        local p = obj and obj.position
+                        if p and p.x and p.z then
+                            local dx = p.x - cx
+                            local dz = p.z - cy
+                            if dx * dx + dz * dz <= r2 then
+                                zoneDivSceneryObjects[#zoneDivSceneryObjects + 1] = obj
+                            end
+                        end
+                    end
+                end
+
+                -- Statics
+                local divStatic = staticObjectsDB and staticObjectsDB[divID]
+                if divStatic then
+                    for _, obj in pairs(divStatic) do
+                        local p = obj and obj.position
+                        if p and p.x and p.z then
+                            local dx = p.x - cx
+                            local dz = p.z - cy
+                            if dx * dx + dz * dz <= r2 then
+                                zoneDivStaticObjects[#zoneDivStaticObjects + 1] = obj
+                            end
+                        end
+                    end
+                end
+
+                -- Base objects
+                local divBase = baseObjectsDB and baseObjectsDB[divID]
+                if divBase then
+                    for _, obj in pairs(divBase) do
+                        local p = obj and obj.position
+                        if p and p.x and p.z then
+                            local dx = p.x - cx
+                            local dz = p.z - cy
+                            if dx * dx + dz * dz <= r2 then
+                                zoneDivBaseObjects[#zoneDivBaseObjects + 1] = obj
+                            end
+                        end
+                    end
+                end
+            end
+
+            subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
+            subZone.zoneDivStaticObjects = zoneDivStaticObjects
+            subZone.zoneDivBaseObjects = zoneDivBaseObjects
+        end
     end
 
     if self.DATA.CONFIG.Benchmark then
