@@ -239,6 +239,34 @@ function AETHR.POLY:normalizePoint(pt)
     return { x = pt.x or 0, y = (pt.y ~= nil) and pt.y or (pt.z or 0) }
 end
 
+--- @function AETHR.POLY.pointInCircle
+--- @brief Tests if a point lies inside or on a circle.
+--- @param vec2 Vec2Like Point to test ({x,y} or {x,z}).
+--- @param circleCenterVec2 _vec2|_vec2xz Circle center ({x,y} or {x,z}).
+--- @param radius number Circle radius (>= 0).
+--- @return boolean True if inside or on the boundary, false otherwise.
+function AETHR.POLY:pointInCircle(vec2, circleCenterVec2, radius)
+    -- Validate inputs
+    if type(vec2) ~= "table" or type(circleCenterVec2) ~= "table" then
+        return false
+    end
+
+    local r = tonumber(radius)
+    if r == nil or r < 0 then
+        return false
+    end
+
+    -- Normalize points to { x = number, y = number }
+    local p = self:normalizePoint(vec2)
+    local c = self:normalizePoint(circleCenterVec2)
+
+    -- Compute squared distance using available helper when possible
+    local d2 = self.MATH:distanceSquared(p.x, p.y, c.x, c.y)
+
+
+    return d2 <= (r * r)
+end
+
 --- @function AETHR.POLY.getRandomVec2inCircle
 --- @brief Returns a uniformly random point within a circle, or within an annulus when minRadius is provided.
 --- @param radius number Outer radius (> 0).
@@ -1963,4 +1991,3 @@ function AETHR.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCe
 
     return generatedSubZones
 end
-

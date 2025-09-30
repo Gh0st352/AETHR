@@ -297,28 +297,8 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     self:weightZones(dynamicSpawner)
     self:generateSpawnAmounts(dynamicSpawner)
     self:rollSpawnGroupSizes(dynamicSpawner)
-    if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
-        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
-            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop -
-            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner completed in " ..
-            tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
-
-        self.DATA.BenchmarkLog.generateSpawnerGroups = { Time = {}, }
-        self.DATA.BenchmarkLog.generateSpawnerGroups.Time.start = os.clock()
-    end
 
     self:generateSpawnerGroups(dynamicSpawner)
-
-    if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.generateSpawnerGroups.Time.stop = os.clock()
-        self.DATA.BenchmarkLog.generateSpawnerGroups.Time.total =
-            self.DATA.BenchmarkLog.generateSpawnerGroups.Time.stop -
-            self.DATA.BenchmarkLog.generateSpawnerGroups.Time.start
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateSpawnerGroups completed in " ..
-            tostring(self.DATA.BenchmarkLog.generateSpawnerGroups.Time.total) .. " seconds.")
-    end
 
     return self
 end
@@ -335,6 +315,7 @@ end
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
     self:pairSpawnerZoneDivisions(dynamicSpawner)
+    self:determineZoneDivObjects(dynamicSpawner)
     self:generateVec2GroupCenters(dynamicSpawner)
     --self:Set_Vec2_UnitTemplates(dynamicSpawner)
     return self
@@ -342,6 +323,12 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:pairSpawnerWorldDivisions(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.pairSpawnerWorldDivisions = { Time = {}, }
+        self.DATA.BenchmarkLog.pairSpawnerWorldDivisions.Time.start = os.clock()
+    end
+
+
     local spawnerActiveDivisions = {}
     local mainZoneRadius = dynamicSpawner.maxRadius
     local mainZoneCenter = dynamicSpawner.vec2
@@ -355,11 +342,25 @@ function AETHR.SPAWNER:pairSpawnerWorldDivisions(dynamicSpawner)
         end
     end
     dynamicSpawner.worldDivisions = spawnerActiveDivisions
+
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.pairSpawnerWorldDivisions.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.pairSpawnerWorldDivisions.Time.total =
+            self.DATA.BenchmarkLog.pairSpawnerWorldDivisions.Time.stop -
+            self.DATA.BenchmarkLog.pairSpawnerWorldDivisions.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:pairSpawnerWorldDivisions completed in " ..
+            tostring(self.DATA.BenchmarkLog.pairSpawnerWorldDivisions.Time.total) .. " seconds.")
+    end
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:pairSpawnerActiveZones(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.pairSpawnerActiveZones = { Time = {}, }
+        self.DATA.BenchmarkLog.pairSpawnerActiveZones.Time.start = os.clock()
+    end
+
     ---@type table<string, _MIZ_ZONE>
     local mizZones = self.ZONE_MANAGER.DATA.MIZ_ZONES
 
@@ -381,11 +382,25 @@ function AETHR.SPAWNER:pairSpawnerActiveZones(dynamicSpawner)
     end
     dynamicSpawner.mizZones = _MizZones
     dynamicSpawner.worldDivisions = spawnerActiveDivisions
+
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.pairSpawnerActiveZones.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.pairSpawnerActiveZones.Time.total =
+            self.DATA.BenchmarkLog.pairSpawnerActiveZones.Time.stop -
+            self.DATA.BenchmarkLog.pairSpawnerActiveZones.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:pairSpawnerActiveZones completed in " ..
+            tostring(self.DATA.BenchmarkLog.pairSpawnerActiveZones.Time.total) .. " seconds.")
+    end
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:pairSpawnerZoneDivisions(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.pairSpawnerZoneDivisions = { Time = {}, }
+        self.DATA.BenchmarkLog.pairSpawnerZoneDivisions.Time.start = os.clock()
+    end
+
     ---@type _spawnerZone
     local mainZone = dynamicSpawner.zones.main
     ---@type _spawnerZone[]
@@ -417,33 +432,40 @@ function AETHR.SPAWNER:pairSpawnerZoneDivisions(dynamicSpawner)
         end
         subZone.worldDivisions = subZoneActiveDivisions
     end
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.pairSpawnerZoneDivisions.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.pairSpawnerZoneDivisions.Time.total =
+            self.DATA.BenchmarkLog.pairSpawnerZoneDivisions.Time.stop -
+            self.DATA.BenchmarkLog.pairSpawnerZoneDivisions.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:pairSpawnerZoneDivisions completed in " ..
+            tostring(self.DATA.BenchmarkLog.pairSpawnerZoneDivisions.Time.total) .. " seconds.")
+    end
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
-function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
+function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.determineZoneDivObjects = { Time = {}, }
+        self.DATA.BenchmarkLog.determineZoneDivObjects.Time.start = os.clock()
+    end
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
     local sceneryObjectsDB = self.WORLD.DATA.divisionSceneryObjects -- Loaded scenery per division.
     local staticObjectsDB = self.WORLD.DATA.divisionStaticObjects   -- Loaded statics per division.
     local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
-    local unitsDB = self.WORLD.DATA.groundUnitsDB                   -- Loaded units per division.
 
-    --- Get divisions Objects
     ---@param subZone _spawnerZone
     for _, subZone in ipairs(subZones) do
-        local groupSettings = subZone.groupSettings
+        local subZoneDivisions = subZone.worldDivisions
         local subZoneRadius = subZone.actualRadius
         local subZoneCenter = subZone.center
-        local subZoneDivisions = subZone.worldDivisions
         local allDivSceneryObjects = {}
         local allDivStaticObjects = {}
         local allDivBaseObjects = {}
-        local zoneSceneryObjects = {}
+        local zoneDivSceneryObjects = {}
         local zoneDivStaticObjects = {}
         local zoneDivBaseObjects = {}
-        local zoneUnits = {}
-        local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter, subZoneRadius)
 
         ---@param div _WorldDivision
         for _ID, div in pairs(subZoneDivisions) do
@@ -451,25 +473,59 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             allDivStaticObjects[_ID] = staticObjectsDB[_ID] or nil
             allDivBaseObjects[_ID] = baseObjectsDB[_ID] or nil
         end
-
         for id, obj in pairs(allDivSceneryObjects) do
             local objVec2 = { x = obj.x, y = obj.z }
             if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
-                table.insert(zoneSceneryObjects, obj)
+                table.insert(zoneDivSceneryObjects, obj)
             end
         end
-        
-
-
-        local p = ""
+        for id, obj in pairs(allDivStaticObjects) do
+            local objVec2 = { x = obj.x, y = obj.z }
+            if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
+                table.insert(zoneDivStaticObjects, obj)
+            end
+        end
+        for id, obj in pairs(allDivBaseObjects) do
+            local objVec2 = { x = obj.x, y = obj.z }
+            if self.POLY:pointInCircle(objVec2, subZoneCenter, subZoneRadius) then
+                table.insert(zoneDivBaseObjects, obj)
+            end
+        end
+        subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
+        subZone.zoneDivStaticObjects = zoneDivStaticObjects
+        subZone.zoneDivBaseObjects = zoneDivBaseObjects
     end
+
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.determineZoneDivObjects.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.determineZoneDivObjects.Time.total =
+            self.DATA.BenchmarkLog.determineZoneDivObjects.Time.stop -
+            self.DATA.BenchmarkLog.determineZoneDivObjects.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:determineZoneDivObjects completed in " ..
+            tostring(self.DATA.BenchmarkLog.determineZoneDivObjects.Time.total) .. " seconds.")
+    end
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
+    local unitsDB = self.WORLD.DATA.groundUnitsDB -- Loaded units per division.
+
+
+    -- local groupSettings = subZone.groupSettings
+
+
+
+    -- local zoneUnits = {}
+    -- local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
+    --     subZoneRadius)
+
+    local p = ""
 
 
 
     --    local generatedGroupCenters = self.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter,
     --         mainZoneRadius, overlapFactor, checkNOGO, restrictedZones)
-
-
 
     return self
 end
@@ -483,6 +539,11 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateGroupTypes = { Time = {}, }
+        self.DATA.BenchmarkLog.generateGroupTypes.Time.start = os.clock()
+    end
+
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
     local spawnTypes = dynamicSpawner.spawnTypes
@@ -545,11 +606,23 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
             end
         end
     end
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateGroupTypes.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateGroupTypes.Time.total =
+            self.DATA.BenchmarkLog.generateGroupTypes.Time.stop -
+            self.DATA.BenchmarkLog.generateGroupTypes.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateGroupTypes completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateGroupTypes.Time.total) .. " seconds.")
+    end
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:seedTypes(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.seedTypes = { Time = {}, }
+        self.DATA.BenchmarkLog.seedTypes.Time.start = os.clock()
+    end
     local typesPool = dynamicSpawner._typesPool
     local spawnTypes = dynamicSpawner.spawnTypes
     local extraTypes = dynamicSpawner.extraTypes
@@ -574,12 +647,24 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
             dynamicSpawner._nonLimitedTypesPool[k] = k
         end
     end
-
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.seedTypes.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.seedTypes.Time.total =
+            self.DATA.BenchmarkLog.seedTypes.Time.stop -
+            self.DATA.BenchmarkLog.seedTypes.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:seedTypes completed in " ..
+            tostring(self.DATA.BenchmarkLog.seedTypes.Time.total) .. " seconds.")
+    end
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.rollSpawnGroupSizes = { Time = {}, }
+        self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.start = os.clock()
+    end
+
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
     ---@param zoneObject_ _spawnerZone
@@ -601,11 +686,23 @@ function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
             end
         end
     end
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.total =
+            self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop -
+            self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:rollSpawnGroupSizes completed in " ..
+            tostring(self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.total) .. " seconds.")
+    end
     return self
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateSpawnAmounts(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateSpawnAmounts = { Time = {}, }
+        self.DATA.BenchmarkLog.generateSpawnAmounts.Time.start = os.clock()
+    end
     ---@type _spawnerZone
     local mainZone = dynamicSpawner.zones.main
     ---@type _spawnSettings
@@ -645,6 +742,14 @@ function AETHR.SPAWNER:generateSpawnAmounts(dynamicSpawner)
         zoneObject_:setSpawnAmounts():rollSpawnAmounts()
     end
     self:_Jiggle(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateSpawnAmounts.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateSpawnAmounts.Time.total =
+            self.DATA.BenchmarkLog.generateSpawnAmounts.Time.stop -
+            self.DATA.BenchmarkLog.generateSpawnAmounts.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateSpawnAmounts completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateSpawnAmounts.Time.total) .. " seconds.")
+    end
     return self
 end
 

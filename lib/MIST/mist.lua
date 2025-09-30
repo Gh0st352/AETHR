@@ -1,1 +1,0 @@
-../../../MissionScriptingTools/mist.lua

@@ -1078,6 +1078,9 @@ end
 --- @field seperationSettings.minBuildings number
 --- @field parentAETHR AETHR|nil
 --- @field parentSpawner _dynamicSpawner|nil
+--- @field zoneDivSceneryObjects table<number, _foundObject[]>
+--- @field zoneDivStaticObjects table<number, _foundObject[]>
+--- @field zoneDivBaseObjects table<number, _foundObject[]>
 AETHR._spawnerZone = {} ---@diagnostic disable-line
 ---
 --- @param parentAETHR AETHR|nil
@@ -1137,6 +1140,9 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         },
         parentAETHR = parentAETHR or AETHR,
         parentSpawner = parentSpawner or {},
+        zoneDivSceneryObjects = {},
+        zoneDivStaticObjects = {},
+        zoneDivBaseObjects = {},
     }
     setmetatable(instance, { __index = self })
     if not instance.name then instance.name = "Zone_" .. tostring(os.time()) end
