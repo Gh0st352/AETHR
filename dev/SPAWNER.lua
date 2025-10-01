@@ -471,7 +471,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
 
     -- initialize per-division AABB cache
-    dynamicSpawner._cache.worldDivAABB = {}--dynamicSpawner._cache.worldDivAABB or {}
+    dynamicSpawner._cache.worldDivAABB = {} --dynamicSpawner._cache.worldDivAABB or {}
     local aabbCache = dynamicSpawner._cache.worldDivAABB
 
     -- configuration toggles (default: enabled unless explicitly false)
@@ -634,24 +634,117 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
-    local unitsDB = self.WORLD.DATA.groundUnitsDB -- Loaded units per division.
+    local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division.
+    ---@type _spawnerZone[]
+    local subZones = dynamicSpawner.zones.sub
+
+    ---@param subZone _spawnerZone
+    for _, subZone in pairs(subZones) do
+        local subZoneRadius = subZone.actualRadius
+        local groupSettings = subZone.groupSettings
+        local subZoneCenter = subZone.center
+        local baseObjects = subZone.zoneDivBaseObjects
+        local staticObjects = subZone.zoneDivStaticObjects
+        local sceneryObjects = subZone.zoneDivSceneryObjects
+        local zoneUnits = {}
+        local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
+            subZoneRadius)
+        local selectedCoords = {}
 
 
-    -- local groupSettings = subZone.groupSettings
+        for groupSize, groupSetting in pairs(subZone.groupSettings) do
+            local groupCenterVec2s = {}
 
+            for i = 1, groupSetting.numGroups do
+                local glassBreak = 0
+                local possibleVec2
+                local flag_goodcoord = true
 
+                repeat
+                    flag_goodcoord = true
+                    possibleVec2 = self.POLY:getRandomVec2inCircle(subZoneRadius, subZoneCenter)
+                    if flag_goodcoord then
+                        flag_goodcoord = not self:checkIsInNOGO(possibleVec2,
+                            dynamicSpawner.zones.restricted)
+                    end
 
-    -- local zoneUnits = {}
-    -- local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
-    --     subZoneRadius)
+                    if flag_goodcoord then
+                        ---@param obj _FoundObject
+                        for _, obj in ipairs(baseObjects) do
+                            local objPosition = obj.position
+                            local seperationSetting = groupSetting.minBuildings
+                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
+                                objPosition.z)
 
-    local p = ""
+                            if distance < (seperationSetting * seperationSetting) then
+                                flag_goodcoord = false
+                                break
+                            end
+                        end
+                        ---@param obj _FoundObject
+                        for _, obj in ipairs(staticObjects) do
+                            local objPosition = obj.position
+                            local seperationSetting = groupSetting.minBuildings
+                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
+                                objPosition.z)
 
+                            if distance < (seperationSetting * seperationSetting) then
+                                flag_goodcoord = false
+                                break
+                            end
+                        end
+                        ---@param obj _FoundObject
+                        for _, obj in ipairs(sceneryObjects) do
+                            local objPosition = obj.position
+                            local seperationSetting = groupSetting.minBuildings
+                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
+                                objPosition.z)
 
+                            if distance < (seperationSetting * seperationSetting) then
+                                flag_goodcoord = false
+                                break
+                            end
+                        end
+                        ---@param obj _FoundObject
+                        for _, obj in ipairs(selectedCoords) do
+                            local objPosition = obj.position
+                            local seperationSetting = groupSetting.groupMinSep
+                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
+                                objPosition.z)
 
-    --    local generatedGroupCenters = self.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCenter,
-    --         mainZoneRadius, overlapFactor, checkNOGO, restrictedZones)
+                            if distance < (seperationSetting * seperationSetting) then
+                                flag_goodcoord = false
+                                break
+                            end
+                        end
+                        ---@param obj _FoundObject
+                        for _, obj in ipairs(groupsDB) do
+                            local objPosition = obj.position
+                            local seperationSetting = groupSetting.groupMinSep
+                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
+                                objPosition.z)
 
+                            if distance < (seperationSetting * seperationSetting) then
+                                flag_goodcoord = false
+                                break
+                            end
+                        end
+                    end
+
+                    if glassBreak >= (self.DATA.CONFIG.operationLimit or 100) then
+                        flag_goodcoord = true
+                    end
+                    glassBreak = glassBreak + 1
+                until flag_goodcoord
+
+                groupCenterVec2s[i] = possibleVec2
+                table.insert(selectedCoords, possibleVec2)
+            end
+
+            groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
+            table.insert(selectedCoords, groupCenterVec2s)
+        end
+    end
     return self
 end
 

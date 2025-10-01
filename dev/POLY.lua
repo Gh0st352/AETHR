@@ -231,7 +231,7 @@ end
 
 --- Normalize a point-like table into { x = number, y = number } without mutating input.
 --- @function AETHR.POLY:normalizePoint
---- @param pt Vec2Like|Vec3|nil Point-like table with x and y or z.
+--- @param pt _vec2|_vec2xz|Vec3|nil Point-like table with x and y or z.
 --- @return Vec2 Normalized point { x = number, y = number }.
 function AETHR.POLY:normalizePoint(pt)
     -- Normalize a point-like table into { x = number, y = number } without mutating input.
@@ -270,7 +270,7 @@ end
 --- @function AETHR.POLY.getRandomVec2inCircle
 --- @brief Returns a uniformly random point within a circle, or within an annulus when minRadius is provided.
 --- @param radius number Outer radius (> 0).
---- @param centerVec2 Vec2Like Circle center ({x,y} or {x,z}).
+--- @param centerVec2 _vec2|_vec2xz Circle center ({x,y} or {x,z}).
 --- @param minRadius number|nil Optional inner radius (>= 0, < radius) to sample from the donut region.
 --- @return Vec2 Random point { x = number, y = number }.
 function AETHR.POLY:getRandomVec2inCircle(radius, centerVec2, minRadius)
