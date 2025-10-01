@@ -934,7 +934,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
             local minSep = math.huge
             for _, gs in pairs(subZone.groupSettings or {}) do
                 if gs and gs.minGroups and gs.minBuildings and gs.minUnits then
-                    minSep = math.min(minSep, math.min(gs.minGroups, gs.minBuildings))
+                    minSep = math.min(minSep, gs.minGroups, gs.minBuildings, gs.minUnits)
                 elseif gs and gs.minGroups then
                     minSep = math.min(minSep, gs.minGroups)
                 elseif gs and gs.minBuildings then
@@ -985,7 +985,8 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         for _, groupSetting in pairs(subZone.groupSettings or {}) do
             local groupUnitVec2s = {}
             local minUnits = groupSetting.minUnits or self.DATA.CONFIG.seperationSettings.minUnits or 10
-            local maxGroups = groupSetting.maxGroups or self.DATA.CONFIG.seperationSettings.maxGroups or 20
+            local maxUnits = groupSetting.maxUnits or self.DATA.CONFIG.seperationSettings.maxUnits or 20
+            local maxGroups = groupSetting.maxGroups or self.DATA.CONFIG.seperationSettings.maxGroups or 30
             local minBuildings = groupSetting.minBuildings or self.DATA.CONFIG.seperationSettings.minBuildings or 20
             local mg2 = (minUnits) * (minUnits)
             local mb2 = (minBuildings) * (minBuildings)
@@ -994,12 +995,12 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
 
             for i = 1, (groupSetting.numGroups or 0) do
                 local unitVec2 = {}
-                for j = 1, #groupSetting.generatedGroupUnitTypes do
+                local unitTypesForGroup = (groupSetting.generatedGroupUnitTypes and groupSetting.generatedGroupUnitTypes[i]) or {}
+                for j = 1, #unitTypesForGroup do
                     local glassBreak = 0
                     local possibleVec2 = nil
                     local accepted = false
                     local operationLimit = self.DATA.CONFIG.operationLimit or 100
-                    unitVec2 = {}
                     repeat
                         possibleVec2 = self.POLY:getRandomVec2inCircle(maxGroups,
                             groupSetting.generatedGroupCenterVec2s[i] or subZoneCenter)
@@ -1063,7 +1064,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2UnitPos.Time.total =
             self.DATA.BenchmarkLog.generateVec2UnitPos.Time.stop -
             self.DATA.BenchmarkLog.generateVec2UnitPos.Time.start
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:pairSpawnerWorldDivisions completed in " ..
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateVec2UnitPos completed in " ..
             tostring(self.DATA.BenchmarkLog.generateVec2UnitPos.Time.total) .. " seconds.")
     end
     return self
