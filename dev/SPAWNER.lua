@@ -638,131 +638,230 @@ end
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, }
+        self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
+        local counters = self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters
+        counters.numCandidatesTried = 0
+        counters.numAccepted = 0
+        counters.numNOGOCalls = 0
+        counters.gridHits = { centers = 0, groups = 0, structures = 0 }
     end
-    local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division.
+
+    local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division (not used directly for positions)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
 
-    ---@param subZone _spawnerZone
+    -- Local helpers (fast, local scope)
+    local function extractXY(obj)
+        if not obj then return nil end
+        if obj.x and obj.y then return { x = obj.x, y = obj.y } end
+        if obj.position and obj.position.x and (obj.position.z or obj.position.y) then
+            return { x = obj.position.x, y = (obj.position.z or obj.position.y) }
+        end
+        if obj.postition and obj.postition.x and (obj.postition.z or obj.postition.y) then
+            return { x = obj.postition.x, y = (obj.postition.z or obj.postition.y) }
+        end
+        -- support nested fields like obj.getPoint result
+        if obj.getPoint and type(obj.getPoint) == "function" then
+            local p = obj:getPoint()
+            if p and p.x and (p.y or p.z) then return { x = p.x, y = (p.z or p.y) } end
+        end
+        return nil
+    end
+
+    local function toCell(x, y, s)
+        local cx = math.floor(x / s)
+        local cy = math.floor(y / s)
+        return cx, cy
+    end
+
+    local function cellKey(cx, cy)
+        return tostring(cx) .. ":" .. tostring(cy)
+    end
+
+    local function gridInsert(grid, s, x, y)
+        local cx, cy = toCell(x, y, s)
+        local key = cellKey(cx, cy)
+        grid[key] = grid[key] or {}
+        table.insert(grid[key], { x = x, y = y })
+    end
+
+    local function gridQuery(grid, s, x, y, r2, neighborRange)
+        -- neighborRange is number of cells to check in each direction
+        local cx, cy = toCell(x, y, s)
+        local r = neighborRange or math.ceil(math.sqrt(r2) / s)
+        for dx = -r, r do
+            for dy = -r, r do
+                local key = cellKey(cx + dx, cy + dy)
+                local cell = grid[key]
+                if cell then
+                    for _, pt in ipairs(cell) do
+                        local dx_ = pt.x - x
+                        local dy_ = pt.y - y
+                        if dx_ * dx_ + dy_ * dy_ <= r2 then
+                            return true
+                        end
+                    end
+                end
+            end
+        end
+        return false
+    end
+
+    -- Process each subZone
     for _, subZone in pairs(subZones) do
         local subZoneRadius = subZone.actualRadius
-        local groupSettings = subZone.groupSettings
         local subZoneCenter = subZone.center
-        local baseObjects = subZone.zoneDivBaseObjects
-        local staticObjects = subZone.zoneDivStaticObjects
-        local sceneryObjects = subZone.zoneDivSceneryObjects
-        local zoneUnits = {}
+        local baseObjects = subZone.zoneDivBaseObjects or {}
+        local staticObjects = subZone.zoneDivStaticObjects or {}
+        local sceneryObjects = subZone.zoneDivSceneryObjects or {}
         local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
-            subZoneRadius)
+            subZoneRadius) or {}
+
+        -- Compute a sensible cell size from group settings for this subZone
+        local cellSize = 1
+        do
+            local minSep = math.huge
+            for _, gs in pairs(subZone.groupSettings or {}) do
+                if gs and gs.minGroups and gs.minBuildings then
+                    minSep = math.min(minSep, math.min(gs.minGroups, gs.minBuildings))
+                elseif gs and gs.minGroups then
+                    minSep = math.min(minSep, gs.minGroups)
+                elseif gs and gs.minBuildings then
+                    minSep = math.min(minSep, gs.minBuildings)
+                end
+            end
+            if minSep == math.huge or not minSep then
+                cellSize = 1
+            else
+                cellSize = math.max(1, math.floor(minSep))
+            end
+        end
+
+        -- Build grids: structuresGrid (bases/statics/scenery), groupsGrid (nearby units), centersGrid (accepted centers)
+        local structuresGrid = {}
+        local groupsGrid = {}
+        local centersGrid = {}
+
+        -- Helper to populate a list of objects into a grid using extractXY
+        local function populateGridFromList(list, grid, s)
+            for _, obj in pairs(list or {}) do
+                local p = extractXY(obj)
+                if p then gridInsert(grid, s, p.x, p.y) end
+            end
+        end
+
+        -- Populate structuresGrid from base/static/scenery objects
+        populateGridFromList(baseObjects, structuresGrid, cellSize)
+        populateGridFromList(staticObjects, structuresGrid, cellSize)
+        populateGridFromList(sceneryObjects, structuresGrid, cellSize)
+
+        -- Populate groupsGrid from freshScannedUnits (pairs because returned table is a map)
+        for _, obj in pairs(freshScannedUnits or {}) do
+            local p = extractXY(obj)
+            if p then gridInsert(groupsGrid, cellSize, p.x, p.y) end
+        end
+
+        -- selectedCoords kept for compatibility (not used for linear scans anymore)
         local selectedCoords = {}
 
-
-        for groupSize, groupSetting in pairs(subZone.groupSettings) do
+        -- For each groupSetting, place group centers
+        for _, groupSetting in pairs(subZone.groupSettings or {}) do
             local groupCenterVec2s = {}
+            local minGroups = groupSetting.minGroups or self.DATA.CONFIG.seperationSettings.minGroups or 30
+            local minBuildings = groupSetting.minBuildings or self.DATA.CONFIG.seperationSettings.minBuildings or 20
+            local mg2 = (minGroups) * (minGroups)
+            local mb2 = (minBuildings) * (minBuildings)
+            local neighborRangeGroups = math.ceil(minGroups / cellSize)
+            local neighborRangeBuildings = math.ceil(minBuildings / cellSize)
 
-            for i = 1, groupSetting.numGroups do
+            for i = 1, (groupSetting.numGroups or 0) do
                 local glassBreak = 0
-                local possibleVec2
-                local flag_goodcoord = true
+                local possibleVec2 = nil
+                local accepted = false
+                local operationLimit = self.DATA.CONFIG.operationLimit or 100
 
                 repeat
-                    flag_goodcoord = true
                     possibleVec2 = self.POLY:getRandomVec2inCircle(subZoneRadius, subZoneCenter)
-                    if flag_goodcoord then
-                        flag_goodcoord = not self:checkIsInNOGO(possibleVec2,
-                            dynamicSpawner.zones.restricted)
+                    if self.DATA.CONFIG.Benchmark then
+                        self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numCandidatesTried =
+                            (self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numCandidatesTried or 0) + 1
                     end
 
-                    if flag_goodcoord then
-                        ---@param obj _FoundObject
-                        for _, obj in ipairs(baseObjects) do
-                            local objPosition = obj.position
-                            local seperationSetting = groupSetting.minBuildings
-                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.z)
+                    -- Fast proximity checks using grids (squared distances)
+                    local reject = false
 
-                            if distance < (seperationSetting * seperationSetting) then
-                                flag_goodcoord = false
-                                break
-                            end
-                        end
-                        ---@param obj _FoundObject
-                        for _, obj in ipairs(staticObjects) do
-                            local objPosition = obj.position
-                            local seperationSetting = groupSetting.minBuildings
-                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.z)
-
-                            if distance < (seperationSetting * seperationSetting) then
-                                flag_goodcoord = false
-                                break
-                            end
-                        end
-                        ---@param obj _FoundObject
-                        for _, obj in ipairs(sceneryObjects) do
-                            local objPosition = obj.position
-                            local seperationSetting = groupSetting.minBuildings
-                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.z)
-
-                            if distance < (seperationSetting * seperationSetting) then
-                                flag_goodcoord = false
-                                break
-                            end
-                        end
-                        ---@param obj _vec2
-                        for _, obj in ipairs(selectedCoords) do
-                            local objPosition = obj
-                            local seperationSetting = groupSetting.minGroups
-                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.y)
-
-                            if distance < (seperationSetting * seperationSetting) then
-                                flag_goodcoord = false
-                                break
-                            end
-                        end
-                        ---@param obj _FoundObject
-                        for _, obj in ipairs(groupsDB) do
-                            local objPosition = obj.position
-                            local seperationSetting = groupSetting.minGroups
-                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.z)
-
-                            if distance < (seperationSetting * seperationSetting) then
-                                flag_goodcoord = false
-                                break
-                            end
-                        end
-                        ---@param obj _FoundObject
-                        for _, obj in ipairs(freshScannedUnits) do
-                            local objPosition = obj.position
-                            local seperationSetting = groupSetting.minGroups
-                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.z)
-
-                            if distance < (seperationSetting * seperationSetting) then
-                                flag_goodcoord = false
-                                break
+                    -- Check against already accepted centers
+                    if next(centersGrid) ~= nil then
+                        if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
+                            reject = true
+                            if self.DATA.CONFIG.Benchmark then
+                                self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.centers =
+                                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.centers + 1
                             end
                         end
                     end
 
-                    if glassBreak >= (self.DATA.CONFIG.operationLimit or 100) then
-                        flag_goodcoord = true
+                    -- Check against nearby units/groups
+                    if not reject and next(groupsGrid) ~= nil then
+                        if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
+                            reject = true
+                            if self.DATA.CONFIG.Benchmark then
+                                self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.groups =
+                                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.groups + 1
+                            end
+                        end
                     end
+
+                    -- Check against nearby structures
+                    if not reject and next(structuresGrid) ~= nil then
+                        if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2, neighborRangeBuildings) then
+                            reject = true
+                            if self.DATA.CONFIG.Benchmark then
+                                self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.structures =
+                                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.structures + 1
+                            end
+                        end
+                    end
+
+                    -- Only if we passed all cheap spatial checks, call expensive NOGO check
+                    if not reject then
+                        if self.DATA.CONFIG.Benchmark then
+                            self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numNOGOCalls =
+                                (self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numNOGOCalls or 0) + 1
+                        end
+                        reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
+                    end
+
+                    if not reject then
+                        accepted = true
+                    else
+                        accepted = false
+                    end
+
+                    if glassBreak >= operationLimit then
+                        -- Respect existing behavior: accept last candidate when budget exhausts
+                        accepted = true
+                    end
+
                     glassBreak = glassBreak + 1
-                until flag_goodcoord
+                until accepted
 
+                -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
+                gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
+
+                if self.DATA.CONFIG.Benchmark then
+                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numAccepted =
+                        (self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numAccepted or 0) + 1
+                end
             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
         end
     end
+
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.stop = os.clock()
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total =
@@ -770,6 +869,11 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateVec2GroupCenters completed in " ..
             tostring(self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total) .. " seconds.")
+        -- Optional: dump counters for deeper analysis
+        local c = self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters or {}
+        self.UTILS:debugInfo("BENCHMARK - - - generateVec2GroupCenters counters: tried=" ..
+            tostring(c.numCandidatesTried or 0) .. " accepted=" .. tostring(c.numAccepted or 0) ..
+            " nogo=" .. tostring(c.numNOGOCalls or 0))
     end
     return self
 end
