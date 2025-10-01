@@ -709,7 +709,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                                 break
                             end
                         end
-                        ---@param obj _FoundObject
+                        ---@param obj _vec2
                         for _, obj in ipairs(selectedCoords) do
                             local objPosition = obj
                             local seperationSetting = groupSetting.groupMinSep
