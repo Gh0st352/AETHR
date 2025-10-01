@@ -634,6 +634,10 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, }
+        self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
+    end
     local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division.
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
@@ -707,10 +711,10 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                         end
                         ---@param obj _FoundObject
                         for _, obj in ipairs(selectedCoords) do
-                            local objPosition = obj.position
+                            local objPosition = obj
                             local seperationSetting = groupSetting.groupMinSep
                             local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
-                                objPosition.z)
+                                objPosition.y)
 
                             if distance < (seperationSetting * seperationSetting) then
                                 flag_goodcoord = false
@@ -742,8 +746,15 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
-            table.insert(selectedCoords, groupCenterVec2s)
         end
+    end
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total =
+            self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.stop -
+            self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateVec2GroupCenters completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total) .. " seconds.")
     end
     return self
 end
