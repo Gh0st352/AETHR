@@ -640,11 +640,6 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
-        local counters = self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters
-        counters.numCandidatesTried = 0
-        counters.numAccepted = 0
-        counters.numNOGOCalls = 0
-        counters.gridHits = { centers = 0, groups = 0, structures = 0 }
     end
 
     local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division (not used directly for positions)
@@ -783,10 +778,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
 
                 repeat
                     possibleVec2 = self.POLY:getRandomVec2inCircle(subZoneRadius, subZoneCenter)
-                    if self.DATA.CONFIG.Benchmark then
-                        self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numCandidatesTried =
-                            (self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numCandidatesTried or 0) + 1
-                    end
+
 
                     -- Fast proximity checks using grids (squared distances)
                     local reject = false
@@ -795,10 +787,6 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     if next(centersGrid) ~= nil then
                         if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
                             reject = true
-                            if self.DATA.CONFIG.Benchmark then
-                                self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.centers =
-                                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.centers + 1
-                            end
                         end
                     end
 
@@ -806,10 +794,6 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     if not reject and next(groupsGrid) ~= nil then
                         if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
                             reject = true
-                            if self.DATA.CONFIG.Benchmark then
-                                self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.groups =
-                                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.groups + 1
-                            end
                         end
                     end
 
@@ -817,19 +801,11 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     if not reject and next(structuresGrid) ~= nil then
                         if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2, neighborRangeBuildings) then
                             reject = true
-                            if self.DATA.CONFIG.Benchmark then
-                                self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.structures =
-                                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.gridHits.structures + 1
-                            end
                         end
                     end
 
                     -- Only if we passed all cheap spatial checks, call expensive NOGO check
                     if not reject then
-                        if self.DATA.CONFIG.Benchmark then
-                            self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numNOGOCalls =
-                                (self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numNOGOCalls or 0) + 1
-                        end
                         reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
                     end
 
@@ -851,11 +827,6 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
                 gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
-
-                if self.DATA.CONFIG.Benchmark then
-                    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numAccepted =
-                        (self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters.numAccepted or 0) + 1
-                end
             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
@@ -869,11 +840,6 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateVec2GroupCenters completed in " ..
             tostring(self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total) .. " seconds.")
-        -- Optional: dump counters for deeper analysis
-        local c = self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters or {}
-        self.UTILS:debugInfo("BENCHMARK - - - generateVec2GroupCenters counters: tried=" ..
-            tostring(c.numCandidatesTried or 0) .. " accepted=" .. tostring(c.numAccepted or 0) ..
-            " nogo=" .. tostring(c.numNOGOCalls or 0))
     end
     return self
 end
