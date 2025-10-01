@@ -293,7 +293,9 @@ end
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                               nudgeFactorRadius)
     if self.DATA.CONFIG.Benchmark then
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " .. dynamicSpawner.name)
+        self.UTILS:debugInfo(
+        "BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " ..
+        dynamicSpawner.name)
         self.DATA.BenchmarkLog.generateDynamicSpawner = { Time = {}, }
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start = os.clock()
     end
@@ -724,6 +726,18 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                         end
                         ---@param obj _FoundObject
                         for _, obj in ipairs(groupsDB) do
+                            local objPosition = obj.position
+                            local seperationSetting = groupSetting.minGroups
+                            local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
+                                objPosition.z)
+
+                            if distance < (seperationSetting * seperationSetting) then
+                                flag_goodcoord = false
+                                break
+                            end
+                        end
+                        ---@param obj _FoundObject
+                        for _, obj in ipairs(freshScannedUnits) do
                             local objPosition = obj.position
                             local seperationSetting = groupSetting.minGroups
                             local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
