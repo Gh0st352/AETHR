@@ -290,8 +290,10 @@ end
 ---@param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominal if nil.
 ---@param maxRadius number|nil Maximum radius in meters. Defaults to dynamicSpawner.maxRadius if nil.
 ---@param nudgeFactorRadius number|nil Nudge factor for radius adjustment (0.0-1.0). Defaults to dynamicSpawner.nudgeFactorRadius if nil.
+---@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
+---@param coalitionID number|nil Coalition ID for spawned groups. Defaults to dynamicSpawner.coalitionID (0) if nil.
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
-                                              nudgeFactorRadius)
+                                              nudgeFactorRadius, countryID, coalitionID)
     if self.DATA.CONFIG.Benchmark then
         self.UTILS:debugInfo(
             "BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " ..
@@ -316,7 +318,7 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     self:rollSpawnGroupSizes(dynamicSpawner)
 
     self:generateSpawnerGroups(dynamicSpawner)
-
+    self:buildSpawnGroups(dynamicSpawner, countryID, coalitionID)
     return self
 end
 
@@ -324,8 +326,6 @@ end
 function AETHR.SPAWNER:generateSpawnerGroups(dynamicSpawner)
     self:rollSpawnGroups(dynamicSpawner)
     self:rollGroupPlacement(dynamicSpawner)
-
-    -- self:SetupSpawnGroups()
     return self
 end
 
@@ -336,6 +336,43 @@ function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
     self:generateVec2GroupCenters(dynamicSpawner)
     self:generateVec2UnitPos(dynamicSpawner)
     return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+---@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
+---@param coalitionID number|nil Coalition ID for spawned groups. Defaults to dynamicSpawner.coalitionID (0) if nil.
+function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID, coalitionID)
+    local subZones = dynamicSpawner.zones.sub
+
+    ---@param subZone _spawnerZone
+    for indexSubZone, subZone in pairs(subZones) do
+        local spawnGroups = {}
+        local groupSettings = subZone.groupSettings
+        for indexGroupSetting, groupSetting in pairs(groupSettings) do
+            if groupSetting.numGroups > 0 then
+                local generatedGroupUnitTypes = groupSetting.generatedGroupUnitTypes
+                local generatedGroupCenterVec2s = groupSetting.generatedGroupCenterVec2s
+                local generatedUnitVec2s = groupSetting.generatedUnitVec2s
+                local generatedGroupTypes = groupSetting.generatedGroupTypes
+                local groupCenterVec2 = generatedGroupCenterVec2s[indexGroupSetting]
+                for indexGroup, UnitList in ipairs(generatedGroupUnitTypes) do
+                    local groupUnitNames = {}
+                    for indexUnit, unitType in ipairs(UnitList) do
+                        local unitTypeName = unitType
+                        local unitName = dynamicSpawner.spawnedNamePrefix .. generatedGroupTypes[indexGroup][indexUnit]
+                        local unitVec2 = generatedUnitVec2s[indexGroup][indexUnit]
+                        groupUnitNames[#groupUnitNames + 1] = self:buildGroundUnit(unitTypeName, unitVec2.x, unitVec2.y,
+                            dynamicSpawner.skill, unitName, nil, true, false)
+                    end
+                    spawnGroups[#spawnGroups + 1] = self:buildGroundGroup(countryID,
+                        dynamicSpawner.spawnedNamePrefix .. "Group_", groupCenterVec2.x, groupCenterVec2.y,
+                        self:assembleUnitsForGroup(groupUnitNames), nil, nil, true, false, true, false, false, false, 0,
+                        "Ground Nothing", false)
+                end
+            end
+        end
+        subZone.spawnGroups = spawnGroups
+    end
 end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
@@ -995,7 +1032,8 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
 
             for i = 1, (groupSetting.numGroups or 0) do
                 local unitVec2 = {}
-                local unitTypesForGroup = (groupSetting.generatedGroupUnitTypes and groupSetting.generatedGroupUnitTypes[i]) or {}
+                local unitTypesForGroup = (groupSetting.generatedGroupUnitTypes and groupSetting.generatedGroupUnitTypes[i]) or
+                    {}
                 for j = 1, #unitTypesForGroup do
                     local glassBreak = 0
                     local possibleVec2 = nil

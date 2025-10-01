@@ -783,6 +783,7 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field mizZones table<string, _MIZ_ZONE>
 --- @field _cache table
 --- @field _cache.worldDivAABB table<number, _BBox>
+--- @field skill string|nil
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
 --- @param name string Name of the dynamic spawner instance
@@ -799,6 +800,9 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         extraTypes = {},
         name = name,
         vec2 = {},
+        country = 0,
+        coalition = 0,
+        skill = nil,
         minRadius = 500,
         maxRadius = 2000,
         nominalRadius = 1000,
