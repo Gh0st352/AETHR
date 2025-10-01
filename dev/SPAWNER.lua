@@ -712,7 +712,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                         ---@param obj _vec2
                         for _, obj in ipairs(selectedCoords) do
                             local objPosition = obj
-                            local seperationSetting = groupSetting.groupMinSep
+                            local seperationSetting = groupSetting.minGroups
                             local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
                                 objPosition.y)
 
@@ -724,7 +724,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                         ---@param obj _FoundObject
                         for _, obj in ipairs(groupsDB) do
                             local objPosition = obj.position
-                            local seperationSetting = groupSetting.groupMinSep
+                            local seperationSetting = groupSetting.minGroups
                             local distance = self.MATH:distanceSquared(possibleVec2.x, possibleVec2.y, objPosition.x,
                                 objPosition.z)
 
