@@ -293,6 +293,7 @@ end
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                               nudgeFactorRadius)
     if self.DATA.CONFIG.Benchmark then
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " .. dynamicSpawner.name)
         self.DATA.BenchmarkLog.generateDynamicSpawner = { Time = {}, }
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start = os.clock()
     end
