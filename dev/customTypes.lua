@@ -636,7 +636,7 @@ function AETHR._groundUnit:New(type, skill, x, y, name, heading, playerCanDrive,
         type = type or nil,
         transportable =
         {
-            randomTransportable = randomTransportable or false,
+            randomTransportable = randomTransportable or true,
         },                                         -- end of transportable
         skill = skill or AETHR.ENUMS.Skill.Random, -- string of the units skill level. Can be "Excellent", "High", "Good", "Average", "Random", "Player"
         y = y or 0,

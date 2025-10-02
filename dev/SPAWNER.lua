@@ -111,7 +111,7 @@ end
 --- @param name string|nil Unit name prefix. A unique counter will be appended, e.g. "foo#123". If nil, "AETHR_GROUND_UNIT#123" is used.
 --- @param heading number|nil Heading in degrees. Defaults to 0 if nil.
 --- @param playerCanDrive boolean|nil If true, players can drive this unit. Defaults to true if nil.
---- @param randomTransportable boolean|nil If true, unit is randomly transportable by helicopters. Defaults to false if nil.
+--- @param randomTransportable boolean|nil If true, unit is randomly transportable by helicopters. Defaults to true if nil.
 --- @return string groundUnitName Unique name of the created ground unit (key in DATA.generatedUnits).
 function AETHR.SPAWNER:buildGroundUnit(type, x, y, skill, name, heading, playerCanDrive, randomTransportable)
     skill = skill or nil
@@ -179,7 +179,7 @@ function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tas
 
     self.DATA.generatedGroups[groundGroupName] = groundGroup
 
-    coalition.addGroup(countryID, Group.Category.GROUND, groundGroup)
+    --coalition.addGroup(countryID, Group.Category.GROUND, groundGroup)
 
     return groundGroupName
 end
@@ -254,11 +254,28 @@ end
 --- Spawns a prepared group (from DATA.generatedGroups) and enqueues it for bookkeeping.
 --- @function AETHR.SPAWNER:spawnGroup
 --- @param groupName string Name of the prepared group (key in DATA.generatedGroups).
+--- @param countryID number|nil Optional country ID to override the group's countryID (as per DCS scripting API).
 --- @return AETHR.SPAWNER self For chaining.
-function AETHR.SPAWNER:spawnGroup(groupName)
+function AETHR.SPAWNER:spawnGroup(groupName, countryID)
     local _group = self.DATA.generatedGroups[groupName]
-    coalition.addGroup(_group.countryID, Group.Category.GROUND, _group)
+    coalition.addGroup(countryID and countryID or _group.countryID, Group.Category.GROUND, _group)
     table.insert(self.DATA.spawnQueue, groupName)
+    return self
+end
+
+---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @param countryID number|nil Optional country ID to override the group's countryID (as per DCS scripting API).
+function AETHR.SPAWNER:spawnDynamicSpawner(dynamicSpawner, countryID)
+    local subZones = dynamicSpawner.zones.sub
+    ---@param subZone _spawnerZone
+    for indexSubZone, subZone in pairs(subZones) do
+        local spawnGroups = subZone.spawnGroups
+        for indexGroup, groupName in ipairs(spawnGroups) do
+            local _group = self.DATA.generatedGroups[groupName]
+            coalition.addGroup(countryID and countryID or _group.countryID, Group.Category.GROUND, _group)
+            table.insert(self.DATA.spawnQueue, groupName)
+        end
+    end
     return self
 end
 
@@ -291,9 +308,8 @@ end
 ---@param maxRadius number|nil Maximum radius in meters. Defaults to dynamicSpawner.maxRadius if nil.
 ---@param nudgeFactorRadius number|nil Nudge factor for radius adjustment (0.0-1.0). Defaults to dynamicSpawner.nudgeFactorRadius if nil.
 ---@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
----@param coalitionID number|nil Coalition ID for spawned groups. Defaults to dynamicSpawner.coalitionID (0) if nil.
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
-                                              nudgeFactorRadius, countryID, coalitionID)
+                                              nudgeFactorRadius, countryID)
     if self.DATA.CONFIG.Benchmark then
         self.UTILS:debugInfo(
             "BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " ..
@@ -318,7 +334,7 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     self:rollSpawnGroupSizes(dynamicSpawner)
 
     self:generateSpawnerGroups(dynamicSpawner)
-    self:buildSpawnGroups(dynamicSpawner, countryID, coalitionID)
+    self:buildSpawnGroups(dynamicSpawner, countryID)
     return self
 end
 
@@ -340,8 +356,7 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 ---@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
----@param coalitionID number|nil Coalition ID for spawned groups. Defaults to dynamicSpawner.coalitionID (0) if nil.
-function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID, coalitionID)
+function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
     local subZones = dynamicSpawner.zones.sub
 
     ---@param subZone _spawnerZone
@@ -354,8 +369,8 @@ function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID, coalitionID)
                 local generatedGroupCenterVec2s = groupSetting.generatedGroupCenterVec2s
                 local generatedUnitVec2s = groupSetting.generatedUnitVec2s
                 local generatedGroupTypes = groupSetting.generatedGroupTypes
-                local groupCenterVec2 = generatedGroupCenterVec2s[indexGroupSetting]
                 for indexGroup, UnitList in ipairs(generatedGroupUnitTypes) do
+                    local groupCenterVec2 = generatedGroupCenterVec2s[indexGroup]
                     local groupUnitNames = {}
                     for indexUnit, unitType in ipairs(UnitList) do
                         local unitTypeName = unitType

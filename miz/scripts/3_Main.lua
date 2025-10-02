@@ -53,7 +53,11 @@ function _testFunc()
 
 
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
-        6000, 8000, 10000, .5, country.id.CJTF_RED, G_AETHR.ENUMS.Coalition.RED)
+        6000, 8000, 10000, .5)
+
+    G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1,country.id.CJTF_RED)
+
+        local pause2 = ""
 end
 
 function _testFunc2()
