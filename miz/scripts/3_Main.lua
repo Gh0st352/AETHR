@@ -36,13 +36,14 @@ function _testFunc()
     -- AETHR.SPAWNER:despawnGroup("AETHR_GROUND_GROUP#1")
     -- AETHR.SPAWNER:despawnGroup("AETHR_GROUND_GROUP#2")
     -- AETHR.SPAWNER:despawnGroup("AETHR_GROUND_GROUP#3")
-
+    -- :setNumSpawnZones(6, 4, 8, 0.5)
+    -- :setSpawnAmount(35, 20, 50, 0.5)
 
     local spawnTypes = G_AETHR.ENUMS.spawnTypes
     local airbaseSpawnerENUM = G_AETHR.ENUMS.dynamicSpawnerTypes.Airbase
     local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
-        :setNumSpawnZones(6, 4, 8, 0.5)
-        :setSpawnAmount(35, 20, 50, 0.5)
+        :setNumSpawnZones(math.random(4, 7), math.random(1, 4), math.random(8, 12), 0.5)
+        :setSpawnAmount(math.random(20, 40), math.random(10, 20), math.random(40, 60), 0.5)
         :setGroupSizes(5, 1)
         :setNamePrefix("Airbase_")
         :addExtraTypeToGroups(spawnTypes.GroundUnits, 1)
@@ -53,12 +54,12 @@ function _testFunc()
 
 
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
-        3000, 4000, 5000, .5)
+        math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5)
 
     G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_BLUE)
--------------------------------------------------------------------------------------------------------------------------------
+    -------------------------------------------------------------------------------------------------------------------------------
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
-        3000, 4000, 5000, .5)
+        math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5)
 
     G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_RED)
 

@@ -341,17 +341,17 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
         self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
             self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop -
             self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner ------------- completed in " ..
+        self.UTILS:debugInfo("BENCHMARK - D - AETHR.SPAWNER:generateDynamicSpawner ------------- completed in : " ..
             tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
-        self.UTILS:debugInfo("BENCHMARK - - -           Generated Units   : " .. tostring(dynamicSpawner._confirmedTotal))
-        self.UTILS:debugInfo("BENCHMARK - - -           Spawn Area Size   : " .. tostring(dynamicSpawner.zones.main.actualRadius))
-        self.UTILS:debugInfo("BENCHMARK - - -          Number Spawn Zones : " .. tostring(dynamicSpawner.numSubZones))
-        self.UTILS:debugInfo("BENCHMARK - - - Avg Spawn Zone Unit Distrib : " .. tostring(dynamicSpawner.averageDistribution))
+        self.UTILS:debugInfo("BENCHMARK - D -           Generated Units       : " .. tostring(dynamicSpawner._confirmedTotal))
+        self.UTILS:debugInfo("BENCHMARK - D -           Spawn Area Radius (m) : " .. tostring(dynamicSpawner.zones.main.actualRadius))
+        self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
+        self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " .. tostring(dynamicSpawner.averageDistribution))
         for type, typeVal in pairs(dynamicSpawner.spawnTypes) do
-            self.UTILS:debugInfo("BENCHMARK - - - # Spawn Type : " .. tostring(type) .. ": " .. tostring(typeVal.actual))
+        self.UTILS:debugInfo("BENCHMARK - D -                # Spawn Type     : " .. tostring(type) .. ": " .. tostring(typeVal.actual))
         end
         for type, typeVal in pairs(dynamicSpawner.extraTypes) do
-            self.UTILS:debugInfo("BENCHMARK - - - # Extra Type : " .. tostring(type) .. ": " .. tostring(typeVal.min))
+        self.UTILS:debugInfo("BENCHMARK - D -      # Extra Type Per Group     : " .. tostring(type) .. ": " .. tostring(typeVal.min))
         end
 
         --self.UTILS:debugInfo("BENCHMARK - - - Generated Units: " .. tostring(dynamicSpawner._confirmedTotal))
