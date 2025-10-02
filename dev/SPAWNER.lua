@@ -265,15 +265,34 @@ end
 
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 --- @param countryID number|nil Optional country ID to override the group's countryID (as per DCS scripting API).
+--- Helper: returns ordered list of zones to process (main first if it has groups, then subzones)
+function AETHR.SPAWNER:getZonesToProcess(dynamicSpawner)
+    local zonesToProcess = {}
+    if dynamicSpawner and dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
+        for _, gs in pairs(dynamicSpawner.zones.main.groupSettings) do
+            if gs and gs.numGroups and gs.numGroups > 0 then
+                table.insert(zonesToProcess, dynamicSpawner.zones.main)
+                break
+            end
+        end
+    end
+    if dynamicSpawner and dynamicSpawner.zones and dynamicSpawner.zones.sub then
+        for _, z in pairs(dynamicSpawner.zones.sub) do table.insert(zonesToProcess, z) end
+    end
+    return zonesToProcess
+end
+
 function AETHR.SPAWNER:spawnDynamicSpawner(dynamicSpawner, countryID)
-    local subZones = dynamicSpawner.zones.sub
-    ---@param subZone _spawnerZone
-    for indexSubZone, subZone in pairs(subZones) do
-        local spawnGroups = subZone.spawnGroups
-        for indexGroup, groupName in ipairs(spawnGroups) do
+    -- Spawn main zone groups first (if any), then subzones
+    local zonesToProcess = self:getZonesToProcess(dynamicSpawner)
+    for _, zone in ipairs(zonesToProcess) do
+        local spawnGroups = zone.spawnGroups or {}
+        for _, groupName in ipairs(spawnGroups) do
             local _group = self.DATA.generatedGroups[groupName]
-            coalition.addGroup(countryID and countryID or _group.countryID, Group.Category.GROUND, _group)
-            table.insert(self.DATA.spawnQueue, groupName)
+            if _group then
+                coalition.addGroup(countryID and countryID or _group.countryID, Group.Category.GROUND, _group)
+                table.insert(self.DATA.spawnQueue, groupName)
+            end
         end
     end
     return self
@@ -386,17 +405,7 @@ end
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 ---@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
 function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
-    local subZones = dynamicSpawner.zones.sub
-    local zonesToProcess = {}
-    if dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
-        for _, gs in pairs(dynamicSpawner.zones.main.groupSettings) do
-            if gs and gs.numGroups and gs.numGroups > 0 then
-                table.insert(zonesToProcess, dynamicSpawner.zones.main)
-                break
-            end
-        end
-    end
-    for _, z in pairs(subZones) do table.insert(zonesToProcess, z) end
+    local zonesToProcess = self:getZonesToProcess(dynamicSpawner)
 
     for indexSubZone, subZone in pairs(zonesToProcess) do
         local spawnGroups = {}
@@ -525,7 +534,6 @@ function AETHR.SPAWNER:pairSpawnerZoneDivisions(dynamicSpawner)
     end
     mainZone.worldDivisions = mainZoneActiveDivisions
 
-    ---@param subZone _spawnerZone
     for _, subZone in pairs(subZones) do
         local subZoneActiveDivisions = {}
         local subZoneRadius = subZone.actualRadius
@@ -571,7 +579,6 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local useAABB = (self.DATA.CONFIG.UseDivisionAABBReject ~= false)
     local useFullInclude = (self.DATA.CONFIG.UseDivisionAABBFullInclude ~= false)
 
-    ---@param subZone _spawnerZone
     -- Build processing list: include mainZone first if it has configured groups, then subZones
     local zonesToProcess = {}
     if dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
@@ -1212,10 +1219,18 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
     local mainZone = dynamicSpawner.zones.main
-    local spawnTypes = dynamicSpawner.spawnTypes
-    local typesPool = dynamicSpawner._typesPool
-    local nonLimitedTypesPool = dynamicSpawner._nonLimitedTypesPool
-    local extraTypes = dynamicSpawner.extraTypes
+    local spawnTypes = dynamicSpawner.spawnTypes or {}
+    local typesPool = dynamicSpawner._typesPool or {}
+    local nonLimitedTypesPool = dynamicSpawner._nonLimitedTypesPool or {}
+    local extraTypes = dynamicSpawner.extraTypes or {}
+
+    -- Defensive guard: if no spawnTypes configured, nothing to generate
+    if not spawnTypes or next(spawnTypes) == nil then
+        if self.DATA.CONFIG.Benchmark then
+            self.UTILS:debugInfo("WARN - generateGroupTypes: no spawnTypes configured for dynamicSpawner " .. tostring(dynamicSpawner.name))
+        end
+        return self
+    end
 
     -- Helper to decide whether a zone has any groups configured
     local function hasZoneGroups(zone)
@@ -1305,38 +1320,50 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
         self.DATA.BenchmarkLog.seedTypes = { Time = {}, }
         self.DATA.BenchmarkLog.seedTypes.Time.start = os.clock()
     end
-    local typesPool = dynamicSpawner._typesPool
-    local spawnTypes = dynamicSpawner.spawnTypes
-    local extraTypes = dynamicSpawner.extraTypes
-    local spawnerAttributesDB = self.WORLD.DATA.spawnerAttributesDB
-    ---@param typeName string
-    ---@param typeData _spawnerTypeConfig
-    for typeName, typeData in pairs(spawnTypes) do
-        typeData.typesDB = spawnerAttributesDB[typeName] or {}
-        typesPool[typeName] = typeName
-    end
-    ---@param typeName string
-    ---@param typeData _spawnerTypeConfig
-    for typeName, typeData in pairs(extraTypes) do
-        typeData.typesDB = spawnerAttributesDB[typeName] or {}
-    end
-
-    for k, v in pairs(typesPool) do
-        local _type = spawnTypes[k]
-        if _type.limited then
-            dynamicSpawner._limitedTypesPool[k] = k
-        else
-            dynamicSpawner._nonLimitedTypesPool[k] = k
+        -- compute core generated (sum of spawnTypes.actual) and estimate extras
+        local core_total = 0
+        for type, typeVal in pairs(dynamicSpawner.spawnTypes or {}) do
+            core_total = core_total + (typeVal.actual or 0)
         end
-    end
-    if self.DATA.CONFIG.Benchmark then
+
+        local total_groups = 0
+        local zones = self:getZonesToProcess(dynamicSpawner)
+        for _, z in ipairs(zones) do
+            if z.groupSettings then
+                for _, gs in pairs(z.groupSettings) do
+                    total_groups = total_groups + (gs.numGroups or 0)
+                end
+            end
+        end
+
+        local extras_per_group = 0
+        for _, typeVal in pairs(dynamicSpawner.extraTypes or {}) do
+            extras_per_group = extras_per_group + (typeVal.min or 0)
+        end
+        local extras_estimate = extras_per_group * total_groups
+if self.DATA.CONFIG.Benchmark then
+
+    
+    
         self.DATA.BenchmarkLog.seedTypes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.seedTypes.Time.total =
             self.DATA.BenchmarkLog.seedTypes.Time.stop -
             self.DATA.BenchmarkLog.seedTypes.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:seedTypes completed in " ..
             tostring(self.DATA.BenchmarkLog.seedTypes.Time.total) .. " seconds.")
-    end
+
+        self.UTILS:debugInfo("BENCHMARK - D - AETHR.SPAWNER:generateDynamicSpawner completed in : " ..
+            tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
+        self.UTILS:debugInfo("BENCHMARK - D -           Spawn Area Radius (m) : " ..
+            tostring(dynamicSpawner.zones.main and dynamicSpawner.zones.main.actualRadius or "nil"))
+        self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
+        self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " ..
+            tostring(dynamicSpawner.averageDistribution))
+        self.UTILS:debugInfo("BENCHMARK - D -           Core Generated Units   : " .. tostring(core_total))
+        self.UTILS:debugInfo("BENCHMARK - D -           Estimated Extras Total : " .. tostring(extras_estimate))
+        self.UTILS:debugInfo("BENCHMARK - D -           Estimated Total Units  : " .. tostring(core_total + extras_estimate))
+end
+  
     return self
 end
 
