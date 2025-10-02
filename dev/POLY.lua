@@ -274,6 +274,8 @@ end
 --- @param minRadius number|nil Optional inner radius (>= 0, < radius) to sample from the donut region.
 --- @return Vec2 Random point { x = number, y = number }.
 function AETHR.POLY:getRandomVec2inCircle(radius, centerVec2, minRadius)
+    math.random()
+    math.random()
     local R = tonumber(radius) or 0
     if R <= 0 then
         -- Degenerate: no area to sample, return normalized center
@@ -339,6 +341,8 @@ end
 --- @param vertices Vec2Like[] Array of points ({x,y} or {x,z})
 --- @return Vec2 { x = number, y = number }
 function AETHR.POLY:getRandomVec2inPolygon(vertices)
+    math.random()
+    math.random()
     -- Validate inputs and trivial cases
     if type(vertices) ~= "table" or #vertices == 0 then
         return { x = 0, y = 0 }
@@ -1951,7 +1955,8 @@ function AETHR.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCe
     local attempts = 0
     local operationLimit = self.SPAWNER.DATA.CONFIG.operationLimit or 100
     local attemptLimit = numSubZones * operationLimit
-
+    math.random()
+    math.random()
     repeat
         local glassBreak = 0
         local subZone = {}

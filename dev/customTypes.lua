@@ -784,6 +784,7 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field _cache table
 --- @field _cache.worldDivAABB table<number, _BBox>
 --- @field skill string|nil
+--- @field _randSeed number
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
 --- @param name string Name of the dynamic spawner instance
@@ -836,6 +837,7 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
             worldDivAABB = {},
         },
         parentAETHR = parentAETHR or AETHR,
+        _randSeed = math.random(),
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
@@ -1090,6 +1092,7 @@ end
 --- @field zoneDivSceneryObjects table<number, _foundObject[]>
 --- @field zoneDivStaticObjects table<number, _foundObject[]>
 --- @field zoneDivBaseObjects table<number, _foundObject[]>
+--- @field _randSeed number
 AETHR._spawnerZone = {} ---@diagnostic disable-line
 ---
 --- @param parentAETHR AETHR|nil
@@ -1152,6 +1155,7 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         zoneDivSceneryObjects = {},
         zoneDivStaticObjects = {},
         zoneDivBaseObjects = {},
+        _randSeed = math.random(),
     }
     setmetatable(instance, { __index = self })
     if not instance.name then instance.name = "Zone_" .. tostring(os.time()) end

@@ -74,11 +74,11 @@ AETHR.SPAWNER.DATA = {
             AETHR.ENUMS.SurfaceType.SHALLOW_WATER
         },
         seperationSettings = {
-            minGroups = 30,
-            maxGroups = 45,
+            minGroups = 35,
+            maxGroups = 70,
             minUnits = 15,
             maxUnits = 30,
-            minBuildings = 20,
+            minBuildings = 35,
         },
     },
     debugMarkers = {}
@@ -109,13 +109,13 @@ end
 --- @param y number Y coordinate in meters (used as DCS Z when grouped).
 --- @param skill string|nil Skill level ("Excellent"|"High"|"Good"|"Average"|"Random"|"Player"). Defaults to ENUMS.Skill.Random if nil.
 --- @param name string|nil Unit name prefix. A unique counter will be appended, e.g. "foo#123". If nil, "AETHR_GROUND_UNIT#123" is used.
---- @param heading number|nil Heading in degrees. Defaults to 0 if nil.
+--- @param heading number|nil Heading in degrees. Defaults to random if nil.
 --- @param playerCanDrive boolean|nil If true, players can drive this unit. Defaults to true if nil.
 --- @param randomTransportable boolean|nil If true, unit is randomly transportable by helicopters. Defaults to true if nil.
 --- @return string groundUnitName Unique name of the created ground unit (key in DATA.generatedUnits).
 function AETHR.SPAWNER:buildGroundUnit(type, x, y, skill, name, heading, playerCanDrive, randomTransportable)
     skill = skill or nil
-    heading = heading or nil
+    heading = heading and heading or self.MATH:degreeToRadian(math.random(0, 360))
     playerCanDrive = playerCanDrive or nil
     randomTransportable = randomTransportable or nil
 
@@ -335,6 +335,27 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
 
     self:generateSpawnerGroups(dynamicSpawner)
     self:buildSpawnGroups(dynamicSpawner, countryID)
+
+    if self.DATA.CONFIG.Benchmark then
+        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
+        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop -
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner ------------- completed in " ..
+            tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
+        self.UTILS:debugInfo("BENCHMARK - - -           Generated Units   : " .. tostring(dynamicSpawner._confirmedTotal))
+        self.UTILS:debugInfo("BENCHMARK - - -           Spawn Area Size   : " .. tostring(dynamicSpawner.zones.main.actualRadius))
+        self.UTILS:debugInfo("BENCHMARK - - -          Number Spawn Zones : " .. tostring(dynamicSpawner.numSubZones))
+        self.UTILS:debugInfo("BENCHMARK - - - Avg Spawn Zone Unit Distrib : " .. tostring(dynamicSpawner.averageDistribution))
+        for type, typeVal in pairs(dynamicSpawner.spawnTypes) do
+            self.UTILS:debugInfo("BENCHMARK - - - # Spawn Type : " .. tostring(type) .. ": " .. tostring(typeVal.actual))
+        end
+        for type, typeVal in pairs(dynamicSpawner.extraTypes) do
+            self.UTILS:debugInfo("BENCHMARK - - - # Extra Type : " .. tostring(type) .. ": " .. tostring(typeVal.min))
+        end
+
+        --self.UTILS:debugInfo("BENCHMARK - - - Generated Units: " .. tostring(dynamicSpawner._confirmedTotal))
+    end
     return self
 end
 

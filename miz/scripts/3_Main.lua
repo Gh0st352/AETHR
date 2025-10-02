@@ -41,8 +41,8 @@ function _testFunc()
     local spawnTypes = G_AETHR.ENUMS.spawnTypes
     local airbaseSpawnerENUM = G_AETHR.ENUMS.dynamicSpawnerTypes.Airbase
     local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
-        :setNumSpawnZones(5, 3, 7, 0.9)
-        :setSpawnAmount(85, 70, 100, 0.5)
+        :setNumSpawnZones(6, 4, 8, 0.5)
+        :setSpawnAmount(35, 20, 50, 0.5)
         :setGroupSizes(5, 1)
         :setNamePrefix("Airbase_")
         :addExtraTypeToGroups(spawnTypes.GroundUnits, 1)
@@ -53,11 +53,16 @@ function _testFunc()
 
 
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
-        6000, 8000, 10000, .5)
+        3000, 4000, 5000, .5)
 
-    G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1,country.id.CJTF_RED)
+    G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_BLUE)
+-------------------------------------------------------------------------------------------------------------------------------
+    G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
+        3000, 4000, 5000, .5)
 
-        local pause2 = ""
+    G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_RED)
+
+    local pause2 = ""
 end
 
 function _testFunc2()

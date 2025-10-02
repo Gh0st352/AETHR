@@ -243,3 +243,19 @@ function AETHR.MATH:generateNudge(NudgeFactor)
   local returnValue =  self:randomDecimalBetween(lowerBound, upperBound) 
   return returnValue
 end
+
+--------------------------------------------------------------------------------
+--- Converts an angle from degrees to radians.
+--- @function AETHR.MATH:degreeToRadian
+--- @param degrees number Angle in degrees (expected range: 0-360).
+--- @return number Angle in radians (0 to 2*pi).
+function AETHR.MATH:degreeToRadian(degrees)
+  -- Coerce to number and default to 0 if nil/invalid
+  degrees = tonumber(degrees) or 0
+
+  -- Clamp to [0, 360] to enforce contract
+  if degrees < 0 then degrees = 0 end
+  if degrees > 360 then degrees = 360 end
+
+  return math.rad(degrees)
+end
