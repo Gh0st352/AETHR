@@ -1227,7 +1227,8 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     -- Defensive guard: if no spawnTypes configured, nothing to generate
     if not spawnTypes or next(spawnTypes) == nil then
         if self.DATA.CONFIG.Benchmark then
-            self.UTILS:debugInfo("WARN - generateGroupTypes: no spawnTypes configured for dynamicSpawner " .. tostring(dynamicSpawner.name))
+            self.UTILS:debugInfo("WARN - generateGroupTypes: no spawnTypes configured for dynamicSpawner " ..
+            tostring(dynamicSpawner.name))
         end
         return self
     end
@@ -1317,53 +1318,52 @@ end
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 function AETHR.SPAWNER:seedTypes(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.seedTypes = { Time = {}, }
+        self.DATA.BenchmarkLog.seedTypes = { Time = {}, Estimates = {} }
         self.DATA.BenchmarkLog.seedTypes.Time.start = os.clock()
     end
-        -- compute core generated (sum of spawnTypes.actual) and estimate extras
-        local core_total = 0
-        for type, typeVal in pairs(dynamicSpawner.spawnTypes or {}) do
-            core_total = core_total + (typeVal.actual or 0)
-        end
 
-        local total_groups = 0
-        local zones = self:getZonesToProcess(dynamicSpawner)
-        for _, z in ipairs(zones) do
-            if z.groupSettings then
-                for _, gs in pairs(z.groupSettings) do
-                    total_groups = total_groups + (gs.numGroups or 0)
-                end
+    -- Estimate core units and extras from current plan (before generateGroupTypes runs).
+    local core_estimate = 0
+    local total_groups = 0
+    local zones = self:getZonesToProcess(dynamicSpawner)
+    for _, z in ipairs(zones) do
+        if z.groupSettings then
+            for _, gs in pairs(z.groupSettings) do
+                local size = gs.size or 0
+                local n = gs.numGroups or 0
+                core_estimate = core_estimate + (size * n)
+                total_groups = total_groups + n
             end
         end
+    end
 
-        local extras_per_group = 0
-        for _, typeVal in pairs(dynamicSpawner.extraTypes or {}) do
-            extras_per_group = extras_per_group + (typeVal.min or 0)
-        end
-        local extras_estimate = extras_per_group * total_groups
-if self.DATA.CONFIG.Benchmark then
+    local extras_per_group = 0
+    for _, typeVal in pairs(dynamicSpawner.extraTypes or {}) do
+        extras_per_group = extras_per_group + (typeVal.min or 0)
+    end
+    local extras_estimate = extras_per_group * total_groups
 
-    
-    
+    if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.seedTypes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.seedTypes.Time.total =
-            self.DATA.BenchmarkLog.seedTypes.Time.stop -
-            self.DATA.BenchmarkLog.seedTypes.Time.start
+            self.DATA.BenchmarkLog.seedTypes.Time.stop - self.DATA.BenchmarkLog.seedTypes.Time.start
+
+        -- Persist estimates for optional downstream use
+        self.DATA.BenchmarkLog.seedTypes.Estimates.core = core_estimate
+        self.DATA.BenchmarkLog.seedTypes.Estimates.groups = total_groups
+        self.DATA.BenchmarkLog.seedTypes.Estimates.extras_per_group = extras_per_group
+        self.DATA.BenchmarkLog.seedTypes.Estimates.extras_total = extras_estimate
+        self.DATA.BenchmarkLog.seedTypes.Estimates.total_units_est = core_estimate + extras_estimate
+
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:seedTypes completed in " ..
             tostring(self.DATA.BenchmarkLog.seedTypes.Time.total) .. " seconds.")
+        self.UTILS:debugInfo("BENCHMARK - D - seedTypes estimates: core=" .. tostring(core_estimate) ..
+            ", groups=" .. tostring(total_groups) ..
+            ", extras_per_group=" .. tostring(extras_per_group) ..
+            ", extras_total=" .. tostring(extras_estimate) ..
+            ", total_est=" .. tostring(core_estimate + extras_estimate))
+    end
 
-        self.UTILS:debugInfo("BENCHMARK - D - AETHR.SPAWNER:generateDynamicSpawner completed in : " ..
-            tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
-        self.UTILS:debugInfo("BENCHMARK - D -           Spawn Area Radius (m) : " ..
-            tostring(dynamicSpawner.zones.main and dynamicSpawner.zones.main.actualRadius or "nil"))
-        self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
-        self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " ..
-            tostring(dynamicSpawner.averageDistribution))
-        self.UTILS:debugInfo("BENCHMARK - D -           Core Generated Units   : " .. tostring(core_total))
-        self.UTILS:debugInfo("BENCHMARK - D -           Estimated Extras Total : " .. tostring(extras_estimate))
-        self.UTILS:debugInfo("BENCHMARK - D -           Estimated Total Units  : " .. tostring(core_total + extras_estimate))
-end
-  
     return self
 end
 
@@ -1498,7 +1498,8 @@ function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
                 local newEntries = {}
                 for _, ent in ipairs(entries) do
                     if ent.zone.groupSettings[ent.size] and (ent.zone.groupSettings[ent.size].numGroups or 0) > 0 then
-                        table.insert(newEntries, { zone = ent.zone, size = ent.size, numGroups = ent.zone.groupSettings[ent.size].numGroups })
+                        table.insert(newEntries,
+                            { zone = ent.zone, size = ent.size, numGroups = ent.zone.groupSettings[ent.size].numGroups })
                     end
                 end
                 entries = newEntries
@@ -1518,9 +1519,9 @@ function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.total =
-            self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop - 
+            self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop -
             self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.start
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:rollSpawnGroupSizes completed in " .. 
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:rollSpawnGroupSizes completed in " ..
             tostring(self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.total) .. " seconds.")
     end
     return self
