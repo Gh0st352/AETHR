@@ -56,12 +56,12 @@ function _testFunc()
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
         math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5)
 
-    G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_BLUE)
+  --  G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_BLUE)
     -------------------------------------------------------------------------------------------------------------------------------
     G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
         math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5)
 
-    G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_RED)
+  --  G_AETHR.SPAWNER:spawnDynamicSpawner(dynAirbaseSpawner1, country.id.CJTF_RED)
 
     local pause2 = ""
 end

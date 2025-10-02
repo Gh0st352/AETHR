@@ -387,9 +387,18 @@ end
 ---@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
 function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
     local subZones = dynamicSpawner.zones.sub
+    local zonesToProcess = {}
+    if dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
+        for _, gs in pairs(dynamicSpawner.zones.main.groupSettings) do
+            if gs and gs.numGroups and gs.numGroups > 0 then
+                table.insert(zonesToProcess, dynamicSpawner.zones.main)
+                break
+            end
+        end
+    end
+    for _, z in pairs(subZones) do table.insert(zonesToProcess, z) end
 
-    ---@param subZone _spawnerZone
-    for indexSubZone, subZone in pairs(subZones) do
+    for indexSubZone, subZone in pairs(zonesToProcess) do
         local spawnGroups = {}
         local groupSettings = subZone.groupSettings
         for indexGroupSetting, groupSetting in pairs(groupSettings) do
@@ -563,7 +572,19 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local useFullInclude = (self.DATA.CONFIG.UseDivisionAABBFullInclude ~= false)
 
     ---@param subZone _spawnerZone
-    for _, subZone in ipairs(subZones) do
+    -- Build processing list: include mainZone first if it has configured groups, then subZones
+    local zonesToProcess = {}
+    if dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
+        for _, gs in pairs(dynamicSpawner.zones.main.groupSettings) do
+            if gs and gs.numGroups and gs.numGroups > 0 then
+                table.insert(zonesToProcess, dynamicSpawner.zones.main)
+                break
+            end
+        end
+    end
+    for _, z in pairs(subZones) do table.insert(zonesToProcess, z) end
+
+    for _, subZone in ipairs(zonesToProcess) do
         local subZoneDivisions = subZone.worldDivisions
         local subZoneRadius = subZone.actualRadius
         local subZoneCenter = subZone.center
@@ -784,8 +805,19 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         return false
     end
 
-    -- Process each subZone
-    for _, subZone in pairs(subZones) do
+    -- Process each subZone (includes mainZone when configured)
+    local zonesToProcess_centers = {}
+    if dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
+        for _, gs in pairs(dynamicSpawner.zones.main.groupSettings) do
+            if gs and gs.numGroups and gs.numGroups > 0 then
+                table.insert(zonesToProcess_centers, dynamicSpawner.zones.main)
+                break
+            end
+        end
+    end
+    for _, z in pairs(subZones) do table.insert(zonesToProcess_centers, z) end
+
+    for _, subZone in pairs(zonesToProcess_centers) do
         local subZoneRadius = subZone.actualRadius
         local subZoneCenter = subZone.center
         local baseObjects = subZone.zoneDivBaseObjects or {}
@@ -999,8 +1031,19 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         return false
     end
 
-    -- Process each subZone
-    for _, subZone in pairs(subZones) do
+    -- Process each subZone (includes mainZone when configured)
+    local zonesToProcess_units = {}
+    if dynamicSpawner.zones and dynamicSpawner.zones.main and dynamicSpawner.zones.main.groupSettings then
+        for _, gs in pairs(dynamicSpawner.zones.main.groupSettings) do
+            if gs and gs.numGroups and gs.numGroups > 0 then
+                table.insert(zonesToProcess_units, dynamicSpawner.zones.main)
+                break
+            end
+        end
+    end
+    for _, z in pairs(subZones) do table.insert(zonesToProcess_units, z) end
+
+    for _, subZone in pairs(zonesToProcess_units) do
         local subZoneRadius = subZone.actualRadius
         local subZoneCenter = subZone.center
         local baseObjects = subZone.zoneDivBaseObjects or {}
@@ -1168,52 +1211,69 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
 
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
+    local mainZone = dynamicSpawner.zones.main
     local spawnTypes = dynamicSpawner.spawnTypes
     local typesPool = dynamicSpawner._typesPool
     local nonLimitedTypesPool = dynamicSpawner._nonLimitedTypesPool
     local extraTypes = dynamicSpawner.extraTypes
+
+    -- Helper to decide whether a zone has any groups configured
+    local function hasZoneGroups(zone)
+        if not zone or not zone.groupSettings then return false end
+        for _, gs in pairs(zone.groupSettings) do
+            if gs and gs.numGroups and gs.numGroups > 0 then return true end
+        end
+        return false
+    end
+
+    -- Build ordered list of zones to process: mainZone first if it has groups, then subzones
+    local zonesToProcess = {}
+    if mainZone and hasZoneGroups(mainZone) then table.insert(zonesToProcess, mainZone) end
+    for _, z in ipairs(subZones) do table.insert(zonesToProcess, z) end
+
     ---@param zoneObject _spawnerZone
-    for _, zoneObject in ipairs(subZones) do
+    for _, zoneObject in ipairs(zonesToProcess) do
         -- Loop through each group setting.
         ---@param groupSizeConfig _spawnerTypeConfig
         for groupSize, groupSizeConfig in ipairs(zoneObject.groupSettings) do
             local _groupTypes = {}
             local _specificGroupTypes = {}
             -- Loop for the number of groups specified in the current setting.
-            for _ = 1, groupSizeConfig.numGroups do
+            for _ = 1, (groupSizeConfig.numGroups or 0) do
                 -- List to store types for this group.
                 local _UnitTypes = {}
                 local _specificUnitTypes = {}
                 -- Loop for the size of the group + extra units.
-                for _Unit = 1, groupSizeConfig.size do
+                for _Unit = 1, (groupSizeConfig.size or 0) do
                     local typeToAdd -- Variable to store the type to add for this iteration.
                     local _TypeK
 
-                    -- -- Pick a random type.
+                    -- Pick a random type from limited pool if available else from non-limited pool
                     if self.UTILS.sumTable(typesPool) > 0 then
                         _TypeK = self.UTILS:pickRandomKeyFromTable(typesPool)
                     else
                         _TypeK = self.UTILS:pickRandomKeyFromTable(nonLimitedTypesPool)
                     end
 
-                    local randType = spawnTypes[_TypeK]
-                    -- Increment the number used count for this type.
+                    local randType = spawnTypes[_TypeK] or {}
+                    -- Safeguard: ensure randType.actual exists
+                    randType.actual = randType.actual or 0
                     randType.actual = randType.actual + 1
 
-                    if (randType.actual >= randType.max) then
+                    if randType.max and (randType.actual >= randType.max) then
                         typesPool[_TypeK] = nil
                     end
                     typeToAdd = _TypeK
                     -- Add the selected type to the group types list, all types list, and the main AllTypes list.
                     table.insert(_UnitTypes, typeToAdd)
-                    table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(spawnTypes[typeToAdd].typesDB))
+                    local typesDB = (spawnTypes[typeToAdd] and spawnTypes[typeToAdd].typesDB) or {}
+                    table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(typesDB))
                 end
 
-                for extraType, extraTypeInfo in pairs(extraTypes) do
-                    for _i = 1, extraTypeInfo.min, 1 do
-                        --local _TypeK = self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB)
+                for extraType, extraTypeInfo in pairs(extraTypes or {}) do
+                    for _i = 1, (extraTypeInfo.min or 0), 1 do
                         table.insert(_UnitTypes, extraType)
-                        table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB))
+                        table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB or {}))
                     end
                 end
                 if _UnitTypes and #_UnitTypes > 0 then
@@ -1223,16 +1283,16 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
             end
             -- Add the group types list to the main group list for this iteration.
             if _groupTypes and #_groupTypes > 0 then
-                groupSizeConfig.generatedGroupTypes = _groupTypes --[#groupSizeConfig.generatedGroupTypes + 1]
+                groupSizeConfig.generatedGroupTypes = _groupTypes
                 groupSizeConfig.generatedGroupUnitTypes = _specificGroupTypes
             end
         end
     end
+
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateGroupTypes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.generateGroupTypes.Time.total =
-            self.DATA.BenchmarkLog.generateGroupTypes.Time.stop -
-            self.DATA.BenchmarkLog.generateGroupTypes.Time.start
+            self.DATA.BenchmarkLog.generateGroupTypes.Time.stop - self.DATA.BenchmarkLog.generateGroupTypes.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateGroupTypes completed in " ..
             tostring(self.DATA.BenchmarkLog.generateGroupTypes.Time.total) .. " seconds.")
     end
@@ -1289,31 +1349,151 @@ function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
 
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
+    local mainZone = dynamicSpawner.zones.main
+    local totalRemainder = 0
+
     ---@param zoneObject_ _spawnerZone
     for zoneName_, zoneObject_ in pairs(subZones) do
         local groupSizes_ = zoneObject_.groupSizesPrio
         local SpacingSettings_ = zoneObject_.groupSpacingSettings
         ---@type _spawnSettings
         local spawnSettingsGeneratedZO = zoneObject_.spawnSettings.generated
-        local numTypesZone = spawnSettingsGeneratedZO.actual
+        local numTypesZone = spawnSettingsGeneratedZO.actual or 0
+
+        -- Reset groupSettings for this zone to avoid stale values
+        for _, sz in ipairs(groupSizes_) do
+            zoneObject_.groupSettings[sz].size = sz
+            zoneObject_.groupSettings[sz].numGroups = 0
+        end
+
         for i = 1, #groupSizes_ do
             local size = groupSizes_[i]
             local numGroupSize = math.floor(numTypesZone / size)
             if numGroupSize > 0 then
                 numTypesZone = numTypesZone - (numGroupSize * size)
-                --local index_ = self.UTILS.sumTable(zoneObject_.groupSettings) + 1
-                zoneObject_.groupSettings[size].size =
-                    size --= self:_createGroupSettings(size, numGroupSize, SpacingSettings_)
+                zoneObject_.groupSettings[size].size = size
                 zoneObject_.groupSettings[size].numGroups = numGroupSize
             end
         end
+
+        -- Accumulate leftover (remainder) for assignment to mainZone later
+        totalRemainder = totalRemainder + (numTypesZone or 0)
     end
+
+    -- Assign any remainder to the main zone (so mainZone absorbs rounding leftovers)
+    if totalRemainder and totalRemainder > 0 and mainZone then
+        local groupSizesMain = mainZone.groupSizesPrio or {}
+        -- Ensure mainZone.groupSettings exists for sizes
+        for _, sz in ipairs(groupSizesMain) do
+            mainZone.groupSettings[sz] = mainZone.groupSettings[sz] or {}
+            mainZone.groupSettings[sz].size = sz
+            mainZone.groupSettings[sz].numGroups = mainZone.groupSettings[sz].numGroups or 0
+        end
+
+        for i = 1, #groupSizesMain do
+            local size = groupSizesMain[i]
+            local numGroupSize = math.floor(totalRemainder / size)
+            if numGroupSize > 0 then
+                mainZone.groupSettings[size].size = size
+                mainZone.groupSettings[size].numGroups = (mainZone.groupSettings[size].numGroups or 0) + numGroupSize
+                totalRemainder = totalRemainder - (numGroupSize * size)
+            end
+        end
+    end
+
+    -- Enforce core-unit cap (non-extra units) so generated core units do not exceed spawnAmountMax.
+    -- Compute current planned core total (sum of size * numGroups across main + sub zones)
+    local function computeCoreTotal()
+        local total = 0
+        if mainZone and mainZone.groupSettings then
+            for size, gs in pairs(mainZone.groupSettings) do
+                local s = gs.size or size
+                local n = gs.numGroups or 0
+                total = total + (s * n)
+            end
+        end
+        for _, z in pairs(subZones) do
+            if z.groupSettings then
+                for size, gs in pairs(z.groupSettings) do
+                    local s = gs.size or size
+                    local n = gs.numGroups or 0
+                    total = total + (s * n)
+                end
+            end
+        end
+        return total
+    end
+
+    local cap = dynamicSpawner.spawnAmountMax or dynamicSpawner.spawnAmount or math.huge
+    local plannedCore = computeCoreTotal()
+
+    if plannedCore > cap then
+        -- Build list of zone-size entries sorted by size descending (prefer removing large groups first)
+        local entries = {}
+        local function pushEntriesFromZone(zone)
+            if not zone or not zone.groupSettings then return end
+            for size, gs in pairs(zone.groupSettings) do
+                local s = gs.size or size
+                local n = gs.numGroups or 0
+                if n and n > 0 then
+                    table.insert(entries, { zone = zone, size = s, numGroups = n })
+                end
+            end
+        end
+        pushEntriesFromZone(mainZone)
+        for _, z in pairs(subZones) do pushEntriesFromZone(z) end
+
+        -- Sort entries by size desc to remove largest groups first
+        table.sort(entries, function(a, b) return a.size > b.size end)
+
+        local needed = plannedCore - cap
+        local idx = 1
+        while needed > 0 and idx <= #entries do
+            local e = entries[idx]
+            local gs = e.zone.groupSettings[e.size]
+            if gs and gs.numGroups and gs.numGroups > 0 then
+                -- maximum possible reduction from this entry
+                local maxReduceUnits = gs.numGroups * e.size
+                local reduceUnits = math.min(maxReduceUnits, needed)
+                local reduceGroups = math.floor((reduceUnits + e.size - 1) / e.size) -- ceil(reduceUnits / size)
+                reduceGroups = math.min(reduceGroups, gs.numGroups)
+                gs.numGroups = gs.numGroups - reduceGroups
+                needed = needed - (reduceGroups * e.size)
+
+                -- update entries table record to reflect new count
+                entries[idx].numGroups = gs.numGroups
+            end
+            -- move to next entry; if still needed, loop continues
+            idx = idx + 1
+            -- if we reached end and still need to reduce, start again from largest to remove additional groups if present
+            if idx > #entries and needed > 0 then
+                -- rebuild entries to exclude zero-counts
+                local newEntries = {}
+                for _, ent in ipairs(entries) do
+                    if ent.zone.groupSettings[ent.size] and (ent.zone.groupSettings[ent.size].numGroups or 0) > 0 then
+                        table.insert(newEntries, { zone = ent.zone, size = ent.size, numGroups = ent.zone.groupSettings[ent.size].numGroups })
+                    end
+                end
+                entries = newEntries
+                table.sort(entries, function(a, b) return a.size > b.size end)
+                idx = 1
+                -- if still empty, break to avoid infinite loop
+                if #entries == 0 then break end
+            end
+        end
+        -- optional benchmark logging
+        if self.DATA.CONFIG.Benchmark then
+            self.UTILS:debugInfo("BENCHMARK - - - rollSpawnGroupSizes: plannedCore exceeded cap; adjusted core from " ..
+                tostring(plannedCore) .. " to " .. tostring(computeCoreTotal()) .. " (cap=" .. tostring(cap) .. ")")
+        end
+    end
+
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.total =
-            self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop -
+            self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.stop - 
             self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.start
-        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:rollSpawnGroupSizes completed in " ..
+        self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:rollSpawnGroupSizes completed in " .. 
             tostring(self.DATA.BenchmarkLog.rollSpawnGroupSizes.Time.total) .. " seconds.")
     end
     return self
@@ -1472,14 +1652,42 @@ end
 --- @param restrictedZones table A list of restricted zones to check against.
 --- @return boolean isNOGO A boolean flag indicating if the position is outside no-go areas (true if unsuitable, false otherwise).
 function AETHR.SPAWNER:checkIsInNOGO(vec2, restrictedZones)
-    local isNOGO = false
-    if self:vec2AtNoGoSurface(vec2) then isNOGO = true end
-    -- if not isNOGO then
-    --     if self:Vec2inZones(vec2, restrictedZones) then
-    --         isNOGO = true
-    --     end
-    -- end
-    return isNOGO
+    -- Return true if vec2 is unsuitable for spawning (on a no-go surface or inside any restricted zone).
+    if not vec2 then return false end
+
+    -- 1) Surface-type based no-go check
+    if self:vec2AtNoGoSurface(vec2) then
+        return true
+    end
+
+    -- 2) Restricted zones: support several representations:
+    --    - zone objects with a `verticies` field (e.g., _MIZ_ZONE)
+    --    - simple polygon arrays (array of {x,y} or {x,z})
+    --    - circle descriptors with { center = {x,y|z}, radius = N }
+    if restrictedZones and type(restrictedZones) == "table" then
+        for _, rz in ipairs(restrictedZones) do
+            if rz then
+                -- MIZ / zone-like object with .verticies
+                if rz.verticies and type(rz.verticies) == "table" and #rz.verticies >= 3 then
+                    if self.POLY:pointInPolygon(vec2, rz.verticies) then
+                        return true
+                    end
+                -- Circle-like descriptor
+                elseif rz.center and rz.radius then
+                    if self.POLY:pointInCircle(vec2, rz.center, rz.radius) then
+                        return true
+                    end
+                -- Plain polygon passed directly
+                elseif type(rz) == "table" and #rz >= 3 then
+                    if self.POLY:pointInPolygon(vec2, rz) then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+
+    return false
 end
 
 --- Check if a given vector position is on a no-go surface.

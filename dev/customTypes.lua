@@ -945,7 +945,7 @@ function AETHR._dynamicSpawner:_introduceRandomness()
         -- Check if the new actual value and the new total value are within the allowed range
         local subZone = subZones[subZoneKey_]
         ---@type _spawnSettings
-        local spawnSettingsSubZone = mainZone.spawnSettings.generated
+        local spawnSettingsSubZone = subZone.spawnSettings.generated
         if newActual > spawnSettingsSubZone.min
             and newTotal <= spawnSettingsMainGenerated.max
             and newActual < spawnSettingsSubZone.max then
