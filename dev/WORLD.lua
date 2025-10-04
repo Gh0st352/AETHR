@@ -869,6 +869,37 @@ function AETHR.WORLD:initWorldDivisions()
         -- Persist defaults to disk.
         self:saveWorldDivisions()
     end
+
+    -- Precompute static AABBs for all world divisions (used by SPAWNER placement fast paths)
+    self:buildWorldDivAABBCache()
+
+    return self
+end
+
+--- Precompute and cache axis-aligned bounding boxes for all world divisions.
+--- Stored in self._cache.worldDivAABB[divID] = { minX, maxX, minZ, maxZ }
+--- Called once from initWorldDivisions; divisions are static across the mission.
+--- @return AETHR.WORLD self
+function AETHR.WORLD:buildWorldDivAABBCache()
+    self._cache = self._cache or {}
+    local cache = {}
+    local divs = self.DATA.worldDivisions or {}
+
+    for id, div in pairs(divs) do
+        if div and div.corners then
+            local minX, maxX = math.huge, -math.huge
+            local minZ, maxZ = math.huge, -math.huge
+            for _, c in ipairs(div.corners) do
+                if c.x < minX then minX = c.x end
+                if c.x > maxX then maxX = c.x end
+                if c.z < minZ then minZ = c.z end
+                if c.z > maxZ then maxZ = c.z end
+            end
+            cache[id] = { minX = minX, maxX = maxX, minZ = minZ, maxZ = maxZ }
+        end
+    end
+
+    self._cache.worldDivAABB = cache
     return self
 end
 

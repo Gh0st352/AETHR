@@ -120,6 +120,76 @@ function AETHR.SPAWNER:New(parent)
     return instance ---@diagnostic disable-line
 end
 
+--------------------------------------------------------------------------------
+-- Shared spatial/grid helpers (used by group center and unit placement)
+--------------------------------------------------------------------------------
+
+--- Normalize a number of possible object shapes to {x, y}
+--- Supports:
+---  - obj.{x,y}
+---  - obj.position.{x,z|y}
+---  - obj.postition (common typo) .{x,z|y}
+---  - obj:getPoint() returning {x,y|z}
+--- @param obj any
+--- @return _vec2|nil
+function AETHR.SPAWNER:_extractXY(obj)
+    if not obj then return nil end
+    if obj.x and obj.y then return { x = obj.x, y = obj.y } end
+    if obj.position and obj.position.x and (obj.position.z or obj.position.y) then
+        return { x = obj.position.x, y = (obj.position.z or obj.position.y) }
+    end
+    if obj.postition and obj.postition.x and (obj.postition.z or obj.postition.y) then
+        return { x = obj.postition.x, y = (obj.postition.z or obj.postition.y) }
+    end
+    if obj.getPoint and type(obj.getPoint) == "function" then
+        local p = obj:getPoint()
+        if p and p.x and (p.y or p.z) then return { x = p.x, y = (p.z or p.y) } end
+    end
+    return nil
+end
+
+--- Convert a world point to grid cell indices at scale s
+function AETHR.SPAWNER:_toCell(x, y, s)
+    local cx = math.floor(x / s)
+    local cy = math.floor(y / s)
+    return cx, cy
+end
+
+--- Build a grid cell key
+function AETHR.SPAWNER:_cellKey(cx, cy)
+    return tostring(cx) .. ":" .. tostring(cy)
+end
+
+--- Insert a point into a grid
+function AETHR.SPAWNER:_gridInsert(grid, s, x, y)
+    local cx, cy = self:_toCell(x, y, s)
+    local key = self:_cellKey(cx, cy)
+    grid[key] = grid[key] or {}
+    table.insert(grid[key], { x = x, y = y })
+end
+
+--- Query a grid for any point within radius^2 of (x,y)
+function AETHR.SPAWNER:_gridQuery(grid, s, x, y, r2, neighborRange)
+    local cx, cy = self:_toCell(x, y, s)
+    local r = neighborRange or math.ceil(math.sqrt(r2) / s)
+    for dx = -r, r do
+        for dy = -r, r do
+            local key = self:_cellKey(cx + dx, cy + dy)
+            local cell = grid[key]
+            if cell then
+                for _, pt in ipairs(cell) do
+                    local dx_ = pt.x - x
+                    local dy_ = pt.y - y
+                    if dx_ * dx_ + dy_ * dy_ <= r2 then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
 --- Builds and registers a ground unit prototype with the spawner system.
 --- Stores the constructed _groundUnit in DATA.generatedUnits and returns its unique name.
 --- @function AETHR.SPAWNER:buildGroundUnit
@@ -618,7 +688,7 @@ end
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.determineZoneDivObjects = { Time = {}, }
+        self.DATA.BenchmarkLog.determineZoneDivObjects = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.determineZoneDivObjects.Time.start = os.clock()
     end
 
@@ -627,6 +697,14 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local sceneryObjectsDB = self.WORLD.DATA.divisionSceneryObjects -- Loaded scenery per division.
     local staticObjectsDB = self.WORLD.DATA.divisionStaticObjects   -- Loaded statics per division.
     local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
+
+    -- init benchmark counters
+    local _divCounters = self.DATA.BenchmarkLog.determineZoneDivObjects and self.DATA.BenchmarkLog.determineZoneDivObjects.Counters
+    if _divCounters then
+        _divCounters.scannedDivs = _divCounters.scannedDivs or 0
+        _divCounters.earlyRejectedDivs = _divCounters.earlyRejectedDivs or 0
+        _divCounters.fullIncludedDivs = _divCounters.fullIncludedDivs or 0
+    end
 
     -- initialize per-division AABB cache (WORLD-level, shared)
     self.WORLD._cache = self.WORLD._cache or {}
@@ -676,6 +754,8 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                     aabbCache[divID] = aabb
                 end
 
+                if _divCounters then _divCounters.scannedDivs = _divCounters.scannedDivs + 1 end
+
                 local skip = false
                 local fullInclude = false
 
@@ -691,6 +771,8 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                         skip = true
                     end
                 end
+
+                if skip and _divCounters then _divCounters.earlyRejectedDivs = _divCounters.earlyRejectedDivs + 1 end
 
                 -- quick full-include check: if all four AABB corners are inside the circle, include entire division
                 if (not skip) and useFullInclude and aabb then
@@ -710,6 +792,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                         end
                     end
                     fullInclude = allInside
+                    if fullInclude and _divCounters then _divCounters.fullIncludedDivs = _divCounters.fullIncludedDivs + 1 end
                 end
 
                 if not skip then
@@ -787,6 +870,10 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
             self.DATA.BenchmarkLog.determineZoneDivObjects.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:determineZoneDivObjects completed in " ..
             tostring(self.DATA.BenchmarkLog.determineZoneDivObjects.Time.total) .. " seconds.")
+        local c = self.DATA.BenchmarkLog.determineZoneDivObjects.Counters or {}
+        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects scannedDivs        : " .. tostring(c.scannedDivs or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects earlyRejectedDivs  : " .. tostring(c.earlyRejectedDivs or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects fullIncludedDivs   : " .. tostring(c.fullIncludedDivs or 0))
     end
     return self
 end
@@ -802,67 +889,23 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
     end
+    -- init counters view
+    local _centerCounters = self.DATA.BenchmarkLog.generateVec2GroupCenters and self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters
+    if _centerCounters then
+        _centerCounters.Attempts = _centerCounters.Attempts or 0
+        _centerCounters.RelaxationSteps = _centerCounters.RelaxationSteps or 0
+    end
 
     local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division (not used directly for positions)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
 
-    -- Local helpers (fast, local scope)
-    local function extractXY(obj)
-        if not obj then return nil end
-        if obj.x and obj.y then return { x = obj.x, y = obj.y } end
-        if obj.position and obj.position.x and (obj.position.z or obj.position.y) then
-            return { x = obj.position.x, y = (obj.position.z or obj.position.y) }
-        end
-        if obj.postition and obj.postition.x and (obj.postition.z or obj.postition.y) then
-            return { x = obj.postition.x, y = (obj.postition.z or obj.postition.y) }
-        end
-        -- support nested fields like obj.getPoint result
-        if obj.getPoint and type(obj.getPoint) == "function" then
-            local p = obj:getPoint()
-            if p and p.x and (p.y or p.z) then return { x = p.x, y = (p.z or p.y) } end
-        end
-        return nil
-    end
-
-    local function toCell(x, y, s)
-        local cx = math.floor(x / s)
-        local cy = math.floor(y / s)
-        return cx, cy
-    end
-
-    local function cellKey(cx, cy)
-        return tostring(cx) .. ":" .. tostring(cy)
-    end
-
-    local function gridInsert(grid, s, x, y)
-        local cx, cy = toCell(x, y, s)
-        local key = cellKey(cx, cy)
-        grid[key] = grid[key] or {}
-        table.insert(grid[key], { x = x, y = y })
-    end
-
-    local function gridQuery(grid, s, x, y, r2, neighborRange)
-        -- neighborRange is number of cells to check in each direction
-        local cx, cy = toCell(x, y, s)
-        local r = neighborRange or math.ceil(math.sqrt(r2) / s)
-        for dx = -r, r do
-            for dy = -r, r do
-                local key = cellKey(cx + dx, cy + dy)
-                local cell = grid[key]
-                if cell then
-                    for _, pt in ipairs(cell) do
-                        local dx_ = pt.x - x
-                        local dy_ = pt.y - y
-                        if dx_ * dx_ + dy_ * dy_ <= r2 then
-                            return true
-                        end
-                    end
-                end
-            end
-        end
-        return false
-    end
+    -- Local helper aliases to shared SPAWNER routines
+    local extractXY = function(obj) return self:_extractXY(obj) end
+    local toCell = function(x, y, s) return self:_toCell(x, y, s) end
+    local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
+    local gridInsert = function(grid, s, x, y) return self:_gridInsert(grid, s, x, y) end
+    local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
 
     -- Process each subZone
     for _, subZone in pairs(subZones) do
@@ -951,6 +994,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     local reject = false
                     local relaxMax = 0.3
                     local relax = math.min(relaxMax, (glassBreak / operationLimit) * relaxMax)
+                    if _centerCounters and relax > 0 then _centerCounters.RelaxationSteps = _centerCounters.RelaxationSteps + 1 end
                     local _mg = minGroups * (1 - relax)
                     local _mb = minBuildings * (1 - relax)
                     local mg2eff = _mg * _mg
@@ -996,6 +1040,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     glassBreak = glassBreak + 1
                 until accepted
 
+                if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
@@ -1013,6 +1058,9 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateVec2GroupCenters completed in " ..
             tostring(self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total) .. " seconds.")
+        local cc = self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters or {}
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2GroupCenters Attempts(sum)   : " .. tostring(cc.Attempts or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2GroupCenters RelaxationSteps : " .. tostring(cc.RelaxationSteps or 0))
     end
     return self
 end
@@ -1024,8 +1072,15 @@ end
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.generateVec2UnitPos = { Time = {}, }
+        self.DATA.BenchmarkLog.generateVec2UnitPos = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2UnitPos.Time.start = os.clock()
+    end
+
+    -- init counters view
+    local _unitCounters = self.DATA.BenchmarkLog.generateVec2UnitPos and self.DATA.BenchmarkLog.generateVec2UnitPos.Counters
+    if _unitCounters then
+        _unitCounters.Attempts = _unitCounters.Attempts or 0
+        _unitCounters.RelaxationSteps = _unitCounters.RelaxationSteps or 0
     end
 
 
@@ -1034,62 +1089,12 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
 
-    -- Local helpers (fast, local scope)
-    local function extractXY(obj)
-        if not obj then return nil end
-        if obj.x and obj.y then return { x = obj.x, y = obj.y } end
-        if obj.position and obj.position.x and (obj.position.z or obj.position.y) then
-            return { x = obj.position.x, y = (obj.position.z or obj.position.y) }
-        end
-        if obj.postition and obj.postition.x and (obj.postition.z or obj.postition.y) then
-            return { x = obj.postition.x, y = (obj.postition.z or obj.postition.y) }
-        end
-        -- support nested fields like obj.getPoint result
-        if obj.getPoint and type(obj.getPoint) == "function" then
-            local p = obj:getPoint()
-            if p and p.x and (p.y or p.z) then return { x = p.x, y = (p.z or p.y) } end
-        end
-        return nil
-    end
-
-    local function toCell(x, y, s)
-        local cx = math.floor(x / s)
-        local cy = math.floor(y / s)
-        return cx, cy
-    end
-
-    local function cellKey(cx, cy)
-        return tostring(cx) .. ":" .. tostring(cy)
-    end
-
-    local function gridInsert(grid, s, x, y)
-        local cx, cy = toCell(x, y, s)
-        local key = cellKey(cx, cy)
-        grid[key] = grid[key] or {}
-        table.insert(grid[key], { x = x, y = y })
-    end
-
-    local function gridQuery(grid, s, x, y, r2, neighborRange)
-        -- neighborRange is number of cells to check in each direction
-        local cx, cy = toCell(x, y, s)
-        local r = neighborRange or math.ceil(math.sqrt(r2) / s)
-        for dx = -r, r do
-            for dy = -r, r do
-                local key = cellKey(cx + dx, cy + dy)
-                local cell = grid[key]
-                if cell then
-                    for _, pt in ipairs(cell) do
-                        local dx_ = pt.x - x
-                        local dy_ = pt.y - y
-                        if dx_ * dx_ + dy_ * dy_ <= r2 then
-                            return true
-                        end
-                    end
-                end
-            end
-        end
-        return false
-    end
+    -- Local helper aliases to shared SPAWNER routines
+    local extractXY = function(obj) return self:_extractXY(obj) end
+    local toCell = function(x, y, s) return self:_toCell(x, y, s) end
+    local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
+    local gridInsert = function(grid, s, x, y) return self:_gridInsert(grid, s, x, y) end
+    local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
 
     -- Process each subZone
     for _, subZone in pairs(subZones) do
@@ -1184,6 +1189,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         local reject = false
                         local relaxMax = 0.3
                         local relax = math.min(relaxMax, (glassBreak / operationLimit) * relaxMax)
+                        if _unitCounters and relax > 0 then _unitCounters.RelaxationSteps = _unitCounters.RelaxationSteps + 1 end
                         local _mu = minUnits * (1 - relax)
                         local _mbu = minBuildings * (1 - relax)
                         local mg2eff = _mu * _mu
@@ -1229,6 +1235,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         glassBreak = glassBreak + 1
                     until accepted
 
+                    if _unitCounters then _unitCounters.Attempts = (_unitCounters.Attempts or 0) + glassBreak end
                     -- Accept candidate
                     unitVec2[j] = possibleVec2
                     table.insert(selectedCoords, possibleVec2)
@@ -1246,6 +1253,9 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
             self.DATA.BenchmarkLog.generateVec2UnitPos.Time.start
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:generateVec2UnitPos completed in " ..
             tostring(self.DATA.BenchmarkLog.generateVec2UnitPos.Time.total) .. " seconds.")
+        local cc = self.DATA.BenchmarkLog.generateVec2UnitPos.Counters or {}
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2UnitPos Attempts(sum)         : " .. tostring(cc.Attempts or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2UnitPos RelaxationSteps       : " .. tostring(cc.RelaxationSteps or 0))
     end
     return self
 end
