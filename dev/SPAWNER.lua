@@ -44,6 +44,9 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field dynamicSpawners.Point table<string, _dynamicSpawner> Dynamic spawners of type "Point" keyed by name.
 
 --- @class AETHR.SPAWNER.DATA.CONFIG
+--- @field BUILD_PAD number Meters of extra padding around buildings for center placement (>0).
+--- @field EXTRA_ATTEMPTS_BUILDING number Extra attempts to place group centers away from buildings (>0).
+--- @field SPAWNER_WAIT_TIME number Seconds to wait before a group is eligible for spawning after adding to mission engine (>0).
 --- @field operationLimit number Maximum number of spawn/despawn operations to process per WORLD cycle (>0).
 --- @field UseDivisionAABBReject boolean If true, use division AABB rejection to speed up placement (may skip some valid placements).
 --- @field UseDivisionAABBFullInclude boolean If true, use division AABB full inclusion to speed up placement (may skip some valid placements).
@@ -80,6 +83,9 @@ AETHR.SPAWNER.DATA = {
     },
     BenchmarkLog = {},
     CONFIG = {
+        BUILD_PAD = 5, -- Strict building separation constants
+        EXTRA_ATTEMPTS_BUILDING = 20,
+        SPAWNER_WAIT_TIME = 5, -- Seconds to wait before a group is elligible for spawning after adding to mission engine to prevent DCS crashes
         UseDivisionAABBReject = true,
         UseDivisionAABBFullInclude = true,
         operationLimit = 50,
@@ -165,12 +171,16 @@ function AETHR.SPAWNER:_cellKey(cx, cy)
     return tostring(cx) .. ":" .. tostring(cy)
 end
 
---- Insert a point into a grid
-function AETHR.SPAWNER:_gridInsert(grid, s, x, y)
+--- Insert a point into a grid (optional extra fields like radius r)
+function AETHR.SPAWNER:_gridInsert(grid, s, x, y, extra)
     local cx, cy = self:_toCell(x, y, s)
     local key = self:_cellKey(cx, cy)
     grid[key] = grid[key] or {}
-    table.insert(grid[key], { x = x, y = y })
+    local pt = { x = x, y = y }
+    if type(extra) == "table" then
+        for k, v in pairs(extra) do pt[k] = v end
+    end
+    table.insert(grid[key], pt)
 end
 
 --- Query a grid for any point within radius^2 of (x,y)
@@ -186,6 +196,43 @@ function AETHR.SPAWNER:_gridQuery(grid, s, x, y, r2, neighborRange)
                     local dx_ = pt.x - x
                     local dy_ = pt.y - y
                     if dx_ * dx_ + dy_ * dy_ <= r2 then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+--- Return an approximate horizontal radius for an object based on its descriptor box, if available.
+function AETHR.SPAWNER:_approxObjectRadius(obj)
+    local desc = obj and obj.desc
+    local box = desc and desc.box
+    if box and box.min and box.max then
+        local dx = (box.max.x or 0) - (box.min.x or 0)
+        -- Prefer horizontal Z span; fall back to Y if Z not present.
+        local dz = ((box.max.z ~= nil) and (box.max.z - (box.min.z or 0))) or ((box.max.y or 0) - (box.min.y or 0))
+        local r = 0.5 * math.sqrt((dx * dx) + (dz * dz))
+        if r and r > 0 then return r end
+    end
+    return 0
+end
+
+--- Direct, strict building proximity check within neighbor cells.
+--- Returns true when (distance(candidate, object) <= minDist + objectRadius)
+function AETHR.SPAWNER:_directCellStructureReject(grid, s, x, y, minDist, neighborRange)
+    local cx, cy = self:_toCell(x, y, s)
+    local rCells = neighborRange or math.ceil((minDist or 0) / s)
+    for dx = -rCells, rCells do
+        for dy = -rCells, rCells do
+            local cell = grid[self:_cellKey(cx + dx, cy + dy)]
+            if cell then
+                for _, pt in ipairs(cell) do
+                    local dx_ = (pt.x or 0) - x
+                    local dy_ = (pt.y or 0) - y
+                    local th = (minDist or 0) + (pt.r or 0)
+                    if (dx_ * dx_) + (dy_ * dy_) <= (th * th) then
                         return true
                     end
                 end
@@ -352,6 +399,7 @@ end
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:spawnGroup(groupName, countryID)
     local _group = self.DATA.generatedGroups[groupName]
+    _group._engineAddTime = self.UTILS:getTime()
     coalition.addGroup(countryID and countryID or _group.countryID, Group.Category.GROUND, _group)
     table.insert(self.DATA.spawnQueue, groupName)
     return self
@@ -369,6 +417,7 @@ function AETHR.SPAWNER:spawnDynamicSpawner(dynamicSpawner, countryID)
         local spawnGroups = subZone.spawnGroups
         for indexGroup, groupName in ipairs(spawnGroups) do
             local _group = self.DATA.generatedGroups[groupName]
+            _group._engineAddTime = self.UTILS:getTime()
             coalition.addGroup(countryID and countryID or _group.countryID, Group.Category.GROUND, _group)
             table.insert(self.DATA.spawnQueue, groupName)
         end
@@ -482,7 +531,8 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
                 tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
             self.UTILS:debugInfo("BENCHMARK - D -           Spawn Area Radius (m) : " ..
                 tostring(dynamicSpawner.zones.main.actualRadius))
-            self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
+            self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " ..
+            tostring(dynamicSpawner.numSubZones))
             self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " ..
                 tostring(dynamicSpawner.averageDistribution))
             -- Diagnostic: verify summed subzone generated.actual aligns with expectations
@@ -495,7 +545,8 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
                     end
                 end
             end
-            self.UTILS:debugInfo("BENCHMARK - D - Sum SubZone Generated(actual)    : " .. tostring(sumActualAcrossSubZones))
+            self.UTILS:debugInfo("BENCHMARK - D - Sum SubZone Generated(actual)    : " ..
+            tostring(sumActualAcrossSubZones))
             for type, typeVal in pairs(dynamicSpawner.spawnTypes) do
                 self.UTILS:debugInfo("BENCHMARK - D -                # Spawn Type     : " ..
                     tostring(type) .. ": " .. tostring(typeVal.actual))
@@ -516,7 +567,8 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     -- Deterministic wrapper (optional)
     local detConfig = self.DATA.CONFIG.Deterministic or {}
     local enabledDefault = detConfig.Enabled == true
-    local detEnabled = (dynamicSpawner.deterministicEnabled ~= nil) and dynamicSpawner.deterministicEnabled or enabledDefault
+    local detEnabled = (dynamicSpawner.deterministicEnabled ~= nil) and dynamicSpawner.deterministicEnabled or
+    enabledDefault
     local detSeed = dynamicSpawner.deterministicSeed
 
     if detEnabled and detSeed then
@@ -745,7 +797,8 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
 
     -- init benchmark counters
-    local _divCounters = self.DATA.BenchmarkLog.determineZoneDivObjects and self.DATA.BenchmarkLog.determineZoneDivObjects.Counters
+    local _divCounters = self.DATA.BenchmarkLog.determineZoneDivObjects and
+    self.DATA.BenchmarkLog.determineZoneDivObjects.Counters
     if _divCounters then
         _divCounters.scannedDivs = _divCounters.scannedDivs or 0
         _divCounters.earlyRejectedDivs = _divCounters.earlyRejectedDivs or 0
@@ -838,7 +891,8 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                         end
                     end
                     fullInclude = allInside
-                    if fullInclude and _divCounters then _divCounters.fullIncludedDivs = _divCounters.fullIncludedDivs + 1 end
+                    if fullInclude and _divCounters then _divCounters.fullIncludedDivs = _divCounters.fullIncludedDivs +
+                        1 end
                 end
 
                 if not skip then
@@ -917,9 +971,12 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
         self.UTILS:debugInfo("BENCHMARK - - - AETHR.SPAWNER:determineZoneDivObjects completed in " ..
             tostring(self.DATA.BenchmarkLog.determineZoneDivObjects.Time.total) .. " seconds.")
         local c = self.DATA.BenchmarkLog.determineZoneDivObjects.Counters or {}
-        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects scannedDivs        : " .. tostring(c.scannedDivs or 0))
-        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects earlyRejectedDivs  : " .. tostring(c.earlyRejectedDivs or 0))
-        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects fullIncludedDivs   : " .. tostring(c.fullIncludedDivs or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects scannedDivs        : " ..
+        tostring(c.scannedDivs or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects earlyRejectedDivs  : " ..
+        tostring(c.earlyRejectedDivs or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - determineZoneDivObjects fullIncludedDivs   : " ..
+        tostring(c.fullIncludedDivs or 0))
     end
     return self
 end
@@ -935,24 +992,30 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
     end
+self.UTILS:debugInfo("CHECK111")
+    local BUILD_PAD = self.DATA.CONFIG.BUILD_PAD                         -- meters of extra padding around buildings for center placement
+    local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG.EXTRA_ATTEMPTS_BUILDING                                             --- extra attempts if building rejection occurs
+
     -- init counters view
-    local _centerCounters = self.DATA.BenchmarkLog.generateVec2GroupCenters and self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters
+    local _centerCounters = self.DATA.BenchmarkLog.generateVec2GroupCenters and
+    self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters
     if _centerCounters then
         _centerCounters.Attempts = _centerCounters.Attempts or 0
         _centerCounters.RelaxationSteps = _centerCounters.RelaxationSteps or 0
+        _centerCounters.BuildingRejects = _centerCounters.BuildingRejects or 0
     end
-
+self.UTILS:debugInfo("CHECK2")
     local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division (not used directly for positions)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
-
+self.UTILS:debugInfo("CHECK3")
     -- Local helper aliases to shared SPAWNER routines
     local extractXY = function(obj) return self:_extractXY(obj) end
     local toCell = function(x, y, s) return self:_toCell(x, y, s) end
     local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
     local gridInsert = function(grid, s, x, y) return self:_gridInsert(grid, s, x, y) end
     local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
-
+self.UTILS:debugInfo("CHECK4")
     -- Process each subZone
     for _, subZone in pairs(subZones) do
         local subZoneRadius = subZone.actualRadius
@@ -964,7 +1027,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             subZoneRadius) or {}
         -- cache per-subzone for reuse in unit position placement
         subZone._nearbyUnits = freshScannedUnits
-
+self.UTILS:debugInfo("CHECK5")
         -- Compute a sensible cell size from group settings for this subZone
         local cellSize = 1
         do
@@ -984,7 +1047,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                 cellSize = math.max(1, math.floor(minSep))
             end
         end
-
+self.UTILS:debugInfo("CHECK6")
         -- Build grids: structuresGrid (bases/statics/scenery), groupsGrid (nearby units), centersGrid (accepted centers)
         local structuresGrid = {}
         local groupsGrid = {}
@@ -994,15 +1057,17 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         local function populateGridFromList(list, grid, s)
             for _, obj in pairs(list or {}) do
                 local p = extractXY(obj)
-                if p then gridInsert(grid, s, p.x, p.y) end
+                if p then
+                    gridInsert(grid, s, p.x, p.y, { r = self:_approxObjectRadius(obj) })
+                end
             end
         end
-
+self.UTILS:debugInfo("CHECK7")
         -- Populate structuresGrid from base/static/scenery objects
         populateGridFromList(baseObjects, structuresGrid, cellSize)
         populateGridFromList(staticObjects, structuresGrid, cellSize)
         populateGridFromList(sceneryObjects, structuresGrid, cellSize)
-
+self.UTILS:debugInfo("CHECK8")
         -- Populate groupsGrid from freshScannedUnits and db (pairs because returned table is a map)
         for _, obj in pairs(freshScannedUnits or {}) do
             local p = extractXY(obj)
@@ -1012,7 +1077,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             local p = extractXY(obj)
             if p then gridInsert(groupsGrid, cellSize, p.x, p.y) end
         end
-
+self.UTILS:debugInfo("CHECK9")
         -- selectedCoords kept for compatibility (not used for linear scans anymore)
         local selectedCoords = {}
 
@@ -1024,9 +1089,10 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             local mg2 = (minGroups) * (minGroups)
             local mb2 = (minBuildings) * (minBuildings)
             local neighborRangeGroups = math.ceil(minGroups / cellSize)
-            local neighborRangeBuildings = math.ceil(minBuildings / cellSize)
-
+            local neighborRangeBuildings = math.ceil((minBuildings + BUILD_PAD) / cellSize)
+self.UTILS:debugInfo("CHECK10")
             for i = 1, (groupSetting.numGroups or 0) do
+                self.UTILS:debugInfo("CHECK10A")
                 local glassBreak = 0
                 local possibleVec2 = nil
                 local accepted = false
@@ -1035,62 +1101,85 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                 repeat
                     possibleVec2 = self.POLY:getRandomVec2inCircle(subZoneRadius, subZoneCenter)
 
-
+self.UTILS:debugInfo("CHECK11")
                     -- Fast proximity checks using grids (squared distances)
                     local reject = false
                     local relaxMax = 0.3
                     local relax = math.min(relaxMax, (glassBreak / operationLimit) * relaxMax)
-                    if _centerCounters and relax > 0 then _centerCounters.RelaxationSteps = _centerCounters.RelaxationSteps + 1 end
+                    if _centerCounters and relax > 0 then _centerCounters.RelaxationSteps = _centerCounters
+                        .RelaxationSteps + 1 end
                     local _mg = minGroups * (1 - relax)
                     local _mb = minBuildings * (1 - relax)
                     local mg2eff = _mg * _mg
                     local mb2eff = _mb * _mb
-
+self.UTILS:debugInfo("CHECK12")
                     -- Check against already accepted centers
                     if next(centersGrid) ~= nil then
                         if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                             reject = true
                         end
                     end
-
+self.UTILS:debugInfo("CHECK13")
                     -- Check against nearby units/groups
                     if not reject and next(groupsGrid) ~= nil then
                         if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                             reject = true
                         end
                     end
-
-                    -- Check against nearby structures
+self.UTILS:debugInfo("CHECK14")
+                    -- Fast prune against nearby structures (kept for performance)
                     if not reject and next(structuresGrid) ~= nil then
                         if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2eff, neighborRangeBuildings) then
                             reject = true
                         end
                     end
-
+self.UTILS:debugInfo("CHECK15")
+                    -- Strict building check (per-object radius + padding, never relaxed)
+                    local buildingRejectDirect = false
+                    if next(structuresGrid) ~= nil then
+                        buildingRejectDirect = self:_directCellStructureReject(
+                            structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                            (minBuildings + BUILD_PAD), neighborRangeBuildings
+                        )
+                        if buildingRejectDirect and _centerCounters then
+                            _centerCounters.BuildingRejects = (_centerCounters.BuildingRejects or 0) + 1
+                        end
+                    end
+                    if buildingRejectDirect then
+                        reject = true
+                    end
+self.UTILS:debugInfo("CHECK16")
                     -- Only if we passed all cheap spatial checks, call expensive NOGO check
                     if not reject then
                         reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
                     end
-
+self.UTILS:debugInfo("CHECK17")
                     if not reject then
                         accepted = true
                     else
                         accepted = false
                     end
-
+self.UTILS:debugInfo("CHECK18")
                     if glassBreak >= operationLimit then
-                        -- Respect existing behavior: accept last candidate when budget exhausts
-                        accepted = true
+                        -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
+                        if not buildingRejectDirect then
+                            accepted = true
+                        elseif glassBreak < operationLimit + EXTRA_ATTEMPTS_BUILDING then
+                            accepted = false
+                        else
+                            accepted = false
+                        end
                     end
-
+self.UTILS:debugInfo("CHECK19")
                     glassBreak = glassBreak + 1
                 until accepted
-
+self.UTILS:debugInfo("CHECK10B")
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
                 gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
+                self.UTILS:debugInfo("CHECK10C")
             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
@@ -1106,7 +1195,10 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
             tostring(self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.total) .. " seconds.")
         local cc = self.DATA.BenchmarkLog.generateVec2GroupCenters.Counters or {}
         self.UTILS:debugInfo("BENCHMARK - D - generateVec2GroupCenters Attempts(sum)   : " .. tostring(cc.Attempts or 0))
-        self.UTILS:debugInfo("BENCHMARK - D - generateVec2GroupCenters RelaxationSteps : " .. tostring(cc.RelaxationSteps or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2GroupCenters RelaxationSteps : " ..
+        tostring(cc.RelaxationSteps or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2GroupCenters BuildingRejects   : " ..
+        tostring(cc.BuildingRejects or 0))
     end
     return self
 end
@@ -1121,12 +1213,16 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2UnitPos = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2UnitPos.Time.start = os.clock()
     end
-
+    local BUILD_PAD = self.DATA.CONFIG.BUILD_PAD                         -- meters of extra padding around buildings for center placement
+    local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG
+    .EXTRA_ATTEMPTS_BUILDING                                             --- extra attempts if building rejection occurs
     -- init counters view
-    local _unitCounters = self.DATA.BenchmarkLog.generateVec2UnitPos and self.DATA.BenchmarkLog.generateVec2UnitPos.Counters
+    local _unitCounters = self.DATA.BenchmarkLog.generateVec2UnitPos and
+    self.DATA.BenchmarkLog.generateVec2UnitPos.Counters
     if _unitCounters then
         _unitCounters.Attempts = _unitCounters.Attempts or 0
         _unitCounters.RelaxationSteps = _unitCounters.RelaxationSteps or 0
+        _unitCounters.BuildingRejects = _unitCounters.BuildingRejects or 0
     end
 
 
@@ -1149,7 +1245,8 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         local baseObjects = subZone.zoneDivBaseObjects or {}
         local staticObjects = subZone.zoneDivStaticObjects or {}
         local sceneryObjects = subZone.zoneDivSceneryObjects or {}
-        local freshScannedUnits = subZone._nearbyUnits or self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
+        local freshScannedUnits = subZone._nearbyUnits or
+        self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
             subZoneRadius) or {}
 
         -- Compute a sensible cell size from group settings for this subZone
@@ -1183,7 +1280,9 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         local function populateGridFromList(list, grid, s)
             for _, obj in pairs(list or {}) do
                 local p = extractXY(obj)
-                if p then gridInsert(grid, s, p.x, p.y) end
+                if p then
+                    gridInsert(grid, s, p.x, p.y, { r = self:_approxObjectRadius(obj) })
+                end
             end
         end
 
@@ -1215,7 +1314,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
             local mg2 = (minUnits) * (minUnits)
             local mb2 = (minBuildings) * (minBuildings)
             local neighborRangeGroups = math.ceil(minUnits / cellSize)
-            local neighborRangeBuildings = math.ceil(minBuildings / cellSize)
+            local neighborRangeBuildings = math.ceil((minBuildings + BUILD_PAD) / cellSize)
 
             for i = 1, (groupSetting.numGroups or 0) do
                 local unitVec2 = {}
@@ -1235,7 +1334,8 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         local reject = false
                         local relaxMax = 0.3
                         local relax = math.min(relaxMax, (glassBreak / operationLimit) * relaxMax)
-                        if _unitCounters and relax > 0 then _unitCounters.RelaxationSteps = _unitCounters.RelaxationSteps + 1 end
+                        if _unitCounters and relax > 0 then _unitCounters.RelaxationSteps = _unitCounters
+                            .RelaxationSteps + 1 end
                         local _mu = minUnits * (1 - relax)
                         local _mbu = minBuildings * (1 - relax)
                         local mg2eff = _mu * _mu
@@ -1255,11 +1355,26 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                             end
                         end
 
-                        -- Check against nearby structures
+                        -- Fast prune against nearby structures (kept for performance)
                         if not reject and next(structuresGrid) ~= nil then
                             if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2eff, neighborRangeBuildings) then
                                 reject = true
                             end
+                        end
+
+                        -- Strict building check (per-object radius + padding, never relaxed)
+                        local buildingRejectDirect = false
+                        if next(structuresGrid) ~= nil then
+                            buildingRejectDirect = self:_directCellStructureReject(
+                                structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings
+                            )
+                            if buildingRejectDirect and _unitCounters then
+                                _unitCounters.BuildingRejects = (_unitCounters.BuildingRejects or 0) + 1
+                            end
+                        end
+                        if buildingRejectDirect then
+                            reject = true
                         end
 
                         -- Only if we passed all cheap spatial checks, call expensive NOGO check
@@ -1274,8 +1389,14 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         end
 
                         if glassBreak >= operationLimit then
-                            -- Respect existing behavior: accept last candidate when budget exhausts
-                            accepted = true
+                            -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
+                            if not buildingRejectDirect then
+                                accepted = true
+                            elseif glassBreak < operationLimit + EXTRA_ATTEMPTS_BUILDING then
+                                accepted = false
+                            else
+                                accepted = false
+                            end
                         end
 
                         glassBreak = glassBreak + 1
@@ -1301,7 +1422,10 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
             tostring(self.DATA.BenchmarkLog.generateVec2UnitPos.Time.total) .. " seconds.")
         local cc = self.DATA.BenchmarkLog.generateVec2UnitPos.Counters or {}
         self.UTILS:debugInfo("BENCHMARK - D - generateVec2UnitPos Attempts(sum)         : " .. tostring(cc.Attempts or 0))
-        self.UTILS:debugInfo("BENCHMARK - D - generateVec2UnitPos RelaxationSteps       : " .. tostring(cc.RelaxationSteps or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2UnitPos RelaxationSteps       : " ..
+        tostring(cc.RelaxationSteps or 0))
+        self.UTILS:debugInfo("BENCHMARK - D - generateVec2UnitPos BuildingRejects       : " ..
+        tostring(cc.BuildingRejects or 0))
     end
     return self
 end
@@ -1340,7 +1464,7 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
         if not order or #order == 0 then
             order = {}
             for k, _ in pairs(zoneObject.groupSettings or {}) do table.insert(order, k) end
-            table.sort(order, function(a,b) return (a or 0) < (b or 0) end)
+            table.sort(order, function(a, b) return (a or 0) < (b or 0) end)
         end
 
         ---@param groupSizeConfig _spawnerTypeConfig

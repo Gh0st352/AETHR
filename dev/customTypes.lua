@@ -755,6 +755,7 @@ end
 --- @field task string
 --- @field uncontrollable boolean
 --- @field countryID number
+--- @field _engineAddTime number Internal timestamp when the group was added to the mission (for late activation)
 AETHR._groundGroup = {} ---@diagnostic disable-line
 ---
 --- @param visible boolean|nil
@@ -799,6 +800,7 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         start_time      = start_time or 0, -- time in seconds from mission start when the group will be spawned
         task            = task or "Ground Nothing",
         countryID       = countryID or 0,
+        _engineAddTime = 0,
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
     return instance ---@diagnostic disable-line

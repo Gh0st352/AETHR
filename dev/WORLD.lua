@@ -277,15 +277,17 @@ end
 --- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
 --- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
 function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHeight)
+self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
     local vol = self.POLY:createSphere(centerVec2, radius, yHeight)
     local found = {} ---@type table<number, _FoundObject>
 
     -- Callback for world.searchObjects
     local function ifFound(item)
+        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------item:getName() " .. item:getName())
         found[item:getName()] = self.AETHR._foundObject:New(item)
     end
-
     world.searchObjects(objectCategory, vol, ifFound)
+    self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------END")
     return found
 end
 
@@ -388,10 +390,15 @@ function AETHR.WORLD:spawnGroundGroups()
 
     for _, name in ipairs(self.SPAWNER.DATA.spawnQueue) do
         self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | " .. name)
-
-        Group.activate(Group.getByName(name))
-        self.SPAWNER.DATA.spawnQueue[_] = nil
-
+        local curTime = self.UTILS:getTime()
+        local groupObj = self.SPAWNER.DATA.generatedGroups[name]
+        local groupAddTime = groupObj._engineAddTime
+        if (curTime - groupAddTime) < self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME then
+            self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Skipping " .. name .. " - wait time not elapsed")
+        else
+            Group.activate(Group.getByName(name))
+            self.SPAWNER.DATA.spawnQueue[_] = nil
+        end
         if co_.thread then
             co_.yieldCounter = co_.yieldCounter + 1
             if co_.yieldCounter >= co_.yieldThreshold then
