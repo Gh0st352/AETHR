@@ -48,6 +48,11 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field UseDivisionAABBReject boolean If true, use division AABB rejection to speed up placement (may skip some valid placements).
 --- @field UseDivisionAABBFullInclude boolean If true, use division AABB full inclusion to speed up placement (may skip some valid placements).
 --- @field Benchmark boolean If true, enables benchmarking logs for spawner operations.
+--- @field UseRestrictedZonePolys boolean If true, apply restricted-zone polygon checks in addition to surface checks (default false for performance).
+--- @field Deterministic table Deterministic generation controls: { Enabled:boolean, Warmup:number, ReseedAfter:boolean }.
+--- @field Deterministic.Enabled boolean When true, and when a dynamicSpawner.deterministicSeed is provided, generation runs inside a seeded RNG scope.
+--- @field Deterministic.Warmup number Extra math.random() calls after seeding to avoid low-entropy draws (default 2).
+--- @field Deterministic.ReseedAfter boolean If true, reseeds RNG to a mixed, best-effort entropy after generation (default true).
 --- @field NoGoSurfaces AETHR.ENUMS.SurfaceType[] List of surface types that are not valid for spawning.
 --- @field seperationSettings table Settings for minimum separation of spawned groups/units from each other and buildings.
 --- @field seperationSettings.minGroups number Minimum distance in meters between spawned groups.
@@ -397,10 +402,38 @@ function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
 end
 
 --- Generate a dynamic spawner configuration and build spawn prototypes for later instantiation.
---- Performs zone pairing, zone generation, weighting, spawn amount calculation, type rolling and group placement.
---- The function does not instantiate groups; call :buildSpawnGroups or :spawnDynamicSpawner to add them to the mission.
+--- Pipeline:
+---  1) Pair to world/MIZ zones
+---  2) Generate circles (main/sub), weight zones
+---  3) Compute spawn amounts and jiggle
+---  4) Allocate group sizes
+---  5) Roll group types
+---  6) Determine zone divisions and collect objects (AABB-optimized)
+---  7) Place group centers, then unit positions (grid-accelerated checks + progressive relaxation)
+---  8) Build group/unit prototypes
+---
+--- Deterministic mode:
+---  - When either SPAWNER.DATA.CONFIG.Deterministic.Enabled is true, or dynamicSpawner.deterministicEnabled is true,
+---    and a numeric dynamicSpawner.deterministicSeed is provided, this function runs its entire generation pipeline
+---    inside a deterministic RNG scope via [AETHR.UTILS:withSeed()](dev/UTILS.lua:192).
+---  - Warmup calls (CONFIG.Deterministic.Warmup, default 2) are executed after seeding to avoid low-entropy first draws.
+---  - If CONFIG.Deterministic.ReseedAfter is true (default), math.random is reseeded to a mixed, best-effort entropy after
+---    the deterministic section to restore unpredictability in the rest of the mission.
+---  - Trade-offs: Lua 5.1 RNG is global; seeding affects all math.random usage in the same frame. We minimize impact by
+---    scoping strictly to this function. For full isolation, refactor random sources to accept an injected RNG interface.
+---
+--- Separation behavior under load:
+---  - Candidate placement loops for centers and units use an operation budget (CONFIG.operationLimit).
+---  - Before accepting the last candidate at the limit, the algorithm progressively relaxes separation thresholds
+---    (up to roughly 30%) to find a valid point. The hard fallback remains only at budget exhaustion.
+---
+--- Restricted zones:
+---  - Surface NOGO is always enforced. Polygon NOGO checks can be enabled by SPAWNER.DATA.CONFIG.UseRestrictedZonePolys
+---    and are performed in [AETHR.SPAWNER:checkIsInNOGO()](dev/SPAWNER.lua:1607) using an AABB prefilter + point-in-polygon.
+---    Default is off for performance.
+---
 --- @function AETHR.SPAWNER:generateDynamicSpawner
---- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance to configure.
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance to configure (supports .deterministicSeed, .deterministicEnabled).
 --- @param vec2 _vec2 Center point for the spawner to generate around.
 --- @param minRadius number|nil Minimum radius in meters. Defaults to dynamicSpawner.minRadius if nil.
 --- @param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominalRadius if nil.
@@ -1606,14 +1639,19 @@ end
 
 --- Check if a vector position is within a no-go area.
 ---
---- This function determines whether a given vector position (`vec2`) falls within any restricted
---- areas or surfaces defined in the SPAWNER system. It first checks against no-go surfaces and then against
---- restricted zones. The function returns a flag indicating whether the position is suitable (not within
---- no-go areas) for spawning purposes.
+--- Behavior:
+---  - Always checks against no-go surfaces (e.g., WATER, RUNWAY, SHALLOW_WATER) configured in SPAWNER.DATA.CONFIG.NoGoSurfaces.
+---  - When SPAWNER.DATA.CONFIG.UseRestrictedZonePolys == true, also checks polygonal restricted zones using an AABB prefilter
+---    followed by [AETHR.POLY:pointInPolygon()](dev/POLY.lua:61). If the point lies within any restricted polygon, it is NOGO.
+---
+--- Performance/trade-offs:
+---  - Surface checks are cheap and always enabled.
+---  - Polygon checks are more expensive; they are disabled by default for performance parity with prior behavior.
+---    Enable them when spatial accuracy near mission-defined restricted areas is more important than raw generation speed.
 ---
 --- @param vec2 _vec2 The vector position to be checked.
---- @param restrictedZones table A list of restricted zones to check against.
---- @return boolean isNOGO A boolean flag indicating if the position is outside no-go areas (true if unsuitable, false otherwise).
+--- @param restrictedZones table A list of restricted zones to check against (tables with .verticies or raw vertex arrays).
+--- @return boolean isNOGO True if vec2 lies on a NOGO surface or inside a restricted polygon (when enabled), false otherwise.
 function AETHR.SPAWNER:checkIsInNOGO(vec2, restrictedZones)
     local isNOGO = false
     if self:vec2AtNoGoSurface(vec2) then isNOGO = true end
