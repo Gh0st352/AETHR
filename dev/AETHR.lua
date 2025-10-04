@@ -193,7 +193,6 @@ end
 --- This method creates required storage folders, caches their resolved paths, and
 --- invokes submodule init routines (CONFIG, ZONE_MANAGER, WORLD).
 --- @function AETHR:Init
---- @param self AETHR
 --- @return AETHR self Initialized framework instance.
 function AETHR:Init()
     -- Defensive checks.
@@ -245,7 +244,6 @@ end
 
 --- Starts the AETHR framework and schedules background processes.
 --- @function AETHR:Start
---- @param self AETHR
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
     self.WORLD:updateAirbaseOwnership()
@@ -265,7 +263,6 @@ end
 --- IMPORTANT: This function is intended to be scheduled by DCS timer.scheduleFunction and must
 --- return the absolute mission time (number) for the next invocation.
 --- @function AETHR:BackgroundProcesses
---- @param self AETHR
 --- @return number nextTime Absolute mission time for the next invocation.
 function AETHR:BackgroundProcesses()
     --self.UTILS:debugInfo("AETHR:BackgroundProcesses         -------------")
@@ -322,7 +319,6 @@ end
 
 --- Initializes various watchers used by AETHR to observe game / mission state events.
 --- @function AETHR:setupWatchers
---- @param self AETHR
 --- @return AETHR self For chaining.
 function AETHR:setupWatchers()
     self.ZONE_MANAGER:initWatcher_AirbaseOwnership()
@@ -333,7 +329,6 @@ end
 --- @function AETHR:loadUSERSTORAGE
 --- @brief Loads user-specific data if available.
 --- Attempts to load a JSON user storage file from configured USER_FOLDER.
---- @param self AETHR
 --- @return AETHR self Framework instance for chaining.
 function AETHR:loadUSERSTORAGE()
     -- Attempt to load userStorage JSON file.
@@ -351,7 +346,6 @@ end
 --- @function AETHR:saveUSERSTORAGE
 --- @brief Saves the `USERSTORAGE` table to file.
 --- Delegates to FILEOPS:saveData which should accept (folder, filename, table).
---- @param self AETHR
 --- @return AETHR self Framework instance for chaining.
 function AETHR:saveUSERSTORAGE()
     self.FILEOPS:saveData(
