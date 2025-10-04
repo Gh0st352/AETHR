@@ -457,6 +457,8 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
         dynamicSpawner.maxRadius = maxRadius or dynamicSpawner.maxRadius
         dynamicSpawner.nudgeFactorRadius = nudgeFactorRadius or dynamicSpawner.nudgeFactorRadius
         dynamicSpawner.vec2 = vec2
+        -- Reset per-run tallies to avoid carry-over between generations
+        dynamicSpawner._confirmedTotal = 0
         if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
             self:pairSpawnerActiveZones(dynamicSpawner)
         else
@@ -483,6 +485,17 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
             self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
             self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " ..
                 tostring(dynamicSpawner.averageDistribution))
+            -- Diagnostic: verify summed subzone generated.actual aligns with expectations
+            local sumActualAcrossSubZones = 0
+            do
+                local _subs = (dynamicSpawner.zones and dynamicSpawner.zones.sub) or {}
+                for _, _sz in pairs(_subs) do
+                    if _sz and _sz.spawnSettings and _sz.spawnSettings.generated then
+                        sumActualAcrossSubZones = sumActualAcrossSubZones + (_sz.spawnSettings.generated.actual or 0)
+                    end
+                end
+            end
+            self.UTILS:debugInfo("BENCHMARK - D - Sum SubZone Generated(actual)    : " .. tostring(sumActualAcrossSubZones))
             for type, typeVal in pairs(dynamicSpawner.spawnTypes) do
                 self.UTILS:debugInfo("BENCHMARK - D -                # Spawn Type     : " ..
                     tostring(type) .. ": " .. tostring(typeVal.actual))
@@ -1405,25 +1418,35 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
         self.DATA.BenchmarkLog.seedTypes = { Time = {}, }
         self.DATA.BenchmarkLog.seedTypes.Time.start = os.clock()
     end
+    -- Reinitialize pools to ensure no carry-over between runs
+    dynamicSpawner._typesPool = {}
+    dynamicSpawner._limitedTypesPool = {}
+    dynamicSpawner._nonLimitedTypesPool = {}
+
     local typesPool = dynamicSpawner._typesPool
-    local spawnTypes = dynamicSpawner.spawnTypes
-    local extraTypes = dynamicSpawner.extraTypes
-    local spawnerAttributesDB = self.WORLD.DATA.spawnerAttributesDB
+    local spawnTypes = dynamicSpawner.spawnTypes or {}
+    local extraTypes = dynamicSpawner.extraTypes or {}
+    local spawnerAttributesDB = self.WORLD.DATA.spawnerAttributesDB or {}
     ---@param typeName string
     ---@param typeData _spawnerTypeConfig
     for typeName, typeData in pairs(spawnTypes) do
+        -- Reset per-type usage counter and attach the latest typesDB
         typeData.typesDB = spawnerAttributesDB[typeName] or {}
+        typeData.actual = 0
         typesPool[typeName] = typeName
     end
     ---@param typeName string
     ---@param typeData _spawnerTypeConfig
     for typeName, typeData in pairs(extraTypes) do
+        -- Attach DB and clear tracker if present
         typeData.typesDB = spawnerAttributesDB[typeName] or {}
+        if typeData.actual ~= nil then typeData.actual = 0 end
     end
 
-    for k, v in pairs(typesPool) do
+    -- Classify limited vs non-limited for this generation
+    for k, _ in pairs(typesPool) do
         local _type = spawnTypes[k]
-        if _type.limited then
+        if _type and _type.limited then
             dynamicSpawner._limitedTypesPool[k] = k
         else
             dynamicSpawner._nonLimitedTypesPool[k] = k
@@ -1592,6 +1615,8 @@ function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     -- end
 
 
+    -- Reset subzones each generation to prevent accumulation across runs
+    dynamicSpawner.zones.sub = {}
     local subZones = dynamicSpawner.zones.sub
     dynamicSpawner.zones.main = self.AETHR._spawnerZone:New(self.AETHR, dynamicSpawner)
     local mainZone = dynamicSpawner.zones.main
