@@ -15,6 +15,17 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
 --- @field DATA AETHR.SPAWNER.DATA Container for spawner-managed data.
+---@brief-module Overview:
+--- This module builds and manages dynamic spawners which:
+--- 1) seed type pools from WORLD data,
+--- 2) compute spawn amounts and zone partitions,
+--- 3) roll group types and sizes,
+--- 4) generate spatial placements (group centers and unit positions),
+--- 5) build group/unit prototypes and optionally instantiate them into the mission.
+--- Key risks:
+--- - Restricted-zone polygon checks are currently disabled in per-placement checks (see checkIsInNOGO).
+--- - Placement falls back to accepting last candidate after operationLimit is reached, which can violate separation constraints under high density.
+--- - AABB optimizations (UseDivisionAABBReject/FullInclude) can skip valid placements when enabled but are important for performance.
 AETHR.SPAWNER = {} ---@diagnostic disable-line
 
 --- Spawner-managed data container.
@@ -263,8 +274,11 @@ function AETHR.SPAWNER:spawnGroup(groupName, countryID)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
---- @param countryID number|nil Optional country ID to override the group's countryID (as per DCS scripting API).
+--- Spawns all groups prepared in the provided dynamic spawner instance into the world and enqueues them.
+--- @function AETHR.SPAWNER:spawnDynamicSpawner
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance containing subzones and spawnGroups.
+--- @param countryID number|nil Optional country ID to override spawned groups' country (DCS API). Defaults to dynamicSpawner.countryID when nil.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:spawnDynamicSpawner(dynamicSpawner, countryID)
     local subZones = dynamicSpawner.zones.sub
     ---@param subZone _spawnerZone
@@ -289,7 +303,10 @@ function AETHR.SPAWNER:despawnGroup(groupName)
     return self
 end
 
---- @return _dynamicSpawner dynamicSpawner created dynamic spawner.
+--- Creates and registers a new dynamic spawner instance.
+--- @function AETHR.SPAWNER:newDynamicSpawner
+--- @param dynamicSpawnerType string Type of dynamic spawner ("Airbase"|"Zone"|"Point").
+--- @return _dynamicSpawner dynamicSpawner Created dynamic spawner instance.
 function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
     local name = "AETHR_DYNAMIC_SPAWNER#" .. tostring(self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS)
     self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS = self.CONFIG.MAIN.COUNTERS.DYNAMIC_SPAWNERS + 1
@@ -301,13 +318,18 @@ function AETHR.SPAWNER:newDynamicSpawner(dynamicSpawnerType)
     return dynamicSpawner
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
----@param vec2 _vec2 Center point for the spawner to generate around.
----@param minRadius number|nil Minimum radius in meters. Defaults to dynamicSpawner.minRadius if nil.
----@param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominal if nil.
----@param maxRadius number|nil Maximum radius in meters. Defaults to dynamicSpawner.maxRadius if nil.
----@param nudgeFactorRadius number|nil Nudge factor for radius adjustment (0.0-1.0). Defaults to dynamicSpawner.nudgeFactorRadius if nil.
----@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
+--- Generate a dynamic spawner configuration and build spawn prototypes for later instantiation.
+--- Performs zone pairing, zone generation, weighting, spawn amount calculation, type rolling and group placement.
+--- The function does not instantiate groups; call :buildSpawnGroups or :spawnDynamicSpawner to add them to the mission.
+--- @function AETHR.SPAWNER:generateDynamicSpawner
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance to configure.
+--- @param vec2 _vec2 Center point for the spawner to generate around.
+--- @param minRadius number|nil Minimum radius in meters. Defaults to dynamicSpawner.minRadius if nil.
+--- @param nominalRadius number|nil Nominal radius in meters. Defaults to dynamicSpawner.nominalRadius if nil.
+--- @param maxRadius number|nil Maximum radius in meters. Defaults to dynamicSpawner.maxRadius if nil.
+--- @param nudgeFactorRadius number|nil Nudge factor for radius adjustment (0.0-1.0). Defaults to dynamicSpawner.nudgeFactorRadius if nil.
+--- @param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                               nudgeFactorRadius, countryID)
     if self.DATA.CONFIG.Benchmark then
@@ -367,14 +389,21 @@ function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, n
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- High-level pipeline: roll types and place groups for the given dynamic spawner.
+--- Calls internal routines to determine group types and spatial placement.
+--- @function AETHR.SPAWNER:generateSpawnerGroups
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateSpawnerGroups(dynamicSpawner)
     self:rollSpawnGroups(dynamicSpawner)
     self:rollGroupPlacement(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Determine placement (divisions, objects, centers, unit positions) for groups within the dynamic spawner.
+--- @function AETHR.SPAWNER:rollGroupPlacement
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
     self:pairSpawnerZoneDivisions(dynamicSpawner)
     self:determineZoneDivObjects(dynamicSpawner)
@@ -383,8 +412,12 @@ function AETHR.SPAWNER:rollGroupPlacement(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
----@param countryID number|nil Country ID for spawned groups. Defaults to dynamicSpawner.countryID (0) if nil.
+--- Build ground unit and group prototypes for all spawnGroups in the dynamic spawner's subzones.
+--- Units and groups are registered into SPAWNER.DATA.generatedUnits/generatedGroups but groups are not yet instantiated unless coalition.addGroup is called.
+--- @function AETHR.SPAWNER:buildSpawnGroups
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @param countryID number|nil Optional country ID to override groups' country on build.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
     local subZones = dynamicSpawner.zones.sub
 
@@ -419,7 +452,11 @@ function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
     end
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Determine world divisions that overlap the dynamic spawner area and store them on the spawner.
+--- Uses main radius and center to find overlapping WORLD divisions.
+--- @function AETHR.SPAWNER:pairSpawnerWorldDivisions
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:pairSpawnerWorldDivisions(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.pairSpawnerWorldDivisions = { Time = {}, }
@@ -452,7 +489,11 @@ function AETHR.SPAWNER:pairSpawnerWorldDivisions(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Pair the dynamic spawner with active MIZ zones and their divisions.
+--- Populates dynamicSpawner.mizZones and dynamicSpawner.worldDivisions for later usage.
+--- @function AETHR.SPAWNER:pairSpawnerActiveZones
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:pairSpawnerActiveZones(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.pairSpawnerActiveZones = { Time = {}, }
@@ -492,7 +533,10 @@ function AETHR.SPAWNER:pairSpawnerActiveZones(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- For each subzone, determine which world divisions intersect it and cache them on the subzone object.
+--- @function AETHR.SPAWNER:pairSpawnerZoneDivisions
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:pairSpawnerZoneDivisions(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.pairSpawnerZoneDivisions = { Time = {}, }
@@ -541,7 +585,12 @@ function AETHR.SPAWNER:pairSpawnerZoneDivisions(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Collect scenery/static/base objects for each subzone by scanning divisions and applying AABB filters.
+--- Populates subZone.zoneDivSceneryObjects, zoneDivStaticObjects and zoneDivBaseObjects.
+--- Uses AABB early-reject and full-include optimizations controlled by DATA.CONFIG flags.
+--- @function AETHR.SPAWNER:determineZoneDivObjects
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.determineZoneDivObjects = { Time = {}, }
@@ -716,7 +765,12 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Generate candidate center positions for groups inside each subzone, respecting separation and NOGO checks.
+--- Uses spatial hashing (grid) to accelerate neighbor queries against units and structures.
+--- Generated centers are stored in groupSetting.generatedGroupCenterVec2s.
+--- @function AETHR.SPAWNER:generateVec2GroupCenters
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
@@ -929,7 +983,11 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Generate per-unit positions relative to accepted group centers, respecting unit separation and NOGO checks.
+--- Results stored in groupSetting.generatedUnitVec2s.
+--- @function AETHR.SPAWNER:generateVec2UnitPos
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateVec2UnitPos = { Time = {}, }
@@ -1152,14 +1210,21 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Prepare spawn type pools and generate group type selections for the dynamic spawner.
+--- @function AETHR.SPAWNER:rollSpawnGroups
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:rollSpawnGroups(dynamicSpawner)
     self:seedTypes(dynamicSpawner)
     self:generateGroupTypes(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Determine concrete unit types for each group based on spawnType pools and extraTypes configuration.
+--- Populates groupSizeConfig.generatedGroupTypes and generatedGroupUnitTypes.
+--- @function AETHR.SPAWNER:generateGroupTypes
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateGroupTypes = { Time = {}, }
@@ -1239,7 +1304,10 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Seed the spawner's type pools from WORLD spawnerAttributesDB and classify limited vs non-limited types.
+--- @function AETHR.SPAWNER:seedTypes
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:seedTypes(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.seedTypes = { Time = {}, }
@@ -1280,7 +1348,11 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Convert the total spawn count into discrete group sizes/counts per subzone according to configured priorities.
+--- Writes into zoneObject_.groupSettings[size].numGroups and .size.
+--- @function AETHR.SPAWNER:rollSpawnGroupSizes
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.rollSpawnGroupSizes = { Time = {}, }
@@ -1319,7 +1391,10 @@ function AETHR.SPAWNER:rollSpawnGroupSizes(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Calculate spawn amounts for main zone and distribute to subzones. Applies nudging and then calls _Jiggle to rebalance.
+--- @function AETHR.SPAWNER:generateSpawnAmounts
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateSpawnAmounts(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateSpawnAmounts = { Time = {}, }
@@ -1375,7 +1450,11 @@ function AETHR.SPAWNER:generateSpawnAmounts(dynamicSpawner)
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Apply multiple small random update iterations to settle spawn amounts across subzones.
+--- Calls _RollUpdates N times where N = spawnSettingsMainGenerated.nudgeReciprocal.
+--- @function AETHR.SPAWNER:_Jiggle
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:_Jiggle(dynamicSpawner)
     ---@type _spawnerZone
     local mainZone = dynamicSpawner.zones.main
@@ -1399,12 +1478,17 @@ end
 -- This method chain is crucial for maintaining the operational integrity and dynamic behavior of the spawner.
 --
 ---@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+---@return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:_RollUpdates(dynamicSpawner)
     dynamicSpawner:_seedRollUpdates():_introduceRandomness():_distributeDifference():_assignAndUpdateSubZones()
     return self
 end
 
----@param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- Generate main and subzones (circles) for the dynamic spawner using POLY:generateSubCircles.
+--- Stores resulting _spawnerZone objects in dynamicSpawner.zones.sub and dynamicSpawner.zones.main.
+--- @function AETHR.SPAWNER:generateSpawnerZones
+--- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
+--- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateSpawnerZones(dynamicSpawner)
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateSpawnerZones = { Time = {}, }
