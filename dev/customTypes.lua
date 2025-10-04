@@ -291,23 +291,24 @@ AETHR._MIZ_ZONE = {}
 --- @param envZone { name: string, zoneId: number, type: integer|string, verticies: (_vec2|_vec2xz)[] }
 --- @param parentAETHR AETHR|nil Optional parent AETHR instance for config access
 --- @return _MIZ_ZONE instance
-function AETHR._MIZ_ZONE:New( envZone, parentAETHR)
+function AETHR._MIZ_ZONE:New(envZone, parentAETHR)
     local instance = {
         name = envZone.name,
         zoneId = envZone.zoneId,
         type = envZone.type,
-        BorderOffsetThreshold =  parentAETHR and parentAETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold or AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
-        ArrowLength =  parentAETHR and parentAETHR.CONFIG.MAIN.Zone.ArrowLength or AETHR.CONFIG.MAIN.Zone.ArrowLength,
+        BorderOffsetThreshold = parentAETHR and parentAETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold or
+            AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
+        ArrowLength = parentAETHR and parentAETHR.CONFIG.MAIN.Zone.ArrowLength or AETHR.CONFIG.MAIN.Zone.ArrowLength,
         verticies = envZone.verticies, --AETHR.POLY:ensureConvex(envZone.verticies),
-        ownedBy =  parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
-        oldOwnedBy =  parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
-        shapeID =  parentAETHR and parentAETHR.ENUMS.MarkerTypes.Freeform or AETHR.ENUMS.MarkerTypes.Freeform,
+        ownedBy = parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
+        oldOwnedBy = parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
+        shapeID = parentAETHR and parentAETHR.ENUMS.MarkerTypes.Freeform or AETHR.ENUMS.MarkerTypes.Freeform,
         markerObject = {},
         readOnly = true,
         BorderingZones = {},
         Airbases = {},
         LinesVec2 = {},
-        lastMarkColorOwner =  parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
+        lastMarkColorOwner = parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
         activeDivsions = {},
         parentAETHR = parentAETHR and parentAETHR or AETHR,
     }
@@ -578,18 +579,18 @@ function AETHR._foundObject:New(OBJ)
         coalition = OBJ and OBJ:getCoalition() or nil,
         country = OBJ and OBJ:getCountry() or nil,
         desc = OBJ and OBJ:getDesc() or nil,
-        groupName = OBJ and OBJ:getGroup() and OBJ:getGroup():getName() or nil,
+        groupName = nil,
         groupUnitNames = {},
         id = OBJ and OBJ:getID() or nil,
         name = OBJ and OBJ:getName() or nil,
-        ObjectID = OBJ and OBJ:getObjectID() or nil,
-        isActive = OBJ and OBJ:isActive() or nil,
-        isAlive = OBJ and OBJ:isAlive() or nil,
-        isBroken = OBJ and OBJ:isBroken() or nil,
-        isDead = OBJ and OBJ:isDead() or nil,
-        isEffective = OBJ and OBJ:isEffective() or nil,
-        sensors = OBJ and OBJ:getSensors() or nil,
-        postition = OBJ and OBJ:getPoint() or nil,
+        ObjectID = nil,
+        isActive = nil,
+        isAlive = nil,
+        isBroken = nil,
+        isDead = nil,
+        isEffective = nil,
+        sensors = nil,
+        postition = nil,
         AETHR = {
             spawned = false,
             divisionID = nil,
@@ -597,11 +598,98 @@ function AETHR._foundObject:New(OBJ)
         },
     }
 
-    if instance.groupName then
-        local _groupUnits = OBJ:getGroup():getUnits()
-        if _groupUnits and #_groupUnits > 0 then
-            for _, unit in pairs(_groupUnits) do
-                table.insert(instance.groupUnitNames, unit:getName())
+    -- Set postition if available
+    if type(OBJ.getPoint) == "function" then
+        local _okval, _val = pcall(OBJ.getPoint, OBJ)
+        if _okval then
+            instance.postition = _val
+        end
+    end
+    -- Set getSensors if available
+    if type(OBJ.getSensors) == "function" then
+        local _okval, _val = pcall(OBJ.getSensors, OBJ)
+        if _okval then
+            instance.sensors = _val
+        end
+    end
+    -- Set isEffective if available
+    if type(OBJ.isEffective) == "function" then
+        local _okval, _val = pcall(OBJ.isEffective, OBJ)
+        if _okval then
+            instance.isEffective = _val
+        end
+    end
+
+    -- Set isDead if available
+    if type(OBJ.isDead) == "function" then
+        local _okval, _val = pcall(OBJ.isDead, OBJ)
+        if _okval then
+            instance.isDead = _val
+        end
+    end
+
+    -- Set isBroken if available
+    if type(OBJ.isBroken) == "function" then
+        local _okval, _val = pcall(OBJ.isBroken, OBJ)
+        if _okval then
+            instance.isBroken = _val
+        end
+    end
+
+    -- Set isAlive if available
+    if type(OBJ.isAlive) == "function" then
+        local _okval, _val = pcall(OBJ.isAlive, OBJ)
+        if _okval then
+            instance.isAlive = _val
+        end
+    end
+
+    -- Set isActive if available
+    if type(OBJ.isActive) == "function" then
+        local _okval, _val = pcall(OBJ.isActive, OBJ)
+        if _okval then
+            instance.isActive = _val
+        end
+    end
+
+    -- Set ObjectID if available
+    if type(OBJ.getObjectID) == "function" then
+        local _okval, _val = pcall(OBJ.getObjectID, OBJ)
+        if _okval then
+            instance.ObjectID = _val
+        end
+    end
+
+    -- Safely resolve group information (OBJ may not implement getGroup)
+    local _group = nil
+    if OBJ and type(OBJ.getGroup) == "function" then
+        local _okGroup, _result = pcall(OBJ.getGroup, OBJ)
+        if _okGroup then
+            _group = _result
+        end
+    end
+
+    if _group then
+        -- Set groupName if available
+        if type(_group.getName) == "function" then
+            local _okName, _name = pcall(_group.getName, _group)
+            if _okName then
+                instance.groupName = _name
+            end
+        end
+
+        -- Collect unit names if available
+        if type(_group.getUnits) == "function" then
+            local _okUnits, _units = pcall(_group.getUnits, _group)
+            if _okUnits and type(_units) == "table" then
+                for _, unit in pairs(_units) do
+                    if unit and type(unit.getName) == "function" then
+                        local _okUName, _uName = pcall(unit.getName, unit)
+                        if _okUName and _uName then
+                            table.insert(instance.groupUnitNames, _uName)
+                        end
+                    end
+                end
             end
         end
     end
@@ -1199,25 +1287,25 @@ end
 --- @param distFromBuildings number|integer|nil (Optional) The minimum distance from nearby buildings.
 function AETHR._spawnerZone:setGroupSpacing(groupSize, groupMinSep, groupMaxSep, unitMinSep, unitMaxSep,
                                             distFromBuildings)
-    groupMinSep                   = groupMinSep or self.seperationSettings.minGroups
-    groupMaxSep                   = groupMaxSep or self.seperationSettings.maxGroups
-    unitMinSep                    = unitMinSep or self.seperationSettings.minUnits
-    unitMaxSep                    = unitMaxSep or self.seperationSettings.maxUnits
-    distFromBuildings             = distFromBuildings or self.seperationSettings.minBuildings
+    groupMinSep                        = groupMinSep or self.seperationSettings.minGroups
+    groupMaxSep                        = groupMaxSep or self.seperationSettings.maxGroups
+    unitMinSep                         = unitMinSep or self.seperationSettings.minUnits
+    unitMaxSep                         = unitMaxSep or self.seperationSettings.maxUnits
+    distFromBuildings                  = distFromBuildings or self.seperationSettings.minBuildings
     -- Initialize the spacing settings for the given group size
-    self.groupSettings[groupSize] = {}
-    local settings                = self.groupSettings[groupSize]
-    settings.minGroups            = groupMinSep
-    settings.maxGroups            = groupMaxSep
-    settings.minUnits             = unitMinSep
-    settings.maxUnits             = unitMaxSep
-    settings.minBuildings         = distFromBuildings
-    settings.size                 = settings.size or 0
-    settings.numGroups            = settings.numGroups or 0
-    settings.generatedGroupTypes  = settings.generatedGroupTypes or {}
-    settings.generatedGroupUnitTypes = settings.generatedGroupUnitTypes or {}
+    self.groupSettings[groupSize]      = {}
+    local settings                     = self.groupSettings[groupSize]
+    settings.minGroups                 = groupMinSep
+    settings.maxGroups                 = groupMaxSep
+    settings.minUnits                  = unitMinSep
+    settings.maxUnits                  = unitMaxSep
+    settings.minBuildings              = distFromBuildings
+    settings.size                      = settings.size or 0
+    settings.numGroups                 = settings.numGroups or 0
+    settings.generatedGroupTypes       = settings.generatedGroupTypes or {}
+    settings.generatedGroupUnitTypes   = settings.generatedGroupUnitTypes or {}
     settings.generatedGroupCenterVec2s = settings.generatedGroupCenterVec2s or {}
-    settings.generatedUnitVec2s  = settings.generatedUnitVec2s or {}
+    settings.generatedUnitVec2s        = settings.generatedUnitVec2s or {}
 
 
 

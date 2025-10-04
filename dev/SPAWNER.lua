@@ -102,7 +102,7 @@ AETHR.SPAWNER.DATA = {
             maxGroups = 70,
             minUnits = 15,
             maxUnits = 30,
-            minBuildings = 35,
+            minBuildings = 50,
         },
     },
     debugMarkers = {}
