@@ -277,16 +277,31 @@ end
 --- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
 --- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
 function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHeight)
-self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
     local vol = self.POLY:createSphere(centerVec2, radius, yHeight)
     local found = {} ---@type table<number, _FoundObject>
 
     -- Callback for world.searchObjects
     local function ifFound(item)
         self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------item:getName() " .. item:getName())
-        found[item:getName()] = self.AETHR._foundObject:New(item)
+        if type(item.getName) == "function" then
+            local _okval, _val = pcall(item.getName, item)
+            if _okval then
+                found[item:getName()] = self.AETHR._foundObject:New(item)
+            else
+                self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------ERROR getting name")
+            end
+        end
     end
-    world.searchObjects(objectCategory, vol, ifFound)
+    ---------------------------------------
+    local _okval, _val = pcall(world.searchObjects, objectCategory, vol, ifFound)
+    if _okval then
+        world.searchObjects(objectCategory, vol, ifFound)
+    else
+        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------ERROR world.searchObjects")
+    end
+   -- world.searchObjects(objectCategory, vol, ifFound)
+
     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------END")
     return found
 end
