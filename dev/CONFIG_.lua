@@ -213,6 +213,7 @@ AETHR.CONFIG.MAIN = {
         },
         FILENAMES     = { -- lua filenames for data persistence.
             AETHER_CONFIG_FILE    = "AETHR_Config.lua",
+            WORLD_DIVISIONS_AABB   = "worldDivisionsAABB.lua",
             WORLD_DIVISIONS_FILE  = "worldDivisions.lua",
             USER_STORAGE_FILE     = "userStorage.lua",
             AIRBASES_FILE         = "airbases.lua",

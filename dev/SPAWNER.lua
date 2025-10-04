@@ -753,9 +753,9 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     end
 
     -- initialize per-division AABB cache (WORLD-level, shared)
-    self.WORLD._cache = self.WORLD._cache or {}
-    self.WORLD._cache.worldDivAABB = self.WORLD._cache.worldDivAABB or {}
-    local aabbCache = self.WORLD._cache.worldDivAABB
+    self.WORLD.DATA.worldDivisionsCache = self.WORLD.DATA.worldDivisionsCache or {}
+    self.WORLD.DATA.worldDivAABB = self.WORLD.DATA.worldDivAABB or {}
+    local aabbCache = self.WORLD.DATA.worldDivAABB
 
     -- configuration toggles (default: enabled unless explicitly false)
     local useAABB = (self.DATA.CONFIG.UseDivisionAABBReject ~= false)

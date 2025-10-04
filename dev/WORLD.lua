@@ -37,9 +37,11 @@ AETHR.WORLD = {} ---@diagnostic disable-line
 --- @field spawnerTemplateDB table<string, table>                Cached spawn template groups keyed by template name
 --- @field spawnerAttributesDB table<string, table<string, table>> Attributes -> (typeName -> unitDesc)
 --- @field spawnerUnitInfoCache table<string, table>             Cached unit descriptor keyed by typeName
+--- @field worldDivAABB table<number, table>                     Cached division AABB keyed by division ID
 AETHR.WORLD.DATA = {
     AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
     worldDivisions         = {}, -- Grid division definitions keyed by ID.
+    worldDivAABB           = {}, -- Division AABB data keyed by ID.
     saveDivisions          = {}, -- Active divisions keyed by ID.
     divisionSceneryObjects = {}, -- Loaded scenery per division.
     divisionStaticObjects  = {}, -- Loaded statics per division.
@@ -275,7 +277,7 @@ end
 --- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
 --- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
 function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHeight)
-    local vol = self.POLY:createSphere( centerVec2, radius, yHeight )
+    local vol = self.POLY:createSphere(centerVec2, radius, yHeight)
     local found = {} ---@type table<number, _FoundObject>
 
     -- Callback for world.searchObjects
@@ -386,19 +388,18 @@ function AETHR.WORLD:spawnGroundGroups()
 
     for _, name in ipairs(self.SPAWNER.DATA.spawnQueue) do
         self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | " .. name)
-            
-            Group.activate(Group.getByName(name))
-            self.SPAWNER.DATA.spawnQueue[_] = nil
 
-            if co_.thread then
-                co_.yieldCounter = co_.yieldCounter + 1
-                if co_.yieldCounter >= co_.yieldThreshold then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
-                    coroutine.yield()
-                end
+        Group.activate(Group.getByName(name))
+        self.SPAWNER.DATA.spawnQueue[_] = nil
+
+        if co_.thread then
+            co_.yieldCounter = co_.yieldCounter + 1
+            if co_.yieldCounter >= co_.yieldThreshold then
+                co_.yieldCounter = 0
+                self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
+                coroutine.yield()
             end
-       
+        end
     end
     return self
 end
@@ -412,19 +413,18 @@ function AETHR.WORLD:despawnGroundGroups()
 
     for _, name in ipairs(self.SPAWNER.DATA.despawnQueue) do
         self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | " .. name)
-            
-            trigger.action.deactivateGroup(Group.getByName(name))
-            self.SPAWNER.DATA.despawnQueue[_] = nil
 
-            if co_.thread then
-                co_.yieldCounter = co_.yieldCounter + 1
-                if co_.yieldCounter >= co_.yieldThreshold then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups --> YIELD")
-                    coroutine.yield()
-                end
+        trigger.action.deactivateGroup(Group.getByName(name))
+        self.SPAWNER.DATA.despawnQueue[_] = nil
+
+        if co_.thread then
+            co_.yieldCounter = co_.yieldCounter + 1
+            if co_.yieldCounter >= co_.yieldThreshold then
+                co_.yieldCounter = 0
+                self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups --> YIELD")
+                coroutine.yield()
             end
-       
+        end
     end
     return self
 end
@@ -830,10 +830,35 @@ end
 --- Saves world division definitions to config storage.
 --- @return nil
 function AETHR.WORLD:saveWorldDivisions()
+    --- Divs
     self.FILEOPS:saveData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
         self.DATA.worldDivisions
+    )
+end
+
+--- Loads world division AABB from config if present.
+--- @return table<number, _WorldDivision>|nil data
+function AETHR.WORLD:loadWorldDivisionsAABB()
+    local data = self.FILEOPS:loadData(
+        self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_AABB
+    )
+    if data then
+        return data
+    end
+    return nil
+end
+
+--- Saves world division AABB to config storage.
+--- @return nil
+function AETHR.WORLD:saveWorldDivisionsAABB()
+    ---AABB
+    self.FILEOPS:saveData(
+        self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_AABB,
+        self.DATA.worldDivAABB
     )
 end
 
@@ -861,27 +886,35 @@ end
 --- @return AETHR.WORLD self
 function AETHR.WORLD:initWorldDivisions()
     -- Attempt to read existing config from file.
-    local data = self:loadWorldDivisions()
-    if data then
-        self.DATA.worldDivisions = data
+    local divData = self:loadWorldDivisions()
+    if divData then
+        self.DATA.worldDivisions = divData
     else
         self:generateWorldDivisions()
         -- Persist defaults to disk.
         self:saveWorldDivisions()
     end
+    -- Attempt to load precomputed AABB data
+    local aabbData = self:loadWorldDivisionsAABB()
+    if aabbData then
+        self.DATA.worldDivAABB = aabbData
+    else
+        -- Precompute static AABBs for all world divisions (used by SPAWNER placement fast paths)
+        self:buildWorldDivAABBCache()
+        self:saveWorldDivisionsAABB()
+    end
 
-    -- Precompute static AABBs for all world divisions (used by SPAWNER placement fast paths)
-    self:buildWorldDivAABBCache()
+
 
     return self
 end
 
 --- Precompute and cache axis-aligned bounding boxes for all world divisions.
---- Stored in self._cache.worldDivAABB[divID] = { minX, maxX, minZ, maxZ }
+--- Stored in self.DATA.worldDivAABB[divID] = { minX, maxX, minZ, maxZ }
 --- Called once from initWorldDivisions; divisions are static across the mission.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:buildWorldDivAABBCache()
-    self._cache = self._cache or {}
+    self.DATA.worldDivAABB = self.DATA.worldDivAABB or {}
     local cache = {}
     local divs = self.DATA.worldDivisions or {}
 
@@ -899,7 +932,7 @@ function AETHR.WORLD:buildWorldDivAABBCache()
         end
     end
 
-    self._cache.worldDivAABB = cache
+    self.DATA.worldDivAABB = cache
     return self
 end
 
@@ -1124,4 +1157,3 @@ function AETHR.WORLD:initStaticInDivisions()
         "divisionStaticObjects"
     )
 end
-
