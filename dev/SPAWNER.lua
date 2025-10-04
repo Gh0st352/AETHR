@@ -79,6 +79,14 @@ AETHR.SPAWNER.DATA = {
         UseDivisionAABBFullInclude = true,
         operationLimit = 50,
         Benchmark = true,
+        -- Optional polygon NOGO checks (default: disabled for performance)
+        UseRestrictedZonePolys = false,
+        -- Deterministic pipeline controls
+        Deterministic = {
+            Enabled = false,   -- When true, generation runs inside a seeded RNG scope if a seed is provided on the spawner
+            Warmup = 2,        -- Number of math.random() warmups after seeding
+            ReseedAfter = true -- When true, RNG is scrambled after deterministic section to restore unpredictability
+        },
         NoGoSurfaces = {
             AETHR.ENUMS.SurfaceType.WATER,
             AETHR.ENUMS.SurfaceType.RUNWAY,
@@ -332,60 +340,77 @@ end
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:generateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                               nudgeFactorRadius, countryID)
-    if self.DATA.CONFIG.Benchmark then
-        self.UTILS:debugInfo(
-            "BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " ..
-            dynamicSpawner.name)
-        self.DATA.BenchmarkLog.generateDynamicSpawner = { Time = {}, }
-        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start = os.clock()
+    local function runPipeline()
+        if self.DATA.CONFIG.Benchmark then
+            self.UTILS:debugInfo(
+                "BENCHMARK - - - AETHR.SPAWNER:generateDynamicSpawner started for --------------------------------------- : " ..
+                dynamicSpawner.name)
+            self.DATA.BenchmarkLog.generateDynamicSpawner = { Time = {}, }
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start = os.clock()
+        end
+
+        dynamicSpawner.minRadius = minRadius or dynamicSpawner.minRadius
+        dynamicSpawner.nominalRadius = nominalRadius or dynamicSpawner.nominalRadius
+        dynamicSpawner.maxRadius = maxRadius or dynamicSpawner.maxRadius
+        dynamicSpawner.nudgeFactorRadius = nudgeFactorRadius or dynamicSpawner.nudgeFactorRadius
+        dynamicSpawner.vec2 = vec2
+        if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
+            self:pairSpawnerActiveZones(dynamicSpawner)
+        else
+            self:pairSpawnerWorldDivisions(dynamicSpawner)
+        end
+        self:generateSpawnerZones(dynamicSpawner)
+        self:weightZones(dynamicSpawner)
+        self:generateSpawnAmounts(dynamicSpawner)
+        self:rollSpawnGroupSizes(dynamicSpawner)
+
+        self:generateSpawnerGroups(dynamicSpawner)
+        self:buildSpawnGroups(dynamicSpawner, countryID)
+
+        if self.DATA.CONFIG.Benchmark then
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
+            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
+                self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop -
+                self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
+            local gen_ = 0
+            self.UTILS:debugInfo("BENCHMARK - D - AETHR.SPAWNER:generateDynamicSpawner ------------- completed in : " ..
+                tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
+            self.UTILS:debugInfo("BENCHMARK - D -           Spawn Area Radius (m) : " ..
+                tostring(dynamicSpawner.zones.main.actualRadius))
+            self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
+            self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " ..
+                tostring(dynamicSpawner.averageDistribution))
+            for type, typeVal in pairs(dynamicSpawner.spawnTypes) do
+                self.UTILS:debugInfo("BENCHMARK - D -                # Spawn Type     : " ..
+                    tostring(type) .. ": " .. tostring(typeVal.actual))
+                gen_ = gen_ + typeVal.actual
+            end
+            self.UTILS:debugInfo("BENCHMARK - D -           Generated Units       : " ..
+                tostring(gen_))
+
+            for type, typeVal in pairs(dynamicSpawner.extraTypes) do
+                self.UTILS:debugInfo("BENCHMARK - D -      # Extra Type Per Group     : " ..
+                    tostring(type) .. ": " .. tostring(typeVal.min))
+            end
+
+            --self.UTILS:debugInfo("BENCHMARK - - - Generated Units: " .. tostring(dynamicSpawner._confirmedTotal))
+        end
     end
 
-    dynamicSpawner.minRadius = minRadius or dynamicSpawner.minRadius
-    dynamicSpawner.nominalRadius = nominalRadius or dynamicSpawner.nominalRadius
-    dynamicSpawner.maxRadius = maxRadius or dynamicSpawner.maxRadius
-    dynamicSpawner.nudgeFactorRadius = nudgeFactorRadius or dynamicSpawner.nudgeFactorRadius
-    dynamicSpawner.vec2 = vec2
-    if self.UTILS.sumTable(self.ZONE_MANAGER.DATA.MIZ_ZONES) > 0 then
-        self:pairSpawnerActiveZones(dynamicSpawner)
+    -- Deterministic wrapper (optional)
+    local detConfig = self.DATA.CONFIG.Deterministic or {}
+    local enabledDefault = detConfig.Enabled == true
+    local detEnabled = (dynamicSpawner.deterministicEnabled ~= nil) and dynamicSpawner.deterministicEnabled or enabledDefault
+    local detSeed = dynamicSpawner.deterministicSeed
+
+    if detEnabled and detSeed then
+        local warm = detConfig.Warmup or 2
+        local reseedAfter = (detConfig.ReseedAfter ~= false)
+        self.UTILS:withSeed(detSeed, runPipeline, warm, reseedAfter)
     else
-        self:pairSpawnerWorldDivisions(dynamicSpawner)
+        runPipeline()
     end
-    self:generateSpawnerZones(dynamicSpawner)
-    self:weightZones(dynamicSpawner)
-    self:generateSpawnAmounts(dynamicSpawner)
-    self:rollSpawnGroupSizes(dynamicSpawner)
 
-    self:generateSpawnerGroups(dynamicSpawner)
-    self:buildSpawnGroups(dynamicSpawner, countryID)
-
-    if self.DATA.CONFIG.Benchmark then
-        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop = os.clock()
-        self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total =
-            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.stop -
-            self.DATA.BenchmarkLog.generateDynamicSpawner.Time.start
-        local gen_ = 0
-        self.UTILS:debugInfo("BENCHMARK - D - AETHR.SPAWNER:generateDynamicSpawner ------------- completed in : " ..
-            tostring(self.DATA.BenchmarkLog.generateDynamicSpawner.Time.total) .. " seconds.")
-        self.UTILS:debugInfo("BENCHMARK - D -           Spawn Area Radius (m) : " ..
-            tostring(dynamicSpawner.zones.main.actualRadius))
-        self.UTILS:debugInfo("BENCHMARK - D -          Number Spawn Zones     : " .. tostring(dynamicSpawner.numSubZones))
-        self.UTILS:debugInfo("BENCHMARK - D - Avg Spawn Zone Unit Distrib     : " ..
-            tostring(dynamicSpawner.averageDistribution))
-        for type, typeVal in pairs(dynamicSpawner.spawnTypes) do
-            self.UTILS:debugInfo("BENCHMARK - D -                # Spawn Type     : " ..
-                tostring(type) .. ": " .. tostring(typeVal.actual))
-            gen_ = gen_ + typeVal.actual
-        end
-        self.UTILS:debugInfo("BENCHMARK - D -           Generated Units       : " ..
-            tostring(gen_))
-
-        for type, typeVal in pairs(dynamicSpawner.extraTypes) do
-            self.UTILS:debugInfo("BENCHMARK - D -      # Extra Type Per Group     : " ..
-                tostring(type) .. ": " .. tostring(typeVal.min))
-        end
-
-        --self.UTILS:debugInfo("BENCHMARK - - - Generated Units: " .. tostring(dynamicSpawner._confirmedTotal))
-    end
     return self
 end
 
@@ -603,9 +628,10 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
     local staticObjectsDB = self.WORLD.DATA.divisionStaticObjects   -- Loaded statics per division.
     local baseObjectsDB = self.WORLD.DATA.divisionBaseObjects       -- Loaded Base per division.
 
-    -- initialize per-division AABB cache
-    dynamicSpawner._cache.worldDivAABB = {} --dynamicSpawner._cache.worldDivAABB or {}
-    local aabbCache = dynamicSpawner._cache.worldDivAABB
+    -- initialize per-division AABB cache (WORLD-level, shared)
+    self.WORLD._cache = self.WORLD._cache or {}
+    self.WORLD._cache.worldDivAABB = self.WORLD._cache.worldDivAABB or {}
+    local aabbCache = self.WORLD._cache.worldDivAABB
 
     -- configuration toggles (default: enabled unless explicitly false)
     local useAABB = (self.DATA.CONFIG.UseDivisionAABBReject ~= false)
@@ -847,6 +873,8 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         local sceneryObjects = subZone.zoneDivSceneryObjects or {}
         local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
             subZoneRadius) or {}
+        -- cache per-subzone for reuse in unit position placement
+        subZone._nearbyUnits = freshScannedUnits
 
         -- Compute a sensible cell size from group settings for this subZone
         local cellSize = 1
@@ -921,24 +949,30 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
 
                     -- Fast proximity checks using grids (squared distances)
                     local reject = false
+                    local relaxMax = 0.3
+                    local relax = math.min(relaxMax, (glassBreak / operationLimit) * relaxMax)
+                    local _mg = minGroups * (1 - relax)
+                    local _mb = minBuildings * (1 - relax)
+                    local mg2eff = _mg * _mg
+                    local mb2eff = _mb * _mb
 
                     -- Check against already accepted centers
                     if next(centersGrid) ~= nil then
-                        if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
+                        if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                             reject = true
                         end
                     end
 
                     -- Check against nearby units/groups
                     if not reject and next(groupsGrid) ~= nil then
-                        if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
+                        if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                             reject = true
                         end
                     end
 
                     -- Check against nearby structures
                     if not reject and next(structuresGrid) ~= nil then
-                        if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2, neighborRangeBuildings) then
+                        if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2eff, neighborRangeBuildings) then
                             reject = true
                         end
                     end
@@ -1064,7 +1098,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         local baseObjects = subZone.zoneDivBaseObjects or {}
         local staticObjects = subZone.zoneDivStaticObjects or {}
         local sceneryObjects = subZone.zoneDivSceneryObjects or {}
-        local freshScannedUnits = self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
+        local freshScannedUnits = subZone._nearbyUnits or self.WORLD:searchObjectsSphere(self.ENUMS.ObjectCategory.UNIT, subZoneCenter,
             subZoneRadius) or {}
 
         -- Compute a sensible cell size from group settings for this subZone
@@ -1148,24 +1182,30 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
 
                         -- Fast proximity checks using grids (squared distances)
                         local reject = false
+                        local relaxMax = 0.3
+                        local relax = math.min(relaxMax, (glassBreak / operationLimit) * relaxMax)
+                        local _mu = minUnits * (1 - relax)
+                        local _mbu = minBuildings * (1 - relax)
+                        local mg2eff = _mu * _mu
+                        local mb2eff = _mbu * _mbu
 
                         -- Check against already accepted centers
                         if next(centersGrid) ~= nil then
-                            if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
+                            if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                                 reject = true
                             end
                         end
 
                         -- Check against nearby units/groups
                         if not reject and next(groupsGrid) ~= nil then
-                            if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2, neighborRangeGroups) then
+                            if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                                 reject = true
                             end
                         end
 
                         -- Check against nearby structures
                         if not reject and next(structuresGrid) ~= nil then
-                            if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2, neighborRangeBuildings) then
+                            if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2eff, neighborRangeBuildings) then
                                 reject = true
                             end
                         end
@@ -1239,57 +1279,66 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     local extraTypes = dynamicSpawner.extraTypes
     ---@param zoneObject _spawnerZone
     for _, zoneObject in ipairs(subZones) do
-        -- Loop through each group setting.
+        -- Iterate group sizes in priority order; fall back to sorted keys when missing.
+        local order = zoneObject.groupSizesPrio or {}
+        if not order or #order == 0 then
+            order = {}
+            for k, _ in pairs(zoneObject.groupSettings or {}) do table.insert(order, k) end
+            table.sort(order, function(a,b) return (a or 0) < (b or 0) end)
+        end
+
         ---@param groupSizeConfig _spawnerTypeConfig
-        for groupSize, groupSizeConfig in ipairs(zoneObject.groupSettings) do
-            local _groupTypes = {}
-            local _specificGroupTypes = {}
-            -- Loop for the number of groups specified in the current setting.
-            for _ = 1, groupSizeConfig.numGroups do
-                -- List to store types for this group.
-                local _UnitTypes = {}
-                local _specificUnitTypes = {}
-                -- Loop for the size of the group + extra units.
-                for _Unit = 1, groupSizeConfig.size do
-                    local typeToAdd -- Variable to store the type to add for this iteration.
-                    local _TypeK
+        for _, size in ipairs(order) do
+            local groupSizeConfig = zoneObject.groupSettings and zoneObject.groupSettings[size]
+            if groupSizeConfig then
+                local _groupTypes = {}
+                local _specificGroupTypes = {}
+                -- Loop for the number of groups specified in the current setting.
+                for _ = 1, groupSizeConfig.numGroups do
+                    -- List to store types for this group.
+                    local _UnitTypes = {}
+                    local _specificUnitTypes = {}
+                    -- Loop for the size of the group + extra units.
+                    for _Unit = 1, groupSizeConfig.size do
+                        local typeToAdd -- Variable to store the type to add for this iteration.
+                        local _TypeK
 
-                    -- -- Pick a random type.
-                    if self.UTILS.sumTable(typesPool) > 0 then
-                        _TypeK = self.UTILS:pickRandomKeyFromTable(typesPool)
-                    else
-                        _TypeK = self.UTILS:pickRandomKeyFromTable(nonLimitedTypesPool)
+                        -- Pick a random type.
+                        if self.UTILS.sumTable(typesPool) > 0 then
+                            _TypeK = self.UTILS:pickRandomKeyFromTable(typesPool)
+                        else
+                            _TypeK = self.UTILS:pickRandomKeyFromTable(nonLimitedTypesPool)
+                        end
+
+                        local randType = spawnTypes[_TypeK]
+                        -- Increment the number used count for this type.
+                        randType.actual = randType.actual + 1
+
+                        if (randType.actual >= randType.max) then
+                            typesPool[_TypeK] = nil
+                        end
+                        typeToAdd = _TypeK
+                        -- Add the selected type to the group types list, all types list, and the main AllTypes list.
+                        table.insert(_UnitTypes, typeToAdd)
+                        table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(spawnTypes[typeToAdd].typesDB))
                     end
 
-                    local randType = spawnTypes[_TypeK]
-                    -- Increment the number used count for this type.
-                    randType.actual = randType.actual + 1
-
-                    if (randType.actual >= randType.max) then
-                        typesPool[_TypeK] = nil
+                    for extraType, extraTypeInfo in pairs(extraTypes) do
+                        for _i = 1, extraTypeInfo.min, 1 do
+                            table.insert(_UnitTypes, extraType)
+                            table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB))
+                        end
                     end
-                    typeToAdd = _TypeK
-                    -- Add the selected type to the group types list, all types list, and the main AllTypes list.
-                    table.insert(_UnitTypes, typeToAdd)
-                    table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(spawnTypes[typeToAdd].typesDB))
-                end
-
-                for extraType, extraTypeInfo in pairs(extraTypes) do
-                    for _i = 1, extraTypeInfo.min, 1 do
-                        --local _TypeK = self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB)
-                        table.insert(_UnitTypes, extraType)
-                        table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB))
+                    if _UnitTypes and #_UnitTypes > 0 then
+                        table.insert(_groupTypes, _UnitTypes)
+                        table.insert(_specificGroupTypes, _specificUnitTypes)
                     end
                 end
-                if _UnitTypes and #_UnitTypes > 0 then
-                    table.insert(_groupTypes, _UnitTypes)
-                    table.insert(_specificGroupTypes, _specificUnitTypes)
+                -- Add the group types list to the main group list for this iteration.
+                if _groupTypes and #_groupTypes > 0 then
+                    groupSizeConfig.generatedGroupTypes = _groupTypes
+                    groupSizeConfig.generatedGroupUnitTypes = _specificGroupTypes
                 end
-            end
-            -- Add the group types list to the main group list for this iteration.
-            if _groupTypes and #_groupTypes > 0 then
-                groupSizeConfig.generatedGroupTypes = _groupTypes --[#groupSizeConfig.generatedGroupTypes + 1]
-                groupSizeConfig.generatedGroupUnitTypes = _specificGroupTypes
             end
         end
     end
@@ -1558,11 +1607,33 @@ end
 function AETHR.SPAWNER:checkIsInNOGO(vec2, restrictedZones)
     local isNOGO = false
     if self:vec2AtNoGoSurface(vec2) then isNOGO = true end
-    -- if not isNOGO then
-    --     if self:Vec2inZones(vec2, restrictedZones) then
-    --         isNOGO = true
-    --     end
-    -- end
+
+    if not isNOGO and (self.DATA.CONFIG.UseRestrictedZonePolys == true) and type(restrictedZones) == "table" then
+        local p = self.POLY:normalizePoint(vec2)
+        for _, zone in pairs(restrictedZones) do
+            local verts = (type(zone) == "table" and (zone.verticies or zone.vertices or zone)) or nil
+            if type(verts) == "table" and #verts >= 3 then
+                -- AABB prefilter
+                local minx, maxx = math.huge, -math.huge
+                local miny, maxy = math.huge, -math.huge
+                for i = 1, #verts do
+                    local vx = verts[i].x or 0
+                    local vy = verts[i].y or verts[i].z or 0
+                    if vx < minx then minx = vx end
+                    if vx > maxx then maxx = vx end
+                    if vy < miny then miny = vy end
+                    if vy > maxy then maxy = vy end
+                end
+                if p.x >= minx and p.x <= maxx and p.y >= miny and p.y <= maxy then
+                    if self.POLY:pointInPolygon(p, verts) then
+                        isNOGO = true
+                        break
+                    end
+                end
+            end
+        end
+    end
+
     return isNOGO
 end
 

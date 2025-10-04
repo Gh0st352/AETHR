@@ -188,3 +188,48 @@ function AETHR.UTILS:Shuffle(t)
   end
   return s
 end
+
+--- Run a function within a deterministic RNG scope and optionally reseed afterward.
+---
+--- Notes:
+--- - Lua 5.1 does not support saving/restoring RNG state, so this reseeds the global RNG.
+--- - When reseedAfter is true, RNG is scrambled with a best-effort non-deterministic seed post-run.
+--- - Warmup performs extra calls to math.random() to avoid low-entropy initial outputs.
+--- @function AETHR.UTILS:withSeed
+--- @param seed number Non-negative numeric seed.
+--- @param fn function Callback to execute inside the deterministic scope.
+--- @param warmup integer|nil Number of warmup calls to math.random() (default: 2).
+--- @param reseedAfter boolean|nil When true, reseeds RNG with a mixed seed after fn (default: true).
+--- @return any Returns fn(...) results or re-raises error thrown by fn.
+function AETHR.UTILS:withSeed(seed, fn, warmup, reseedAfter)
+  -- Guard inputs
+  if type(fn) ~= "function" then return nil end
+  local s = tonumber(seed) or 0
+  if s < 0 then s = -s end
+
+  -- Seed and warmup
+  math.randomseed(s)
+  local w = tonumber(warmup) or 2
+  if w < 0 then w = 0 end
+  for i = 1, w do math.random() end
+
+  -- Execute protected
+  local ok, res1, res2, res3, res4 = pcall(fn)
+
+  -- Optional scramble/restore-ish RNG
+  if reseedAfter == nil or reseedAfter == true then
+    self._cache = self._cache or {}
+    self._cache._rng_nonce = (self._cache._rng_nonce or 0) + 1
+    local tAbs = (type(timer) == "table" and type(timer.getAbsTime) == "function") and (timer.getAbsTime() or 0) or 0
+    local tNow = (type(timer) == "table" and type(timer.getTime) == "function") and (timer.getTime() or 0) or 0
+    local mem  = (type(collectgarbage) == "function") and (collectgarbage("count") or 0) or 0
+    local clk  = (type(os) == "table" and type(os.clock) == "function") and (os.clock() or 0) or 0
+    local mix  = math.floor((tAbs * 1e6) + (tNow * 1e3) + (mem * 10) + (clk * 1e5) + self._cache._rng_nonce)
+    math.randomseed(mix)
+    -- Stir a bit
+    for i = 1, 3 do math.random() end
+  end
+
+  if not ok then error(res1) end
+  return res1, res2, res3, res4
+end
