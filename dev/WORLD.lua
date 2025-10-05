@@ -123,16 +123,28 @@ function AETHR.WORLD:saveMizFileCache()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER
 
     local saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.MIZ_CACHE_DB
-    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.mizCacheDB)
+    local ok1 = self.FILEOPS:saveData(mapPath, saveFile, self.DATA.mizCacheDB)
+    if not ok1 and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveMizFileCache failed saving " .. tostring(saveFile))
+    end
 
     saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_TEMPLATE_DB
-    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerTemplateDB)
+    local ok2 = self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerTemplateDB)
+    if not ok2 and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveMizFileCache failed saving " .. tostring(saveFile))
+    end
 
     saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_ATTRIBUTE_DB
-    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerAttributesDB)
+    local ok3 = self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerAttributesDB)
+    if not ok3 and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveMizFileCache failed saving " .. tostring(saveFile))
+    end
 
     saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_UNIT_CACHE_DB
-    self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerUnitInfoCache)
+    local ok4 = self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerUnitInfoCache)
+    if not ok4 and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveMizFileCache failed saving " .. tostring(saveFile))
+    end
 end
 
 --- Scans env.mission structure to build caches of groups and unit descriptors for spawner usage.
@@ -155,15 +167,18 @@ function AETHR.WORLD:generateMizFileCache()
             for k, v in pairs(countryObj) do
                 if k ~= "id" and k ~= "name" then
                     local typeKey = k -- "plane", "vehicle", "static", "ship", "helicopter"
-                    for __, groupObj in ipairs(v.group) do
-                        -- Attach metadata used by spawner logic
-                        groupObj.AETHR = {
-                            coalition = _coal,
-                            countryID = _countryID,
-                            countryName = _countryName,
-                            typeKey = typeKey,
-                        }
-                        mizCache[groupObj.name] = groupObj
+                    local groups = (type(v) == "table") and v.group or nil
+                    if type(groups) == "table" then
+                        for __, groupObj in ipairs(groups) do
+                            -- Attach metadata used by spawner logic
+                            groupObj.AETHR = {
+                                coalition   = _coal,
+                                countryID   = _countryID,
+                                countryName = _countryName,
+                                typeKey     = typeKey,
+                            }
+                            mizCache[groupObj.name] = groupObj
+                        end
                     end
                 end
             end
@@ -171,7 +186,7 @@ function AETHR.WORLD:generateMizFileCache()
     end
     local searchString = self.AETHR.CONFIG.MAIN.spawnTemplateSearchString
     for groupName, groupObj in pairs(mizCache) do
-        if string.find(groupName, searchString) then
+        if searchString and searchString ~= "" and string.find(groupName, searchString, 1, true) then
             self.DATA.spawnerTemplateDB[groupName] = groupObj
         end
     end
@@ -181,22 +196,28 @@ function AETHR.WORLD:generateMizFileCache()
     local spawnerAttributesDB = self.DATA.spawnerAttributesDB
     for groupName, groupObj in pairs(spawnerTemplateDB) do
         local _gObj = Group.getByName(groupName)
-        local _gUnits = _gObj and _gObj:getUnits() or nil
+        local _gUnits = nil
+        if _gObj and type(_gObj.getUnits) == "function" then
+            local ok, units = pcall(_gObj.getUnits, _gObj)
+            if ok then _gUnits = units end
+        end
         if _gUnits and #_gUnits >= 1 then
             for _, unitObj in ipairs(_gUnits) do
                 local descUnit = unitObj:getDesc()
-
-                local descUnit = unitObj:getDesc()
-                local typeName = descUnit.typeName
-                if not spawnerUnitInfoCache[typeName] then
-                    spawnerUnitInfoCache[typeName] = descUnit
-                end
-
-                for attrib, attBool in pairs(descUnit.attributes) do
-                    if not spawnerAttributesDB[attrib] then spawnerAttributesDB[attrib] = {} end
-                    if not spawnerAttributesDB[attrib][typeName] then
-                        spawnerAttributesDB[attrib][typeName] = {}
-                        spawnerAttributesDB[attrib][typeName] = descUnit
+                if descUnit then
+                    local typeName = descUnit.typeName
+                    if typeName and not spawnerUnitInfoCache[typeName] then
+                        spawnerUnitInfoCache[typeName] = descUnit
+                    end
+                    if descUnit.attributes and type(typeName) == "string" then
+                        for attrib, _ in pairs(descUnit.attributes) do
+                            if attrib then
+                                spawnerAttributesDB[attrib] = spawnerAttributesDB[attrib] or {}
+                                if not spawnerAttributesDB[attrib][typeName] then
+                                    spawnerAttributesDB[attrib][typeName] = descUnit
+                                end
+                            end
+                        end
                     end
                 end
             end
@@ -229,14 +250,17 @@ function AETHR.WORLD:markWorldDivisions()
 
         -- if div.active then
         -- Draw polygon on map
+        local borderR = math.min(1, r + 0.2)
+        local borderG = math.min(1, g + 0.4)
+        local borderB = math.min(1, b + 0.8)
         trigger.action.markupToAll(
             shapeTypeID, coalition, shapeID,
             vec3_1,
             vec3_2,
             vec3_3,
             vec3_4,
-            { r, g, b, alpha1 },                   -- Fill color
-            { r + 0.2, g + 0.4, b + 0.8, alpha2 }, -- Border color
+            { r, g, b, alpha1 },                     -- Fill color
+            { borderR, borderG, borderB, alpha2 },   -- Border color (clamped)
             linetype, true
         )
         shapeID = shapeID + 1 -- Increment marker ID
@@ -255,54 +279,90 @@ end
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
 --- @param corners _vec2xz[] Array of base corner points (x,z) used to compute the box
 --- @param height number Height of the search volume in meters
---- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
+--- @return table<string|number, _FoundObject> found Found objects keyed by unit name when available, otherwise numeric engine ID or tostring fallback
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
     local vol = self.POLY:createBox(box.min, box.max)
     local found = {} ---@type table<number, _FoundObject>
 
-    -- Callback for world.searchObjects
-    local function ifFound(item)
-        found[item:getName()] = self.AETHR._foundObject:New(item)
+    -- Derive a stable key (prefer name, then ID, then engine id_, then tostring)
+    local function safeKey(item)
+        local key
+        if type(item.getName) == "function" then
+            local ok, val = pcall(item.getName, item)
+            if ok and val and val ~= "" then key = val end
+        end
+        if not key and type(item.getID) == "function" then
+            local ok, val = pcall(item.getID, item)
+            if ok and val then key = val end
+        end
+        if not key and item and item.id_ then key = item.id_ end
+        if not key then key = tostring(item) end
+        return key
     end
 
-    world.searchObjects(objectCategory, vol, ifFound)
+    -- Callback for world.searchObjects
+    local function ifFound(item)
+        local key = safeKey(item)
+        found[key] = self.AETHR._foundObject:New(item)
+    end
+
+    local ok, err = pcall(world.searchObjects, objectCategory, vol, ifFound)
+    if not ok then
+        if self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED and self.UTILS and self.UTILS.debugInfo then
+            self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox world.searchObjects error: " .. tostring(err))
+        end
+    end
     return found
 end
 
---- Searches for objects of a given category within a 3D box volume.
+--- Searches for objects of a given category within a sphere volume.
 --- @param centerVec2 _vec2|_vec2xz Center point of the sphere ({x,y} or {x,z}).
 --- @param radius number Sphere radius (> 0).
 --- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
---- @return table<number, _FoundObject> found Found objects keyed by object name (or id when present)
+--- @return table<string|number, _FoundObject> found Found objects keyed by unit name when available, otherwise numeric engine ID or tostring fallback
 function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHeight)
-    self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
+    local dbg = self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED
+    if dbg and self.UTILS and self.UTILS.debugInfo then
+        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
+    end
     local vol = self.POLY:createSphere(centerVec2, radius, yHeight)
     local found = {} ---@type table<number, _FoundObject>
 
+    -- Derive a stable key (prefer name, then ID, then engine id_, then tostring)
+    local function safeKey(item)
+        local key
+        if type(item.getName) == "function" then
+            local ok, val = pcall(item.getName, item)
+            if ok and val and val ~= "" then key = val end
+        end
+        if not key and type(item.getID) == "function" then
+            local ok, val = pcall(item.getID, item)
+            if ok and val then key = val end
+        end
+        if not key and item and item.id_ then key = item.id_ end
+        if not key then key = tostring(item) end
+        return key
+    end
+
     -- Callback for world.searchObjects
     local function ifFound(item)
-        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------item:getName() " .. item:getName())
-        if type(item.getName) == "function" then
-            local _okval, _val = pcall(item.getName, item)
-            if _okval then
-                found[item:getName()] = self.AETHR._foundObject:New(item)
-            else
-                self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------ERROR getting name")
-            end
+        local key = safeKey(item)
+        found[key] = self.AETHR._foundObject:New(item)
+        if dbg and self.UTILS and self.UTILS.debugInfo then
+            self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere found -> " .. tostring(key))
         end
     end
-    ---------------------------------------
-    local _okval, _val = pcall(world.searchObjects, objectCategory, vol, ifFound)
-    if _okval then
-        world.searchObjects(objectCategory, vol, ifFound)
-    else
-        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------ERROR world.searchObjects")
-    end
-   -- world.searchObjects(objectCategory, vol, ifFound)
 
-    self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------END")
+    local ok, err = pcall(world.searchObjects, objectCategory, vol, ifFound)
+    if not ok and dbg and self.UTILS and self.UTILS.debugInfo then
+        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ERROR world.searchObjects: " .. tostring(err))
+    end
+
+    if dbg and self.UTILS and self.UTILS.debugInfo then
+        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------END")
+    end
     return found
 end
 
@@ -314,6 +374,7 @@ function AETHR.WORLD:getAirbases()
     for _, ab in ipairs(bases) do
         local desc = ab:getDesc()
         local pos = ab:getPosition().p
+        local coalitionNow = ab:getCoalition()
         local data = {
             id = ab:getID(),
             id_ = ab.id_,
@@ -352,11 +413,11 @@ function AETHR.WORLD:getAirbases()
             data.id, data.id_, data.coordinates,
             data.description, data.zoneName, data.zoneObject,
             desc.displayName, desc.category,
-            desc.categoryText, data.coalition, ---@diagnostic disable-line
-            desc.coalition -- previousCoalition
+            data.categoryText, coalitionNow,            -- currentCoalition
+            coalitionNow                                -- previousCoalition (initially same)
         )
 
-        if self.UTILS.sumTable(data.zoneObject) >= 1 then
+        if self.UTILS.sumTable(data.zoneObject) >= 1 and data.zoneObject.Airbases then
             data.zoneObject.Airbases[desc.displayName] = _airbase
         end
         self.DATA.AIRBASES[desc.displayName] = _airbase
@@ -376,14 +437,18 @@ function AETHR.WORLD:updateAirbaseOwnership()
     for zName, zObj in pairs(_zones) do
         for abName, abObj in pairs(zObj.Airbases) do
             local updatedABObj = Airbase.getByName(abName)
-            local updatedABObjCoalition = updatedABObj:getCoalition()
+            local updatedABObjCoalition = nil
+            if updatedABObj and type(updatedABObj.getCoalition) == "function" then
+                local ok, coal = pcall(updatedABObj.getCoalition, updatedABObj)
+                if ok then updatedABObjCoalition = coal end
+            end
 
-            if abObj.coalition ~= updatedABObjCoalition then
+            if updatedABObjCoalition and abObj.coalition ~= updatedABObjCoalition then
                 abObj.previousCoalition = abObj.coalition
                 abObj.coalition = updatedABObjCoalition
             end
 
-            if co_.thread then
+            if co_ and co_.thread then
                 co_.yieldCounter = co_.yieldCounter + 1
                 if co_.yieldCounter >= co_.yieldThreshold then
                     co_.yieldCounter = 0
@@ -403,23 +468,43 @@ function AETHR.WORLD:spawnGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups -------------")
     local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
 
-    for _, name in ipairs(self.SPAWNER.DATA.spawnQueue) do
-        self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | " .. name)
-        local curTime = self.UTILS:getTime()
-        local groupObj = self.SPAWNER.DATA.generatedGroups[name]
-        local groupAddTime = groupObj._engineAddTime
-        if (curTime - groupAddTime) < self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME then
-            self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Skipping " .. name .. " - wait time not elapsed")
-        else
-            Group.activate(Group.getByName(name))
-            self.SPAWNER.DATA.spawnQueue[_] = nil
-        end
-        if co_.thread then
-            co_.yieldCounter = co_.yieldCounter + 1
-            if co_.yieldCounter >= co_.yieldThreshold then
-                co_.yieldCounter = 0
-                self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
-                coroutine.yield()
+    local queue = self.SPAWNER.DATA.spawnQueue
+    if type(queue) ~= "table" then return self end
+
+    for i = #queue, 1, -1 do
+        local name = queue[i]
+        if name then
+            self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | " .. tostring(name))
+            local curTime = self.UTILS:getTime()
+            local groupObj = self.SPAWNER.DATA.generatedGroups[name]
+            local groupAddTime = (groupObj and groupObj._engineAddTime) or 0
+            local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 0
+
+            if (curTime - groupAddTime) < waitTime then
+                self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Skipping " .. tostring(name) .. " - wait time not elapsed")
+            else
+                local activated = false
+                local safeOk = pcall(function()
+                    local g = Group.getByName(name)
+                    if g then
+                        Group.activate(g)
+                        activated = true
+                    end
+                end)
+                if safeOk and activated then
+                    table.remove(queue, i)
+                else
+                    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Activation failed for " .. tostring(name))
+                end
+            end
+
+            if co_ and co_.thread then
+                co_.yieldCounter = co_.yieldCounter + 1
+                if co_.yieldCounter >= co_.yieldThreshold then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
+                    coroutine.yield()
+                end
             end
         end
     end
@@ -433,18 +518,35 @@ function AETHR.WORLD:despawnGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups -------------")
     local co_ = self.BRAIN.DATA.coroutines.despawnGroundGroups
 
-    for _, name in ipairs(self.SPAWNER.DATA.despawnQueue) do
-        self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | " .. name)
+    local queue = self.SPAWNER.DATA.despawnQueue
+    if type(queue) ~= "table" then return self end
 
-        trigger.action.deactivateGroup(Group.getByName(name))
-        self.SPAWNER.DATA.despawnQueue[_] = nil
+    for i = #queue, 1, -1 do
+        local name = queue[i]
+        if name then
+            self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | " .. tostring(name))
 
-        if co_.thread then
-            co_.yieldCounter = co_.yieldCounter + 1
-            if co_.yieldCounter >= co_.yieldThreshold then
-                co_.yieldCounter = 0
-                self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups --> YIELD")
-                coroutine.yield()
+            local deactivated = false
+            local safeOk = pcall(function()
+                local g = Group.getByName(name)
+                if g then
+                    trigger.action.deactivateGroup(g)
+                    deactivated = true
+                end
+            end)
+            if safeOk and deactivated then
+                table.remove(queue, i)
+            else
+                self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | Deactivation failed for " .. tostring(name))
+            end
+
+            if co_ and co_.thread then
+                co_.yieldCounter = co_.yieldCounter + 1
+                if co_.yieldCounter >= co_.yieldThreshold then
+                    co_.yieldCounter = 0
+                    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups --> YIELD")
+                    coroutine.yield()
+                end
             end
         end
     end
@@ -515,8 +617,8 @@ function AETHR.WORLD:updateZoneColors()
         if ownedBy ~= oldOwnedBy then
             self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors --> Update " ..
                 zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
-            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy]
-            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy]
+            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy] or self.CONFIG.MAIN.Zone.paintColors.LineColors[0]
+            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy] or self.CONFIG.MAIN.Zone.paintColors.FillColors[0]
             local lineColor = {
                 _LineColors.r, _LineColors.g, _LineColors.b, self.CONFIG.MAIN.Zone.paintColors.LineAlpha
             }
@@ -524,7 +626,9 @@ function AETHR.WORLD:updateZoneColors()
                 _FillColors.r, _FillColors.g, _FillColors.b, self.CONFIG.MAIN.Zone.paintColors.FillAlpha
             }
 
-            self.UTILS:updateMarkupColors(zObj.markerObject.markID, lineColor, fillColor)
+            if zObj.markerObject and zObj.markerObject.markID then
+                self.UTILS:updateMarkupColors(zObj.markerObject.markID, lineColor, fillColor)
+            end
             zObj.lastMarkColorOwner = ownedBy
         end
 
@@ -568,11 +672,13 @@ function AETHR.WORLD:updateZoneArrows()
                     -- Hide previously shown arrow (if any).
                     if lastShown ~= nil and borderDetail.MarkID and borderDetail.MarkID[lastShown] then
                         local c = ArrowColors[lastShown]
-                        self.UTILS:updateMarkupColors(
-                            borderDetail.MarkID[lastShown],
-                            { c.r, c.g, c.b, 0 },
-                            { c.r, c.g, c.b, 0 }
-                        )
+                        if c then
+                            self.UTILS:updateMarkupColors(
+                                borderDetail.MarkID[lastShown],
+                                { c.r, c.g, c.b, 0 },
+                                { c.r, c.g, c.b, 0 }
+                            )
+                        end
                         if co_.thread then
                             co_.yieldCounter = (co_.yieldCounter or 0) + 1
                             if co_.yieldCounter >= (co_.yieldThreshold or 0) then
@@ -586,11 +692,13 @@ function AETHR.WORLD:updateZoneArrows()
                     -- Show new arrow (if needed).
                     if desiredShown ~= nil and borderDetail.MarkID and borderDetail.MarkID[desiredShown] then
                         local c = ArrowColors[desiredShown]
-                        self.UTILS:updateMarkupColors(
-                            borderDetail.MarkID[desiredShown],
-                            { c.r, c.g, c.b, c.a },
-                            { c.r, c.g, c.b, c.a }
-                        )
+                        if c then
+                            self.UTILS:updateMarkupColors(
+                                borderDetail.MarkID[desiredShown],
+                                { c.r, c.g, c.b, c.a or 1 },
+                                { c.r, c.g, c.b, c.a or 1 }
+                            )
+                        end
                         if co_.thread then
                             co_.yieldCounter = (co_.yieldCounter or 0) + 1
                             if co_.yieldCounter >= (co_.yieldThreshold or 0) then
@@ -612,6 +720,8 @@ end
 --- Rebuilds the ground unit database by scanning active divisions for UNIT objects.
 --- This function is designed to run incrementally across coroutine invocations.
 --- The coroutine `co_` holds persistent state in `co_.state` to remember progress across runs.
+--- Keys in DATA.groundUnitsDB are unit names when available, otherwise numeric IDs/tostring fallbacks.
+--- Updates DATA.groundGroupsDB to map groupName -> unit name list on each full pass.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:updateGroundUnitsDB()
     self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB -------------")
@@ -622,9 +732,16 @@ function AETHR.WORLD:updateGroundUnitsDB()
     local yieldThreshold = (co_ and co_.yieldThreshold) or 10
     local ObjectCategory = self.ENUMS.ObjectCategory
 
-    -- Persistent state across coroutine runs
-    co_.state = co_.state or { ids = nil, idx = 1 }
-    local state = co_.state
+    -- Persistent state across coroutine runs; support running without a coroutine
+    local state
+    if co_ then
+        co_.state = co_.state or { ids = nil, idx = 1 }
+        state = co_.state
+    else
+        self._cache = self._cache or {}
+        self._cache._groundUnitsDB_state = self._cache._groundUnitsDB_state or { ids = nil, idx = 1 }
+        state = self._cache._groundUnitsDB_state
+    end
 
     if not state.ids then
         state.ids = {}
@@ -769,11 +886,13 @@ function AETHR.WORLD.zoneOwnershipChanged(zoneName, newOwner, self)
         self.UTILS:debugInfo("AETHR.WORLD.zoneOwnershipChanged: " ..
             zoneName .. " from " .. oldOwner .. " to " .. newOwner)
 
-        local outText = newOwner == ENUM_CONTESTED or
-            newOwner == ENUM_NEUTRAL and
-            zoneName .. " " .. self.ENUMS.TextStrings.contestedBy .. self.ENUMS.TextStrings.Teams.CONTESTED or
-            zoneName .. " " .. self.ENUMS.TextStrings.capturedBy .. self.ENUMS.TextStrings.Teams[
-            (newOwner == ENUM_RED and "REDFOR") or (newOwner == ENUM_BLUE and "BLUFOR") or "NEUTRAL"]
+        local outText
+        if newOwner == ENUM_CONTESTED or newOwner == ENUM_NEUTRAL then
+            outText = zoneName .. " " .. self.ENUMS.TextStrings.contestedBy .. self.ENUMS.TextStrings.Teams.CONTESTED
+        else
+            local teamKey = (newOwner == ENUM_RED and "REDFOR") or (newOwner == ENUM_BLUE and "BLUFOR") or "NEUTRAL"
+            outText = zoneName .. " " .. self.ENUMS.TextStrings.capturedBy .. self.ENUMS.TextStrings.Teams[teamKey]
+        end
 
 
 
@@ -813,7 +932,7 @@ function AETHR.WORLD:generateActiveDivisions()
         self.DATA.worldDivisions,
         self.ZONE_MANAGER.DATA.MIZ_ZONES
     )
-    for _, div in ipairs(updated) do
+    for _, div in pairs(updated) do
         if div.active then
             self.DATA.saveDivisions[div.ID] = div
         end
@@ -853,11 +972,14 @@ end
 --- @return nil
 function AETHR.WORLD:saveWorldDivisions()
     --- Divs
-    self.FILEOPS:saveData(
+    local ok = self.FILEOPS:saveData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE,
         self.DATA.worldDivisions
     )
+    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveWorldDivisions failed")
+    end
 end
 
 --- Loads world division AABB from config if present.
@@ -877,11 +999,14 @@ end
 --- @return nil
 function AETHR.WORLD:saveWorldDivisionsAABB()
     ---AABB
-    self.FILEOPS:saveData(
+    local ok = self.FILEOPS:saveData(
         self.CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER,
         self.CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_AABB,
         self.DATA.worldDivAABB
     )
+    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveWorldDivisionsAABB failed")
+    end
 end
 
 --- Generates world divisions from theater bounds and configured division area.
@@ -984,11 +1109,11 @@ function AETHR.WORLD:initGrid(divs)
     end
 
     local minX = c[1].x or 0
-    local maxZ = c[1].z or 0
+    local minZ = c[1].z or 0
     local dx   = (c[2] and (c[2].x - c[1].x)) or 1
     local dz   = (c[4] and (c[4].z - c[1].z)) or 1
 
-    local Grid = self.AETHR._Grid:New(c, minX, maxZ, dx, dz)
+    local Grid = self.AETHR._Grid:New(c, minX, minZ, dx, dz)
     return Grid
 end
 
@@ -1063,7 +1188,7 @@ function AETHR.WORLD:checkDivisionsInZones(Divisions, Zones)
     local zoneCells = self:buildZoneCellIndex(Zones, grid)
 
     -- Iterate through each division to determine activity.
-    for _, div in ipairs(Divisions) do
+    for _, div in pairs(Divisions) do
         -- Compute centroid for grid lookup.
         local sx, sz = 0, 0
         for _, v in ipairs(div.corners) do

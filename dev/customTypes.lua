@@ -573,16 +573,16 @@ AETHR._foundObject = {} ---@diagnostic disable-line
 --- @return _foundObject instance
 function AETHR._foundObject:New(OBJ)
     local instance = {
-        callsign = OBJ and OBJ:getCallsign() or nil,
-        category = OBJ and OBJ:getCategory() or nil,
-        categoryEx = OBJ and OBJ:getCategoryEx() or nil,
-        coalition = OBJ and OBJ:getCoalition() or nil,
-        country = OBJ and OBJ:getCountry() or nil,
-        desc = OBJ and OBJ:getDesc() or nil,
+        callsign = nil,
+        category = nil,
+        categoryEx = nil,
+        coalition = nil,
+        country = nil,
+        desc = nil,
         groupName = nil,
         groupUnitNames = {},
-        id = OBJ and OBJ:getID() or nil,
-        name = OBJ and OBJ:getName() or nil,
+        id = nil,
+        name = nil,
         ObjectID = nil,
         isActive = nil,
         isAlive = nil,
@@ -597,8 +597,64 @@ function AETHR._foundObject:New(OBJ)
             groundUnitID = 0,
         },
     }
+    -- Set if available
+    if type(OBJ.getCallsign) == "function" then
+        local _okval, _val = pcall(OBJ.getCallsign, OBJ)
+        if _okval then
+            instance.callsign = _val
+        end
+    end
+    -- Set if available
+    if type(OBJ.getCategory) == "function" then
+        local _okval, _val = pcall(OBJ.getCategory, OBJ)
+        if _okval then
+            instance.category = _val
+        end
+    end
+        -- Set if available
+    if type(OBJ.getCategoryEx) == "function" then
+        local _okval, _val = pcall(OBJ.getCategoryEx, OBJ)
+        if _okval then
+            instance.categoryEx = _val
+        end
+    end
+        -- Set if available
+    if type(OBJ.getCoalition) == "function" then
+        local _okval, _val = pcall(OBJ.getCoalition, OBJ)
+        if _okval then
+            instance.coalition = _val
+        end
+    end
+        -- Set if available
+    if type(OBJ.getPoint) == "function" then
+        local _okval, _val = pcall(OBJ.getPoint, OBJ)
+        if _okval then
+            instance.country = _val
+        end
+    end
+        -- Set if available
+    if type(OBJ.getDesc) == "function" then
+        local _okval, _val = pcall(OBJ.getDesc, OBJ)
+        if _okval then
+            instance.desc = _val
+        end
+    end
+        -- Set if available
+    if type(OBJ.getID) == "function" then
+        local _okval, _val = pcall(OBJ.getID, OBJ)
+        if _okval then
+            instance.id = _val
+        end
+    end
+        -- Set if available
+    if type(OBJ.name) == "function" then
+        local _okval, _val = pcall(OBJ.name, OBJ)
+        if _okval then
+            instance.name = _val
+        end
+    end
 
-    -- Set postition if available
+    -- Set if available
     if type(OBJ.getPoint) == "function" then
         local _okval, _val = pcall(OBJ.getPoint, OBJ)
         if _okval then
