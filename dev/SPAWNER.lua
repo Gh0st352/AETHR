@@ -37,6 +37,10 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field dynamicSpawners table<string, table<string, _dynamicSpawner>> Dynamic spawners keyed by type and name.
 --- @field CONFIG table Configuration for spawner-managed data.
 --- @field BenchmarkLog table<string, table> Internal container for benchmark logs.
+--- @field GenerationQueue string[] FIFO list of job IDs for async spawner generation.
+--- @field GenerationJobs table<string, table> jobId -> job descriptor for async spawner generation.
+--- @field GenerationJobCounter number Incremental job ID counter for async spawner generation.
+--- @field _genState table Internal state for async spawner generation runner.
 
 --- @class AETHR.SPAWNER.DATA.dynamicSpawners
 --- @field dynamicSpawners.Airbase table<string, _dynamicSpawner> Dynamic spawners of type "Airbase" keyed by name.
@@ -64,6 +68,7 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field separationSettings.maxUnits number Maximum distance in meters between spawned units within a group.
 --- @field separationSettings.minBuildings number Minimum distance in meters between spawned units and buildings.
 --- @field debugMarkers table<number, _Marker> Internal container for debug markers keyed by marker ID.
+
 
 --- Container for spawner-managed data.
 ---@type AETHR.SPAWNER.DATA
@@ -111,7 +116,12 @@ AETHR.SPAWNER.DATA = {
             minBuildings = 50,
         },
     },
-    debugMarkers = {}
+    debugMarkers = {},
+    -- Async spawner generation job queue/state
+    GenerationQueue = {},           -- FIFO list of job IDs
+    GenerationJobs = {},            -- jobId -> job descriptor
+    GenerationJobCounter = 1,       -- incremental job id
+    _genState = { currentJobId = nil } -- internal runner state
 }
 
 
@@ -238,6 +248,22 @@ function AETHR.SPAWNER:_directCellStructureReject(grid, s, x, y, minDist, neighb
     return false
 end
 
+
+--- Cooperative yield helper used only when running inside BRAIN.DATA.coroutines.spawnerGeneration
+--- Yields when the configured threshold is reached to avoid long blocking frames.
+function AETHR.SPAWNER:_maybeYield(inc)
+    local co_ = self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.coroutines and self.BRAIN.DATA.coroutines.spawnerGeneration
+    if co_ and co_.thread then
+        co_.yieldCounter = (co_.yieldCounter or 0) + (inc or 1)
+        if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+            co_.yieldCounter = 0
+            if self.UTILS and type(self.UTILS.debugInfo) == "function" then
+                self.UTILS:debugInfo("AETHR.SPAWNER:_maybeYield --> YIELD")
+            end
+            coroutine.yield()
+        end
+    end
+end
 --- Builds and registers a ground unit prototype with the spawner system.
 --- Stores the constructed _groundUnit in DATA.generatedUnits and returns its unique name.
 --- @function AETHR.SPAWNER:buildGroundUnit
@@ -477,6 +503,103 @@ end
 ---    and are performed in [AETHR.SPAWNER:checkIsInNOGO()](dev/SPAWNER.lua:1607) using an AABB prefilter + point-in-polygon.
 ---    Default is off for performance.
 ---
+
+--- Enqueue an async dynamic spawner generation job. Returns jobId.
+---@param dynamicSpawner _dynamicSpawner
+---@param vec2 _vec2
+---@param minRadius number|nil
+---@param nominalRadius number|nil
+---@param maxRadius number|nil
+---@param nudgeFactorRadius number|nil
+---@param countryID number|nil
+---@param autoSpawn boolean|nil When true, auto-spawn groups after generation
+---@return integer jobId
+function AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius, nudgeFactorRadius, countryID, autoSpawn)
+    self.DATA.GenerationJobCounter = (self.DATA.GenerationJobCounter or 1)
+    local id = self.DATA.GenerationJobCounter
+    self.DATA.GenerationJobCounter = id + 1
+
+    local job = {
+        id = id,
+        status = "queued",
+        enqueuedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time(),
+        params = {
+            dynamicSpawner = dynamicSpawner,
+            vec2 = vec2,
+            minRadius = minRadius,
+            nominalRadius = nominalRadius,
+            maxRadius = maxRadius,
+            nudgeFactorRadius = nudgeFactorRadius,
+            countryID = countryID,
+            autoSpawn = autoSpawn and true or false,
+        }
+    }
+    self.DATA.GenerationJobs[id] = job
+    table.insert(self.DATA.GenerationQueue, id)
+    return id
+end
+
+--- Get async generation job status by id.
+---@param jobId integer
+---@return table|nil job
+function AETHR.SPAWNER:getGenerationJobStatus(jobId)
+    return self.DATA.GenerationJobs and self.DATA.GenerationJobs[jobId] or nil
+end
+
+--- Coroutine body executed by BRAIN:doRoutine to process generation jobs.
+--- Runs one job at a time; heavy sub-steps yield via _maybeYield inside pipeline functions.
+---@return AETHR.SPAWNER self
+function AETHR.SPAWNER:processGenerationQueue()
+    local state = self.DATA._genState or { currentJobId = nil }
+    self.DATA._genState = state
+    local jobs = self.DATA.GenerationJobs or {}
+    local q = self.DATA.GenerationQueue or {}
+
+    -- If a job is currently running (we yield inside generateDynamicSpawner), just return.
+    if state.currentJobId and jobs[state.currentJobId] and jobs[state.currentJobId].status == "running" then
+        return self
+    end
+
+    -- Start next job if available
+    local jobId = table.remove(q, 1)
+    if not jobId then
+        return self
+    end
+
+    local job = jobs[jobId]
+    if not job then return self end
+
+    state.currentJobId = jobId
+    job.status = "running"
+    job.startedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+
+    -- Run generation synchronously within this coroutine; heavy functions will yield via _maybeYield.
+    self:generateDynamicSpawner(
+        job.params.dynamicSpawner,
+        job.params.vec2,
+        job.params.minRadius,
+        job.params.nominalRadius,
+        job.params.maxRadius,
+        job.params.nudgeFactorRadius,
+        job.params.countryID
+    )
+
+    -- Optional auto-spawn after prototypes are built
+    if job.params.autoSpawn then
+        pcall(function()
+            self:spawnDynamicSpawner(job.params.dynamicSpawner, job.params.countryID)
+        end)
+    end
+
+    job.completedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+    job.status = "done"
+    state.currentJobId = nil
+
+    -- Light yield between jobs
+    self:_maybeYield(1)
+    return self
+end
+
 --- @function AETHR.SPAWNER:generateDynamicSpawner
 --- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance to configure (supports .deterministicSeed, .deterministicEnabled).
 --- @param vec2 _vec2 Center point for the spawner to generate around.
@@ -951,7 +1074,9 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                         end
                     end
                 end
+                self:_maybeYield(1)
             end
+            self:_maybeYield(1)
 
             subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
             subZone.zoneDivStaticObjects = zoneDivStaticObjects
@@ -1157,12 +1282,14 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                         end
                     end
                     glassBreak = glassBreak + 1
+                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1) end
                 until accepted
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
                 gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
+                self:_maybeYield(1)
                             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
@@ -1391,6 +1518,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         end
 
                         glassBreak = glassBreak + 1
+                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1) end
                     until accepted
 
                     if _unitCounters then _unitCounters.Attempts = (_unitCounters.Attempts or 0) + glassBreak end
@@ -1398,6 +1526,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                     unitVec2[j] = possibleVec2
                     table.insert(selectedCoords, possibleVec2)
                     gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
+                    self:_maybeYield(1)
                 end
                 groupUnitVec2s[i] = unitVec2
             end

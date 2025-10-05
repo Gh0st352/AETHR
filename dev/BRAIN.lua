@@ -127,6 +127,15 @@ AETHR.BRAIN.DATA = {
             yieldCounter = 0,
             desc = "despawnGroundGroups",
         },
+        spawnerGeneration = {
+            interval = 1,
+            phase = 0,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 10,
+            yieldCounter = 0,
+            desc = "spawnerGeneration",
+        },
     },
     BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
 }

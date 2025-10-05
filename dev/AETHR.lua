@@ -312,6 +312,11 @@ function AETHR:BackgroundProcesses()
         parentAETHR.WORLD:despawnGroundGroups()
     end, self)
     
+    --Spawner generation job queue
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnerGeneration, function(parentAETHR)
+        parentAETHR.SPAWNER:processGenerationQueue()
+    end, self)
 
     self.BRAIN:runScheduledTasks(2)
     return now + (self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.BackgroundLoopInterval or 0.5)
