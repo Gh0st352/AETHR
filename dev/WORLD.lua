@@ -757,6 +757,10 @@ function AETHR.WORLD:updateGroundUnitsDB()
     self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB -------------")
     local UTILS = self.UTILS
     local saveDivs = self.DATA.saveDivisions
+    if not saveDivs or next(saveDivs) == nil then
+        -- No active divisions: nothing to scan this tick
+        return self
+    end
     local groundDB = self.DATA.groundUnitsDB
     local co_ = self.BRAIN.DATA.coroutines.updateGroundUnitsDB
     local yieldThreshold = (co_ and co_.yieldThreshold) or 10
@@ -785,7 +789,7 @@ function AETHR.WORLD:updateGroundUnitsDB()
     local endIdx = math.min(startIdx + divisionsPerRun - 1, #state.ids)
 
     local processed = 0
-    local addedLogEvery = 100 -- adjust if you want finer logging
+    -- progress logging is rate-limited via UTILS:debugInfoRate; removed addedLogEvery
 
     local function maybeYield(inc)
         if co_ and co_.thread then
@@ -815,9 +819,7 @@ function AETHR.WORLD:updateGroundUnitsDB()
                 groundDB[fuID] = fuObj
 
                 processed = processed + 1
-                if (processed % addedLogEvery) == 0 then
-                    UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Added/updated units: " .. processed)
-                end
+                UTILS:debugInfoRate("AETHR.WORLD:updateGroundUnitsDB:progress", 2, { processed = processed })
                 maybeYield(1)
             end
             -- light yield between divisions

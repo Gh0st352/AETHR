@@ -89,7 +89,7 @@ AETHR.SPAWNER.DATA = {
         UseDivisionAABBReject = true,
         UseDivisionAABBFullInclude = true,
         operationLimit = 50,
-        Benchmark = true,
+        Benchmark = false,
         -- Optional polygon NOGO checks (default: disabled for performance)
         UseRestrictedZonePolys = false,
         -- Deterministic pipeline controls
@@ -988,7 +988,6 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
     end
-self.UTILS:debugInfo("CHECK111")
     local BUILD_PAD = self.DATA.CONFIG.BUILD_PAD                         -- meters of extra padding around buildings for center placement
     local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG.EXTRA_ATTEMPTS_BUILDING                                             --- extra attempts if building rejection occurs
 
@@ -1000,18 +999,15 @@ self.UTILS:debugInfo("CHECK111")
         _centerCounters.RelaxationSteps = _centerCounters.RelaxationSteps or 0
         _centerCounters.BuildingRejects = _centerCounters.BuildingRejects or 0
     end
-self.UTILS:debugInfo("CHECK2")
     local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division (not used directly for positions)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
-self.UTILS:debugInfo("CHECK3")
     -- Local helper aliases to shared SPAWNER routines
     local extractXY = function(obj) return self:_extractXY(obj) end
     local toCell = function(x, y, s) return self:_toCell(x, y, s) end
     local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
-    local gridInsert = function(grid, s, x, y) return self:_gridInsert(grid, s, x, y) end
+    local gridInsert = function(grid, s, x, y, extra) return self:_gridInsert(grid, s, x, y, extra) end
     local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
-self.UTILS:debugInfo("CHECK4")
     -- Process each subZone
     for _, subZone in pairs(subZones) do
         local subZoneRadius = subZone.actualRadius
@@ -1023,7 +1019,6 @@ self.UTILS:debugInfo("CHECK4")
             subZoneRadius) or {}
         -- cache per-subzone for reuse in unit position placement
         subZone._nearbyUnits = freshScannedUnits
-self.UTILS:debugInfo("CHECK5")
         -- Compute a sensible cell size from group settings for this subZone
         local cellSize = 1
         do
@@ -1043,7 +1038,6 @@ self.UTILS:debugInfo("CHECK5")
                 cellSize = math.max(1, math.floor(minSep))
             end
         end
-self.UTILS:debugInfo("CHECK6")
         -- Build grids: structuresGrid (bases/statics/scenery), groupsGrid (nearby units), centersGrid (accepted centers)
         local structuresGrid = {}
         local groupsGrid = {}
@@ -1058,12 +1052,10 @@ self.UTILS:debugInfo("CHECK6")
                 end
             end
         end
-self.UTILS:debugInfo("CHECK7")
         -- Populate structuresGrid from base/static/scenery objects
         populateGridFromList(baseObjects, structuresGrid, cellSize)
         populateGridFromList(staticObjects, structuresGrid, cellSize)
         populateGridFromList(sceneryObjects, structuresGrid, cellSize)
-self.UTILS:debugInfo("CHECK8")
         -- Populate groupsGrid from freshScannedUnits and db (pairs because returned table is a map)
         for _, obj in pairs(freshScannedUnits or {}) do
             local p = extractXY(obj)
@@ -1073,7 +1065,6 @@ self.UTILS:debugInfo("CHECK8")
             local p = extractXY(obj)
             if p then gridInsert(groupsGrid, cellSize, p.x, p.y) end
         end
-self.UTILS:debugInfo("CHECK9")
         -- selectedCoords kept for compatibility (not used for linear scans anymore)
         local selectedCoords = {}
 
@@ -1087,10 +1078,8 @@ self.UTILS:debugInfo("CHECK9")
             local mb2 = (minBuildings) * (minBuildings)
             local neighborRangeGroups = math.ceil(minGroups / cellSize)
             local neighborRangeBuildings = math.ceil((minBuildings + BUILD_PAD) / cellSize)
-self.UTILS:debugInfo("CHECK10")
             for i = 1, (groupSetting.numGroups or 0) do
-                self.UTILS:debugInfo("CHECK10A")
-                local glassBreak = 0
+                                local glassBreak = 0
                 local possibleVec2 = nil
                 local accepted = false
                 local operationLimit = self.DATA.CONFIG.operationLimit or 100
@@ -1098,7 +1087,6 @@ self.UTILS:debugInfo("CHECK10")
                 repeat
                     possibleVec2 = self.POLY:getRandomVec2inCircle(subZoneRadius, subZoneCenter)
 
-self.UTILS:debugInfo("CHECK11")
                     -- Fast proximity checks using grids (squared distances)
                     local reject = false
                     local relaxMax = 0.3
@@ -1109,28 +1097,24 @@ self.UTILS:debugInfo("CHECK11")
                     local _mb = minBuildings * (1 - relax)
                     local mg2eff = _mg * _mg
                     local mb2eff = _mb * _mb
-self.UTILS:debugInfo("CHECK12")
                     -- Check against already accepted centers
                     if next(centersGrid) ~= nil then
                         if gridQuery(centersGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                             reject = true
                         end
                     end
-self.UTILS:debugInfo("CHECK13")
                     -- Check against nearby units/groups
                     if not reject and next(groupsGrid) ~= nil then
                         if gridQuery(groupsGrid, cellSize, possibleVec2.x, possibleVec2.y, mg2eff, neighborRangeGroups) then
                             reject = true
                         end
                     end
-self.UTILS:debugInfo("CHECK14")
                     -- Fast prune against nearby structures (kept for performance)
                     if not reject and next(structuresGrid) ~= nil then
                         if gridQuery(structuresGrid, cellSize, possibleVec2.x, possibleVec2.y, mb2eff, neighborRangeBuildings) then
                             reject = true
                         end
                     end
-self.UTILS:debugInfo("CHECK15")
                     -- Strict building check (per-object radius + padding, never relaxed)
                     local buildingRejectDirect = false
                     if next(structuresGrid) ~= nil then
@@ -1145,18 +1129,15 @@ self.UTILS:debugInfo("CHECK15")
                     if buildingRejectDirect then
                         reject = true
                     end
-self.UTILS:debugInfo("CHECK16")
                     -- Only if we passed all cheap spatial checks, call expensive NOGO check
                     if not reject then
                         reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
                     end
-self.UTILS:debugInfo("CHECK17")
                     if not reject then
                         accepted = true
                     else
                         accepted = false
                     end
-self.UTILS:debugInfo("CHECK18")
                     if glassBreak >= operationLimit then
                         -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
                         if not buildingRejectDirect then
@@ -1167,17 +1148,14 @@ self.UTILS:debugInfo("CHECK18")
                             accepted = false
                         end
                     end
-self.UTILS:debugInfo("CHECK19")
                     glassBreak = glassBreak + 1
                 until accepted
-self.UTILS:debugInfo("CHECK10B")
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
                 gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
-                self.UTILS:debugInfo("CHECK10C")
-            end
+                            end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
         end
@@ -1232,7 +1210,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     local extractXY = function(obj) return self:_extractXY(obj) end
     local toCell = function(x, y, s) return self:_toCell(x, y, s) end
     local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
-    local gridInsert = function(grid, s, x, y) return self:_gridInsert(grid, s, x, y) end
+    local gridInsert = function(grid, s, x, y, extra) return self:_gridInsert(grid, s, x, y, extra) end
     local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
 
     -- Process each subZone

@@ -43,31 +43,69 @@ end
 --- @param path string Directory path.
 --- @return boolean success True if exists or created, false on error.
 function AETHR.FILEOPS:ensureDirectory(path)
+    -- Best-effort directory creation with optional lfs (preferred) and OS fallback.
+    -- Keeps behavior identical when lfs is present; degrades gracefully when missing/sandboxed.
     if not path or path == "" then
         return false
     end
-    local lfs = require("lfs")
+
     local sep = package.config:sub(1,1)
     -- Normalize separators
-    local normalized = path:gsub("[/\\]", sep)
-    -- Split into components
+    local normalized = (tostring(path) or ""):gsub("[/\\]", sep)
+
+    -- Split into components for recursive mkdir
     local parts = {}
     for part in string.gmatch(normalized, "[^" .. sep .. "]+") do
         table.insert(parts, part)
     end
+
+    local okLfs, lfs = pcall(require, "lfs")
+
+    local function existsDir(p)
+        if okLfs and lfs and type(lfs.attributes) == "function" then
+            local attr = lfs.attributes(p)
+            return attr and attr.mode == "directory"
+        end
+        -- Without lfs we cannot reliably stat; let mkdir attempt handle existence.
+        return false
+    end
+
+    local function mkdirDir(p)
+        if okLfs and lfs and type(lfs.mkdir) == "function" then
+            return lfs.mkdir(p)
+        end
+        -- OS fallback (may be sandboxed; ignore errors)
+        local cmd
+        if sep == "\\" then
+            cmd = 'mkdir "' .. p .. '"'
+        else
+            cmd = 'mkdir -p "' .. p .. '"'
+        end
+        if type(os) == "table" and type(os.execute) == "function" then
+            local status = os.execute(cmd)
+            local ok = (status == true) or (status == 0)
+            return ok, ok and nil or "mkdir failed (no lfs)"
+        end
+        return false, "mkdir not available (no lfs, os.execute disabled)"
+    end
+
     local current = ""
     for _, part in ipairs(parts) do
         current = current .. (current == "" and "" or sep) .. part
-        local attr = lfs.attributes(current)
-        if not attr then
-            local ok, err = lfs.mkdir(current)
+        if not existsDir(current) then
+            local ok, err = mkdirDir(current)
             if not ok then
                 print("Failed to create directory '" .. current .. "': " .. (err or "unknown"))
                 return false
             end
-        elseif attr.mode ~= "directory" then
-            print("Path exists and is not a directory: " .. current)
-            return false
+        else
+            if okLfs and lfs and type(lfs.attributes) == "function" then
+                local attr = lfs.attributes(current)
+                if attr and attr.mode ~= "directory" then
+                    print("Path exists and is not a directory: " .. current)
+                    return false
+                end
+            end
         end
     end
     return true
@@ -79,15 +117,24 @@ end
 --- @param filename string Filename.
 --- @return boolean success True on success, false on error.
 function AETHR.FILEOPS:ensureFile(directory, filename)
-    if not self:ensureDirectory(directory) then
-        return false
-    end
+    -- Attempt directory creation (best-effort); continue even if it fails in sandboxed envs.
+    self:ensureDirectory(directory)
+
     local filepath = self:joinPaths(directory, filename)
-    local lfs = require("lfs")
-    local attr = lfs.attributes(filepath)
-    if attr and attr.mode == "file" then
-        return true
+
+    -- Check existence (prefer lfs, fallback to io)
+    local okLfs, lfs = pcall(require, "lfs")
+    if okLfs and lfs and type(lfs.attributes) == "function" then
+        local attr = lfs.attributes(filepath)
+        if attr and attr.mode == "file" then
+            return true
+        end
+    else
+        local f = io.open(filepath, "r")
+        if f then f:close(); return true end
     end
+
+    -- Create the file
     local fh, err = io.open(filepath, "w")
     if not fh then
         print("Failed to create file '" .. filepath .. "': " .. (err or "unknown"))
@@ -140,9 +187,15 @@ end
 --- @return boolean exists True if file exists, false otherwise.
 function AETHR.FILEOPS:fileExists(directory, filename)
     local filepath = self:joinPaths(directory, filename)
-    local lfs = require("lfs")
-    local attr = lfs.attributes(filepath)
-    return attr and attr.mode == "file"
+    local okLfs, lfs = pcall(require, "lfs")
+    if okLfs and lfs and type(lfs.attributes) == "function" then
+        local attr = lfs.attributes(filepath)
+        return (attr and attr.mode == "file") or false
+    end
+    -- Fallback: try opening the file for read
+    local f = io.open(filepath, "r")
+    if f then f:close(); return true end
+    return false
 end
 
 --- @function deepcopy

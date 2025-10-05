@@ -168,7 +168,7 @@ AETHR.CONFIG.MAIN = {
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
     MISSION_ID = "1",     -- Default mission identifier.
-    DEBUG_ENABLED = true, -- Enable debug logging to DCS log.
+    DEBUG_ENABLED = false, -- Enable debug logging to DCS log.
     DefaultRedCountry = country.id.CJTF_BLUE,
     DefaultBlueCountry = country.id.CJTF_RED,
     spawnTemplateSearchString = "SPECTRESPAWNERTemplate",

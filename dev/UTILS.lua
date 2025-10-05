@@ -9,10 +9,14 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field DATA table Container for zone management data.
---- @field _cache table Private runtime cache attached to the instance.
 AETHR.UTILS = {} ---@diagnostic disable-line
-AETHR.UTILS.DATA = {
 
+---@class AETHR.UTILS.DATA
+--- @field _cache table Internal cache for UTILS instance.
+--- @field _rateLog table Internal cache for rate-limited logging.
+AETHR.UTILS.DATA = {
+_cache = {},
+_rateLog = {},
 }
 
 
@@ -61,14 +65,19 @@ end
 --- @param message string The debug message to be logged.
 --- @param data any|nil Optional structured data to be logged via BASE:E when available.
 --- @usage AETHR.UTILS:debugInfo("Debug Message", {key="value"}) -- Logs the message and data if debugging is enabled.
-function AETHR.UTILS:debugInfo(message, data)
-  -- Guard against missing config or runtime env
-  local enabled = false
-  if type(self) == "table" and self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
-    enabled = true
-  end
+--- Fast debug flag check (min overhead when disabled)
+--- @return boolean
+function AETHR.UTILS:isDebug()
+  local cfg = self and self.CONFIG and self.CONFIG.MAIN
+  return cfg and cfg.DEBUG_ENABLED == true
+end
 
-  if not enabled then return end
+--- Log debug information if debugging is enabled (rate-unlimited).
+--- Thin wrapper to minimize overhead when disabled.
+--- @param message string
+--- @param data any|nil
+function AETHR.UTILS:debugInfo(message, data)
+  if not self:isDebug() then return end
 
   -- Safely call env.info if available
   if type(env) == "table" and type(env.info) == "function" then
@@ -76,10 +85,39 @@ function AETHR.UTILS:debugInfo(message, data)
   end
 
   -- If structured data provided, attempt to log via BASE:E if available; fail silently otherwise
-  if data and type(data) ~= "nil" then
+  if data ~= nil then
     if type(BASE) == "table" and type(BASE.E) == "function" then
       pcall(function() BASE:E(data) end)
     end
+  end
+end
+
+--- Rate-limited debug logger to reduce spam in hot loops.
+--- Uses an in-instance cache to remember last emission per key.
+--- @param key string Unique key for the log line (also used as message)
+--- @param intervalSeconds number Minimum seconds between emissions for this key
+--- @param data any|nil Optional structured data
+function AETHR.UTILS:debugInfoRate(key, intervalSeconds, data)
+  if not self:isDebug() then return end
+  intervalSeconds = tonumber(intervalSeconds) or 1
+  local _rateLog = self.DATA._rateLog
+  self._cache = self._cache or {}
+  self._cache._rateLog = self._cache._rateLog or {}
+
+  local k = tostring(key or "")
+  local last = self._cache._rateLog[k] or 0
+
+  -- Prefer engine time if available; fall back to os.time()
+  local now =
+    (type(AETHR) == "table" and AETHR.UTILS and type(AETHR.UTILS.getTime) == "function" and AETHR.UTILS.getTime())
+    or (type(self.getTime) == "function" and self.getTime())
+    or (type(os) == "table" and type(os.time) == "function" and os.time())
+    or 0
+  if type(now) ~= "number" then now = 0 end
+
+  if (now - last) >= intervalSeconds then
+    self._cache._rateLog[k] = now
+    self:debugInfo(k, data)
   end
 end
 
