@@ -57,12 +57,12 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field Deterministic.Warmup number Extra math.random() calls after seeding to avoid low-entropy draws (default 2).
 --- @field Deterministic.ReseedAfter boolean If true, reseeds RNG to a mixed, best-effort entropy after generation (default true).
 --- @field NoGoSurfaces AETHR.ENUMS.SurfaceType[] List of surface types that are not valid for spawning.
---- @field seperationSettings table Settings for minimum separation of spawned groups/units from each other and buildings.
---- @field seperationSettings.minGroups number Minimum distance in meters between spawned groups.
---- @field seperationSettings.maxGroups number Maximum distance in meters between spawned groups.
---- @field seperationSettings.minUnits number Minimum distance in meters between spawned units within a group.
---- @field seperationSettings.maxUnits number Maximum distance in meters between spawned units within a group.
---- @field seperationSettings.minBuildings number Minimum distance in meters between spawned units and buildings.
+--- @field separationSettings table Settings for minimum separation of spawned groups/units from each other and buildings.
+--- @field separationSettings.minGroups number Minimum distance in meters between spawned groups.
+--- @field separationSettings.maxGroups number Maximum distance in meters between spawned groups.
+--- @field separationSettings.minUnits number Minimum distance in meters between spawned units within a group.
+--- @field separationSettings.maxUnits number Maximum distance in meters between spawned units within a group.
+--- @field separationSettings.minBuildings number Minimum distance in meters between spawned units and buildings.
 --- @field debugMarkers table<number, _Marker> Internal container for debug markers keyed by marker ID.
 
 --- Container for spawner-managed data.
@@ -103,7 +103,7 @@ AETHR.SPAWNER.DATA = {
             AETHR.ENUMS.SurfaceType.RUNWAY,
             AETHR.ENUMS.SurfaceType.SHALLOW_WATER
         },
-        seperationSettings = {
+        separationSettings = {
             minGroups = 35,
             maxGroups = 70,
             minUnits = 15,
@@ -113,8 +113,6 @@ AETHR.SPAWNER.DATA = {
     },
     debugMarkers = {}
 }
--- Back-compat alias: prefer 'separationSettings', keep existing 'seperationSettings' data
-AETHR.SPAWNER.DATA.CONFIG.separationSettings = AETHR.SPAWNER.DATA.CONFIG.seperationSettings
 
 
 
@@ -703,13 +701,13 @@ function AETHR.SPAWNER:pairSpawnerActiveZones(dynamicSpawner)
     ---@param mizZoneName string
     ---@param mizZone _MIZ_ZONE
     for mizZoneName, mizZone in pairs(mizZones) do
-        local mizZoneVerts = mizZone.vertices or mizZone.verticies
+        local mizZoneVerts = mizZone.vertices
         local mainZoneRadius = dynamicSpawner.maxRadius
         local mainZoneCenter = dynamicSpawner.vec2
 
         if self.POLY:circleOverlapPoly(mainZoneRadius, mainZoneCenter, mizZoneVerts) then
             table.insert(_MizZones, mizZone)
-            for _ID, div in pairs(mizZone.activeDivisions or mizZone.activeDivsions) do
+            for _ID, div in pairs(mizZone.activeDivisions) do
                 spawnerActiveDivisions[_ID] = div
             end
         end
@@ -1086,7 +1084,7 @@ self.UTILS:debugInfo("CHECK9")
         -- For each groupSetting, place group centers
         for _, groupSetting in pairs(subZone.groupSettings or {}) do
             local groupCenterVec2s = {}
-            local sepCfg = self.DATA.CONFIG.separationSettings or self.DATA.CONFIG.seperationSettings or {}
+            local sepCfg = self.DATA.CONFIG.separationSettings or {}
             local minGroups = groupSetting.minGroups or sepCfg.minGroups or 30
             local minBuildings = groupSetting.minBuildings or sepCfg.minBuildings or 20
             local mg2 = (minGroups) * (minGroups)
@@ -1310,7 +1308,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         -- For each groupSetting, place group centers
         for _, groupSetting in pairs(subZone.groupSettings or {}) do
             local groupUnitVec2s = {}
-            local sepCfg = self.DATA.CONFIG.separationSettings or self.DATA.CONFIG.seperationSettings or {}
+            local sepCfg = self.DATA.CONFIG.separationSettings or {}
             local minUnits = groupSetting.minUnits or sepCfg.minUnits or 10
             local maxUnits = groupSetting.maxUnits or sepCfg.maxUnits or 20
             local maxGroups = groupSetting.maxGroups or sepCfg.maxGroups or 30
@@ -1803,7 +1801,7 @@ end
 ---    Enable them when spatial accuracy near mission-defined restricted areas is more important than raw generation speed.
 ---
 --- @param vec2 _vec2 The vector position to be checked.
---- @param restrictedZones table A list of restricted zones to check against (tables with .verticies or raw vertex arrays).
+--- @param restrictedZones table A list of restricted zones to check against (tables with .vertices or raw vertex arrays).
 --- @return boolean isNOGO True if vec2 lies on a NOGO surface or inside a restricted polygon (when enabled), false otherwise.
 function AETHR.SPAWNER:checkIsInNOGO(vec2, restrictedZones)
     local isNOGO = false
@@ -1812,7 +1810,7 @@ function AETHR.SPAWNER:checkIsInNOGO(vec2, restrictedZones)
     if not isNOGO and (self.DATA.CONFIG.UseRestrictedZonePolys == true) and type(restrictedZones) == "table" then
         local p = self.POLY:normalizePoint(vec2)
         for _, zone in pairs(restrictedZones) do
-            local verts = (type(zone) == "table" and (zone.verticies or zone.vertices or zone)) or nil
+            local verts = (type(zone) == "table" and (zone.vertices or zone)) or nil
             if type(verts) == "table" and #verts >= 3 then
                 -- AABB prefilter
                 local minx, maxx = math.huge, -math.huge

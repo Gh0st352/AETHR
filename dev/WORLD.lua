@@ -420,7 +420,7 @@ function AETHR.WORLD:getAirbases()
             for zoneName, zone in pairs(self.ZONE_MANAGER.DATA.MIZ_ZONES) do
                 if self.POLY:PointWithinShape( --P, Polygon)
                         { x = pos.x, y = pos.z },
-                        (zone.vertices or zone.verticies)
+                        zone.vertices
                     ) then
                     data.zoneName = zoneName
                     data.zoneObject = zone
@@ -1173,7 +1173,7 @@ function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
         local zminY, zmaxY = math.huge, -math.huge
 
         -- Compute raw bounding box in world coordinates using flexible Y/Z access.
-        for _, v in ipairs((zone.vertices or zone.verticies or {})) do
+        for _, v in ipairs(zone.vertices or {}) do
             local vy = getY(v)
             zminX = math.min(zminX, v.x or zminX)
             zmaxX = math.max(zmaxX, v.x or zmaxX)
@@ -1191,7 +1191,7 @@ function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
 
             -- Prepare polygon for intersection tests.
             local poly = {}
-            for _, v in ipairs((zone.vertices or zone.verticies or {})) do
+            for _, v in ipairs(zone.vertices or {}) do
                 table.insert(poly, { x = v.x or 0, y = getY(v) })
             end
 

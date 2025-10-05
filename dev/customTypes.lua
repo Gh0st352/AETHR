@@ -304,10 +304,6 @@ function AETHR._MIZ_ZONE:New(envZone, parentAETHR)
     -- attach metatable so instance inherits methods from prototype
     setmetatable(instance, { __index = self })
 
-    -- Back-compat aliases for previous misspellings
-    instance.verticies = instance.vertices
-    instance.activeDivsions = instance.activeDivisions
-
     instance.LinesVec2 = instance.parentAETHR.POLY:convertPolygonToLines(instance.vertices)
 
     return instance ---@diagnostic disable-line
@@ -558,7 +554,6 @@ end
 --- @field isEffective boolean|nil
 --- @field sensors table|nil
 --- @field position _vec3|nil
---- @field postition _vec3|nil Deprecated alias of 'position'
 --- @field groupUnitNames string[] List of unit names in the same group
 --- @field AETHR table
 --- @field spawned boolean
@@ -672,9 +667,6 @@ function AETHR._foundObject:New(OBJ)
             end
         end
     end
-
-    -- Back-compat alias for previous misspelling
-    instance.postition = instance.position
 
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
@@ -1153,12 +1145,12 @@ end
 --- @field spawnSettings table
 --- @field spawnSettings.base _spawnSettings
 --- @field spawnSettings.generated _spawnSettings
---- @field seperationSettings table
---- @field seperationSettings.minGroups number
---- @field seperationSettings.maxGroups number
---- @field seperationSettings.minUnits number
---- @field seperationSettings.maxUnits number
---- @field seperationSettings.minBuildings number
+--- @field separationSettings table
+--- @field separationSettings.minGroups number
+--- @field separationSettings.maxGroups number
+--- @field separationSettings.minUnits number
+--- @field separationSettings.maxUnits number
+--- @field separationSettings.minBuildings number
 --- @field parentAETHR AETHR|nil
 --- @field parentSpawner _dynamicSpawner|nil
 --- @field zoneDivSceneryObjects table<number, _foundObject[]>
@@ -1215,12 +1207,12 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
             base = parentAETHR and parentAETHR._spawnSettings:New() or AETHR._spawnSettings:New(),
             generated = parentAETHR and parentAETHR._spawnSettings:New() or AETHR._spawnSettings:New(),
         },
-        seperationSettings = {
-            minGroups = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.minGroups or 30,
-            maxGroups = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.maxGroups or 45,
-            minUnits = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.minUnits or 15,
-            maxUnits = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.maxUnits or 30,
-            minBuildings = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.seperationSettings.minBuildings or 20,
+        separationSettings = {
+            minGroups = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.separationSettings.minGroups or 30,
+            maxGroups = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.separationSettings.maxGroups or 45,
+            minUnits = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.separationSettings.minUnits or 15,
+            maxUnits = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.separationSettings.maxUnits or 30,
+            minBuildings = parentAETHR and parentAETHR.SPAWNER.DATA.CONFIG.separationSettings.minBuildings or 20,
         },
         parentAETHR = parentAETHR or AETHR,
         parentSpawner = parentSpawner or {},
@@ -1230,8 +1222,6 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         _randSeed = math.random(),
     }
     setmetatable(instance, { __index = self })
-    -- Back-compat alias for typo: prefer separationSettings
-    instance.separationSettings = instance.seperationSettings
     if not instance.name then instance.name = "Zone_" .. tostring(os.time()) end
 
     local counter = 1
@@ -1273,11 +1263,11 @@ end
 --- @param distFromBuildings number|integer|nil (Optional) The minimum distance from nearby buildings.
 function AETHR._spawnerZone:setGroupSpacing(groupSize, groupMinSep, groupMaxSep, unitMinSep, unitMaxSep,
                                             distFromBuildings)
-    groupMinSep                        = groupMinSep or self.seperationSettings.minGroups
-    groupMaxSep                        = groupMaxSep or self.seperationSettings.maxGroups
-    unitMinSep                         = unitMinSep or self.seperationSettings.minUnits
-    unitMaxSep                         = unitMaxSep or self.seperationSettings.maxUnits
-    distFromBuildings                  = distFromBuildings or self.seperationSettings.minBuildings
+    groupMinSep                        = groupMinSep or self.separationSettings.minGroups
+    groupMaxSep                        = groupMaxSep or self.separationSettings.maxGroups
+    unitMinSep                         = unitMinSep or self.separationSettings.minUnits
+    unitMaxSep                         = unitMaxSep or self.separationSettings.maxUnits
+    distFromBuildings                  = distFromBuildings or self.separationSettings.minBuildings
     -- Initialize the spacing settings for the given group size
     self.groupSettings[groupSize]      = {}
     local settings                     = self.groupSettings[groupSize]

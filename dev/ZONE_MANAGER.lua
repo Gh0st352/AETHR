@@ -40,6 +40,31 @@ AETHR.ZONE_MANAGER.DATA = {
     },
 }
 
+--- Normalize loaded MIZ_ZONES to unified field names and recompute derived fields when missing.
+--- Converts:
+---   - verticies -> vertices
+---   - activeDivsions -> activeDivisions
+--- Recomputes LinesVec2 when absent.
+function AETHR.ZONE_MANAGER:_normalizeMizZones(zones)
+    local changed = false
+    for name, z in pairs(zones or {}) do
+        if z.verticies and not z.vertices then
+            z.vertices = z.verticies
+            z.verticies = nil
+            changed = true
+        end
+        if z.activeDivsions and not z.activeDivisions then
+            z.activeDivisions = z.activeDivsions
+            z.activeDivsions = nil
+            changed = true
+        end
+        if (not z.LinesVec2 or #z.LinesVec2 == 0) and z.vertices and self.POLY and self.POLY.convertPolygonToLines then
+            z.LinesVec2 = self.POLY:convertPolygonToLines(z.vertices)
+        end
+    end
+    return changed
+end
+
 
 --- Creates a new AETHR.ZONE_MANAGER submodule instance.
 --- @function AETHR.ZONE_MANAGER:New
@@ -94,6 +119,10 @@ function AETHR.ZONE_MANAGER:initMizZoneData()
     local data = self:getStoredMizZoneData()
     if data then
         self.DATA.MIZ_ZONES = data
+        local changed = self:_normalizeMizZones(self.DATA.MIZ_ZONES)
+        if changed then
+            self:saveMizZoneData()
+        end
     else
         self:generateMizZoneData()
         self.WORLD:getAirbases() -- Collect airbase data.
@@ -128,7 +157,7 @@ function AETHR.ZONE_MANAGER:pairActiveDivisions()
     ---@param zone _MIZ_ZONE
     for zoneName, zone in pairs(self.DATA.MIZ_ZONES) do
         local divsInZone = {}
-        local zoneVerts = zone.vertices or zone.verticies
+        local zoneVerts = zone.vertices
         ---@param div _WorldDivision
         for divID, div in pairs(globalActiveDivisions) do
             local divVerts = div.corners
@@ -137,7 +166,6 @@ function AETHR.ZONE_MANAGER:pairActiveDivisions()
             end
         end
         zone.activeDivisions = divsInZone
-        zone.activeDivsions = zone.activeDivisions
     end
     return self
 end
@@ -238,7 +266,7 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
                                 NeighborLine_, NeighborLength_)
 
                             -- Adjust perpendicular points if needed to ensure they are within the zone shape
-                            if POLY:PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].vertices or MIZ_ZONES[zoneName1].verticies) then
+                            if POLY:PointWithinShape(_ZoneLinePerpendicularPoint, MIZ_ZONES[zoneName1].vertices) then
                                 currentBorder.ZoneLinePerpendicularPoint = POLY:findPerpendicularEndpoints(ArrowMP,
                                     line_, length_)
                                 currentBorder.NeighborLinePerpendicularPoint = POLY:findPerpendicularEndpoints(
@@ -327,7 +355,7 @@ function AETHR.ZONE_MANAGER:_collectPolygonsFromZones(zonesTable, exclude)
     local polygons = {}
     ---@param mz _MIZ_ZONE
     for zname, mz in pairs(zonesTable or {}) do
-        local verts = mz and (mz.vertices or mz.verticies) or nil
+        local verts = mz and mz.vertices or nil
         if verts and #verts > 0 then
             local poly = {}
             for _, v in ipairs(verts) do
@@ -363,7 +391,7 @@ function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
     -- fallback: include any zone vertices not already included
     if #allPoints < 3 then
         for zname, mz in pairs(zonesTable or {}) do
-            local verts = mz and (mz.vertices or mz.verticies) or nil
+            local verts = mz and mz.vertices or nil
             if verts then --- @diagnostic disable-line
                 for _, v in ipairs(verts) do
                     local key = string.format("%.6f,%.6f", v.x, v.y or v.z)
@@ -755,7 +783,7 @@ function AETHR.ZONE_MANAGER:getOutOfBounds(opts)
     if validPolyCount == 0 then
         local flat = {}
         for zname, mz in pairs(zonesTable) do
-            local verts = mz and (mz.verticies or mz.vertices or mz.Vertices or mz.Verticies) or nil
+            local verts = mz and mz.vertices or nil
             if verts then
                 for _, v in ipairs(verts) do
                     table.insert(flat, { x = v.x, y = v.y or v.z })
@@ -934,7 +962,7 @@ function AETHR.ZONE_MANAGER:drawMissionZones()
                 b = self.CONFIG.MAIN.Zone.paintColors.FillColors[_zone.ownedBy].b,
                 a = self.CONFIG.MAIN.Zone.paintColors.FillAlpha
             },
-            (_zone.vertices or _zone.verticies),
+            _zone.vertices,
             nil
         )
         self.CONFIG.MAIN.COUNTERS.MARKERS = self.CONFIG.MAIN.COUNTERS.MARKERS + 1
