@@ -988,6 +988,11 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
     end
+    -- Performance notes:
+    -- - Squared-distance checks with grid hashing (no sqrt) keep hot loops cheap.
+    -- - neighborRange* are computed in cell units to bound grid lookups tightly.
+    -- - Building separation is strict (never relaxed). Group separation relaxes up to ~30% as glassBreak approaches operationLimit.
+    -- - Benchmark logging is gated; no per-iteration logging in hot loops.
     local BUILD_PAD = self.DATA.CONFIG.BUILD_PAD                         -- meters of extra padding around buildings for center placement
     local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG.EXTRA_ATTEMPTS_BUILDING                                             --- extra attempts if building rejection occurs
 
@@ -1008,6 +1013,9 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
     local gridInsert = function(grid, s, x, y, extra) return self:_gridInsert(grid, s, x, y, extra) end
     local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
+    local directReject = function(grid, s, x, y, minDist, neighborRange)
+        return self:_directCellStructureReject(grid, s, x, y, minDist, neighborRange)
+    end
     -- Process each subZone
     for _, subZone in pairs(subZones) do
         local subZoneRadius = subZone.actualRadius
@@ -1118,7 +1126,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     -- Strict building check (per-object radius + padding, never relaxed)
                     local buildingRejectDirect = false
                     if next(structuresGrid) ~= nil then
-                        buildingRejectDirect = self:_directCellStructureReject(
+                        buildingRejectDirect = directReject(
                             structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
                             (minBuildings + BUILD_PAD), neighborRangeBuildings
                         )
@@ -1188,6 +1196,10 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2UnitPos = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2UnitPos.Time.start = os.clock()
     end
+    -- Performance notes:
+    -- - Mirrors center-placement loop: grid hashed neighbor checks, squared-distance thresholds.
+    -- - Unit-vs-building separation remains strict; unit-vs-unit separation may relax up to ~30% as budget depletes.
+    -- - Avoids hot-loop logging; rely on benchmark flags for summary timing.
     local BUILD_PAD = self.DATA.CONFIG.BUILD_PAD                         -- meters of extra padding around buildings for center placement
     local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG
     .EXTRA_ATTEMPTS_BUILDING                                             --- extra attempts if building rejection occurs
@@ -1212,6 +1224,9 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     local cellKey = function(cx, cy) return self:_cellKey(cx, cy) end
     local gridInsert = function(grid, s, x, y, extra) return self:_gridInsert(grid, s, x, y, extra) end
     local gridQuery = function(grid, s, x, y, r2, neighborRange) return self:_gridQuery(grid, s, x, y, r2, neighborRange) end
+    local directReject = function(grid, s, x, y, minDist, neighborRange)
+        return self:_directCellStructureReject(grid, s, x, y, minDist, neighborRange)
+    end
 
     -- Process each subZone
     for _, subZone in pairs(subZones) do
@@ -1341,7 +1356,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         -- Strict building check (per-object radius + padding, never relaxed)
                         local buildingRejectDirect = false
                         if next(structuresGrid) ~= nil then
-                            buildingRejectDirect = self:_directCellStructureReject(
+                            buildingRejectDirect = directReject(
                                 structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
                                 (minBuildings + BUILD_PAD), neighborRangeBuildings
                             )

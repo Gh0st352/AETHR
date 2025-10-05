@@ -496,15 +496,15 @@ function AETHR.WORLD:spawnGroundGroups()
     for i = #queue, 1, -1 do
         local name = queue[i]
         if name then
-            self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | " .. tostring(name))
+            self.UTILS:debugInfoRate("AETHR.WORLD:spawnGroundGroups|" .. tostring(name), 2)
             local curTime = self.UTILS:getTime()
             local groupObj = self.SPAWNER.DATA.generatedGroups[name]
             local groupAddTime = (groupObj and groupObj._engineAddTime) or 0
             local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 0
 
             if (curTime - groupAddTime) < waitTime then
-                self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Skipping " ..
-                    tostring(name) .. " - wait time not elapsed")
+                self.UTILS:debugInfoRate("AETHR.WORLD:spawnGroundGroups|skip|" ..
+                    tostring(name), 2)
             else
                 local activated = false
                 local safeOk = pcall(function()
@@ -517,7 +517,7 @@ function AETHR.WORLD:spawnGroundGroups()
                 if safeOk and activated then
                     table.remove(queue, i)
                 else
-                    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Activation failed for " .. tostring(name))
+                    self.UTILS:debugInfoRate("AETHR.WORLD:spawnGroundGroups|activateFail|" .. tostring(name), 2)
                 end
             end
 
@@ -548,7 +548,7 @@ function AETHR.WORLD:despawnGroundGroups()
     for i = #queue, 1, -1 do
         local name = queue[i]
         if name then
-            self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | " .. tostring(name))
+            self.UTILS:debugInfoRate("AETHR.WORLD:despawnGroundGroups|" .. tostring(name), 2)
 
             local deactivated = false
             local safeOk = pcall(function()
@@ -561,7 +561,7 @@ function AETHR.WORLD:despawnGroundGroups()
             if safeOk and deactivated then
                 table.remove(queue, i)
             else
-                self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups | Deactivation failed for " .. tostring(name))
+                self.UTILS:debugInfoRate("AETHR.WORLD:despawnGroundGroups|deactivateFail|" .. tostring(name), 2)
             end
 
             if co_ and co_.thread then
