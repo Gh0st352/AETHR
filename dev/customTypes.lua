@@ -572,6 +572,7 @@ AETHR._foundObject = {} ---@diagnostic disable-line
 --- @param OBJ any
 --- @return _foundObject instance
 function AETHR._foundObject:New(OBJ)
+AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
     local instance = {
         callsign = nil,
         category = nil,
@@ -749,7 +750,7 @@ function AETHR._foundObject:New(OBJ)
             end
         end
     end
-
+AETHR.UTILS:debugInfo("AETHR._foundObject:New -> End")
     --setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end

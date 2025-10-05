@@ -259,8 +259,8 @@ function AETHR.WORLD:markWorldDivisions()
             vec3_2,
             vec3_3,
             vec3_4,
-            { r, g, b, alpha1 },                     -- Fill color
-            { borderR, borderG, borderB, alpha2 },   -- Border color (clamped)
+            { r, g, b, alpha1 },                   -- Fill color
+            { borderR, borderG, borderB, alpha2 }, -- Border color (clamped)
             linetype, true
         )
         shapeID = shapeID + 1 -- Increment marker ID
@@ -346,10 +346,24 @@ function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHe
         return key
     end
 
+    local function safeObj(item)
+        return self.AETHR._foundObject:New(item)
+    end
+
     -- Callback for world.searchObjects
     local function ifFound(item)
         local key = safeKey(item)
-        found[key] = self.AETHR._foundObject:New(item)
+        local _okval, _val = pcall(safeObj, item)
+        if _okval then
+            found[key] = _val
+        else
+            if dbg and self.UTILS and self.UTILS.debugInfo then
+                self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere safeObj error -> ")
+            end
+        end
+        --found[key] = self.AETHR._foundObject:New(item)
+
+
         if dbg and self.UTILS and self.UTILS.debugInfo then
             self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere found -> " .. tostring(key))
         end
@@ -413,8 +427,8 @@ function AETHR.WORLD:getAirbases()
             data.id, data.id_, data.coordinates,
             data.description, data.zoneName, data.zoneObject,
             desc.displayName, desc.category,
-            data.categoryText, coalitionNow,            -- currentCoalition
-            coalitionNow                                -- previousCoalition (initially same)
+            data.categoryText, coalitionNow, -- currentCoalition
+            coalitionNow                     -- previousCoalition (initially same)
         )
 
         if self.UTILS.sumTable(data.zoneObject) >= 1 and data.zoneObject.Airbases then
@@ -481,7 +495,8 @@ function AETHR.WORLD:spawnGroundGroups()
             local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 0
 
             if (curTime - groupAddTime) < waitTime then
-                self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Skipping " .. tostring(name) .. " - wait time not elapsed")
+                self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups | Skipping " ..
+                    tostring(name) .. " - wait time not elapsed")
             else
                 local activated = false
                 local safeOk = pcall(function()
@@ -617,8 +632,10 @@ function AETHR.WORLD:updateZoneColors()
         if ownedBy ~= oldOwnedBy then
             self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors --> Update " ..
                 zName .. " from " .. oldOwnedBy .. " to " .. ownedBy)
-            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy] or self.CONFIG.MAIN.Zone.paintColors.LineColors[0]
-            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy] or self.CONFIG.MAIN.Zone.paintColors.FillColors[0]
+            local _LineColors = self.CONFIG.MAIN.Zone.paintColors.LineColors[ownedBy] or
+                self.CONFIG.MAIN.Zone.paintColors.LineColors[0]
+            local _FillColors = self.CONFIG.MAIN.Zone.paintColors.FillColors[ownedBy] or
+                self.CONFIG.MAIN.Zone.paintColors.FillColors[0]
             local lineColor = {
                 _LineColors.r, _LineColors.g, _LineColors.b, self.CONFIG.MAIN.Zone.paintColors.LineAlpha
             }
