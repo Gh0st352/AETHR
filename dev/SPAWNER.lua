@@ -993,6 +993,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                                         zoneDivSceneryObjects[#zoneDivSceneryObjects + 1] = obj
                                     end
                                 end
+                                
                             end
                         end
 
@@ -1007,6 +1008,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                                         zoneDivStaticObjects[#zoneDivStaticObjects + 1] = obj
                                     end
                                 end
+                                
                             end
                         end
 
@@ -1021,6 +1023,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                                         zoneDivBaseObjects[#zoneDivBaseObjects + 1] = obj
                                     end
                                 end
+                                
                             end
                         end
                     end
