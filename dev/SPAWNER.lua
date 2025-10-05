@@ -249,10 +249,10 @@ function AETHR.SPAWNER:_directCellStructureReject(grid, s, x, y, minDist, neighb
 end
 
 
---- Cooperative yield helper used only when running inside BRAIN.DATA.coroutines.spawnerGeneration
+--- Cooperative yield helper used only when running inside BRAIN.DATA.coroutines.spawnerGenerationQueue
 --- Yields when the configured threshold is reached to avoid long blocking frames.
 function AETHR.SPAWNER:_maybeYield(inc)
-    local co_ = self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.coroutines and self.BRAIN.DATA.coroutines.spawnerGeneration
+    local co_ = self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.coroutines and self.BRAIN.DATA.coroutines.spawnerGenerationQueue
     if co_ and co_.thread then
         co_.yieldCounter = (co_.yieldCounter or 0) + (inc or 1)
         if co_.yieldCounter >= (co_.yieldThreshold or 0) then
@@ -546,59 +546,7 @@ function AETHR.SPAWNER:getGenerationJobStatus(jobId)
     return self.DATA.GenerationJobs and self.DATA.GenerationJobs[jobId] or nil
 end
 
---- Coroutine body executed by BRAIN:doRoutine to process generation jobs.
---- Runs one job at a time; heavy sub-steps yield via _maybeYield inside pipeline functions.
----@return AETHR.SPAWNER self
-function AETHR.SPAWNER:processGenerationQueue()
-    local state = self.DATA._genState or { currentJobId = nil }
-    self.DATA._genState = state
-    local jobs = self.DATA.GenerationJobs or {}
-    local q = self.DATA.GenerationQueue or {}
 
-    -- If a job is currently running (we yield inside generateDynamicSpawner), just return.
-    if state.currentJobId and jobs[state.currentJobId] and jobs[state.currentJobId].status == "running" then
-        return self
-    end
-
-    -- Start next job if available
-    local jobId = table.remove(q, 1)
-    if not jobId then
-        return self
-    end
-
-    local job = jobs[jobId]
-    if not job then return self end
-
-    state.currentJobId = jobId
-    job.status = "running"
-    job.startedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
-
-    -- Run generation synchronously within this coroutine; heavy functions will yield via _maybeYield.
-    self:generateDynamicSpawner(
-        job.params.dynamicSpawner,
-        job.params.vec2,
-        job.params.minRadius,
-        job.params.nominalRadius,
-        job.params.maxRadius,
-        job.params.nudgeFactorRadius,
-        job.params.countryID
-    )
-
-    -- Optional auto-spawn after prototypes are built
-    if job.params.autoSpawn then
-        pcall(function()
-            self:spawnDynamicSpawner(job.params.dynamicSpawner, job.params.countryID)
-        end)
-    end
-
-    job.completedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
-    job.status = "done"
-    state.currentJobId = nil
-
-    -- Light yield between jobs
-    self:_maybeYield(1)
-    return self
-end
 
 --- @function AETHR.SPAWNER:generateDynamicSpawner
 --- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance to configure (supports .deterministicSeed, .deterministicEnabled).

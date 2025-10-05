@@ -315,7 +315,7 @@ function AETHR:BackgroundProcesses()
     --Spawner generation job queue
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnerGeneration, function(parentAETHR)
-        parentAETHR.SPAWNER:processGenerationQueue()
+        parentAETHR.WORLD:spawnerGenerationQueue()
     end, self)
 
     self.BRAIN:runScheduledTasks(2)

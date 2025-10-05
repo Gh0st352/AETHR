@@ -746,6 +746,61 @@ function AETHR.WORLD:updateZoneArrows()
     return self
 end
 
+--- Coroutine body executed by BRAIN:doRoutine to process generation jobs.
+--- Runs one job at a time; heavy sub-steps yield via _maybeYield inside pipeline functions.
+---@return AETHR.WORLD self
+function AETHR.WORLD:spawnerGenerationQueue()
+self.UTILS:debugInfo("AETHR.WORLD:spawnerGenerationQueue -------------")
+    local state = self.SPAWNER.DATA._genState or { currentJobId = nil }
+    self.SPAWNER.DATA._genState = state
+    local jobs = self.SPAWNER.DATA.GenerationJobs or {}
+    local q = self.SPAWNER.DATA.GenerationQueue or {}
+
+    -- If a job is currently running (we yield inside generateDynamicSpawner), just return.
+    if state.currentJobId and jobs[state.currentJobId] and jobs[state.currentJobId].status == "running" then
+        return self
+    end
+
+    -- Start next job if available
+    local jobId = table.remove(q, 1)
+    if not jobId then
+        return self
+    end
+
+    local job = jobs[jobId]
+    if not job then return self end
+
+    state.currentJobId = jobId
+    job.status = "running"
+    job.startedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+
+    -- Run generation synchronously within this coroutine; heavy functions will yield via _maybeYield.
+    self.SPAWNER:generateDynamicSpawner(
+        job.params.dynamicSpawner,
+        job.params.vec2,
+        job.params.minRadius,
+        job.params.nominalRadius,
+        job.params.maxRadius,
+        job.params.nudgeFactorRadius,
+        job.params.countryID
+    )
+
+    -- Optional auto-spawn after prototypes are built
+    if job.params.autoSpawn then
+        pcall(function()
+            self.SPAWNER:spawnDynamicSpawner(job.params.dynamicSpawner, job.params.countryID)
+        end)
+    end
+
+    job.completedAt = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+    job.status = "done"
+    state.currentJobId = nil
+
+    -- Light yield between jobs
+    self.SPAWNER:_maybeYield(1)
+    return self
+end
+
 --- Rebuilds the ground unit database by scanning active divisions for UNIT objects.
 --- This function is designed to run incrementally across coroutine invocations.
 --- The coroutine `co_` holds persistent state in `co_.state` to remember progress across runs.
