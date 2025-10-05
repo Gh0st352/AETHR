@@ -129,7 +129,7 @@ AETHR.BRAIN.DATA = {
         },
         spawnerGenerationQueue = {
             interval = 1,
-            phase = 0,
+            phase = 12,
             counter = 0,
             thread = nil,
             yieldThreshold = 10,
