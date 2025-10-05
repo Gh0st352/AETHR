@@ -46,6 +46,7 @@ AETHR.WORLD = {} ---@diagnostic disable-line
 --- @field mizCacheDB table<string, table>                       Cached mission file group objects keyed by group name
 --- @field spawnerTemplateDB table<string, table>                Cached spawn template groups keyed by template name
 --- @field spawnerAttributesDB table<string, table<string, table>> Attributes -> (typeName -> unitDesc)
+--- @field _spawnerAttributesDB table<string, table<string, table>> Internal use only, do not modify directly, filtered and prioritized spawnerAttributesDB
 --- @field spawnerUnitInfoCache table<string, table>             Cached unit descriptor keyed by typeName
 --- @field worldDivAABB table<number, table>                     Cached division AABB keyed by division ID
 AETHR.WORLD.DATA = {
@@ -61,6 +62,7 @@ AETHR.WORLD.DATA = {
     mizCacheDB             = {}, -- Cached MIZ file groups keyed by groupname.
     spawnerTemplateDB      = {}, -- Cached group templates keyed by template name.
     spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
+    _spawnerAttributesDB = {},   -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
     spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
 }
 

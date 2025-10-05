@@ -1547,9 +1547,9 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
             for k, _ in pairs(zoneObject.groupSettings or {}) do table.insert(order, k) end
             table.sort(order, function(a, b) return (a or 0) < (b or 0) end)
         end
-
-        ---@param groupSizeConfig _spawnerTypeConfig
+        
         for _, size in ipairs(order) do
+            ---@type _spawnerTypeConfig groupSizeConfig 
             local groupSizeConfig = zoneObject.groupSettings and zoneObject.groupSettings[size]
             if groupSizeConfig then
                 local _groupTypes = {}

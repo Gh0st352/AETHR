@@ -13,6 +13,7 @@
 ---@field LineTypes AETHR.ENUMS.LineTypes Line rendering styles.
 ---@field MarkerTypes AETHR.ENUMS.MarkerTypes Marker shape types for F10 drawing.
 ---@field spawnTypes AETHR.ENUMS.spawnTypes table
+---@field spawnTypesPrio AETHR.ENUMS.spawnTypesPrio table
 ---@field dynamicSpawnerTypes AETHR.ENUMS.dynamicSpawnerTypes table 
 ---@diagnostic disable: undefined-global
 
@@ -229,6 +230,74 @@
 ---@field NonAndLightArmoredUnits string "NonAndLightArmoredUnits"
 ---@field NonArmoredUnits string "NonArmoredUnits"
 ---@field ArmedAirDefence string "Armed Air Defence"
+
+---@class AETHR.ENUMS.spawnTypesPrio table
+---@field Ships number|integer "Ships"
+---@field UnarmedShips number|integer "Unarmed ships"   
+---@field ArmedShips number|integer "Armed ships"
+---@field LightArmedShips number|integer "Light armed ships"
+---@field HeavyArmedShips number|integer "Heavy armed ships"
+---@field Corvettes number|integer "Corvettes"
+---@field Frigates number|integer "Frigates"
+---@field Destroyers number|integer "Destroyers"
+---@field Cruisers number|integer "Cruisers"
+---@field AircraftCarriers number|integer "Aircraft Carriers"
+---@field GroundUnits number|integer "Ground Units"
+---@field Infantry number|integer "Infantry"
+---@field LightArmoredUnits number|integer "LightArmoredUnits"
+---@field IFV number|integer "IFV"
+---@field APC number|integer "APC"
+---@field Artillery number|integer "Artillery"
+---@field MLRS number|integer "MLRS"
+---@field HeavyArmoredUnits number|integer "HeavyArmoredUnits"
+---@field ModernTanks number|integer "Modern Tanks"
+---@field OldTanks number|integer "Old Tanks"
+---@field Tanks number|integer "Tanks"
+---@field Buildings number|integer "Buildings"
+---@field Fortifications number|integer "Fortifications"
+---@field GroundVehicles number|integer "Ground vehicles"
+---@field AAA number|integer "AAA"
+---@field AA_flak number|integer "AA_flak"
+---@field Static_AAA number|integer "Static AAA"
+---@field Mobile_AAA number|integer "Mobile AAA"
+---@field UnarmedVehicles number|integer "Unarmed vehicles"
+---@field Cars number|integer "Cars"
+---@field Trucks number|integer "Trucks"
+---@field SamElements number|integer "SAM elements"
+---@field IRGuidedSam number|integer "IR Guided SAM"
+---@field SR_SAM number|integer "SR SAM"
+---@field MR_SAM number|integer "MR SAM"
+---@field LR_SAM number|integer "LR SAM"
+---@field ArmedGroundUnits number|integer "Armed ground units"
+---@field MANPADS number|integer "MANPADS"
+---@field RocketAttack number|integer "Rocket Attack Valid AirDefence"
+---@field ArmedVehicles number|integer "Armed vehicles"
+---@field CRAM number|integer "C-RAM"
+---@field AirDefenceVehicles number|integer "Air Defence vehicles"
+---@field SAM_CC number|integer "SAM CC"
+---@field SAM number|integer "SAM"
+---@field human_vehicle number|integer "human_vehicle"
+---@field WS_Type number|integer "</WSTYPE>"
+---@field ATGM number|integer "ATGM"
+---@field EWR number|integer "EWR"
+---@field IndirectFire number|integer "Indirect fire"
+---@field All number|integer "All"
+---@field Datalink number|integer "Datalink"
+---@field SAM_LL number|integer "SAM LL"
+---@field MANPADS_AUX number|integer "MANPADS AUX"
+---@field SAM_TR number|integer "SAM TR"
+---@field Vehicles number|integer "Vehicles"
+---@field SAM_SR number|integer "SAM SR"
+---@field New_Infantry number|integer "New infantry"
+---@field AA_missile number|integer "AA_missile"
+---@field SAM_related number|integer "SAM related"
+---@field GroundUnits_NonAirDefence number|integer "Ground Units Non Airdefence"
+---@field AntiAir_ArmedVehicles number|integer "AntiAir Armed Vehicles"
+---@field Infantry_Carriers number|integer "Infantry carriers"
+---@field Air_Defence number|integer "Air Defence"
+---@field NonAndLightArmoredUnits number|integer "NonAndLightArmoredUnits"
+---@field NonArmoredUnits number|integer "NonArmoredUnits"
+---@field ArmedAirDefence number|integer "Armed Air Defence"
 
 ---@class AETHR.ENUMS.dynamicSpawnerTypes table 
 ---@field Airbase string "Airbase"
@@ -460,6 +529,77 @@ AETHR.ENUMS = {
         NonAndLightArmoredUnits = "NonAndLightArmoredUnits",
         NonArmoredUnits = "NonArmoredUnits",
         ArmedAirDefence = "Armed Air Defence",
+    },
+      spawnTypesPrio = {
+        Ships = 91,
+        UnarmedShips = 92,
+        ArmedShips = 93,
+        LightArmedShips = 94,
+        HeavyArmedShips = 95,
+        Corvettes = 96,
+        Frigates = 97,
+        Destroyers = 98,
+        Cruisers = 99,
+        AircraftCarriers = 100,
+        GroundUnits = 35,
+        Infantry = 37,
+        LightArmoredUnits = 40,
+        IFV = 53,
+        APC = 54,
+        Artillery = 51,
+        MLRS = 52,
+        HeavyArmoredUnits = 45,
+        ModernTanks = 57,
+        OldTanks = 56,
+        Tanks = 55,
+        Buildings = 65,
+        Fortifications = 60,
+        GroundVehicles = 30,
+        AAA = 71,
+        AA_flak = 73,
+        Static_AAA = 72,
+        Mobile_AAA = 75,
+        UnarmedVehicles = 21,
+        Cars = 25,
+        Trucks = 27,
+        SamElements = 80,
+        IRGuidedSam = 89,
+        SR_SAM = 86, ---short range sam
+        MR_SAM = 87, ---mid range sam
+        LR_SAM = 88, ---long range sam
+        ArmedGroundUnits = 32,
+        MANPADS = 85,
+        RocketAttack = 26,
+        ArmedVehicles = 25,
+        CRAM = 76,
+        Prone = 1,
+        AirDefenceVehicles = 1, ---THESE ARE EWR
+        SAM_CC = 1,
+        SAM = 79,
+        human_vehicle = 2, --KRAZ
+        WS_Type = 3,           --- B8M1, tt + HL
+        ATGM = 27,
+        EWR = 90,
+        IndirectFire = 4,
+        All = 1,
+        Datalink = 10,
+        SAM_LL = 83,
+        MANPADS_AUX = 85,
+        SAM_TR = 84, ---track radars
+        Vehicles = 29,
+        SAM_AUX = 81,
+        Armored_Vehicles = 22,
+        SAM_SR = 82,             ---search radars
+        New_Infantry = 34, ---these are MANPADS
+        AA_missile = 77,     ---mostly SAM  launchers
+        SAM_related = 78,
+        GroundUnits_NonAirDefence = 19,
+        AntiAir_ArmedVehicles = 68,
+        Infantry_Carriers = 49,
+        Air_Defence = 20,
+        NonAndLightArmoredUnits = 18,
+        NonArmoredUnits = 17,
+        ArmedAirDefence = 21,
     },
     ---.
     dynamicSpawnerTypes = {
