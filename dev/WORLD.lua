@@ -420,7 +420,7 @@ function AETHR.WORLD:getAirbases()
             for zoneName, zone in pairs(self.ZONE_MANAGER.DATA.MIZ_ZONES) do
                 if self.POLY:PointWithinShape( --P, Polygon)
                         { x = pos.x, y = pos.z },
-                        zone.verticies
+                        (zone.vertices or zone.verticies)
                     ) then
                     data.zoneName = zoneName
                     data.zoneObject = zone
@@ -1156,7 +1156,7 @@ end
 
 --- @function AETHR.WORLD:buildZoneCellIndex
 --- @brief Constructs a mapping of grid cells to zone entries for efficient spatial lookup.
---- @param Zones table<string, _MIZ_ZONE> Array or map of zone objects; each contains `.verticies` points `{x, y|z}`.
+--- @param Zones table<string, _MIZ_ZONE> Array or map of zone objects; each contains `.vertices` (or legacy `.verticies`) points `{x, y|z}`.
 --- @param grid _Grid Grid metrics returned by `initGrid`.
 --- @return table<number, table<number, _ZoneCellEntry[]>> cells Nested table `cells[col][row]` containing lists of zone entries.
 function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
@@ -1173,7 +1173,7 @@ function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
         local zminY, zmaxY = math.huge, -math.huge
 
         -- Compute raw bounding box in world coordinates using flexible Y/Z access.
-        for _, v in ipairs(zone.verticies or {}) do
+        for _, v in ipairs((zone.vertices or zone.verticies or {})) do
             local vy = getY(v)
             zminX = math.min(zminX, v.x or zminX)
             zmaxX = math.max(zmaxX, v.x or zmaxX)
@@ -1191,7 +1191,7 @@ function AETHR.WORLD:buildZoneCellIndex(Zones, grid)
 
             -- Prepare polygon for intersection tests.
             local poly = {}
-            for _, v in ipairs(zone.verticies or {}) do
+            for _, v in ipairs((zone.vertices or zone.verticies or {})) do
                 table.insert(poly, { x = v.x or 0, y = getY(v) })
             end
 

@@ -95,22 +95,10 @@ AETHR._ZoneBorder = {} ---@diagnostic disable-line
 --- @param MarkID table<integer, integer>|nil
 --- @return _ZoneBorder instance
 function AETHR._ZoneBorder:New(OwnedByCoalition, ZoneLine, NeighborLine, MarkID)
-    local instance = {
-        OwnedByCoalition = OwnedByCoalition or 0,
-        ZoneLine = ZoneLine or {},
-        ZoneLineLen = 0,
-        ZoneLineMidP = nil,
-        ZoneLineSlope = nil,
-        ZoneLinePerpendicularPoint = nil,
-        NeighborLine = NeighborLine or {},
-        NeighborLineLen = 0,
-        NeighborLineMidP = nil,
-        NeighborLineSlope = nil,
-        NeighborLinePerpendicularPoint = nil,
-        MarkID = MarkID or {},
-    }
-    setmetatable(instance, { __index = self })
-    return instance ---@diagnostic disable-line
+    -- Deprecated: use AETHR._BorderInfo:New instead. Kept for backward compatibility.
+    local bi = AETHR._BorderInfo:New(ZoneLine or {}, NeighborLine or {}, MarkID or {})
+    bi.OwnedByCoalition = OwnedByCoalition or 0
+    return bi ---@diagnostic disable-line
 end
 
 --- 3D point (vec3)
@@ -273,18 +261,18 @@ end
 --- @field type number|string                                 Zone type (env.mission format)
 --- @field BorderOffsetThreshold number                       Offset threshold used for arrow placement (CONFIG.MAIN.Zone.BorderOffsetThreshold)
 --- @field ArrowLength number                                 Length of arrow when visualizing borders (CONFIG.MAIN.Zone.ArrowLength)
---- @field verticies (_vec2|_vec2xz)[]                        Polygon vertices; accepts {x,y} or {x,z}
+--- @field vertices (_vec2|_vec2xz)[]                         Polygon vertices; accepts {x,y} or {x,z}
 --- @field ownedBy number                                     Current owning coalition (AETHR.ENUMS.Coalition)
 --- @field oldOwnedBy number                                  Previous owning coalition
 --- @field shapeID number                                     Marker shape type (AETHR.ENUMS.MarkerTypes)
---- @field markerObject table|_Marker                   Marker object used for drawing the zone
+--- @field markerObject table|_Marker                         Marker object used for drawing the zone
 --- @field readOnly boolean                                   True if zone cannot be edited
 --- @field BorderingZones table<string, _BorderInfo[]>        Map: neighbor zone name -> list of border segment descriptors
 --- @field Airbases table<string, _airbase>                   Airbases within this zone keyed by displayName
---- @field LinesVec2 _LineVec2[]                              Precomputed line segments from verticies
---- @field lastMarkColorOwner number                           Coalition that last set the marker color (to avoid redundant updates)
---- @field activeDivsions table<number, _WorldDivision>        Map of division ID -> division info for divisions intersecting this zone
---- @field parentAETHR AETHR|nil                             Parent AETHR instance (for access to submodules/config)
+--- @field LinesVec2 _LineVec2[]                              Precomputed line segments from vertices
+--- @field lastMarkColorOwner number                          Coalition that last set the marker color (to avoid redundant updates)
+--- @field activeDivisions table<number, _WorldDivision>      Map of division ID -> division info for divisions intersecting this zone
+--- @field parentAETHR AETHR|nil                              Parent AETHR instance (for access to submodules/config)
 AETHR._MIZ_ZONE = {}
 
 --- Create a new mission zone instance from an env.mission trigger zone
@@ -292,30 +280,35 @@ AETHR._MIZ_ZONE = {}
 --- @param parentAETHR AETHR|nil Optional parent AETHR instance for config access
 --- @return _MIZ_ZONE instance
 function AETHR._MIZ_ZONE:New(envZone, parentAETHR)
+    local p = parentAETHR or AETHR
     local instance = {
         name = envZone.name,
         zoneId = envZone.zoneId,
         type = envZone.type,
-        BorderOffsetThreshold = parentAETHR and parentAETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold or
-            AETHR.CONFIG.MAIN.Zone.BorderOffsetThreshold,
-        ArrowLength = parentAETHR and parentAETHR.CONFIG.MAIN.Zone.ArrowLength or AETHR.CONFIG.MAIN.Zone.ArrowLength,
-        verticies = envZone.verticies, --AETHR.POLY:ensureConvex(envZone.verticies),
-        ownedBy = parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
-        oldOwnedBy = parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
-        shapeID = parentAETHR and parentAETHR.ENUMS.MarkerTypes.Freeform or AETHR.ENUMS.MarkerTypes.Freeform,
+        BorderOffsetThreshold = p.CONFIG.MAIN.Zone.BorderOffsetThreshold,
+        ArrowLength = p.CONFIG.MAIN.Zone.ArrowLength,
+        -- Input from env.mission uses 'verticies'; store normalized 'vertices' and keep alias
+        vertices = envZone.verticies,
+        ownedBy = p.ENUMS.Coalition.NEUTRAL,
+        oldOwnedBy = p.ENUMS.Coalition.NEUTRAL,
+        shapeID = p.ENUMS.MarkerTypes.Freeform,
         markerObject = {},
         readOnly = true,
         BorderingZones = {},
         Airbases = {},
         LinesVec2 = {},
-        lastMarkColorOwner = parentAETHR and parentAETHR.ENUMS.Coalition.NEUTRAL or AETHR.ENUMS.Coalition.NEUTRAL,
-        activeDivsions = {},
-        parentAETHR = parentAETHR and parentAETHR or AETHR,
+        lastMarkColorOwner = p.ENUMS.Coalition.NEUTRAL,
+        activeDivisions = {},
+        parentAETHR = p,
     }
     -- attach metatable so instance inherits methods from prototype
     setmetatable(instance, { __index = self })
 
-    instance.LinesVec2 = instance.parentAETHR.POLY:convertPolygonToLines(instance.verticies)
+    -- Back-compat aliases for previous misspellings
+    instance.verticies = instance.vertices
+    instance.activeDivsions = instance.activeDivisions
+
+    instance.LinesVec2 = instance.parentAETHR.POLY:convertPolygonToLines(instance.vertices)
 
     return instance ---@diagnostic disable-line
 end
@@ -339,11 +332,12 @@ AETHR._Grid = {}
 function AETHR._Grid:New(c, minX, maxZ, dx, dz)
     local instance = {
         minX  = minX,
-        minZ  = maxZ,
+        minZ  = maxZ,      -- Stored as minZ for grid indexing (origin at minX,maxZ).
         dx    = dx,
         dz    = dz,
-        invDx = 1 / dx, -- Inverse widths for index computation.
-        invDz = 1 / dz, -- Inverse heights for index computation.
+        invDx = 1 / dx,    -- Inverse widths for index computation.
+        invDz = 1 / dz,    -- Inverse heights for index computation.
+        corners = c or {}, -- Preserve provided corners for diagnostics/visualization.
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
@@ -353,15 +347,16 @@ end
 --- @class _Marker
 --- @field markID number                               Unique marker ID
 --- @field string string                               Label/text shown with the marker
---- @field vec2Origin _vec2                       Origin point for the marker (vec2)
+--- @field label string                                Alias of "string" for readability
+--- @field vec2Origin _vec2                            Origin point for the marker (vec2)
 --- @field readOnly boolean                            If true, marker is not editable
 --- @field message string                              Optional message text
 --- @field shapeId number                              Shape type enum (e.g., freeform, line, circle)
 --- @field coalition number                            Coalition ID (-1 = neutral/all)
 --- @field lineType number                             Line style enum
---- @field lineColor _ColorRGBA|number[]         Line color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
---- @field fillColor _ColorRGBA|number[]         Fill color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
---- @field freeFormVec2Table _vec2[]             Vertices used for freeform/drawn shapes
+--- @field lineColor _ColorRGBA|number[]               Line color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
+--- @field fillColor _ColorRGBA|number[]               Fill color (preferred: {r,g,b,a}; legacy: {r,g,b,a} array)
+--- @field freeFormVec2Table _vec2[]                   Vertices used for freeform/drawn shapes
 --- @field radius number                               Radius for circles (if shape is circle)
 AETHR._Marker = {} ---@diagnostic disable-line
 
@@ -387,8 +382,9 @@ function AETHR._Marker:New(
     local instance = {
         markID = markID,
         string = markString or "",
+        label = markString or "",
         vec2Origin = vec2Origin or {},
-        readOnly = readOnly or true,
+        readOnly = (readOnly ~= nil) and readOnly or true,
         message = message or "",
         shapeId = shapeId or 0,
         lineType = lineType or 0,
@@ -561,7 +557,8 @@ end
 --- @field isDead boolean|nil
 --- @field isEffective boolean|nil
 --- @field sensors table|nil
---- @field postition _vec3|nil
+--- @field position _vec3|nil
+--- @field postition _vec3|nil Deprecated alias of 'position'
 --- @field groupUnitNames string[] List of unit names in the same group
 --- @field AETHR table
 --- @field spawned boolean
@@ -572,7 +569,6 @@ AETHR._foundObject = {} ---@diagnostic disable-line
 --- @param OBJ any
 --- @return _foundObject instance
 function AETHR._foundObject:New(OBJ)
---AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
     local instance = {
         callsign = nil,
         category = nil,
@@ -591,160 +587,76 @@ function AETHR._foundObject:New(OBJ)
         isDead = nil,
         isEffective = nil,
         sensors = nil,
-        postition = nil,
+        position = nil,
         AETHR = {
             spawned = false,
             divisionID = nil,
             groundUnitID = 0,
         },
     }
-   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCallsign")
     -- Set if available
     if type(OBJ.getCallsign) == "function" then
         local _okval, _val = pcall(OBJ.getCallsign, OBJ)
-        if _okval then
-            instance.callsign = _val
-        end
+        if _okval then instance.callsign = _val end
     end
-   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCategory")
     -- Set if available
     if type(OBJ.getCategory) == "function" then
         local _okval, _val = pcall(OBJ.getCategory, OBJ)
-        if _okval then
-            instance.category = _val
-        end
+        if _okval then instance.category = _val end
     end
-   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCategoryEx")
-        -- Set if available
+    -- Set if available
     if type(OBJ.getCategoryEx) == "function" then
         local _okval, _val = pcall(OBJ.getCategoryEx, OBJ)
-        if _okval then
-            instance.categoryEx = _val
-        end
+        if _okval then instance.categoryEx = _val end
     end
-   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCoalition")
-        -- Set if available
+    -- Set if available
     if type(OBJ.getCoalition) == "function" then
         local _okval, _val = pcall(OBJ.getCoalition, OBJ)
-        if _okval then
-            instance.coalition = _val
-        end
+        if _okval then instance.coalition = _val end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCountry")
-        -- Set if available
-    if type(OBJ.getPoint) == "function" then
-        local _okval, _val = pcall(OBJ.getPoint, OBJ)
-        if _okval then
-            instance.country = _val
-        end
+    -- Set if available (country)
+    if type(OBJ.getCountry) == "function" then
+        local _okCountry, _country = pcall(OBJ.getCountry, OBJ)
+        if _okCountry then instance.country = _country end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getDesc")
-        -- Set if available
+    -- Set if available
     if type(OBJ.getDesc) == "function" then
         local _okval, _val = pcall(OBJ.getDesc, OBJ)
-        if _okval then
-            instance.desc = _val
-        end
+        if _okval then instance.desc = _val end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getID")
-        -- Set if available
+    -- Set if available
     if type(OBJ.getID) == "function" then
         local _okval, _val = pcall(OBJ.getID, OBJ)
-        if _okval then
-            instance.id = _val
-        end
+        if _okval then instance.id = _val end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getName")
-        -- Set if available
+    -- Set if available
     if type(OBJ.getName) == "function" then
         local _okval, _val = pcall(OBJ.getName, OBJ)
-        if _okval then
-            instance.name = _val
-        end
+        if _okval then instance.name = _val end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getPoint")
-    -- Set if available
+    -- Set if available (position)
     if type(OBJ.getPoint) == "function" then
         local _okval, _val = pcall(OBJ.getPoint, OBJ)
-        if _okval then
-            instance.postition = _val
-        end
+        if _okval then instance.position = _val end
     end
-    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getSensors")
-    -- -- Set getSensors if available
-    -- if type(OBJ.getSensors) == "function" then
-    --     local _okval, _val = pcall(OBJ.getSensors, OBJ)
-    --     if _okval then
-    --         instance.sensors = _val
-    --     end
-    -- end
-    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isEffective")
-    -- -- Set isEffective if available
-    -- if type(OBJ.isEffective) == "function" then
-    --     local _okval, _val = pcall(OBJ.isEffective, OBJ)
-    --     if _okval then
-    --         instance.isEffective = _val
-    --     end
-    -- end
-    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isDead")
-    -- -- Set isDead if available
-    -- if type(OBJ.isDead) == "function" then
-    --     local _okval, _val = pcall(OBJ.isDead, OBJ)
-    --     if _okval then
-    --         instance.isDead = _val
-    --     end
-    -- end
-    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isBroken")
-    -- -- Set isBroken if available
-    -- if type(OBJ.isBroken) == "function" then
-    --     local _okval, _val = pcall(OBJ.isBroken, OBJ)
-    --     if _okval then
-    --         instance.isBroken = _val
-    --     end
-    -- end
-    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isAlive")
-    -- -- Set isAlive if available
-    -- if type(OBJ.isAlive) == "function" then
-    --     local _okval, _val = pcall(OBJ.isAlive, OBJ)
-    --     if _okval then
-    --         instance.isAlive = _val
-    --     end
-    -- end
-    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isActive")
-    -- -- Set isActive if available
-    -- if type(OBJ.isActive) == "function" then
-    --     local _okval, _val = pcall(OBJ.isActive, OBJ)
-    --     if _okval then
-    --         instance.isActive = _val
-    --     end
-    -- end
-   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getObjectID")
     -- Set ObjectID if available
     if type(OBJ.getObjectID) == "function" then
         local _okval, _val = pcall(OBJ.getObjectID, OBJ)
-        if _okval then
-            instance.ObjectID = _val
-        end
+        if _okval then instance.ObjectID = _val end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getGroup")
+
     -- Safely resolve group information (OBJ may not implement getGroup)
     local _group = nil
     if OBJ and type(OBJ.getGroup) == "function" then
         local _okGroup, _result = pcall(OBJ.getGroup, OBJ)
-        if _okGroup then
-            _group = _result
-        end
+        if _okGroup then _group = _result end
     end
-  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getGroup -> Retrieved Group")
     if _group then
         -- Set groupName if available
         if type(_group.getName) == "function" then
             local _okName, _name = pcall(_group.getName, _group)
-            if _okName then
-                instance.groupName = _name
-            end
+            if _okName then instance.groupName = _name end
         end
-   --     AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getGroup -> Retrieved Group Name")
         -- Collect unit names if available
         if type(_group.getUnits) == "function" then
             local _okUnits, _units = pcall(_group.getUnits, _group)
@@ -760,8 +672,11 @@ function AETHR._foundObject:New(OBJ)
             end
         end
     end
---AETHR.UTILS:debugInfo("AETHR._foundObject:New -> End")
-    --setmetatable(instance, { __index = self })
+
+    -- Back-compat alias for previous misspelling
+    instance.postition = instance.position
+
+    setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 
@@ -791,13 +706,13 @@ function AETHR._groundUnit:New(type, skill, x, y, name, heading, playerCanDrive,
         type = type or nil,
         transportable =
         {
-            randomTransportable = randomTransportable or true,
+            randomTransportable = (randomTransportable ~= nil) and randomTransportable or true,
         },                                         -- end of transportable
         skill = skill or AETHR.ENUMS.Skill.Random, -- string of the units skill level. Can be "Excellent", "High", "Good", "Average", "Random", "Player"
         y = y or 0,
         x = x or 0,
         name = name or nil,
-        playerCanDrive = playerCanDrive or true,
+        playerCanDrive = (playerCanDrive ~= nil) and playerCanDrive or true,
         heading = heading or 0, -- number heading of the object in radians
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
@@ -847,8 +762,8 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
     local instance = {
         visible         = visible or false,
         uncontrollable  = uncontrollable or false,
-        taskSelected    = taskSelected or true,
-        lateActivation  = lateActivation or true,
+        taskSelected    = (taskSelected ~= nil) and taskSelected or true,
+        lateActivation  = (lateActivation ~= nil) and lateActivation or true,
         hidden          = hidden or false,          --- boolean whether or not the group is visible on the F10 map view
         hiddenOnPlanner = hiddenOnPlanner or false, --- boolean if true the group will be hidden on the mission planner available in single player.
         hiddenOnMFD     = hiddenOnMFD or false,     --- boolean if true this group will not be auto populated on relevant aircraft map screens and avionics. For instance SAM rings in F-16/F-18 and AH-64 threats pages
@@ -1315,6 +1230,8 @@ function AETHR._spawnerZone:New(parentAETHR, parentSpawner)
         _randSeed = math.random(),
     }
     setmetatable(instance, { __index = self })
+    -- Back-compat alias for typo: prefer separationSettings
+    instance.separationSettings = instance.seperationSettings
     if not instance.name then instance.name = "Zone_" .. tostring(os.time()) end
 
     local counter = 1

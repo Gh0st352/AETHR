@@ -113,6 +113,8 @@ AETHR.SPAWNER.DATA = {
     },
     debugMarkers = {}
 }
+-- Back-compat alias: prefer 'separationSettings', keep existing 'seperationSettings' data
+AETHR.SPAWNER.DATA.CONFIG.separationSettings = AETHR.SPAWNER.DATA.CONFIG.seperationSettings
 
 
 
@@ -701,13 +703,13 @@ function AETHR.SPAWNER:pairSpawnerActiveZones(dynamicSpawner)
     ---@param mizZoneName string
     ---@param mizZone _MIZ_ZONE
     for mizZoneName, mizZone in pairs(mizZones) do
-        local mizZoneVerts = mizZone.verticies
+        local mizZoneVerts = mizZone.vertices or mizZone.verticies
         local mainZoneRadius = dynamicSpawner.maxRadius
         local mainZoneCenter = dynamicSpawner.vec2
 
         if self.POLY:circleOverlapPoly(mainZoneRadius, mainZoneCenter, mizZoneVerts) then
             table.insert(_MizZones, mizZone)
-            for _ID, div in pairs(mizZone.activeDivsions) do
+            for _ID, div in pairs(mizZone.activeDivisions or mizZone.activeDivsions) do
                 spawnerActiveDivisions[_ID] = div
             end
         end
@@ -1084,8 +1086,9 @@ self.UTILS:debugInfo("CHECK9")
         -- For each groupSetting, place group centers
         for _, groupSetting in pairs(subZone.groupSettings or {}) do
             local groupCenterVec2s = {}
-            local minGroups = groupSetting.minGroups or self.DATA.CONFIG.seperationSettings.minGroups or 30
-            local minBuildings = groupSetting.minBuildings or self.DATA.CONFIG.seperationSettings.minBuildings or 20
+            local sepCfg = self.DATA.CONFIG.separationSettings or self.DATA.CONFIG.seperationSettings or {}
+            local minGroups = groupSetting.minGroups or sepCfg.minGroups or 30
+            local minBuildings = groupSetting.minBuildings or sepCfg.minBuildings or 20
             local mg2 = (minGroups) * (minGroups)
             local mb2 = (minBuildings) * (minBuildings)
             local neighborRangeGroups = math.ceil(minGroups / cellSize)
@@ -1307,10 +1310,11 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         -- For each groupSetting, place group centers
         for _, groupSetting in pairs(subZone.groupSettings or {}) do
             local groupUnitVec2s = {}
-            local minUnits = groupSetting.minUnits or self.DATA.CONFIG.seperationSettings.minUnits or 10
-            local maxUnits = groupSetting.maxUnits or self.DATA.CONFIG.seperationSettings.maxUnits or 20
-            local maxGroups = groupSetting.maxGroups or self.DATA.CONFIG.seperationSettings.maxGroups or 30
-            local minBuildings = groupSetting.minBuildings or self.DATA.CONFIG.seperationSettings.minBuildings or 20
+            local sepCfg = self.DATA.CONFIG.separationSettings or self.DATA.CONFIG.seperationSettings or {}
+            local minUnits = groupSetting.minUnits or sepCfg.minUnits or 10
+            local maxUnits = groupSetting.maxUnits or sepCfg.maxUnits or 20
+            local maxGroups = groupSetting.maxGroups or sepCfg.maxGroups or 30
+            local minBuildings = groupSetting.minBuildings or sepCfg.minBuildings or 20
             local mg2 = (minUnits) * (minUnits)
             local mb2 = (minBuildings) * (minBuildings)
             local neighborRangeGroups = math.ceil(minUnits / cellSize)
