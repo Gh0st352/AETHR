@@ -139,7 +139,6 @@ end
 --- Supports:
 ---  - obj.{x,y}
 ---  - obj.position.{x,z|y}
----  - obj.postition (common typo) .{x,z|y}
 ---  - obj:getPoint() returning {x,y|z}
 --- @param obj any
 --- @return _vec2|nil
@@ -149,10 +148,7 @@ function AETHR.SPAWNER:_extractXY(obj)
     if obj.position and obj.position.x and (obj.position.z or obj.position.y) then
         return { x = obj.position.x, y = (obj.position.z or obj.position.y) }
     end
-    if obj.postition and obj.postition.x and (obj.postition.z or obj.postition.y) then
-        return { x = obj.postition.x, y = (obj.postition.z or obj.postition.y) }
-    end
-    if obj.getPoint and type(obj.getPoint) == "function" then
+        if obj.getPoint and type(obj.getPoint) == "function" then
         local p = obj:getPoint()
         if p and p.x and (p.y or p.z) then return { x = p.x, y = (p.z or p.y) } end
     end
