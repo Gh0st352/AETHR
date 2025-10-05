@@ -281,6 +281,10 @@ end
 --- @param height number Height of the search volume in meters
 --- @return table<string|number, _FoundObject> found Found objects keyed by unit name when available, otherwise numeric engine ID or tostring fallback
 function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
+    -- local dbg = self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED
+    -- if dbg and self.UTILS and self.UTILS.debugInfo then
+    --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox -------------")
+    -- end
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
     local vol = self.POLY:createBox(box.min, box.max)
@@ -301,11 +305,25 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
         if not key then key = tostring(item) end
         return key
     end
-
+    local function safeObj(item)
+        return self.AETHR._foundObject:New(item)
+    end
     -- Callback for world.searchObjects
     local function ifFound(item)
         local key = safeKey(item)
-        found[key] = self.AETHR._foundObject:New(item)
+        local _okval, _val = pcall(safeObj, item)
+        if _okval then
+            found[key] = _val
+        -- else
+        --     if dbg and self.UTILS and self.UTILS.debugInfo then
+        --         self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox safeObj error -> ")
+        --     end
+        end
+        -- found[key] = self.AETHR._foundObject:New(item)
+
+        -- if dbg and self.UTILS and self.UTILS.debugInfo then
+        --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox found -> " .. tostring(key))
+        -- end
     end
 
     local ok, err = pcall(world.searchObjects, objectCategory, vol, ifFound)
@@ -314,6 +332,9 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
             self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox world.searchObjects error: " .. tostring(err))
         end
     end
+    -- if dbg and self.UTILS and self.UTILS.debugInfo then
+    --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox ---------END")
+    -- end
     return found
 end
 
@@ -323,10 +344,10 @@ end
 --- @param yHeight number|nil Optional vertical coordinate (y) for the sphere center; defaults to 0 if nil.
 --- @return table<string|number, _FoundObject> found Found objects keyed by unit name when available, otherwise numeric engine ID or tostring fallback
 function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHeight)
-    local dbg = self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED
-    if dbg and self.UTILS and self.UTILS.debugInfo then
-        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
-    end
+    -- local dbg = self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED
+    -- if dbg and self.UTILS and self.UTILS.debugInfo then
+    --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere -------------")
+    -- end
     local vol = self.POLY:createSphere(centerVec2, radius, yHeight)
     local found = {} ---@type table<number, _FoundObject>
 
@@ -356,27 +377,27 @@ function AETHR.WORLD:searchObjectsSphere(objectCategory, centerVec2, radius, yHe
         local _okval, _val = pcall(safeObj, item)
         if _okval then
             found[key] = _val
-        else
-            if dbg and self.UTILS and self.UTILS.debugInfo then
-                self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere safeObj error -> ")
-            end
+        -- else
+        --     if dbg and self.UTILS and self.UTILS.debugInfo then
+        --         self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere safeObj error -> ")
+        --     end
         end
         --found[key] = self.AETHR._foundObject:New(item)
 
 
-        if dbg and self.UTILS and self.UTILS.debugInfo then
-            self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere found -> " .. tostring(key))
-        end
+        -- if dbg and self.UTILS and self.UTILS.debugInfo then
+        --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere found -> " .. tostring(key))
+        -- end
     end
 
     local ok, err = pcall(world.searchObjects, objectCategory, vol, ifFound)
-    if not ok and dbg and self.UTILS and self.UTILS.debugInfo then
+    if not ok and self.UTILS and self.UTILS.debugInfo then
         self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ERROR world.searchObjects: " .. tostring(err))
     end
 
-    if dbg and self.UTILS and self.UTILS.debugInfo then
-        self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------END")
-    end
+    -- if dbg and self.UTILS and self.UTILS.debugInfo then
+    --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsSphere ---------END")
+    -- end
     return found
 end
 

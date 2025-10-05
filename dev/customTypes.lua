@@ -572,7 +572,7 @@ AETHR._foundObject = {} ---@diagnostic disable-line
 --- @param OBJ any
 --- @return _foundObject instance
 function AETHR._foundObject:New(OBJ)
-AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
+--AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
     local instance = {
         callsign = nil,
         category = nil,
@@ -598,6 +598,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             groundUnitID = 0,
         },
     }
+   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCallsign")
     -- Set if available
     if type(OBJ.getCallsign) == "function" then
         local _okval, _val = pcall(OBJ.getCallsign, OBJ)
@@ -605,6 +606,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.callsign = _val
         end
     end
+   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCategory")
     -- Set if available
     if type(OBJ.getCategory) == "function" then
         local _okval, _val = pcall(OBJ.getCategory, OBJ)
@@ -612,6 +614,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.category = _val
         end
     end
+   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCategoryEx")
         -- Set if available
     if type(OBJ.getCategoryEx) == "function" then
         local _okval, _val = pcall(OBJ.getCategoryEx, OBJ)
@@ -619,6 +622,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.categoryEx = _val
         end
     end
+   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCoalition")
         -- Set if available
     if type(OBJ.getCoalition) == "function" then
         local _okval, _val = pcall(OBJ.getCoalition, OBJ)
@@ -626,6 +630,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.coalition = _val
         end
     end
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getCountry")
         -- Set if available
     if type(OBJ.getPoint) == "function" then
         local _okval, _val = pcall(OBJ.getPoint, OBJ)
@@ -633,6 +638,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.country = _val
         end
     end
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getDesc")
         -- Set if available
     if type(OBJ.getDesc) == "function" then
         local _okval, _val = pcall(OBJ.getDesc, OBJ)
@@ -640,6 +646,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.desc = _val
         end
     end
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getID")
         -- Set if available
     if type(OBJ.getID) == "function" then
         local _okval, _val = pcall(OBJ.getID, OBJ)
@@ -647,14 +654,15 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.id = _val
         end
     end
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getName")
         -- Set if available
-    if type(OBJ.name) == "function" then
-        local _okval, _val = pcall(OBJ.name, OBJ)
+    if type(OBJ.getName) == "function" then
+        local _okval, _val = pcall(OBJ.getName, OBJ)
         if _okval then
             instance.name = _val
         end
     end
-
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getPoint")
     -- Set if available
     if type(OBJ.getPoint) == "function" then
         local _okval, _val = pcall(OBJ.getPoint, OBJ)
@@ -662,53 +670,55 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.postition = _val
         end
     end
-    -- Set getSensors if available
-    if type(OBJ.getSensors) == "function" then
-        local _okval, _val = pcall(OBJ.getSensors, OBJ)
-        if _okval then
-            instance.sensors = _val
-        end
-    end
-    -- Set isEffective if available
-    if type(OBJ.isEffective) == "function" then
-        local _okval, _val = pcall(OBJ.isEffective, OBJ)
-        if _okval then
-            instance.isEffective = _val
-        end
-    end
-
-    -- Set isDead if available
-    if type(OBJ.isDead) == "function" then
-        local _okval, _val = pcall(OBJ.isDead, OBJ)
-        if _okval then
-            instance.isDead = _val
-        end
-    end
-
-    -- Set isBroken if available
-    if type(OBJ.isBroken) == "function" then
-        local _okval, _val = pcall(OBJ.isBroken, OBJ)
-        if _okval then
-            instance.isBroken = _val
-        end
-    end
-
-    -- Set isAlive if available
-    if type(OBJ.isAlive) == "function" then
-        local _okval, _val = pcall(OBJ.isAlive, OBJ)
-        if _okval then
-            instance.isAlive = _val
-        end
-    end
-
-    -- Set isActive if available
-    if type(OBJ.isActive) == "function" then
-        local _okval, _val = pcall(OBJ.isActive, OBJ)
-        if _okval then
-            instance.isActive = _val
-        end
-    end
-
+    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getSensors")
+    -- -- Set getSensors if available
+    -- if type(OBJ.getSensors) == "function" then
+    --     local _okval, _val = pcall(OBJ.getSensors, OBJ)
+    --     if _okval then
+    --         instance.sensors = _val
+    --     end
+    -- end
+    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isEffective")
+    -- -- Set isEffective if available
+    -- if type(OBJ.isEffective) == "function" then
+    --     local _okval, _val = pcall(OBJ.isEffective, OBJ)
+    --     if _okval then
+    --         instance.isEffective = _val
+    --     end
+    -- end
+    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isDead")
+    -- -- Set isDead if available
+    -- if type(OBJ.isDead) == "function" then
+    --     local _okval, _val = pcall(OBJ.isDead, OBJ)
+    --     if _okval then
+    --         instance.isDead = _val
+    --     end
+    -- end
+    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isBroken")
+    -- -- Set isBroken if available
+    -- if type(OBJ.isBroken) == "function" then
+    --     local _okval, _val = pcall(OBJ.isBroken, OBJ)
+    --     if _okval then
+    --         instance.isBroken = _val
+    --     end
+    -- end
+    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isAlive")
+    -- -- Set isAlive if available
+    -- if type(OBJ.isAlive) == "function" then
+    --     local _okval, _val = pcall(OBJ.isAlive, OBJ)
+    --     if _okval then
+    --         instance.isAlive = _val
+    --     end
+    -- end
+    -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> isActive")
+    -- -- Set isActive if available
+    -- if type(OBJ.isActive) == "function" then
+    --     local _okval, _val = pcall(OBJ.isActive, OBJ)
+    --     if _okval then
+    --         instance.isActive = _val
+    --     end
+    -- end
+   -- AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getObjectID")
     -- Set ObjectID if available
     if type(OBJ.getObjectID) == "function" then
         local _okval, _val = pcall(OBJ.getObjectID, OBJ)
@@ -716,7 +726,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             instance.ObjectID = _val
         end
     end
-
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getGroup")
     -- Safely resolve group information (OBJ may not implement getGroup)
     local _group = nil
     if OBJ and type(OBJ.getGroup) == "function" then
@@ -725,7 +735,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             _group = _result
         end
     end
-
+  --  AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getGroup -> Retrieved Group")
     if _group then
         -- Set groupName if available
         if type(_group.getName) == "function" then
@@ -734,7 +744,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
                 instance.groupName = _name
             end
         end
-
+   --     AETHR.UTILS:debugInfo("AETHR._foundObject:New -> getGroup -> Retrieved Group Name")
         -- Collect unit names if available
         if type(_group.getUnits) == "function" then
             local _okUnits, _units = pcall(_group.getUnits, _group)
@@ -750,7 +760,7 @@ AETHR.UTILS:debugInfo("AETHR._foundObject:New -> Start")
             end
         end
     end
-AETHR.UTILS:debugInfo("AETHR._foundObject:New -> End")
+--AETHR.UTILS:debugInfo("AETHR._foundObject:New -> End")
     --setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end

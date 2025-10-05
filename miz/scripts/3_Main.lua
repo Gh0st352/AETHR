@@ -66,6 +66,8 @@ function _testFunc()
     local pause2 = ""
 end
 
+G_AETHR.BRAIN:scheduleTask(_testFunc,15,5)
+
 function _testFunc2()
     G_AETHR.MARKERS:drawCircle(-1,
         G_AETHR.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
