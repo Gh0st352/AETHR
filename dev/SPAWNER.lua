@@ -113,7 +113,7 @@ AETHR.SPAWNER.DATA = {
             maxGroups = 75,
             minUnits = 15,
             maxUnits = 50,
-            minBuildings = 100,
+            minBuildings = 55,
         },
     },
     debugMarkers = {},
@@ -1367,8 +1367,11 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
             end
         end
 
-        -- Build grids: structuresGrid (bases/statics/scenery), groupsGrid (nearby units), centersGrid (accepted centers)
+        -- Build grids: baseGrid, staticGrid, sceneryGrid for direct checks; structuresGrid for fast prune; groupsGrid (nearby units); centersGrid (accepted)
         local structuresGrid = {}
+        local baseGrid = {}
+        local staticGrid = {}
+        local sceneryGrid = {}
         local groupsGrid = {}
         local centersGrid = {}
 
@@ -1383,9 +1386,14 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
         end
 
         -- Populate structuresGrid from base/static/scenery objects
+        -- Aggregate into structuresGrid for fast prune
         populateGridFromList(baseObjects, structuresGrid, cellSize)
         populateGridFromList(staticObjects, structuresGrid, cellSize)
         populateGridFromList(sceneryObjects, structuresGrid, cellSize)
+        -- Also populate per-type grids for strict direct checks
+        populateGridFromList(baseObjects, baseGrid, cellSize)
+        populateGridFromList(staticObjects, staticGrid, cellSize)
+        populateGridFromList(sceneryObjects, sceneryGrid, cellSize)
 
         -- Populate groupsGrid from freshScannedUnits and global db (pairs because returned table is a map)
         for _, obj in pairs(freshScannedUnits or {}) do
@@ -1463,16 +1471,29 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
 
                         -- Strict building check (per-object radius + padding, never relaxed)
                         local buildingRejectDirect = false
-                        if next(structuresGrid) ~= nil then
-                            buildingRejectDirect = directReject(
-                                structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings
-                            )
-                            if buildingRejectDirect and _unitCounters then
-                                _unitCounters.BuildingRejects = (_unitCounters.BuildingRejects or 0) + 1
+                        -- Direct checks per object class using nearby grid cells
+                        if next(baseGrid) ~= nil then
+                            if directReject(baseGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings) then
+                                buildingRejectDirect = true
+                            end
+                        end
+                        if not buildingRejectDirect and next(staticGrid) ~= nil then
+                            if directReject(staticGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings) then
+                                buildingRejectDirect = true
+                            end
+                        end
+                        if not buildingRejectDirect and next(sceneryGrid) ~= nil then
+                            if directReject(sceneryGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings) then
+                                buildingRejectDirect = true
                             end
                         end
                         if buildingRejectDirect then
+                            if _unitCounters then
+                                _unitCounters.BuildingRejects = (_unitCounters.BuildingRejects or 0) + 1
+                            end
                             reject = true
                         end
 
@@ -1501,11 +1522,21 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         -- Enforce strict building rejection even after operationLimit fallback.
                         if accepted then
                             local strictBuildingReject = false
-                            if next(structuresGrid) ~= nil then
-                                strictBuildingReject = directReject(
-                                    structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
-                                )
+                            if next(baseGrid) ~= nil and directReject(
+                                baseGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings
+                            ) then
+                                strictBuildingReject = true
+                            elseif next(staticGrid) ~= nil and directReject(
+                                staticGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings
+                            ) then
+                                strictBuildingReject = true
+                            elseif next(sceneryGrid) ~= nil and directReject(
+                                sceneryGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings
+                            ) then
+                                strictBuildingReject = true
                             end
                             if strictBuildingReject then
                                 accepted = false
