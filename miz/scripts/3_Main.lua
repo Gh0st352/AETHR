@@ -17,8 +17,8 @@ function _testFunc()
     G_AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
         math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5, country.id.CJTF_BLUE, true)
 
-    G_AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
-        math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5, country.id.CJTF_RED, true)
+    -- G_AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
+    --     math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5, country.id.CJTF_RED, true)
 
     -- G_AETHR.SPAWNER:generateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
     --     math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5)

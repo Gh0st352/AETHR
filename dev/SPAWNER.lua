@@ -1220,28 +1220,48 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     if buildingRejectDirect then
                         reject = true
                     end
-                    -- Only if we passed all cheap spatial checks, call expensive NOGO check
-                    if not reject then
-                        reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
-                    end
-                    if not reject then
-                        accepted = true
-                    else
-                        accepted = false
-                    end
-                    if glassBreak >= operationLimit then
-                        -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
-                        if not buildingRejectDirect then
+                        -- Only if we passed all cheap spatial checks, call expensive NOGO check
+                        if not reject then
+                            reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
+                        end
+
+                        if not reject then
                             accepted = true
-                        elseif glassBreak < operationLimit + EXTRA_ATTEMPTS_BUILDING then
-                            accepted = false
                         else
                             accepted = false
                         end
-                    end
-                    glassBreak = glassBreak + 1
-                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1) end
-                until accepted
+
+                        if glassBreak >= operationLimit then
+                            -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
+                            if not buildingRejectDirect then
+                                accepted = true
+                            elseif glassBreak < operationLimit + EXTRA_ATTEMPTS_BUILDING then
+                                accepted = false
+                            else
+                                accepted = false
+                            end
+                        end
+
+                        -- Enforce strict building rejection even after operationLimit fallback.
+                        if accepted then
+                            local strictBuildingReject = false
+                            if next(structuresGrid) ~= nil then
+                                strictBuildingReject = directReject(
+                                    structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
+                                )
+                            end
+                            if strictBuildingReject then
+                                accepted = false
+                                if _centerCounters then
+                                    _centerCounters.BuildingRejects = (_centerCounters.BuildingRejects or 0) + 1
+                                end
+                            end
+                        end
+
+                        glassBreak = glassBreak + 1
+                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1) end
+                    until accepted
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
@@ -1475,6 +1495,23 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                                 accepted = false
                             else
                                 accepted = false
+                            end
+                        end
+
+                        -- Enforce strict building rejection even after operationLimit fallback.
+                        if accepted then
+                            local strictBuildingReject = false
+                            if next(structuresGrid) ~= nil then
+                                strictBuildingReject = directReject(
+                                    structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
+                                )
+                            end
+                            if strictBuildingReject then
+                                accepted = false
+                                if _unitCounters then
+                                    _unitCounters.BuildingRejects = (_unitCounters.BuildingRejects or 0) + 1
+                                end
                             end
                         end
 
