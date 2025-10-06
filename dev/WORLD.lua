@@ -62,7 +62,7 @@ AETHR.WORLD.DATA = {
     mizCacheDB             = {}, -- Cached MIZ file groups keyed by groupname.
     spawnerTemplateDB      = {}, -- Cached group templates keyed by template name.
     spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
-    _spawnerAttributesDB = {},   -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
+    _spawnerAttributesDB   = {}, -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
     spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
 }
 
@@ -90,6 +90,7 @@ function AETHR.WORLD:initMizFileCache()
         self.DATA.mizCacheDB           = data.MIZ_CACHE_DB
         self.DATA.spawnerTemplateDB    = data.SPAWNER_TEMPLATE_DB
         self.DATA.spawnerAttributesDB  = data.SPAWNER_ATTRIBUTE_DB
+        self.DATA._spawnerAttributesDB = data._SPAWNER_ATTRIBUTE_DB
         self.DATA.spawnerUnitInfoCache = data.SPAWNER_UNIT_CACHE_DB
     else
         self:generateMizFileCache()
@@ -115,6 +116,9 @@ function AETHR.WORLD:getStoredMizFileCache()
     saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_ATTRIBUTE_DB
     data.SPAWNER_ATTRIBUTE_DB = self.FILEOPS:loadData(mapPath, saveFile)
 
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES._SPAWNER_ATTRIBUTE_DB
+    data._SPAWNER_ATTRIBUTE_DB = self.FILEOPS:loadData(mapPath, saveFile)
+
     saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_UNIT_CACHE_DB
     data.SPAWNER_UNIT_CACHE_DB = self.FILEOPS:loadData(mapPath, saveFile)
 
@@ -123,6 +127,7 @@ function AETHR.WORLD:getStoredMizFileCache()
         and data.MIZ_CACHE_DB
         and data.SPAWNER_TEMPLATE_DB
         and data.SPAWNER_ATTRIBUTE_DB
+        and data._SPAWNER_ATTRIBUTE_DB
         and data.SPAWNER_UNIT_CACHE_DB
     then
         return data
@@ -152,6 +157,12 @@ function AETHR.WORLD:saveMizFileCache()
     saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES.SPAWNER_ATTRIBUTE_DB
     local ok3 = self.FILEOPS:saveData(mapPath, saveFile, self.DATA.spawnerAttributesDB)
     if not ok3 and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveMizFileCache failed saving " .. tostring(saveFile))
+    end
+
+    saveFile = self.CONFIG.MAIN.STORAGE.FILENAMES._SPAWNER_ATTRIBUTE_DB
+    local ok5 = self.FILEOPS:saveData(mapPath, saveFile, self.DATA._spawnerAttributesDB)
+    if not ok5 and self.CONFIG.MAIN.DEBUG_ENABLED then
         self.UTILS:debugInfo("AETHR.WORLD:saveMizFileCache failed saving " .. tostring(saveFile))
     end
 
@@ -210,6 +221,7 @@ function AETHR.WORLD:generateMizFileCache()
     local spawnerTemplateDB = self.DATA.spawnerTemplateDB
     local spawnerUnitInfoCache = self.DATA.spawnerUnitInfoCache
     local spawnerAttributesDB = self.DATA.spawnerAttributesDB
+    local _spawnerAttributesDB = self.DATA._spawnerAttributesDB
     for groupName, groupObj in pairs(spawnerTemplateDB) do
         local _gObj = Group.getByName(groupName)
         local _gUnits = nil
@@ -226,6 +238,9 @@ function AETHR.WORLD:generateMizFileCache()
                         spawnerUnitInfoCache[typeName] = descUnit
                     end
                     if descUnit.attributes and type(typeName) == "string" then
+                        local prioValue_ = 0
+                        local prioAttrib_ = nil
+
                         for attrib, _ in pairs(descUnit.attributes) do
                             if attrib then
                                 spawnerAttributesDB[attrib] = spawnerAttributesDB[attrib] or {}
@@ -233,6 +248,22 @@ function AETHR.WORLD:generateMizFileCache()
                                     spawnerAttributesDB[attrib][typeName] = descUnit
                                 end
                             end
+                            local attribPrioLookup = nil
+                            for enumKey, enumVal in pairs(self.ENUMS.spawnTypes) do
+                                if enumVal == attrib then
+                                    attribPrioLookup = self.ENUMS.spawnTypesPrio[enumKey]
+                                    break
+                                end
+                            end
+                            if attribPrioLookup and attribPrioLookup > prioValue_ then
+                                prioValue_ = attribPrioLookup
+                                prioAttrib_ = attrib
+                            end
+                        end
+                        --- Determine Highest Attributes Prio Score
+                        _spawnerAttributesDB[prioAttrib_] = _spawnerAttributesDB[prioAttrib_] or {}
+                        if not _spawnerAttributesDB[prioAttrib_][typeName] then
+                            _spawnerAttributesDB[prioAttrib_][typeName] = descUnit
                         end
                     end
                 end
@@ -752,7 +783,7 @@ end
 --- Runs one job at a time; heavy sub-steps yield via _maybeYield inside pipeline functions.
 ---@return AETHR.WORLD self
 function AETHR.WORLD:spawnerGenerationQueue()
-self.UTILS:debugInfo("AETHR.WORLD:spawnerGenerationQueue -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:spawnerGenerationQueue -------------")
     local state = self.SPAWNER.DATA._genState or { currentJobId = nil }
     self.SPAWNER.DATA._genState = state
     local jobs = self.SPAWNER.DATA.GenerationJobs or {}

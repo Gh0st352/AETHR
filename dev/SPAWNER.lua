@@ -89,7 +89,7 @@ AETHR.SPAWNER.DATA = {
     BenchmarkLog = {},
     CONFIG = {
         BUILD_PAD = 5,          -- Strict building separation constants
-        EXTRA_ATTEMPTS_BUILDING = 20,
+        EXTRA_ATTEMPTS_BUILDING = 50, -- Extra attempts to place group centers away from buildings
         SPAWNER_WAIT_TIME = 10, -- Seconds to wait before a group is elligible for spawning after adding to mission engine to prevent DCS crashes
         UseDivisionAABBReject = true,
         UseDivisionAABBFullInclude = true,
@@ -110,10 +110,10 @@ AETHR.SPAWNER.DATA = {
         },
         separationSettings = {
             minGroups = 35,
-            maxGroups = 70,
+            maxGroups = 75,
             minUnits = 15,
-            maxUnits = 30,
-            minBuildings = 50,
+            maxUnits = 50,
+            minBuildings = 100,
         },
     },
     debugMarkers = {},
@@ -1614,7 +1614,7 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     return self
 end
 
---- Seed the spawner's type pools from WORLD spawnerAttributesDB and classify limited vs non-limited types.
+--- Seed the spawner's type pools from WORLD _spawnerAttributesDB and classify limited vs non-limited types.
 --- @function AETHR.SPAWNER:seedTypes
 --- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 --- @return AETHR.SPAWNER self For chaining.
@@ -1631,7 +1631,7 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
     local typesPool = dynamicSpawner._typesPool
     local spawnTypes = dynamicSpawner.spawnTypes or {}
     local extraTypes = dynamicSpawner.extraTypes or {}
-    local spawnerAttributesDB = self.WORLD.DATA.spawnerAttributesDB or {}
+    local spawnerAttributesDB = self.WORLD.DATA._spawnerAttributesDB or {}
     ---@param typeName string
     ---@param typeData _spawnerTypeConfig
     for typeName, typeData in pairs(spawnTypes) do

@@ -227,6 +227,7 @@ AETHR.CONFIG.MAIN = {
             MIZ_CACHE_DB          = "mizCacheDB.lua",
             SPAWNER_TEMPLATE_DB   = "spawnerTemplateDB.lua",
             SPAWNER_ATTRIBUTE_DB  = "spawnerAttributesDB.lua",
+            _SPAWNER_ATTRIBUTE_DB  = "_spawnerAttributesDB.lua",
             SPAWNER_UNIT_CACHE_DB = "spawnerUnitInfoCache.lua",
         },
     },
