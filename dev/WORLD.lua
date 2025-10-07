@@ -52,21 +52,21 @@ AETHR.WORLD = {} ---@diagnostic disable-line
 --- @field worldDivAABB table<number, table>                     Cached division AABB keyed by division ID
 --- @field townClusterDB AETHR.AI.DBSCAN_Cluster[]          Towns clusters database keyed by cluster ID
 AETHR.WORLD.DATA = {
-    AIRBASES               = {},       -- Airbase descriptors keyed by displayName.
-    worldDivisions         = {},       -- Grid division definitions keyed by ID.
-    worldDivAABB           = {},       -- Division AABB data keyed by ID.
-    saveDivisions          = {},       -- Active divisions keyed by ID.
-    divisionSceneryObjects = {},       -- Loaded scenery per division.
-    divisionStaticObjects  = {},       -- Loaded statics per division.
-    divisionBaseObjects    = {},       -- Loaded Base per division.
-    townClusterDB          = {},       -- Towns clusters database.
-    groundUnitsDB          = {},       -- Ground units database keyed by unit name.
-    groundGroupsDB         = {},       -- Ground groups database keyed by group name.
-    mizCacheDB             = {},       -- Cached MIZ file groups keyed by groupname.
-    spawnerTemplateDB      = {},       -- Cached group templates keyed by template name.
-    spawnerAttributesDB    = {},       -- Cached spawner attributes keyed by attribute, value is unit info object.
-    _spawnerAttributesDB   = {},       -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
-    spawnerUnitInfoCache   = {},       -- Cached spawner unit info keyed by unit typeName.
+    AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
+    worldDivisions         = {}, -- Grid division definitions keyed by ID.
+    worldDivAABB           = {}, -- Division AABB data keyed by ID.
+    saveDivisions          = {}, -- Active divisions keyed by ID.
+    divisionSceneryObjects = {}, -- Loaded scenery per division.
+    divisionStaticObjects  = {}, -- Loaded statics per division.
+    divisionBaseObjects    = {}, -- Loaded Base per division.
+    townClusterDB          = {}, -- Towns clusters database.
+    groundUnitsDB          = {}, -- Ground units database keyed by unit name.
+    groundGroupsDB         = {}, -- Ground groups database keyed by group name.
+    mizCacheDB             = {}, -- Cached MIZ file groups keyed by groupname.
+    spawnerTemplateDB      = {}, -- Cached group templates keyed by template name.
+    spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
+    _spawnerAttributesDB   = {}, -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
+    spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
 }
 
 
@@ -1438,26 +1438,40 @@ end
 
 function AETHR.WORLD:determineTowns()
     local buildingPoints = {}
+   -- local test = {}
     for div, buildingObjects in pairs(self.DATA.divisionSceneryObjects) do
         for buildObjID, buildObj in pairs(buildingObjects) do
-            buildingPoints[#buildingPoints + 1] = {
-                x = buildObj.position.x,
-                y = buildObj.position.z
-            }
+            local desc = buildObj.desc or nil
+            local attributes = desc and desc.attributes or nil
+            local isBuilding = attributes and attributes.Buildings or nil
+            if isBuilding then
+                if not self.ENUMS.restrictedTownTypes[desc.typeName] then
+                    --test[desc.typeName] = desc.typeName
+                    buildingPoints[#buildingPoints + 1] = {
+                        x = buildObj.position.x,
+                        y = buildObj.position.z
+                    }
+                end
+            end
         end
     end
     for div, buildingObjects in pairs(self.DATA.divisionBaseObjects) do
         for buildObjID, buildObj in pairs(buildingObjects) do
-            buildingPoints[#buildingPoints + 1] = {
-                x = buildObj.position.x,
-                y = buildObj.position.z
-            }
+            local desc = buildObj.desc or nil
+            local attributes = desc and desc.attributes or nil
+            local isBuilding = attributes and attributes.Buildings or nil
+            if isBuilding then
+                if not self.ENUMS.restrictedTownTypes[desc.typeName] then
+               --     test[desc.typeName] = desc.typeName
+                    buildingPoints[#buildingPoints + 1] = {
+                        x = buildObj.position.x,
+                        y = buildObj.position.z
+                    }
+                end
+            end
         end
     end
-
     local area = self.POLY:polygonArea(self.ZONE_MANAGER.DATA.GAME_BOUNDS.inBounds.polyVerts)
-
-
     local clusters = self.AI:clusterPoints(buildingPoints, area)
     self.DATA.townClusterDB = clusters
 

@@ -47,9 +47,9 @@ function _testFunc2()
     -- G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
     
     for _, cluster in pairs(G_AETHR.WORLD.DATA.townClusterDB) do
-        if cluster.Radius >= 1000 then
+        --if cluster.Radius >= 1000 then
             G_AETHR.MARKERS:drawGenericCircle(cluster.Center, cluster.Radius, G_AETHR.MARKERS.DATA.townClusters)
-        end
+       -- end
     end
 
 end

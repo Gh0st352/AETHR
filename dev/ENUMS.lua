@@ -330,6 +330,7 @@
 ---@field onAfter string
 ---@field onStateChange string
 
+---@class AETHR.ENUMS.restrictedTownTypes
 
 ---@type AETHR.ENUMS
 AETHR.ENUMS = {
@@ -643,5 +644,47 @@ AETHR.ENUMS = {
         onStateChange = "onstatechange",
         ASYNC = "async",
         NONE = "none",
+    },
+    restrictedTownTypes = {
+        ["A_BLOCK"] = "A_BLOCK",
+        ["A_FRWD"] = "A_FRWD",
+        ["A_LEFT"] = "A_LEFT",
+        ["A_RIGHT"] = "A_RIGHT",
+        ["AIRBASE_BARRELS_01"] = "AIRBASE_BARRELS_01",
+        ["AIRBASE_BARRELS_02"] = "AIRBASE_BARRELS_02",
+        ["AIRBASE_VOR"] = "AIRBASE_VOR",
+        ["B_BLOCK"] = "B_BLOCK",
+        ["B_FRWD"] = "B_FRWD",
+        ["B_LEFT"] = "B_LEFT",
+        ["B_RIGHT"] = "B_RIGHT",
+        ["BAK_NEW"] = "BAK_NEW",
+        ["BASCETBALL"] = "BASCETBALL",
+        ["BLK_LIGHT_POLE"] = "BLK_LIGHT_POLE",
+        ["C_BLOCK"] = "C_BLOCK",
+        ["C_LEFT"] = "C_LEFT",
+        ["C_RIGHT"] = "C_RIGHT",
+        ["D_BLOCK"] = "D_BLOCK",
+        ["D_FRWD"] = "D_FRWD",
+        ["D_LEFT"] = "D_LEFT",
+        ["D_RIGHT"] = "D_RIGHT",
+        ["DIRECTIONAL_APPROACH_ELEVATED_GREEN"] = "DIRECTIONAL_APPROACH_ELEVATED_GREEN",
+        ["DIRECTIONAL_APPROACH_LIGHTS"] = "DIRECTIONAL_APPROACH_LIGHTS",
+        ["DIRECTIONAL_APPROACH_LIGHTS_RED"] = "DIRECTIONAL_APPROACH_LIGHTS_RED",
+        ["E_BLOCK"] = "E_BLOCK",
+        ["E_LEFT"] = "E_LEFT",
+        ["E_RIGHT"] = "E_RIGHT",
+        ["F_BLOCK"] = "F_BLOCK",
+        ["FOOTBALL"] = "FOOTBALL",
+        ["IN_PAVEMENT_BI_DERECTIONAL_WHITE_ORANGE"] = "IN_PAVEMENT_BI_DERECTIONAL_WHITE_ORANGE",
+        ["IN_PAVEMENT_BI_DERECTIONAL_WHITE_WHITE"] = "IN_PAVEMENT_BI_DERECTIONAL_WHITE_WHITE",
+        ["MBY_SMALLLAMP_01"] = "MBY_SMALLLAMP_01",
+        ["MOST(ROAD)BIG"] = "MOST(ROAD)BIG",
+        ["MOST(ROAD)BIG_END"] = "MOST(ROAD)BIG_END",
+        ["MOST(ROAD)SMALL"] = "MOST(ROAD)SMALL",
+        ["MOST(ROAD)SMALL-A"] = "MOST(ROAD)SMALL-A",
+        ["MST(ROAD)SMALL"] = "MST(ROAD)SMALL",
+        ["STOP_LIGHT_RED"] = "STOP_LIGHT_RED",
+        ["TAXIWAY_LIGHT_BLUE"] = "TAXIWAY_LIGHT_BLUE",
+        ["TENNIS"] = "TENNIS",
     },
 }
