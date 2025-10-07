@@ -82,6 +82,7 @@ AETHR.AI.DATA = {
         f = 2,
         p = 0.1,
         epsilon = 0,
+        epsilon2 = 0,
         min_samples = 0,
         Area = 0,
         _RadiusExtension = 0,
