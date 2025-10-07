@@ -272,6 +272,7 @@ end
 --- @field LinesVec2 _LineVec2[]                              Precomputed line segments from vertices
 --- @field lastMarkColorOwner number                          Coalition that last set the marker color (to avoid redundant updates)
 --- @field activeDivisions table<number, _WorldDivision>      Map of division ID -> division info for divisions intersecting this zone
+--- @field townsDB table<number, _dbCluster>                Towns within this zone keyed by unique ID
 --- @field parentAETHR AETHR|nil                              Parent AETHR instance (for access to submodules/config)
 AETHR._MIZ_ZONE = {}
 
@@ -299,6 +300,7 @@ function AETHR._MIZ_ZONE:New(envZone, parentAETHR)
         LinesVec2 = {},
         lastMarkColorOwner = p.ENUMS.Coalition.NEUTRAL,
         activeDivisions = {},
+        townsDB = {},
         parentAETHR = p,
     }
     -- attach metatable so instance inherits methods from prototype

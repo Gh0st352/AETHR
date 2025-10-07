@@ -170,6 +170,25 @@ function AETHR.ZONE_MANAGER:pairActiveDivisions()
     return self
 end
 
+---determines active world divisions in each zone and adds to zone table
+function AETHR.ZONE_MANAGER:pairTowns()
+    local townClusters = self.WORLD.DATA.townClusterDB
+    ---@param zone _MIZ_ZONE
+    for zoneName, zone in pairs(self.DATA.MIZ_ZONES) do
+        local townsInZone = {}
+        local zoneVerts = zone.vertices
+        ---@param cluster _dbCluster
+        for ID, cluster in pairs(townClusters) do
+            local  clusterCenter = cluster.Center
+            if self.POLY:pointInPolygon(clusterCenter,zoneVerts) then
+                townsInZone[ID] = cluster
+            end
+        end
+        zone.townsDB = townsInZone
+    end
+    return self
+end
+
 --- Generates mission trigger zone data based on configured zone names and environment data.
 --- Guards against missing env structures and missing constructors.
 --- @function AETHR:generateMizZoneData
