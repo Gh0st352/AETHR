@@ -58,7 +58,7 @@ end
 --- Defaults for DBSCAN parameterization and scratch state
 --- @class AETHR.AI.DATA.DBSCANNER
 --- @field params table Parameters override table (optional, used by constructor).
---- @field _DBScan table<integer, integer> Internal label map: index -> clusterId (-1 noise, 0 unmarked, >0 cluster)
+--- @field _DBScanData table<integer, integer> Internal label map: index -> clusterId (-1 noise, 0 unmarked, >0 cluster)
 --- @field Clusters AETHR.AI.DBSCAN_Cluster[] Computed clusters (post processing)
 --- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points being clustered
 --- @field numPoints integer Number of points
@@ -75,7 +75,7 @@ end
 AETHR.AI.DATA = {
     DBSCANNER = {
         params = {},
-        _DBScan = {},
+        _DBScanData = {},
         Clusters = {},
         Points = {},
         numPoints = 1,
@@ -137,19 +137,22 @@ function AETHR.AI.DBSCANNER:New(ai, Points, Area, RadiusExtension, params)
     Area = Area or 0,
     _RadiusExtension = RadiusExtension or 0,
 
-    _DBScan = {},
+    _DBScanData = {},
     Clusters = {},
 
     epsilon = 0,
     epsilon2 = 0,
     min_samples = 1,
-
-    -- Defaults from module DATA with safe fallbacks
-    f = (AETHR and AETHR.AI and AETHR.AI.DATA and AETHR.AI.DATA.DBSCANNER and AETHR.AI.DATA.DBSCANNER.f) or 2,
-    p = (AETHR and AETHR.AI and AETHR.AI.DATA and AETHR.AI.DATA.DBSCANNER and AETHR.AI.DATA.DBSCANNER.p) or 0.1,
+    f = 2,
+    p = 0.1,
   }
 
-  if params and type(params) == "table" then
+      local pAETHR = instance.AETHR
+    -- Defaults from module DATA with safe fallbacks
+    instance.f = (pAETHR and pAETHR.AI and pAETHR.AI.DATA and pAETHR.AI.DATA.DBSCANNER and pAETHR.AI.DATA.DBSCANNER.f) or (AETHR and AETHR.AI and AETHR.AI.DATA and AETHR.AI.DATA.DBSCANNER and AETHR.AI.DATA.DBSCANNER.f) or 2
+    instance.p = (pAETHR and pAETHR.AI and pAETHR.AI.DATA and pAETHR.AI.DATA.DBSCANNER and pAETHR.AI.DATA.DBSCANNER.p) or (AETHR and AETHR.AI and AETHR.AI.DATA and AETHR.AI.DATA.DBSCANNER and AETHR.AI.DATA.DBSCANNER.p) or 0.1
+  
+    if params and type(params) == "table" then
     if params.f ~= nil then instance.f = params.f end
     if params.p ~= nil then instance.p = params.p end
   end
@@ -217,7 +220,7 @@ function AETHR.AI.DBSCANNER:_DBScan()
   -- Initialization
   local UNMARKED, NOISE = 0, -1
   local cluster_id = 0
-  self._DBScan = {}
+  self._DBScanData = {}
 
   -- Localize for speed
   local Points = self.Points or {}
@@ -225,15 +228,15 @@ function AETHR.AI.DBSCANNER:_DBScan()
 
   -- Mark all points as unmarked initially (index-based labels)
   for i = 1, #Points do
-    self._DBScan[i] = UNMARKED
+    self._DBScanData[i] = UNMARKED
   end
 
   -- Main clustering loop
   for i = 1, #Points do
-    if self._DBScan[i] == UNMARKED then
+    if self._DBScanData[i] == UNMARKED then
       local neighbors = self:region_query(i)
       if #neighbors < min_samples then
-        self._DBScan[i] = NOISE
+        self._DBScanData[i] = NOISE
       else
         cluster_id = cluster_id + 1
         self:expand_cluster(i, neighbors, cluster_id)
@@ -298,12 +301,12 @@ function AETHR.AI.DBSCANNER:expand_cluster(pointIndex, neighbors, cluster_id)
   local UNMARKED, NOISE = 0, -1
   local min_samples = self.min_samples or 1
 
-  self._DBScan[pointIndex] = cluster_id
+  self._DBScanData[pointIndex] = cluster_id
   local i = 1
   while i <= #neighbors do
     local nIdx = neighbors[i]
-    if self._DBScan[nIdx] == NOISE or self._DBScan[nIdx] == UNMARKED then
-      self._DBScan[nIdx] = cluster_id
+    if self._DBScanData[nIdx] == NOISE or self._DBScanData[nIdx] == UNMARKED then
+      self._DBScanData[nIdx] = cluster_id
       local new_neighbors = self:region_query(nIdx)
       if #new_neighbors >= min_samples then
         for _, nn in ipairs(new_neighbors) do
@@ -339,7 +342,7 @@ function AETHR.AI.DBSCANNER:post_process_clusters()
 
   -- Group points by cluster id (skip noise cluster -1)
   for i, pt in ipairs(self.Points or {}) do
-    local cid = self._DBScan[i]
+    local cid = self._DBScanData[i]
     if cid and cid > 0 then
       clusters[cid] = clusters[cid] or {}
       clusters[cid][#clusters[cid] + 1] = pt

@@ -747,7 +747,7 @@ end
 --- Divides a quadrilateral polygon into sub-polygons of roughly equal area.
 --- Calculates rows and columns based on aspect ratio.
 --- @function dividePolygon
---- @param polygon Vec3[] Array of `{x,z}` four corners in clockwise order
+--- @param polygon _vec2[]|_vec2xz[] Array of `{x,z}` four corners in clockwise order
 --- @param targetArea number Desired area per sub-polygon
 --- @return table[] Array of division tables `{ corners = {pt1,pt2,pt3,pt4} }`
 function AETHR.POLY:dividePolygon(polygon, targetArea)
@@ -821,15 +821,18 @@ end
 
 --- Computes the area of a polygon using the Shoelace formula.
 --- @function polygonArea
---- @param polygon Vec3[] Array of `{x,z}` vertices
+--- @param polygon _vec2[]|_vec2xz[] Array of `{x,z}` vertices
 --- @return number Absolute area value (non-negative)
 function AETHR.POLY:polygonArea(polygon)
+for _, pt in pairs(polygon) do
+    pt= self:normalizePoint(pt)
+end
     local n = #polygon
     if n < 3 then return 0 end
     local sum = 0
     for i = 1, n do
         local j = (i % n) + 1
-        sum = sum + (polygon[i].x * polygon[j].z - polygon[j].x * polygon[i].z) ---@diagnostic disable-line
+        sum = sum + (polygon[i].x * polygon[j].y - polygon[j].x * polygon[i].y) ---@diagnostic disable-line
     end
     return math.abs(sum) / 2
 end

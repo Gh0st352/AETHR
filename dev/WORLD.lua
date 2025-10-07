@@ -7,6 +7,7 @@
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
 --- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
 --- @field BRAIN AETHR.BRAIN
+--- @field AI AETHR.AI
 --- @field ENUMS AETHR.ENUMS Enumeration constants submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
@@ -1431,4 +1432,31 @@ function AETHR.WORLD:initStaticInDivisions()
         self.CONFIG.MAIN.STORAGE.FILENAMES.STATIC_OBJECTS_FILE,
         "divisionStaticObjects"
     )
+end
+
+function AETHR.WORLD:determineTowns()
+    local buildingPoints = {}
+    for div, buildingObjects in pairs(self.DATA.divisionSceneryObjects) do
+        for buildObjID, buildObj in pairs(buildingObjects) do
+            buildingPoints[#buildingPoints + 1] = {
+                x = buildObj.position.x,
+                y = buildObj.position.z
+            }
+        end
+    end
+    for div, buildingObjects in pairs(self.DATA.divisionBaseObjects) do
+        for buildObjID, buildObj in pairs(buildingObjects) do
+            buildingPoints[#buildingPoints + 1] = {
+                x = buildObj.position.x,
+                y = buildObj.position.z
+            }
+        end
+    end
+
+    local area = self.POLY:polygonArea(self.ZONE_MANAGER.DATA.GAME_BOUNDS.inBounds.polyVerts)
+
+
+    local clusters = self.AI:clusterPoints(buildingPoints, area)
+
+    local p = ""
 end
