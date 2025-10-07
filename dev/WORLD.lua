@@ -1477,3 +1477,47 @@ function AETHR.WORLD:determineTowns()
 
     return self
 end
+
+--- Loads existing world divisions if available; otherwise generates and saves new divisions.
+--- Side-effects: Reads/writes world division files, builds AABB cache when missing; mutates DATA.worldDivisions and DATA.worldDivAABB.
+--- @return AETHR.WORLD self
+function AETHR.WORLD:initTowns()
+    -- Attempt to read existing config from file.
+    local divData = self:loadTowns()
+    if divData then
+        self.DATA.townClusterDB = divData
+    else
+        self:determineTowns()
+        -- Persist defaults to disk.
+        self:saveTowns()
+    end
+    return self
+end
+
+
+--- Loads world division definitions from config if present.
+function AETHR.WORLD:loadTowns()
+    local data = self.FILEOPS:loadData(
+        self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE
+    )
+    if data then
+        return data
+    end
+    return nil
+end
+
+--- Saves world division definitions to config storage.
+--- Side-effects: Writes DATA.worldDivisions to CONFIG.MAIN.STORAGE.PATHS.CONFIG_FOLDER.
+--- @return nil
+function AETHR.WORLD:saveTowns()
+    --- Divs
+    local ok = self.FILEOPS:saveData(
+        self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
+        self.DATA.townClusterDB
+    )
+    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.WORLD:saveTowns failed")
+    end
+end

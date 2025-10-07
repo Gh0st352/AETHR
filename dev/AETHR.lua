@@ -234,6 +234,7 @@ function AETHR:Init()
         self.ZONE_MANAGER:drawGameBounds()
         self.ZONE_MANAGER:drawZoneArrows()
         self.ZONE_MANAGER:pairActiveDivisions()
+        self.WORLD:initTowns()
     end
 
     self:loadUSERSTORAGE() -- Load per-user storage data.

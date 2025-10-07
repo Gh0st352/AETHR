@@ -225,6 +225,7 @@ AETHR.CONFIG.MAIN = {
             BASE_OBJECTS_FILE     = "baseObjects.lua",
             GAME_BOUNDS_FILE      = "gameBounds.lua",
             MIZ_CACHE_DB          = "mizCacheDB.lua",
+            TOWN_CLUSTERS_FILE     = "townClusters.lua",
             SPAWNER_TEMPLATE_DB   = "spawnerTemplateDB.lua",
             SPAWNER_ATTRIBUTE_DB  = "spawnerAttributesDB.lua",
             _SPAWNER_ATTRIBUTE_DB  = "_spawnerAttributesDB.lua",
