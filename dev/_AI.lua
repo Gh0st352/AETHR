@@ -13,8 +13,19 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
---- @field DATA AETHR.AI.DATA Container for spawner-managed data.
+--- @field DATA AETHR.AI.DATA Container for AI-managed defaults and helpers.
+---
+--- Type aliases used in this module:
+--- @alias AETHR.AI.Point2D _vec2|_vec2xz|{x:number,y:number}|{x:number,z:number}
+--- @alias AETHR.AI.PointList AETHR.AI.Point2D[]
+---
+--- Cluster result structure returned by DBSCANNER and AI:clusterPoints
+--- @class AETHR.AI.DBSCAN_Cluster
+--- @field Points AETHR.AI.PointList Points assigned to the cluster (original references)
+--- @field Center _vec2 Center of mass in 2D (x,y)
+--- @field Radius number Radius from center to farthest member (meters)
 AETHR.AI = {} ---@diagnostic disable-line
+
 
 --- Creates a new AETHR.AI submodule instance.
 --- @function AETHR.AI:New
@@ -29,23 +40,25 @@ function AETHR.AI:New(parent)
   return instance ---@diagnostic disable-line
 end
 
---- Spawner-managed data container.
+--- AI module data container.
 --- @class AETHR.AI.DATA
-
+---
+--- Defaults for DBSCAN parameterization and scratch state
 --- @class AETHR.AI.DATA.DBSCANNER
---- @field params table Parameters for DBSCAN algorithm.
---- @field _DBScan table Internal state for DBSCAN algorithm.
---- @field Clusters table List of clusters formed by DBSCAN.
---- @field Points table List of points to be clustered.
---- @field numPoints number Number of points.
---- @field f number Scaling factor for epsilon calculation.
---- @field p number Proportion for min_samples calculation.
---- @field epsilon number Epsilon distance for DBSCAN.
---- @field min_samples number Minimum samples for core point in DBSCAN.
---- @field Area number Area considered for clustering.
---- @field _RadiusExtension number Additional radius extension for clusters.
+--- @field params table Parameters override table (optional, used by constructor).
+--- @field _DBScan table<integer, integer> Internal label map: index -> clusterId (-1 noise, 0 unmarked, >0 cluster)
+--- @field Clusters AETHR.AI.DBSCAN_Cluster[] Computed clusters (post processing)
+--- @field Points AETHR.AI.PointList Points being clustered
+--- @field numPoints integer Number of points
+--- @field f number Scaling factor for epsilon (epsilon = f * sqrt(Area / n))
+--- @field p number Proportion for min_samples (min_samples = ceil(p * n))
+--- @field epsilon number Epsilon radius for neighbor query
+--- @field epsilon2 number Squared epsilon (precomputed)
+--- @field min_samples integer Minimum neighbors to be a core point (>=1)
+--- @field Area number Area used to estimate epsilon
+--- @field _RadiusExtension number Additional radius added to computed cluster radii
 
---- Container for spawner-managed data.
+--- AI module data defaults.
 ---@type AETHR.AI.DATA
 AETHR.AI.DATA = {
     DBSCANNER = {
@@ -66,21 +79,39 @@ AETHR.AI.DATA = {
 -- Class table for DBSCAN utility
 AETHR.AI.DBSCANNER = {}
 
-
-
+--- Runtime DBSCAN class
+--- @class AETHR.AI.DBSCANNER
+--- @field AI AETHR.AI Parent AI instance
+--- @field AETHR AETHR Parent AETHR instance
+--- @field UTILS AETHR.UTILS Utility helpers
+--- @field Points AETHR.AI.PointList Points being clustered
+--- @field numPoints integer Number of points
+--- @field Area number Area used to estimate epsilon
+--- @field _RadiusExtension number Extra radius added to computed cluster radii
+--- @field _DBScan table<integer, integer> Label map: index -> clusterId
+--- @field Clusters AETHR.AI.DBSCAN_Cluster[] Cluster outputs (after post processing)
+--- @field epsilon number Epsilon radius
+--- @field epsilon2 number Epsilon squared
+--- @field min_samples integer Minimum neighbor count to be core
+--- @field f number Epsilon scale factor
+--- @field p number Min-sample proportion
 
 --- Constructs a new DBSCANNER object.
---
--- Initializes DBSCAN with the given AI instance and dataset.
--- Uses area and parameters to derive epsilon and min_samples.
---
--- @param ai AETHR.AI The AI instance (for access to UTILS/AETHR).
--- @param Points table Array of { unit: any, vec2 = { x: number, y: number } }.
--- @param Area number Area considered for parameterization.
--- @param RadiusExtension number|nil Extra radius added to computed cluster radius.
--- @param params table|nil Optional overrides { f?: number, p?: number }.
--- @return AETHR.AI.DBSCANNER self
--- @usage local dbscanner = self.AI.DBSCANNER:New(self.AI, pointsArray, areaValue, 0, { f = 2, p = 0.1 })
+---
+--- Initializes DBSCAN with the given AI instance and dataset.
+--- Uses area and parameters to derive epsilon and min_samples.
+---
+--- Input points are raw coordinates; no "unit" field is required or used.
+--- Each point is a table shaped as either:
+---   { x = number, y = number }  OR  { x = number, z = number }
+---
+--- @param ai AETHR.AI The AI instance (for access to UTILS/AETHR)
+--- @param Points AETHR.AI.PointList Array of vec2/vec2xz tables
+--- @param Area number Area considered for parameterization
+--- @param RadiusExtension number|nil Extra radius added to computed cluster radius
+--- @param params table|nil Optional overrides { f?: number, p?: number }
+--- @return AETHR.AI.DBSCANNER self
+--- @usage local dbscanner = self.AI.DBSCANNER:New(self.AI, pointsArray, areaValue, 0, { f = 2, p = 0.1 })
 function AETHR.AI.DBSCANNER:New(ai, Points, Area, RadiusExtension, params)
   -- Lightweight constructor; no external frameworks.
   local instance = {
@@ -115,13 +146,13 @@ function AETHR.AI.DBSCANNER:New(ai, Points, Area, RadiusExtension, params)
 end
 
 --- Generates parameters for the DBSCAN algorithm based on the object's attributes.
---
--- This function calculates 'epsilon' and 'min_samples' for the DBSCAN algorithm, based on:
--- the number of points, the area, and specific factors 'f' and 'p'
--- It updates the object with these calculated values. 
---
--- @return self The updated DBSCANNER object with newly calculated parameters.
--- @usage dbscanner:generateDBSCANparams() -- Updates the 'dbscanner' object with DBSCAN parameters.
+---
+--- This function calculates 'epsilon' and 'min_samples' for the DBSCAN algorithm, based on:
+--- the number of points, the area, and specific factors 'f' and 'p'
+--- It updates the object with these calculated values. 
+---
+--- @return self The updated DBSCANNER object with newly calculated parameters.
+--- @usage dbscanner:generateDBSCANparams() -- Updates the 'dbscanner' object with DBSCAN parameters.
 function AETHR.AI.DBSCANNER:generateDBSCANparams()
   -- Safe calculations with guards
   local n = tonumber(self.numPoints) or 0
@@ -137,7 +168,7 @@ function AETHR.AI.DBSCANNER:generateDBSCANparams()
   -- Debug information consolidated
   if self.UTILS and self.UTILS.debugInfo then
     self.UTILS:debugInfo("AETHR.AI.DBSCANNER:generateDBSCANparams | ------------------------\n" ..
-      "| NumUnits    | " .. tostring(n) .. "\n" ..
+      "| NumPoints   | " .. tostring(n) .. "\n" ..
       "| ZoneArea    | " .. tostring(self.Area) .. "\n" ..
       "| f           | " .. tostring(self.f) .. "\n" ..
       "| p           | " .. tostring(self.p) .. "\n" ..
@@ -149,12 +180,12 @@ function AETHR.AI.DBSCANNER:generateDBSCANparams()
 end
 
 --- Executes the DBSCAN clustering algorithm and post-processes the clusters.
---
--- This function initiates the DBSCAN clustering process by calling '_DBScan' and then performs post-processing on the clusters formed. 
--- It structures the scanning process and post-processing as a sequence of operations on the DBSCANNER object.
---
--- @return self The DBSCANNER object after completing the scan and post-processing steps.
--- @usage dbscanner:Scan() -- Performs the DBSCAN algorithm and post-processes the results.
+---
+--- This function initiates the DBSCAN clustering process by calling '_DBScan' and then performs post-processing on the clusters formed. 
+--- It structures the scanning process and post-processing as a sequence of operations on the DBSCANNER object.
+---
+--- @return self The DBSCANNER object after completing the scan and post-processing steps.
+--- @usage dbscanner:Scan() -- Performs the DBSCAN algorithm and post-processes the results.
 function AETHR.AI.DBSCANNER:Scan()
   self:_DBScan()
   self:post_process_clusters()
@@ -162,13 +193,13 @@ function AETHR.AI.DBSCANNER:Scan()
 end
 
 --- Core function of the DBSCAN algorithm for clustering points.
---
--- This internal function implements the DBSCAN clustering algorithm. 
--- It initializes each point as unmarked, then iterates through each point to determine if it is a core point and expands clusters accordingly. 
--- Points are marked as either part of a cluster or as noise.
---
--- @return self The DBSCANNER object with updated clustering information.
--- @usage dbscanner:_DBScan() -- Directly performs the DBSCAN clustering algorithm.
+---
+--- This internal function implements the DBSCAN clustering algorithm. 
+--- It initializes each point as unmarked, then iterates through each point to determine if it is a core point and expands clusters accordingly. 
+--- Points are marked as either part of a cluster or as noise.
+---
+--- @return self The DBSCANNER object with updated clustering information.
+--- @usage dbscanner:_DBScan() -- Directly performs the DBSCAN clustering algorithm.
 function AETHR.AI.DBSCANNER:_DBScan()
   -- Initialization
   local UNMARKED, NOISE = 0, -1
@@ -177,102 +208,93 @@ function AETHR.AI.DBSCANNER:_DBScan()
 
   -- Localize for speed
   local Points = self.Points or {}
-
-  -- Mark all units as unmarked initially, assigning a stable fallback key when missing
-  for i, unit in ipairs(Points) do
-    if unit.unit == nil then unit.unit = i end
-    self._DBScan[unit.unit] = UNMARKED
-  end
-
   local min_samples = self.min_samples or 1
 
+  -- Mark all points as unmarked initially (index-based labels)
+  for i = 1, #Points do
+    self._DBScan[i] = UNMARKED
+  end
+
   -- Main clustering loop
-  for _, unit in ipairs(Points) do
-    local key = unit.unit
-    if self._DBScan[key] == UNMARKED then
-      local neighbors = self:region_query(unit)
+  for i = 1, #Points do
+    if self._DBScan[i] == UNMARKED then
+      local neighbors = self:region_query(i)
       if #neighbors < min_samples then
-        self._DBScan[key] = NOISE
+        self._DBScan[i] = NOISE
       else
         cluster_id = cluster_id + 1
-        self:expand_cluster(unit, neighbors, cluster_id)
+        self:expand_cluster(i, neighbors, cluster_id)
       end
     end
   end
   return self
 end
 
---- Identifies neighboring points within a specified epsilon distance of a given point.
---
--- This function searches for neighbors of a given 'point' within the 'epsilon' radius. 
--- It utilizes a private function '_distance' to calculate the Euclidean distance between points. 
--- The function is used within the DBSCAN algorithm to find points in the epsilon neighborhood of a given point.
---
--- @param point The point around which neighbors are to be found.
--- @return neighbors A list of neighboring points within the epsilon distance of the given point.
--- @usage local neighbors = dbscanner:region_query(specificPoint) -- Finds neighbors of 'specificPoint'.
-function AETHR.AI.DBSCANNER:region_query(point)
+--- Identifies neighboring points within a specified epsilon distance of a given point index.
+---
+--- @param index integer Index of the point in self.Points to query around.
+--- @return neighbors integer[] List of neighbor indices within epsilon (including index itself).
+--- @usage local neighbors = dbscanner:region_query(i) -- Finds neighbors of point i.
+function AETHR.AI.DBSCANNER:region_query(index)
+  local Points = self.Points or {}
+
   local function _toXY(obj)
     if obj == nil then return { x = 0, y = 0 } end
-    if obj.vec2 ~= nil then
-      return self.UTILS:normalizePoint(obj.vec2)
-    end
     return self.UTILS:normalizePoint(obj)
   end
 
   -- Debug information consolidated
   if self.UTILS and self.UTILS.debugInfo then
-    self.UTILS:debugInfo("AETHR.AI.DBSCANNER:region_query | --------------------------------------------\n" ..
-      "| point       | ", point)
+    self.UTILS:debugInfo("AETHR.AI.DBSCANNER:region_query | idx | " .. tostring(index))
   end
 
-  local p = _toXY(point)
+  local p = _toXY(Points[index])
   local eps2 = self.epsilon2 or ((self.epsilon or 0) * (self.epsilon or 0))
   if eps2 <= 0 then return {} end
 
   local neighbors = {}
-  -- Iterate through detected units and find neighbors within the epsilon distance (squared)
-  for _, unit in ipairs(self.Points or {}) do
-    local q = _toXY(unit)
+  -- Iterate through points and find neighbors within the epsilon distance (squared)
+  for j = 1, #Points do
+    local q = _toXY(Points[j])
     local dx = p.x - q.x
     local dy = p.y - q.y
     if (dx * dx + dy * dy) <= eps2 then
-      table.insert(neighbors, unit)
+      neighbors[#neighbors + 1] = j
     end
   end
   return neighbors
 end
 
---- Expands a cluster around a given point based on its neighbors and a specified cluster ID.
---
--- This function adds a given point and its neighbors to a cluster identified by 'cluster_id'. 
--- It iteratively checks each neighbor and includes them in the cluster if they are not already part of another cluster or marked as noise. 
--- The function also discovers new neighbors of neighbors, expanding the cluster until no further additions are possible.
---
--- @param point The point around which the cluster is being expanded.
--- @param neighbors The initial set of neighbors of the point.
--- @param cluster_id The identifier of the cluster being expanded.
--- @return self The updated DBSCANNER object after expanding the cluster.
--- @usage dbscanner:expand_cluster(corePoint, initialNeighbors, clusterId) -- Expands a cluster around 'corePoint'.
-function AETHR.AI.DBSCANNER:expand_cluster(point, neighbors, cluster_id)
+--- Expands a cluster around a given point index based on its neighbors and a specified cluster ID.
+---
+--- This function adds a given point (by index) and its neighbor indices to a cluster identified by 'cluster_id'.
+--- It iteratively checks each neighbor and includes them in the cluster if they are not already part of another cluster or marked as noise.
+--- The function also discovers new neighbors of neighbors, expanding the cluster until no further additions are possible.
+---
+--- @param pointIndex integer Index of the core point used to seed/expand the cluster
+--- @param neighbors integer[] Neighbor indices (including the core index)
+--- @param cluster_id integer The identifier of the cluster being expanded
+--- @return AETHR.AI.DBSCANNER self The updated DBSCANNER object (for chaining)
+--- @usage dbscanner:expand_cluster(i, neighbors, clusterId)
+function AETHR.AI.DBSCANNER:expand_cluster(pointIndex, neighbors, cluster_id)
   if self.UTILS and self.UTILS.debugInfo then
     self.UTILS:debugInfo("AETHR.AI.DBSCANNER:expand_cluster | -------------------------------------------- ")
     self.UTILS:debugInfo("AETHR.AI.DBSCANNER:expand_cluster | cluster_id  | " .. tostring(cluster_id))
-    self.UTILS:debugInfo("AETHR.AI.DBSCANNER:expand_cluster | point       | ", point)
-    self.UTILS:debugInfo("AETHR.AI.DBSCANNER:expand_cluster | neighbors   | ", neighbors)
-    self.UTILS:debugInfo("AETHR.AI.DBSCANNER:expand_cluster | labels      | ", self._DBScan)
+    self.UTILS:debugInfo("AETHR.AI.DBSCANNER:expand_cluster | pointIndex  | " .. tostring(pointIndex))
   end
   local UNMARKED, NOISE = 0, -1
-  self._DBScan[point.unit] = cluster_id
+  local min_samples = self.min_samples or 1
+
+  self._DBScan[pointIndex] = cluster_id
   local i = 1
   while i <= #neighbors do
-    local neighbor = neighbors[i]
-    if self._DBScan[neighbor.unit] == NOISE or self._DBScan[neighbor.unit] == UNMARKED then
-      self._DBScan[neighbor.unit] = cluster_id
-      local new_neighbors = self:region_query(neighbor)
-      if #new_neighbors >= self.min_samples then
-        for _, new_neighbor in ipairs(new_neighbors) do
-          table.insert(neighbors, new_neighbor)
+    local nIdx = neighbors[i]
+    if self._DBScan[nIdx] == NOISE or self._DBScan[nIdx] == UNMARKED then
+      self._DBScan[nIdx] = cluster_id
+      local new_neighbors = self:region_query(nIdx)
+      if #new_neighbors >= min_samples then
+        for _, nn in ipairs(new_neighbors) do
+          neighbors[#neighbors + 1] = nn
         end
       end
     end
@@ -282,13 +304,12 @@ function AETHR.AI.DBSCANNER:expand_cluster(point, neighbors, cluster_id)
 end
 
 --- Post-processes the clusters formed by the DBSCAN algorithm.
---
--- After clustering is done, this function processes each cluster to compute its center, radius, and other relevant details. 
--- It organizes the clusters into a sorted array and calculates the center and radius for each cluster, including any radius extension. 
--- The results are stored in the 'Clusters' attribute of the DBSCANNER object.
---
--- @return self The updated DBSCANNER object with fully processed clusters.
--- @usage dbscanner:post_process_clusters() -- Post-processes clusters to compute centers and radii.
+---
+--- Computes center and radius in 2D for each cluster (skipping noise), and populates self.Clusters.
+--- Output clusters contain original Points references, Center {x,y}, and Radius (meters).
+---
+--- @return AETHR.AI.DBSCANNER self The DBSCANNER object with Clusters populated
+--- @usage dbscanner:post_process_clusters()
 function AETHR.AI.DBSCANNER:post_process_clusters()
   if self.UTILS and self.UTILS.debugInfo then
     self.UTILS:debugInfo("AETHR.AI.DBSCANNER:post_process_clusters | -------------------------------------------- ")
@@ -303,39 +324,37 @@ function AETHR.AI.DBSCANNER:post_process_clusters()
   local clusters = {}
   self.Clusters = {}
 
-  -- Group units by cluster id (skip noise cluster -1)
-  for _, unit in ipairs(self.Points or {}) do
-    local cid = self._DBScan[unit.unit]
+  -- Group points by cluster id (skip noise cluster -1)
+  for i, pt in ipairs(self.Points or {}) do
+    local cid = self._DBScan[i]
     if cid and cid > 0 then
       clusters[cid] = clusters[cid] or {}
-      clusters[cid][#clusters[cid] + 1] = unit
+      clusters[cid][#clusters[cid] + 1] = pt
     end
   end
 
   local out = {}
-  for cluster, units in pairs(clusters) do
-    if cluster and cluster > 0 and type(units) == "table" and #units > 0 then
+  for cluster, pts in pairs(clusters) do
+    if cluster and cluster > 0 and type(pts) == "table" and #pts > 0 then
       local sum_x, sum_y = 0, 0
-      for _, u in ipairs(units) do
-        local ux = u.vec2 and u.vec2.x or 0
-        local uy = u.vec2 and (u.vec2.y or u.vec2.z) or 0
-        sum_x = sum_x + ux
-        sum_y = sum_y + uy
+      for _, p in ipairs(pts) do
+        local v = self.UTILS:normalizePoint(p)
+        sum_x = sum_x + (v.x or 0)
+        sum_y = sum_y + (v.y or 0)
       end
-      local center = { x = sum_x / #units, y = sum_y / #units }
+      local center = { x = sum_x / #pts, y = sum_y / #pts }
 
       local max_d2 = 0
-      for _, u in ipairs(units) do
-        local uv = { x = (u.vec2 and u.vec2.x or 0), y = (u.vec2 and (u.vec2.y or u.vec2.z) or 0) }
-        local d2 = _dist2(center, uv)
+      for _, p in ipairs(pts) do
+        local v = self.UTILS:normalizePoint(p)
+        local d2 = _dist2(center, v)
         if d2 > max_d2 then max_d2 = d2 end
       end
 
       local radius = math.sqrt(max_d2) + (self._RadiusExtension or 0)
       table.insert(out, {
-        Units = units,
+        Points = pts,
         Center = center,
-        CenterVec3 = self.AETHR._vec3:New(center.x, 0, center.y),
         Radius = radius,
       })
     end
@@ -345,12 +364,12 @@ function AETHR.AI.DBSCANNER:post_process_clusters()
   return self
 end
 
---- Convenience facade: cluster standardized points { unit, vec2 = { x, y } }.
+--- Convenience facade: cluster raw points (vec2/vec2xz only).
 --- @function AETHR.AI:clusterPoints
---- @param points table Array of items with fields: unit, vec2={x,y}
+--- @param points AETHR.AI.PointList Array of points; each is { x=number, y=number } or { x=number, z=number }
 --- @param area number Area to consider for epsilon calculation
 --- @param opts table|nil { radiusExtension?: number, f?: number, p?: number }
---- @return table clusters Array of { Units, Center, CenterVec3, Radius }
+--- @return AETHR.AI.DBSCAN_Cluster[] clusters Array of cluster result objects
 function AETHR.AI:clusterPoints(points, area, opts)
   local radiusExtension = (opts and opts.radiusExtension) or 0
   local params = {}
