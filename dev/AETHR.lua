@@ -51,6 +51,7 @@ AETHR = {
         "BRAIN",
         "SPAWNER",
         "FSM",
+        "AI",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 
