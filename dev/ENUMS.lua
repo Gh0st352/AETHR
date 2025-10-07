@@ -12,9 +12,12 @@
 ---@field Phonetic AETHR.ENUMS.Phonetic NATO phonetic alphabet strings.
 ---@field LineTypes AETHR.ENUMS.LineTypes Line rendering styles.
 ---@field MarkerTypes AETHR.ENUMS.MarkerTypes Marker shape types for F10 drawing.
----@field spawnTypes AETHR.ENUMS.spawnTypes table
----@field spawnTypesPrio AETHR.ENUMS.spawnTypesPrio table
----@field dynamicSpawnerTypes AETHR.ENUMS.dynamicSpawnerTypes table
+---@field TextStrings AETHR.ENUMS.TextStrings Common user-facing text strings.
+---@field Countries table DCS country.id mapping.
+---@field Skill AETHR.ENUMS.Skill AI skill level strings.
+---@field spawnTypes AETHR.ENUMS.spawnTypes
+---@field spawnTypesPrio AETHR.ENUMS.spawnTypesPrio
+---@field dynamicSpawnerTypes AETHR.ENUMS.dynamicSpawnerTypes
 ---@field FSM AETHR.ENUMS.FSM FSM sentinel values.
 ---@diagnostic disable: undefined-global
 
@@ -37,6 +40,7 @@
 ---@field HELICOPTER integer Groups of helicopters (Group.Category.HELICOPTER)
 ---@field GROUND integer Ground unit groups (Group.Category.GROUND)
 ---@field SHIP integer Naval groups (Group.Category.SHIP)
+---@field FARP integer Forward arming and refueling point sentinel (-1)
 
 ---@class AETHR.ENUMS.AirbaseCategory
 ---@field AIRDROME integer Land airfields (Airbase.Category.AIRDROME)
@@ -49,6 +53,7 @@
 ---@field WATER integer Deep/open water
 ---@field ROAD integer Road surface
 ---@field RUNWAY integer Runway surface
+---@field NIL string Sentinel "nil" representing undefined surface type
 
 ---@class AETHR.ENUMS.Events
 ---@field S_EVENT_SHOT integer Weapon fired
@@ -99,6 +104,7 @@
 ---@field RED integer Red coalition (coalition.side.RED)
 ---@field BLUE integer Blue coalition (coalition.side.BLUE)
 ---@field ALL integer Special sentinel meaning "all coalitions" (-1)
+---@field CONTESTED integer Contested coalition sentinel (3)
 
 ---@class AETHR.ENUMS.Phonetic
 ---@field A string "Alpha"
@@ -153,10 +159,11 @@
 ---@field Teams table
 
 
----@class AETHR.ENUMS.Countries table DCS country.id mapping.
+--- DCS country.id mapping table (see AETHR.ENUMS.Countries value). Not enumerated here.
 
 
----@class AETHR.ENUMS.Skill table AI skill level strings.
+---@class AETHR.ENUMS.Skill
+--- AI skill level strings.
 ---@field Excellent string "Excellent"
 ---@field High string "High"
 ---@field Good string "Good"
@@ -164,7 +171,7 @@
 ---@field Random string "Random"
 ---@field Player string "Player"
 
----@class AETHR.ENUMS.spawnTypes table
+---@class AETHR.ENUMS.spawnTypes
 ---@field Ships string "Ships"
 ---@field UnarmedShips string "Unarmed ships"
 ---@field ArmedShips string "Armed ships"
@@ -220,6 +227,8 @@
 ---@field MANPADS_AUX string "MANPADS AUX"
 ---@field SAM_TR string "SAM TR"
 ---@field Vehicles string "Vehicles"
+---@field SAM_AUX string "SAM AUX"
+---@field Armored_Vehicles string "Armored vehicles"
 ---@field SAM_SR string "SAM SR"
 ---@field New_Infantry string "New infantry"
 ---@field AA_missile string "AA_missile"
@@ -231,76 +240,80 @@
 ---@field NonAndLightArmoredUnits string "NonAndLightArmoredUnits"
 ---@field NonArmoredUnits string "NonArmoredUnits"
 ---@field ArmedAirDefence string "Armed Air Defence"
+---@field Prone string "Prone"
 
----@class AETHR.ENUMS.spawnTypesPrio table
----@field Ships number|integer "Ships"
----@field UnarmedShips number|integer "Unarmed ships"
----@field ArmedShips number|integer "Armed ships"
----@field LightArmedShips number|integer "Light armed ships"
----@field HeavyArmedShips number|integer "Heavy armed ships"
----@field Corvettes number|integer "Corvettes"
----@field Frigates number|integer "Frigates"
----@field Destroyers number|integer "Destroyers"
----@field Cruisers number|integer "Cruisers"
----@field AircraftCarriers number|integer "Aircraft Carriers"
----@field GroundUnits number|integer "Ground Units"
----@field Infantry number|integer "Infantry"
----@field LightArmoredUnits number|integer "LightArmoredUnits"
----@field IFV number|integer "IFV"
----@field APC number|integer "APC"
----@field Artillery number|integer "Artillery"
----@field MLRS number|integer "MLRS"
----@field HeavyArmoredUnits number|integer "HeavyArmoredUnits"
----@field ModernTanks number|integer "Modern Tanks"
----@field OldTanks number|integer "Old Tanks"
----@field Tanks number|integer "Tanks"
----@field Buildings number|integer "Buildings"
----@field Fortifications number|integer "Fortifications"
----@field GroundVehicles number|integer "Ground vehicles"
----@field AAA number|integer "AAA"
----@field AA_flak number|integer "AA_flak"
----@field Static_AAA number|integer "Static AAA"
----@field Mobile_AAA number|integer "Mobile AAA"
----@field UnarmedVehicles number|integer "Unarmed vehicles"
----@field Cars number|integer "Cars"
----@field Trucks number|integer "Trucks"
----@field SamElements number|integer "SAM elements"
----@field IRGuidedSam number|integer "IR Guided SAM"
----@field SR_SAM number|integer "SR SAM"
----@field MR_SAM number|integer "MR SAM"
----@field LR_SAM number|integer "LR SAM"
----@field ArmedGroundUnits number|integer "Armed ground units"
----@field MANPADS number|integer "MANPADS"
----@field RocketAttack number|integer "Rocket Attack Valid AirDefence"
----@field ArmedVehicles number|integer "Armed vehicles"
----@field CRAM number|integer "C-RAM"
----@field AirDefenceVehicles number|integer "Air Defence vehicles"
----@field SAM_CC number|integer "SAM CC"
----@field SAM number|integer "SAM"
----@field human_vehicle number|integer "human_vehicle"
----@field WS_Type number|integer "</WSTYPE>"
----@field ATGM number|integer "ATGM"
----@field EWR number|integer "EWR"
----@field IndirectFire number|integer "Indirect fire"
----@field All number|integer "All"
----@field Datalink number|integer "Datalink"
----@field SAM_LL number|integer "SAM LL"
----@field MANPADS_AUX number|integer "MANPADS AUX"
----@field SAM_TR number|integer "SAM TR"
----@field Vehicles number|integer "Vehicles"
----@field SAM_SR number|integer "SAM SR"
----@field New_Infantry number|integer "New infantry"
----@field AA_missile number|integer "AA_missile"
----@field SAM_related number|integer "SAM related"
----@field GroundUnits_NonAirDefence number|integer "Ground Units Non Airdefence"
----@field AntiAir_ArmedVehicles number|integer "AntiAir Armed Vehicles"
----@field Infantry_Carriers number|integer "Infantry carriers"
----@field Air_Defence number|integer "Air Defence"
----@field NonAndLightArmoredUnits number|integer "NonAndLightArmoredUnits"
----@field NonArmoredUnits number|integer "NonArmoredUnits"
----@field ArmedAirDefence number|integer "Armed Air Defence"
+---@class AETHR.ENUMS.spawnTypesPrio
+---@field Ships integer "Ships"
+---@field UnarmedShips integer "Unarmed ships"
+---@field ArmedShips integer "Armed ships"
+---@field LightArmedShips integer "Light armed ships"
+---@field HeavyArmedShips integer "Heavy armed ships"
+---@field Corvettes integer "Corvettes"
+---@field Frigates integer "Frigates"
+---@field Destroyers integer "Destroyers"
+---@field Cruisers integer "Cruisers"
+---@field AircraftCarriers integer "Aircraft Carriers"
+---@field GroundUnits integer "Ground Units"
+---@field Infantry integer "Infantry"
+---@field LightArmoredUnits integer "LightArmoredUnits"
+---@field IFV integer "IFV"
+---@field APC integer "APC"
+---@field Artillery integer "Artillery"
+---@field MLRS integer "MLRS"
+---@field HeavyArmoredUnits integer "HeavyArmoredUnits"
+---@field ModernTanks integer "Modern Tanks"
+---@field OldTanks integer "Old Tanks"
+---@field Tanks integer "Tanks"
+---@field Buildings integer "Buildings"
+---@field Fortifications integer "Fortifications"
+---@field GroundVehicles integer "Ground vehicles"
+---@field AAA integer "AAA"
+---@field AA_flak integer "AA_flak"
+---@field Static_AAA integer "Static AAA"
+---@field Mobile_AAA integer "Mobile AAA"
+---@field UnarmedVehicles integer "Unarmed vehicles"
+---@field Cars integer "Cars"
+---@field Trucks integer "Trucks"
+---@field SamElements integer "SAM elements"
+---@field IRGuidedSam integer "IR Guided SAM"
+---@field SR_SAM integer "SR SAM"
+---@field MR_SAM integer "MR SAM"
+---@field LR_SAM integer "LR SAM"
+---@field ArmedGroundUnits integer "Armed ground units"
+---@field MANPADS integer "MANPADS"
+---@field RocketAttack integer "Rocket Attack Valid AirDefence"
+---@field ArmedVehicles integer "Armed vehicles"
+---@field CRAM integer "C-RAM"
+---@field Prone integer "Prone"
+---@field AirDefenceVehicles integer "Air Defence vehicles"
+---@field SAM_CC integer "SAM CC"
+---@field SAM integer "SAM"
+---@field human_vehicle integer "human_vehicle"
+---@field WS_Type integer "</WSTYPE>"
+---@field ATGM integer "ATGM"
+---@field EWR integer "EWR"
+---@field IndirectFire integer "Indirect fire"
+---@field All integer "All"
+---@field Datalink integer "Datalink"
+---@field SAM_LL integer "SAM LL"
+---@field MANPADS_AUX integer "MANPADS AUX"
+---@field SAM_TR integer "SAM TR"
+---@field Vehicles integer "Vehicles"
+---@field SAM_AUX integer "SAM AUX"
+---@field Armored_Vehicles integer "Armored vehicles"
+---@field SAM_SR integer "SAM SR"
+---@field New_Infantry integer "New infantry"
+---@field AA_missile integer "AA_missile"
+---@field SAM_related integer "SAM related"
+---@field GroundUnits_NonAirDefence integer "Ground Units Non Airdefence"
+---@field AntiAir_ArmedVehicles integer "AntiAir Armed Vehicles"
+---@field Infantry_Carriers integer "Infantry carriers"
+---@field Air_Defence integer "Air Defence"
+---@field NonAndLightArmoredUnits integer "NonAndLightArmoredUnits"
+---@field NonArmoredUnits integer "NonArmoredUnits"
+---@field ArmedAirDefence integer "Armed Air Defence"
 
----@class AETHR.ENUMS.dynamicSpawnerTypes table
+---@class AETHR.ENUMS.dynamicSpawnerTypes
 ---@field Airbase string "Airbase"
 ---@field Zone string "Zone"
 ---@field Point string "Point"
@@ -614,7 +627,6 @@ AETHR.ENUMS = {
         NonArmoredUnits = 170,
         ArmedAirDefence = 210,
     },
-    ---.
     dynamicSpawnerTypes = {
         Airbase = "Airbase",
         Zone = "Zone",
