@@ -16,16 +16,7 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
---- @field DATA AETHR.SPAWNER.DATA Container for spawner-managed data.
----
---- Instance fields (runtime):
---- @field options AETHR.FSM.Options|nil Configuration options passed to :New()
---- @field current string|nil Current state.
---- @field asyncState string|nil Current async state (if any).
---- @field events table<string, { map: table<string, string> }>|nil Table of events and their from/to maps.
---- @field currentTransitioningEvent string|nil Name of the event currently being processed (if any).
---- @field NONE string Sentinel value for "no state" (AETHR.ENUMS.FSM.NONE).
---- @field ASYNC string Sentinel value for "async" (AETHR.ENUMS.FSM.ASYNC).
+--- @field DATA AETHR.FSM.DATA FSM instance data container.
 --- MODIFIED FROM:
 --- https://github.com/kyleconroy/lua-state-machine/blob/master/statemachine.lua
 ---
@@ -48,7 +39,8 @@
 --- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 --- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 --- SOFTWARE.
----
+AETHR.FSM = {}
+
 --- Type aliases for FSM options/events/callbacks (EmmyLua)
 --- @class AETHR.FSM.Event
 --- @field name string Event name
@@ -57,22 +49,53 @@
 ---
 --- @alias AETHR.FSM.Callback fun(self:AETHR.FSM, e:string, from:string, to:string, ...:any): any
 ---
---- @class AETHR.FSM.Options
+
+--- @class AETHR.FSM.DATA
+--- @field options AETHR.FSM.Options|nil Configuration options passed to :New()
+--- @field current string|nil Current state.
+--- @field asyncState string|nil Current async state (if any).
+--- @field events table<string, { map: table<string, string> }>|nil Table of events and their from/to maps.
+--- @field currentTransitioningEvent string|nil Name of the event currently being processed (if any).
+--- @field NONE string Sentinel value for "no state" (AETHR.ENUMS.FSM.NONE).
+--- @field ASYNC string Sentinel value for "async" (AETHR.ENUMS.FSM.ASYNC).
+--- @field _FSM_DATA table Internal data for FSM manager (queue, active set, stats).
+
+--- @class AETHR.FSM.DATA.Options
 --- @field initial string|nil Initial state (defaults to AETHR.ENUMS.FSM.NONE)
 --- @field events AETHR.FSM.Event[] List of event descriptors
 --- @field callbacks table&lt;string, AETHR.FSM.Callback&gt;|nil Lifecycle callbacks keyed as:
 ---  onbefore&lt;event&gt;, onafter&lt;event&gt;, onleave&lt;state&gt;, onenter&lt;state&gt;, on&lt;state&gt;, onstatechange
 ---
---- Ensure table literal below is typed as AETHR.FSM for editors
---- @type AETHR.FSM
-AETHR.FSM = {
-  options = nil,               -- Configuration options passed to :New()
+--- @class AETHR.FSM.DATA._FSM_DATA
+--- @field queue AETHR.FSM.ManagerItem[] FIFO of {fsm, event, args}
+--- @field active table<AETHR.FSM, boolean> Set of FSMs currently awaiting ASYNC completion
+--- @field stats table
+--- 
+--- @class AETHR.FSM.DATA._FSM_DATA.stats
+--- @field enqueued number Count of enqueued events
+--- @field processed number Count of processed events
+--- @field resumed number Count of resumed async events
+--- @field finished number Count of finished events
+--- @field errors number Count of errors during event processing
+
+AETHR.FSM.DATA = {
+    options = nil,               -- Configuration options passed to :New()
   current = nil,               -- Current state.
   asyncState = nil,            -- Current async state (if any).
   events = nil,                -- Table of events and their from/to maps.
   currentTransitioningEvent = nil, -- Name of the event currently being processed (if any).
   NONE = AETHR.ENUMS.FSM.NONE,
   ASYNC = AETHR.ENUMS.FSM.ASYNC,
+  _FSM_DATA = {
+    queue = {},             -- FIFO of {fsm, event, args}
+    active = {},            -- set of FSMs currently awaiting ASYNC completion
+    stats = {
+      enqueued = 0,
+      processed = 0,
+      resumed = 0,
+      finished = 0,
+      errors = 0,
+    },
 }
 
 
@@ -447,4 +470,127 @@ function AETHR.FSM:cancelTransition(event)
     self.asyncState = self.NONE
     self.currentTransitioningEvent = nil
   end
+end
+
+
+--- FSM manager: queued/active processing (background coroutine support)
+--- @class AETHR.FSM.ManagerItem
+--- @field fsm table
+--- @field event string|nil
+--- @field args any[]
+
+--- Ensure per-instance FSM data container
+--- @return table data
+function AETHR.FSM:_ensureData()
+  self._FSM_DATA = self._FSM_DATA or {
+    queue = {},             -- FIFO of {fsm, event, args}
+    active = {},            -- set of FSMs currently awaiting ASYNC completion
+    stats = {
+      enqueued = 0,
+      processed = 0,
+      resumed = 0,
+      finished = 0,
+      errors = 0,
+    }
+  }
+  return self._FSM_DATA
+end
+
+--- Enqueue an FSM event to be processed by the background coroutine.
+--- If the FSM is already in an async transition, this will attempt to resume it first.
+--- @param parent AETHR Parent AETHR instance
+--- @param fsm table FSM instance returned from AETHR.FSM:New
+--- @param event string Event name to fire (fsm[event](fsm, ...))
+--- @param ... any Arguments forwarded to the event function
+--- @return AETHR.FSM self
+function AETHR.FSM:enqueue(parent, fsm, event, ...)
+  if not parent or not fsm or not event then return self end
+  local data = self:_ensureData(parent)
+  table.insert(data.queue, { fsm = fsm, event = event, args = { ... } })
+  data.stats.enqueued = (data.stats.enqueued or 0) + 1
+  return self
+end
+
+--- Process queued and active FSMs. Intended to be called by BRAIN coroutine.
+--- It will:
+--- 1) Drain up to N queued items (N = yieldThreshold of processFSMQueue or 10)
+--- 2) Advance up to N active async FSMs via fsm:transition(fsm.currentTransitioningEvent)
+--- @param parent AETHR
+--- @return AETHR.FSM self
+function AETHR.FSM:processQueue(parent)
+  if not parent then return self end
+  local data = self:_ensureData(parent)
+
+  -- Derive batch limit from coroutine descriptor if present
+  local cg = parent.BRAIN and parent.BRAIN.DATA and parent.BRAIN.DATA.coroutines
+            and parent.BRAIN.DATA.coroutines.processFSMQueue or nil
+  local maxBatch = (cg and cg.yieldThreshold) or 10
+
+  local NONE = self.NONE or (AETHR and AETHR.ENUMS and AETHR.ENUMS.FSM and AETHR.ENUMS.FSM.NONE) or "none"
+
+  -- 1) Process queued items
+  local processed = 0
+  while processed < maxBatch and #data.queue > 0 do
+    local item = table.remove(data.queue, 1)
+    local fsm = item and item.fsm
+    local event = item and item.event
+    local args = (item and item.args) or {}
+
+    if fsm then
+      local ok = true
+      local _err = nil
+      ok, _err = pcall(function()
+        if fsm.currentTransitioningEvent and fsm.asyncState and fsm.asyncState ~= NONE then
+          -- Resume any in-flight async transition first
+          fsm:transition(fsm.currentTransitioningEvent)
+        else
+          local fn = fsm[event]
+          if type(fn) == "function" then fn(fsm, unpack(args)) end
+        end
+      end)
+
+      data.stats.processed = (data.stats.processed or 0) + 1
+      processed = processed + 1
+      if not ok then
+        data.stats.errors = (data.stats.errors or 0) + 1
+      end
+
+      if fsm and fsm.asyncState and fsm.asyncState ~= NONE then
+        data.active[fsm] = true
+        data.stats.resumed = (data.stats.resumed or 0) + 1
+      end
+    end
+  end
+
+  -- 2) Progress active async FSMs
+  local progressed = 0
+  local finished = {}
+  for fsm, _ in pairs(data.active) do
+    if progressed >= maxBatch then break end
+    local ok = true
+    ok = pcall(function()
+      if fsm and fsm.currentTransitioningEvent then
+        fsm:transition(fsm.currentTransitioningEvent)
+      end
+    end)
+    if not ok then data.stats.errors = (data.stats.errors or 0) + 1 end
+    progressed = progressed + 1
+
+    if not (fsm and fsm.asyncState and fsm.asyncState ~= NONE) then
+      table.insert(finished, fsm)
+      data.stats.finished = (data.stats.finished or 0) + 1
+    end
+  end
+  for _, f in ipairs(finished) do data.active[f] = nil end
+
+  return self
+end
+
+--- Convenience alias for enqueue
+--- @param parent AETHR
+--- @param fsm table
+--- @param event string
+--- @param ... any
+function AETHR.FSM:queueEvent(parent, fsm, event, ...)
+  return self:enqueue(parent, fsm, event, ...)
 end

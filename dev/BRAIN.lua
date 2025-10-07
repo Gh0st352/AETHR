@@ -136,6 +136,15 @@ AETHR.BRAIN.DATA = {
             yieldCounter = 0,
             desc = "spawnerGenerationQueue",
         },
+        processFSMQueue = {
+            interval = 1,
+            phase = 5,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 10,
+            yieldCounter = 0,
+            desc = "processFSMQueue",
+        },
     },
     BackgroundLoopInterval = 0.5, -- Main scheduling loop tick interval in seconds.
 }

@@ -50,6 +50,7 @@ AETHR = {
         "MARKERS",
         "BRAIN",
         "SPAWNER",
+        "FSM",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 
@@ -316,6 +317,12 @@ function AETHR:BackgroundProcesses()
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnerGenerationQueue, function(parentAETHR)
         parentAETHR.WORLD:spawnerGenerationQueue()
+    end, self)
+
+    -- FSM Queue Processor: progress queued and async FSM transitions
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.processFSMQueue, function(parentAETHR)
+        parentAETHR.FSM:processQueue(parentAETHR)
     end, self)
 
     self.BRAIN:runScheduledTasks(2)
