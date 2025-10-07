@@ -71,15 +71,16 @@ AETHR.AI.DBSCANNER = {}
 
 --- Constructs a new DBSCANNER object.
 --
--- This function initializes a new DBSCANNER object with specified parameters. 
--- It sets up the points, area, and radius extension for the DBSCAN algorithm. 
--- It also calls 'generateDBSCANparams' to calculate necessary parameters for the DBSCAN process.
+-- Initializes DBSCAN with the given AI instance and dataset.
+-- Uses area and parameters to derive epsilon and min_samples.
 --
--- @param Points An array of points for the DBSCAN algorithm.
--- @param Area The area to be considered for the DBSCAN algorithm.
--- @param RadiusExtension The radius extension value for the DBSCAN calculations.
--- @return self The newly created DBSCANNER object.
--- @usage local dbscanner = AETHR.AI.DBSCANNER:New(pointsArray, areaValue, radiusExtension)
+-- @param ai AETHR.AI The AI instance (for access to UTILS/AETHR).
+-- @param Points table Array of { unit: any, vec2 = { x: number, y: number } }.
+-- @param Area number Area considered for parameterization.
+-- @param RadiusExtension number|nil Extra radius added to computed cluster radius.
+-- @param params table|nil Optional overrides { f?: number, p?: number }.
+-- @return AETHR.AI.DBSCANNER self
+-- @usage local dbscanner = self.AI.DBSCANNER:New(self.AI, pointsArray, areaValue, 0, { f = 2, p = 0.1 })
 function AETHR.AI.DBSCANNER:New(ai, Points, Area, RadiusExtension, params)
   -- Lightweight constructor; no external frameworks.
   local instance = {
@@ -173,16 +174,25 @@ function AETHR.AI.DBSCANNER:_DBScan()
   local UNMARKED, NOISE = 0, -1
   local cluster_id = 0
   self._DBScan = {}
-  -- Mark all units as unmarked initially
-  for _, unit in ipairs(self.Points) do
+
+  -- Localize for speed
+  local Points = self.Points or {}
+
+  -- Mark all units as unmarked initially, assigning a stable fallback key when missing
+  for i, unit in ipairs(Points) do
+    if unit.unit == nil then unit.unit = i end
     self._DBScan[unit.unit] = UNMARKED
   end
+
+  local min_samples = self.min_samples or 1
+
   -- Main clustering loop
-  for _, unit in ipairs(self.Points) do
-    if self._DBScan[unit.unit] == UNMARKED then
+  for _, unit in ipairs(Points) do
+    local key = unit.unit
+    if self._DBScan[key] == UNMARKED then
       local neighbors = self:region_query(unit)
-      if #neighbors < self.min_samples then
-        self._DBScan[unit.unit] = NOISE
+      if #neighbors < min_samples then
+        self._DBScan[key] = NOISE
       else
         cluster_id = cluster_id + 1
         self:expand_cluster(unit, neighbors, cluster_id)
@@ -218,6 +228,7 @@ function AETHR.AI.DBSCANNER:region_query(point)
 
   local p = _toXY(point)
   local eps2 = self.epsilon2 or ((self.epsilon or 0) * (self.epsilon or 0))
+  if eps2 <= 0 then return {} end
 
   local neighbors = {}
   -- Iterate through detected units and find neighbors within the epsilon distance (squared)
@@ -292,11 +303,13 @@ function AETHR.AI.DBSCANNER:post_process_clusters()
   local clusters = {}
   self.Clusters = {}
 
-  -- Group units by cluster id
+  -- Group units by cluster id (skip noise cluster -1)
   for _, unit in ipairs(self.Points or {}) do
-    local cluster = self._DBScan[unit.unit]
-    clusters[cluster] = clusters[cluster] or {}
-    table.insert(clusters[cluster], unit)
+    local cid = self._DBScan[unit.unit]
+    if cid and cid > 0 then
+      clusters[cid] = clusters[cid] or {}
+      clusters[cid][#clusters[cid] + 1] = unit
+    end
   end
 
   local out = {}
