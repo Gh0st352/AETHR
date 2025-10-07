@@ -1,5 +1,21 @@
 --- @class AETHR.AI
 ---@diagnostic disable: undefined-global
+--- @brief 2D clustering utilities using DBSCAN for point sets.
+--- Accepts points shaped as { x, y } or { x, z }; coordinates are normalized internally via AETHR.UTILS:normalizePoint.
+--- Parameterization:
+---   - epsilon = f * math.sqrt(Area / n)
+---   - min_samples = math.max(1, math.ceil(p * n))
+--- Notes:
+---   - region_query returns neighbors including the index itself
+---   - RadiusExtension is added to the computed cluster radius in post_process_clusters
+---   - Units are meters for coordinates and radii
+--- Usage:
+---   -- Facade:
+---   -- local clusters = self.AI:clusterPoints(points, area, { radiusExtension = 0, f = 2, p = 0.1 })
+---   -- Direct:
+---   -- local scanner = self.AI.DBSCANNER:New(self.AI, points, area, 0, { f = 2, p = 0.1 }):Scan()
+---   -- local clusters = scanner.Clusters
+---
 --- Submodule wiring (set by AETHR:New):
 --- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New).
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
@@ -15,13 +31,9 @@
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
 --- @field DATA AETHR.AI.DATA Container for AI-managed defaults and helpers.
 ---
---- Type aliases used in this module:
---- @alias AETHR.AI.Point2D _vec2|_vec2xz|{x:number,y:number}|{x:number,z:number}
---- @alias AETHR.AI.PointList AETHR.AI.Point2D[]
----
 --- Cluster result structure returned by DBSCANNER and AI:clusterPoints
 --- @class AETHR.AI.DBSCAN_Cluster
---- @field Points AETHR.AI.PointList Points assigned to the cluster (original references)
+--- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points assigned to the cluster (original references)
 --- @field Center _vec2 Center of mass in 2D (x,y)
 --- @field Radius number Radius from center to farthest member (meters)
 AETHR.AI = {} ---@diagnostic disable-line
@@ -48,7 +60,7 @@ end
 --- @field params table Parameters override table (optional, used by constructor).
 --- @field _DBScan table<integer, integer> Internal label map: index -> clusterId (-1 noise, 0 unmarked, >0 cluster)
 --- @field Clusters AETHR.AI.DBSCAN_Cluster[] Computed clusters (post processing)
---- @field Points AETHR.AI.PointList Points being clustered
+--- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points being clustered
 --- @field numPoints integer Number of points
 --- @field f number Scaling factor for epsilon (epsilon = f * sqrt(Area / n))
 --- @field p number Proportion for min_samples (min_samples = ceil(p * n))
@@ -84,7 +96,7 @@ AETHR.AI.DBSCANNER = {}
 --- @field AI AETHR.AI Parent AI instance
 --- @field AETHR AETHR Parent AETHR instance
 --- @field UTILS AETHR.UTILS Utility helpers
---- @field Points AETHR.AI.PointList Points being clustered
+--- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points being clustered
 --- @field numPoints integer Number of points
 --- @field Area number Area used to estimate epsilon
 --- @field _RadiusExtension number Extra radius added to computed cluster radii
@@ -106,7 +118,7 @@ AETHR.AI.DBSCANNER = {}
 ---   { x = number, y = number }  OR  { x = number, z = number }
 ---
 --- @param ai AETHR.AI The AI instance (for access to UTILS/AETHR)
---- @param Points AETHR.AI.PointList Array of vec2/vec2xz tables
+--- @param Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Array of vec2/vec2xz tables
 --- @param Area number Area considered for parameterization
 --- @param RadiusExtension number|nil Extra radius added to computed cluster radius
 --- @param params table|nil Optional overrides { f?: number, p?: number }
@@ -151,7 +163,7 @@ end
 --- the number of points, the area, and specific factors 'f' and 'p'
 --- It updates the object with these calculated values. 
 ---
---- @return self The updated DBSCANNER object with newly calculated parameters.
+--- @return AETHR.AI.DBSCANNER self The updated DBSCANNER object with newly calculated parameters.
 --- @usage dbscanner:generateDBSCANparams() -- Updates the 'dbscanner' object with DBSCAN parameters.
 function AETHR.AI.DBSCANNER:generateDBSCANparams()
   -- Safe calculations with guards
@@ -184,7 +196,7 @@ end
 --- This function initiates the DBSCAN clustering process by calling '_DBScan' and then performs post-processing on the clusters formed. 
 --- It structures the scanning process and post-processing as a sequence of operations on the DBSCANNER object.
 ---
---- @return self The DBSCANNER object after completing the scan and post-processing steps.
+--- @return AETHR.AI.DBSCANNER self The DBSCANNER object after completing the scan and post-processing steps.
 --- @usage dbscanner:Scan() -- Performs the DBSCAN algorithm and post-processes the results.
 function AETHR.AI.DBSCANNER:Scan()
   self:_DBScan()
@@ -198,7 +210,7 @@ end
 --- It initializes each point as unmarked, then iterates through each point to determine if it is a core point and expands clusters accordingly. 
 --- Points are marked as either part of a cluster or as noise.
 ---
---- @return self The DBSCANNER object with updated clustering information.
+--- @return AETHR.AI.DBSCANNER self The DBSCANNER object with updated clustering information.
 --- @usage dbscanner:_DBScan() -- Directly performs the DBSCAN clustering algorithm.
 function AETHR.AI.DBSCANNER:_DBScan()
   -- Initialization
@@ -366,7 +378,7 @@ end
 
 --- Convenience facade: cluster raw points (vec2/vec2xz only).
 --- @function AETHR.AI:clusterPoints
---- @param points AETHR.AI.PointList Array of points; each is { x=number, y=number } or { x=number, z=number }
+--- @param points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Array of points; each is { x=number, y=number } or { x=number, z=number }
 --- @param area number Area to consider for epsilon calculation
 --- @param opts table|nil { radiusExtension?: number, f?: number, p?: number }
 --- @return AETHR.AI.DBSCAN_Cluster[] clusters Array of cluster result objects
@@ -381,6 +393,5 @@ function AETHR.AI:clusterPoints(points, area, opts)
   scanner:Scan()
   return scanner.Clusters
 end
-
 
 
