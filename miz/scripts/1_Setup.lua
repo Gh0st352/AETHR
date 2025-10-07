@@ -11,6 +11,5 @@ G_AETHR.ZONE_MANAGER:setMizZones(G_AETHR.USERSTORAGE.missionZones, G_AETHR.USERS
     G_AETHR.USERSTORAGE.BlueStartZones)
 G_AETHR:Init():Start()
 
-G_AETHR.WORLD:determineTowns()
 
 local pause = ""

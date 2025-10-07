@@ -50,7 +50,7 @@ AETHR.WORLD = {} ---@diagnostic disable-line
 --- @field _spawnerAttributesDB table<string, table<string, table>> Internal use only, do not modify directly, filtered and prioritized spawnerAttributesDB
 --- @field spawnerUnitInfoCache table<string, table>             Cached unit descriptor keyed by typeName
 --- @field worldDivAABB table<number, table>                     Cached division AABB keyed by division ID
---- @field townClusterDB AETHR.AI.DBSCAN_Cluster[]          Towns clusters database keyed by cluster ID
+--- @field townClusterDB _dbCluster[]          Towns clusters database keyed by cluster ID
 AETHR.WORLD.DATA = {
     AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
     worldDivisions         = {}, -- Grid division definitions keyed by ID.
@@ -1496,6 +1496,7 @@ end
 
 
 --- Loads world division definitions from config if present.
+--- @return _dbCluster[]|nil data
 function AETHR.WORLD:loadTowns()
     local data = self.FILEOPS:loadData(
         self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,

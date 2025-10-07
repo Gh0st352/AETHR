@@ -30,12 +30,7 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
 --- @field DATA AETHR.AI.DATA Container for AI-managed defaults and helpers.
----
---- Cluster result structure returned by DBSCANNER and AI:clusterPoints
---- @class AETHR.AI.DBSCAN_Cluster
---- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points assigned to the cluster (original references)
---- @field Center _vec2 Center of mass in 2D (x,y)
---- @field Radius number Radius from center to farthest member (meters)
+
 AETHR.AI = {} ---@diagnostic disable-line
 
 
@@ -59,7 +54,7 @@ end
 --- @class AETHR.AI.DATA.DBSCANNER
 --- @field params table Parameters override table (optional, used by constructor).
 --- @field _DBScanData table<integer, integer> Internal label map: index -> clusterId (-1 noise, 0 unmarked, >0 cluster)
---- @field Clusters AETHR.AI.DBSCAN_Cluster[] Computed clusters (post processing)
+--- @field Clusters _dbCluster[] Computed clusters (post processing)
 --- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points being clustered
 --- @field numPoints integer Number of points
 --- @field f number Scaling factor for epsilon (epsilon = f * sqrt(Area / n))
@@ -102,7 +97,7 @@ AETHR.AI.DBSCANNER = {}
 --- @field Area number Area used to estimate epsilon
 --- @field _RadiusExtension number Extra radius added to computed cluster radii
 --- @field _DBScan table<integer, integer> Label map: index -> clusterId
---- @field Clusters AETHR.AI.DBSCAN_Cluster[] Cluster outputs (after post processing)
+--- @field Clusters _dbCluster[] Cluster outputs (after post processing)
 --- @field epsilon number Epsilon radius
 --- @field epsilon2 number Epsilon squared
 --- @field min_samples integer Minimum neighbor count to be core
@@ -531,7 +526,7 @@ end
 --- @param points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Array of points; each is { x=number, y=number } or { x=number, z=number }
 --- @param area number Area to consider for epsilon calculation
 --- @param opts table|nil { radiusExtension?: number, f?: number, p?: number, min_samples?: number }
---- @return AETHR.AI.DBSCAN_Cluster[] clusters Array of cluster result objects
+--- @return _dbCluster[] clusters Array of cluster result objects
 function AETHR.AI:clusterPoints(points, area, opts)
   local radiusExtension = (opts and opts.radiusExtension) or 0
   local params = {}

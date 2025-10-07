@@ -1466,3 +1466,9 @@ function AETHR._circle:New(center, radius)
     }
     return instance ---@diagnostic disable-line
 end
+
+--- Cluster result structure returned by DBSCANNER and AI:clusterPoints
+--- @class _dbCluster
+--- @field Points (_vec2|_vec2xz|{x:number,y:number}|{x:number,z:number})[] Points assigned to the cluster (original references)
+--- @field Center _vec2 Center of mass in 2D (x,y)
+--- @field Radius number Radius from center to farthest member (meters)
