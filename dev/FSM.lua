@@ -17,29 +17,10 @@
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
 --- @field DATA AETHR.FSM.DATA FSM instance data container.
---- MODIFIED FROM:
---- https://github.com/kyleconroy/lua-state-machine/blob/master/statemachine.lua
----
---- AETHR.FSM LICENSE ONLY:
---- Copyright (c) 2012 Kyle Conroy
---- Permission is hereby granted, free of charge, to any person obtaining a copy
---- of this software and associated documentation files (the "Software"), to deal
---- in the Software without restriction, including without limitation the rights
---- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
---- copies of the Software, and to permit persons to whom the Software is
---- furnished to do so, subject to the following conditions:
----
---- The above copyright notice and this permission notice shall be included in all
---- copies or substantial portions of the Software.
----
---- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
---- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
---- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
---- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
---- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
---- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
---- SOFTWARE.
 AETHR.FSM = {}
+
+AETHR.FSM.NONE = (AETHR and AETHR.ENUMS and AETHR.ENUMS.FSM and AETHR.ENUMS.FSM.NONE) or "none"
+AETHR.FSM.ASYNC = (AETHR and AETHR.ENUMS and AETHR.ENUMS.FSM and AETHR.ENUMS.FSM.ASYNC) or "async"
 
 --- Type aliases for FSM options/events/callbacks (EmmyLua)
 --- @class AETHR.FSM.Event
@@ -51,7 +32,7 @@ AETHR.FSM = {}
 ---
 
 --- @class AETHR.FSM.DATA
---- @field options AETHR.FSM.Options|nil Configuration options passed to :New()
+--- @field options AETHR.FSM.DATA.Options|nil Configuration options passed to :New()
 --- @field current string|nil Current state.
 --- @field asyncState string|nil Current async state (if any).
 --- @field events table<string, { map: table<string, string> }>|nil Table of events and their from/to maps.
@@ -80,21 +61,22 @@ AETHR.FSM = {}
 
 AETHR.FSM.DATA = {
     options = nil,               -- Configuration options passed to :New()
-  current = nil,               -- Current state.
-  asyncState = nil,            -- Current async state (if any).
-  events = nil,                -- Table of events and their from/to maps.
-  currentTransitioningEvent = nil, -- Name of the event currently being processed (if any).
-  NONE = AETHR.ENUMS.FSM.NONE,
-  ASYNC = AETHR.ENUMS.FSM.ASYNC,
-  _FSM_DATA = {
-    queue = {},             -- FIFO of {fsm, event, args}
-    active = {},            -- set of FSMs currently awaiting ASYNC completion
-    stats = {
-      enqueued = 0,
-      processed = 0,
-      resumed = 0,
-      finished = 0,
-      errors = 0,
+    current = nil,               -- Current state.
+    asyncState = nil,            -- Current async state (if any).
+    events = nil,                -- Table of events and their from/to maps.
+    currentTransitioningEvent = nil, -- Name of the event currently being processed (if any).
+    NONE = (AETHR and AETHR.ENUMS and AETHR.ENUMS.FSM and AETHR.ENUMS.FSM.NONE) or "none",
+    ASYNC = (AETHR and AETHR.ENUMS and AETHR.ENUMS.FSM and AETHR.ENUMS.FSM.ASYNC) or "async",
+    _FSM_DATA = {
+      queue = {},             -- FIFO of {fsm, event, args}
+      active = {},            -- set of FSMs currently awaiting ASYNC completion
+      stats = {
+        enqueued = 0,
+        processed = 0,
+        resumed = 0,
+        finished = 0,
+        errors = 0,
+      },
     },
 }
 
@@ -124,81 +106,83 @@ function AETHR.FSM:create_transition(name)
     -- Iterative implementation (no recursion) to progress transition through stages.
     -- Cache frequently-used lookups to minimize table indexing inside the loop.
     local FSM = (self.ENUMS and self.ENUMS.FSM) or AETHR.ENUMS.FSM
-    local ASYNC, NONE = self.ASYNC, self.NONE
+    local state = self.DATA or self
+    local ASYNC = (state and state.ASYNC) or self.ASYNC or (AETHR and AETHR.FSM and AETHR.FSM.ASYNC) or "async"
+    local NONE  = (state and state.NONE)  or self.NONE  or (AETHR and AETHR.FSM and AETHR.FSM.NONE)  or "none"
     local waitingLeave = name .. FSM.WaitingOnLeave
     local waitingEnter = name .. FSM.WaitingOnEnter
 
     -- Preserve original "stray-state recovery returns true" semantics.
     local recovering = false
     while true do
-      if self.asyncState == NONE then
+      if state.asyncState == NONE then
         local can, to = self:can(name)
-        local from = self.current
+        local from = state.current
         local params = { self, name, from, to, ... }
 
         if not can then
-          self.currentTransitioningEvent = nil
+          state.currentTransitioningEvent = nil
           if recovering then return true end
           return false
         end
 
-        self.currentTransitioningEvent = name
+        state.currentTransitioningEvent = name
 
         local beforeReturn = self:call_handler(self[FSM.onBefore .. name], params)
         local leaveReturn  = self:call_handler(self[FSM.onLeave  .. from], params)
 
         if beforeReturn == false or leaveReturn == false then
-          self.currentTransitioningEvent = nil
+          state.currentTransitioningEvent = nil
           if recovering then return true end
           return false
         end
 
         -- Advance to "waiting on leave" stage
-        self.asyncState = waitingLeave
+        state.asyncState = waitingLeave
         if leaveReturn == ASYNC then
           -- Pause until caller re-invokes transition(name)
           return true
         end
         -- Immediately continue loop to process next stage
 
-      elseif self.asyncState == waitingLeave then
+      elseif state.asyncState == waitingLeave then
         local _, to = self:can(name) -- recompute target safely
-        local from = self.current
-        self.current = to
+        local from = state.current
+        state.current = to
 
         local params = { self, name, from, to, ... }
         local enterReturn = self:call_handler(self[FSM.onEnter .. to] or self[FSM.on .. to], params)
 
         -- Advance to "waiting on enter" stage
-        self.asyncState = waitingEnter
+        state.asyncState = waitingEnter
         if enterReturn == ASYNC then
           -- Pause until caller re-invokes transition(name)
           return true
         end
         -- Immediately continue loop to finalize
 
-      elseif self.asyncState == waitingEnter then
+      elseif state.asyncState == waitingEnter then
         local _, to = self:can(name)
-        local from = self.current
+        local from = state.current
         local params = { self, name, from, to, ... }
 
         self:call_handler(self[FSM.onAfter .. name] or self[FSM.on .. name], params)
         self:call_handler(self[FSM.onStateChange], params)
 
-        self.asyncState = NONE
-        self.currentTransitioningEvent = nil
+        state.asyncState = NONE
+        state.currentTransitioningEvent = nil
         return true
 
       else
         -- Recovery: if asyncState resembles a partial transition marker, reset and restart.
-        if type(self.asyncState) == "string"
-          and (string.find(self.asyncState, FSM.WaitingOnLeave, 1, true)
-               or string.find(self.asyncState, FSM.WaitingOnEnter, 1, true)) then
-          self.asyncState = NONE
+        if type(state.asyncState) == "string"
+          and (string.find(state.asyncState, FSM.WaitingOnLeave, 1, true)
+               or string.find(state.asyncState, FSM.WaitingOnEnter, 1, true)) then
+          state.asyncState = NONE
           recovering = true
           -- Loop will re-enter at NONE stage
         else
-          self.currentTransitioningEvent = nil
+          state.currentTransitioningEvent = nil
           if recovering then return true end
           return false
         end
@@ -377,7 +361,7 @@ end
 ---
 ---
 ---
---- @param options AETHR.FSM.Options
+--- @param options AETHR.FSM.DATA.Options
 --- @return AETHR.FSM instance New FSM table with event functions bound
 function AETHR.FSM:New(options)
   assert(options and options.events, "AETHR.FSM:New requires options.events")
@@ -385,16 +369,22 @@ function AETHR.FSM:New(options)
   local fsm = {}
   setmetatable(fsm, { __index = self })
 
-  fsm.options = options or {}
-  fsm.current = (options and options.initial) or self.NONE
-  fsm.asyncState = self.NONE
-  fsm.events = {}
+  fsm.DATA = fsm.DATA or {}
+  fsm.DATA.options = options or {}
+  fsm.DATA.NONE = self.NONE or ((AETHR and AETHR.FSM and AETHR.FSM.NONE) or "none")
+  fsm.DATA.ASYNC = self.ASYNC or ((AETHR and AETHR.FSM and AETHR.FSM.ASYNC) or "async")
+  fsm.DATA.current = (options and options.initial) or fsm.DATA.NONE
+  fsm.DATA.asyncState = fsm.DATA.NONE
+  fsm.DATA.events = {}
+  fsm.DATA.currentTransitioningEvent = nil
 
+  fsm.ASYNC = fsm.DATA.ASYNC
+  fsm.NONE  = fsm.DATA.NONE
   for _, event in ipairs(options.events or {}) do
     local name = event.name
     fsm[name] = fsm[name] or self:create_transition(name)
-    fsm.events[name] = fsm.events[name] or { map = {} }
-    self:add_to_map(fsm.events[name].map, event)
+    fsm.DATA.events[name] = fsm.DATA.events[name] or { map = {} }
+    self:add_to_map(fsm.DATA.events[name].map, event)
   end
 
   for name, callback in pairs(options.callbacks or {}) do
@@ -408,18 +398,19 @@ end
 --- @param state string
 --- @return boolean
 function AETHR.FSM:is(state)
-  return self.current == state
+  return (self.DATA and self.DATA.current) == state
 end
 
 --- Determine if event e can fire from current state and compute the target state.
 --- @param e string Event name
 --- @return boolean can, string|nil to
 function AETHR.FSM:can(e)
-  local event = self.events and self.events[e]
+  local events = self.DATA and self.DATA.events
+  local event = events and events[e]
   if not event or not event.map then
     return false, nil
   end
-  local to = event.map[self.current] or event.map["*"]
+  local to = event.map[(self.DATA and self.DATA.current) or nil] or event.map["*"]
   return to ~= nil, to
 end
 
@@ -440,7 +431,8 @@ function AETHR.FSM:todot(filename)
   local function transition(event, from, to)
     dotfile:write(string.format("%s -> %s [label=%s];\n", from, to, event))
   end
-  for _, event in pairs(self.options.events) do
+  local opts = self.DATA and self.DATA.options
+  for _, event in pairs((opts and opts.events) or {}) do
     if type(event.from) == "table" then
       for _, from in ipairs(event.from) do
         transition(event.name, from, event.to)
@@ -457,8 +449,9 @@ end
 --- @param event string Event name currently transitioning
 --- @return boolean|nil True/false result from transition progression, or nil if no active transition
 function AETHR.FSM:transition(event)
-  if self.currentTransitioningEvent == event then
-    return self[self.currentTransitioningEvent](self)
+  local st = self.DATA
+  if st and st.currentTransitioningEvent == event then
+    return self[st.currentTransitioningEvent](self)
   end
 end
 
@@ -466,9 +459,10 @@ end
 --- Resets async state and clears the active transitioning event.
 --- @param event string Event name to cancel
 function AETHR.FSM:cancelTransition(event)
-  if self.currentTransitioningEvent == event then
-    self.asyncState = self.NONE
-    self.currentTransitioningEvent = nil
+  local st = self.DATA
+  if st and st.currentTransitioningEvent == event then
+    st.asyncState = st.NONE or self.NONE
+    st.currentTransitioningEvent = nil
   end
 end
 
@@ -481,8 +475,9 @@ end
 
 --- Ensure per-instance FSM data container
 --- @return table data
-function AETHR.FSM:_ensureData()
-  self._FSM_DATA = self._FSM_DATA or {
+function AETHR.FSM:_ensureData(parent)
+  self.DATA = self.DATA or {}
+  self.DATA._FSM_DATA = self.DATA._FSM_DATA or {
     queue = {},             -- FIFO of {fsm, event, args}
     active = {},            -- set of FSMs currently awaiting ASYNC completion
     stats = {
@@ -493,7 +488,7 @@ function AETHR.FSM:_ensureData()
       errors = 0,
     }
   }
-  return self._FSM_DATA
+  return self.DATA._FSM_DATA
 end
 
 --- Enqueue an FSM event to be processed by the background coroutine.
@@ -540,9 +535,10 @@ function AETHR.FSM:processQueue(parent)
       local ok = true
       local _err = nil
       ok, _err = pcall(function()
-        if fsm.currentTransitioningEvent and fsm.asyncState and fsm.asyncState ~= NONE then
+        local st = fsm.DATA
+        if st and st.currentTransitioningEvent and st.asyncState and st.asyncState ~= NONE then
           -- Resume any in-flight async transition first
-          fsm:transition(fsm.currentTransitioningEvent)
+          fsm:transition(st.currentTransitioningEvent)
         else
           local fn = fsm[event]
           if type(fn) == "function" then fn(fsm, unpack(args)) end
@@ -555,7 +551,8 @@ function AETHR.FSM:processQueue(parent)
         data.stats.errors = (data.stats.errors or 0) + 1
       end
 
-      if fsm and fsm.asyncState and fsm.asyncState ~= NONE then
+      local st2 = fsm and fsm.DATA or nil
+      if st2 and st2.asyncState and st2.asyncState ~= NONE then
         data.active[fsm] = true
         data.stats.resumed = (data.stats.resumed or 0) + 1
       end
@@ -569,14 +566,16 @@ function AETHR.FSM:processQueue(parent)
     if progressed >= maxBatch then break end
     local ok = true
     ok = pcall(function()
-      if fsm and fsm.currentTransitioningEvent then
-        fsm:transition(fsm.currentTransitioningEvent)
+      local st = fsm and fsm.DATA or nil
+      if st and st.currentTransitioningEvent then
+        fsm:transition(st.currentTransitioningEvent)
       end
     end)
     if not ok then data.stats.errors = (data.stats.errors or 0) + 1 end
     progressed = progressed + 1
 
-    if not (fsm and fsm.asyncState and fsm.asyncState ~= NONE) then
+    local st3 = fsm and fsm.DATA or nil
+    if not (st3 and st3.asyncState and st3.asyncState ~= NONE) then
       table.insert(finished, fsm)
       data.stats.finished = (data.stats.finished or 0) + 1
     end
