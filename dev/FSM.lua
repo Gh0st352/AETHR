@@ -1,6 +1,22 @@
 --- @class AETHR.FSM Finite State Machine module.
 --- @brief Lightweight finite-state machine for AETHR modules; supports async transitions via returning AETHR.FSM.ASYNC from callbacks.
 ---@diagnostic disable: undefined-global
+--- Submodule wiring (set by AETHR:New):
+--- @field AETHR AETHR Parent AETHR instance (injected by AETHR:New).
+--- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
+--- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
+--- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field UTILS AETHR.UTILS Utility helper table attached per-instance.
+--- @field BRAIN AETHR.BRAIN Brain submodule attached per-instance.
+--- @field MATH AETHR.MATH Math helper table attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
+--- @field IO AETHR.IO Input/Output helper table attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
+--- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
+--- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
+--- @field MARKERS AETHR.MARKERS Marker utilities submodule attached per-instance.
+--- @field DATA AETHR.SPAWNER.DATA Container for spawner-managed data.
 --- ADAPTED FROM:
 --- https://github.com/kyleconroy/lua-state-machine/blob/master/statemachine.lua
 ---
@@ -24,11 +40,17 @@
 --- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 --- SOFTWARE.
 ---
-AETHR.FSM = {}
-AETHR.FSM.__index = AETHR.FSM
+AETHR.FSM = {
+  options = nil,               -- Configuration options passed to :New()
+  current = nil,               -- Current state.
+  asyncState = nil,            -- Current async state (if any).
+  events = nil,                -- Table of events and their from/to maps.
+  currentTransitioningEvent = nil, -- Name of the event currently being processed (if any).
+  __index = AETHR.FSM,
+  NONE = AETHR.ENUMS.FSM.NONE,
+  ASYNC = AETHR.ENUMS.FSM.ASYNC,
+}
 
-AETHR.FSM.NONE = "none"
-AETHR.FSM.ASYNC = "async"
 
 -- Invoke a lifecycle callback if provided.
 function AETHR.FSM:call_handler(handler, params)
@@ -52,48 +74,48 @@ function AETHR.FSM:create_transition(name)
 
       self.currentTransitioningEvent = name
 
-      local beforeReturn = self:call_handler(self["onbefore" .. name], params)
-      local leaveReturn  = self:call_handler(self["onleave"  .. from], params)
+      local beforeReturn = self:call_handler(self[self.ENUMS.FSM.onBefore .. name], params)
+      local leaveReturn  = self:call_handler(self[self.ENUMS.FSM.onLeave  .. from], params)
 
       if beforeReturn == false or leaveReturn == false then
         self.currentTransitioningEvent = nil
         return false
       end
 
-      self.asyncState = name .. "WaitingOnLeave"
+      self.asyncState = name .. self.ENUMS.FSM.WaitingOnLeave
       if leaveReturn ~= self.ASYNC then
         return transition(self, ...)
       end
       return true
 
-    elseif self.asyncState == name .. "WaitingOnLeave" then
+    elseif self.asyncState == name .. self.ENUMS.FSM.WaitingOnLeave then
       local _, to = self:can(name) -- recompute target safely
       local from = self.current
       self.current = to
 
       local params = { self, name, from, to, ... }
-      local enterReturn = self:call_handler(self["onenter" .. to] or self["on" .. to], params)
+      local enterReturn = self:call_handler(self[self.ENUMS.FSM.onEnter .. to] or self[self.ENUMS.FSM.on .. to], params)
 
-      self.asyncState = name .. "WaitingOnEnter"
+      self.asyncState = name .. self.ENUMS.FSM.WaitingOnEnter
       if enterReturn ~= self.ASYNC then
         return transition(self, ...)
       end
       return true
 
-    elseif self.asyncState == name .. "WaitingOnEnter" then
+    elseif self.asyncState == name .. self.ENUMS.FSM.WaitingOnEnter then
       local _, to = self:can(name)
       local from = self.current
       local params = { self, name, from, to, ... }
 
-      self:call_handler(self["onafter" .. name] or self["on" .. name], params)
-      self:call_handler(self["onstatechange"], params)
+      self:call_handler(self[self.ENUMS.FSM.onAfter .. name] or self[self.ENUMS.FSM.on .. name], params)
+      self:call_handler(self[self.ENUMS.FSM.onStateChange], params)
 
       self.asyncState = self.NONE
       self.currentTransitioningEvent = nil
       return true
     else
       if type(self.asyncState) == "string"
-        and (string.find(self.asyncState, "WaitingOnLeave") or string.find(self.asyncState, "WaitingOnEnter")) then
+        and (string.find(self.asyncState, self.ENUMS.FSM.WaitingOnLeave) or string.find(self.asyncState, self.ENUMS.FSM.WaitingOnEnter)) then
         self.asyncState = self.NONE
         transition(self, ...)
         return true

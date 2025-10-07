@@ -14,7 +14,8 @@
 ---@field MarkerTypes AETHR.ENUMS.MarkerTypes Marker shape types for F10 drawing.
 ---@field spawnTypes AETHR.ENUMS.spawnTypes table
 ---@field spawnTypesPrio AETHR.ENUMS.spawnTypesPrio table
----@field dynamicSpawnerTypes AETHR.ENUMS.dynamicSpawnerTypes table 
+---@field dynamicSpawnerTypes AETHR.ENUMS.dynamicSpawnerTypes table
+---@field FSM AETHR.ENUMS.FSM FSM sentinel values.
 ---@diagnostic disable: undefined-global
 
 ---@class AETHR.ENUMS.ObjectCategory
@@ -165,7 +166,7 @@
 
 ---@class AETHR.ENUMS.spawnTypes table
 ---@field Ships string "Ships"
----@field UnarmedShips string "Unarmed ships"   
+---@field UnarmedShips string "Unarmed ships"
 ---@field ArmedShips string "Armed ships"
 ---@field LightArmedShips string "Light armed ships"
 ---@field HeavyArmedShips string "Heavy armed ships"
@@ -233,7 +234,7 @@
 
 ---@class AETHR.ENUMS.spawnTypesPrio table
 ---@field Ships number|integer "Ships"
----@field UnarmedShips number|integer "Unarmed ships"   
+---@field UnarmedShips number|integer "Unarmed ships"
 ---@field ArmedShips number|integer "Armed ships"
 ---@field LightArmedShips number|integer "Light armed ships"
 ---@field HeavyArmedShips number|integer "Heavy armed ships"
@@ -299,10 +300,22 @@
 ---@field NonArmoredUnits number|integer "NonArmoredUnits"
 ---@field ArmedAirDefence number|integer "Armed Air Defence"
 
----@class AETHR.ENUMS.dynamicSpawnerTypes table 
+---@class AETHR.ENUMS.dynamicSpawnerTypes table
 ---@field Airbase string "Airbase"
 ---@field Zone string "Zone"
 ---@field Point string "Point"
+
+---@class AETHR.ENUMS.FSM
+---@field NONE string Sentinel value for "no state".
+---@field ASYNC string Sentinel value for "asynchronous state".
+---@field onBefore string
+---@field onLeave string
+---@field WaitingOnLeave string
+---@field onEnter string
+---@field on string
+---@field WaitingOnEnter string
+---@field onAfter string
+---@field onStateChange string
 
 
 ---@type AETHR.ENUMS
@@ -530,7 +543,7 @@ AETHR.ENUMS = {
         NonArmoredUnits = "NonArmoredUnits",
         ArmedAirDefence = "Armed Air Defence",
     },
-      spawnTypesPrio = {
+    spawnTypesPrio = {
         Ships = 910,
         UnarmedShips = 920,
         ArmedShips = 930,
@@ -577,7 +590,7 @@ AETHR.ENUMS = {
         SAM_CC = 10,
         SAM = 790,
         human_vehicle = 20, --KRAZ
-        WS_Type = 30,           --- B8M1, tt + HL
+        WS_Type = 30,       --- B8M1, tt + HL
         ATGM = 270,
         EWR = 900,
         IndirectFire = 40,
@@ -589,9 +602,9 @@ AETHR.ENUMS = {
         Vehicles = 290,
         SAM_AUX = 810,
         Armored_Vehicles = 220,
-        SAM_SR = 820,             ---search radars
+        SAM_SR = 820,       ---search radars
         New_Infantry = 340, ---these are MANPADS
-        AA_missile = 770,     ---mostly SAM  launchers
+        AA_missile = 770,   ---mostly SAM  launchers
         SAM_related = 780,
         GroundUnits_NonAirDefence = 190,
         AntiAir_ArmedVehicles = 80,
@@ -606,5 +619,17 @@ AETHR.ENUMS = {
         Airbase = "Airbase",
         Zone = "Zone",
         Point = "Point",
+    },
+    FSM = {
+        onBefore = "onbefore",
+        onLeave = "onleave",
+        WaitingOnLeave = "WaitingOnLeave",
+        onEnter = "onenter",
+        on = "on",
+        WaitingOnEnter = "WaitingOnEnter",
+        onAfter = "onafter",
+        onStateChange = "onstatechange",
+        ASYNC = "async",
+        NONE = "none",
     },
 }
