@@ -26,7 +26,7 @@
 --- @field currentTransitioningEvent string|nil Name of the event currently being processed (if any).
 --- @field NONE string Sentinel value for "no state" (AETHR.ENUMS.FSM.NONE).
 --- @field ASYNC string Sentinel value for "async" (AETHR.ENUMS.FSM.ASYNC).
---- ADAPTED FROM:
+--- MODIFIED FROM:
 --- https://github.com/kyleconroy/lua-state-machine/blob/master/statemachine.lua
 ---
 --- AETHR.FSM LICENSE ONLY:
@@ -71,7 +71,6 @@ AETHR.FSM = {
   asyncState = nil,            -- Current async state (if any).
   events = nil,                -- Table of events and their from/to maps.
   currentTransitioningEvent = nil, -- Name of the event currently being processed (if any).
-  __index = AETHR.FSM,
   NONE = AETHR.ENUMS.FSM.NONE,
   ASYNC = AETHR.ENUMS.FSM.ASYNC,
 }
@@ -100,10 +99,16 @@ end
 function AETHR.FSM:create_transition(name)
   local function transition(self, ...)
     -- Iterative implementation (no recursion) to progress transition through stages.
+    -- Cache frequently-used lookups to minimize table indexing inside the loop.
+    local FSM = (self.ENUMS and self.ENUMS.FSM) or AETHR.ENUMS.FSM
+    local ASYNC, NONE = self.ASYNC, self.NONE
+    local waitingLeave = name .. FSM.WaitingOnLeave
+    local waitingEnter = name .. FSM.WaitingOnEnter
+
     -- Preserve original "stray-state recovery returns true" semantics.
     local recovering = false
     while true do
-      if self.asyncState == self.NONE then
+      if self.asyncState == NONE then
         local can, to = self:can(name)
         local from = self.current
         local params = { self, name, from, to, ... }
@@ -116,8 +121,8 @@ function AETHR.FSM:create_transition(name)
 
         self.currentTransitioningEvent = name
 
-        local beforeReturn = self:call_handler(self[self.ENUMS.FSM.onBefore .. name], params)
-        local leaveReturn  = self:call_handler(self[self.ENUMS.FSM.onLeave  .. from], params)
+        local beforeReturn = self:call_handler(self[FSM.onBefore .. name], params)
+        local leaveReturn  = self:call_handler(self[FSM.onLeave  .. from], params)
 
         if beforeReturn == false or leaveReturn == false then
           self.currentTransitioningEvent = nil
@@ -126,46 +131,47 @@ function AETHR.FSM:create_transition(name)
         end
 
         -- Advance to "waiting on leave" stage
-        self.asyncState = name .. self.ENUMS.FSM.WaitingOnLeave
-        if leaveReturn == self.ASYNC then
+        self.asyncState = waitingLeave
+        if leaveReturn == ASYNC then
           -- Pause until caller re-invokes transition(name)
           return true
         end
         -- Immediately continue loop to process next stage
 
-      elseif self.asyncState == name .. self.ENUMS.FSM.WaitingOnLeave then
+      elseif self.asyncState == waitingLeave then
         local _, to = self:can(name) -- recompute target safely
         local from = self.current
         self.current = to
 
         local params = { self, name, from, to, ... }
-        local enterReturn = self:call_handler(self[self.ENUMS.FSM.onEnter .. to] or self[self.ENUMS.FSM.on .. to], params)
+        local enterReturn = self:call_handler(self[FSM.onEnter .. to] or self[FSM.on .. to], params)
 
         -- Advance to "waiting on enter" stage
-        self.asyncState = name .. self.ENUMS.FSM.WaitingOnEnter
-        if enterReturn == self.ASYNC then
+        self.asyncState = waitingEnter
+        if enterReturn == ASYNC then
           -- Pause until caller re-invokes transition(name)
           return true
         end
         -- Immediately continue loop to finalize
 
-      elseif self.asyncState == name .. self.ENUMS.FSM.WaitingOnEnter then
+      elseif self.asyncState == waitingEnter then
         local _, to = self:can(name)
         local from = self.current
         local params = { self, name, from, to, ... }
 
-        self:call_handler(self[self.ENUMS.FSM.onAfter .. name] or self[self.ENUMS.FSM.on .. name], params)
-        self:call_handler(self[self.ENUMS.FSM.onStateChange], params)
+        self:call_handler(self[FSM.onAfter .. name] or self[FSM.on .. name], params)
+        self:call_handler(self[FSM.onStateChange], params)
 
-        self.asyncState = self.NONE
+        self.asyncState = NONE
         self.currentTransitioningEvent = nil
         return true
 
       else
         -- Recovery: if asyncState resembles a partial transition marker, reset and restart.
         if type(self.asyncState) == "string"
-          and (string.find(self.asyncState, self.ENUMS.FSM.WaitingOnLeave) or string.find(self.asyncState, self.ENUMS.FSM.WaitingOnEnter)) then
-          self.asyncState = self.NONE
+          and (string.find(self.asyncState, FSM.WaitingOnLeave, 1, true)
+               or string.find(self.asyncState, FSM.WaitingOnEnter, 1, true)) then
+          self.asyncState = NONE
           recovering = true
           -- Loop will re-enter at NONE stage
         else
@@ -200,6 +206,73 @@ end
 ---     events = { {name="go", from="a", to="b"}, {name="back", from={"b","c"}, to="a"} },
 ---     callbacks = { onbeforego = function(self, e, from, to, ...) end, onenterb = function(self, e, from, to, ...) end }
 ---   }
+--- 
+--- 4 callbacks are available if your state machine has methods using the following naming conventions:
+---
+---     onbeforeevent - fired before the event
+---     onleavestate - fired when leaving the old state
+---     onenterstate - fired when entering the new state
+---     onafterevent - fired after the event
+---
+--- You can affect the event in 3 ways:
+---
+---     return false from an onbeforeevent handler to cancel the event.
+---     return false from an onleavestate handler to cancel the event.
+---     return ASYNC from an onleavestate or onenterstate handler to perform an asynchronous state transition (see next section)
+---
+--- For convenience, the 2 most useful callbacks can be shortened:
+---
+---     onevent - convenience shorthand for onafterevent
+---     onstate - convenience shorthand for onenterstate
+---
+--- In addition, a generic onstatechange() callback can be used to call a single function for all state changes:
+---
+--- All callbacks will be passed the same arguments:
+---
+---     self
+---     event name
+---     from state
+---     to state
+---     (followed by any arguments you passed into the original event method)
+---
+--- Callbacks can be specified when the state machine is first created:
+---
+--- local machine = require('statemachine')
+---
+--- local fsm = machine.create({
+---   initial = 'green',
+---   events = {
+---     { name = 'warn',  from = 'green',  to = 'yellow' },
+---     { name = 'panic', from = 'yellow', to = 'red'    },
+---     { name = 'calm',  from = 'red',    to = 'yellow' },
+---     { name = 'clear', from = 'yellow', to = 'green'  }
+---   },
+---   callbacks = {
+---     onpanic =  function(self, event, from, to, msg) print('panic! ' .. msg)    end,
+---     onclear =  function(self, event, from, to, msg) print('thanks to ' .. msg) end,
+---     ongreen =  function(self, event, from, to)      print('green light')       end,
+---     onyellow = function(self, event, from, to)      print('yellow light')      end,
+---     onred =    function(self, event, from, to)      print('red light')         end,
+---   }
+--- })
+---
+--- fsm:warn()
+--- fsm:panic('killer bees')
+--- fsm:calm()
+--- fsm:clear('sedatives in the honey pots')
+--- ...
+---
+--- Additionally, they can be added and removed from the state machine at any time:
+---
+--- fsm.ongreen       = nil
+--- fsm.onyellow      = nil
+--- fsm.onred         = nil
+--- fsm.onstatechange = function(self, event, from, to) print(to) end
+---
+--- or
+---
+--- function fsm:onstatechange(event, from, to) print(to) end
+---
 --- @param options AETHR.FSM.Options
 --- @return AETHR.FSM instance New FSM table with event functions bound
 function AETHR.FSM:New(options)
