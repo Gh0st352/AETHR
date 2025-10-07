@@ -273,6 +273,87 @@ end
 ---
 --- function fsm:onstatechange(event, from, to) print(to) end
 ---
+--- Asynchronous State Transitions
+---
+--- Sometimes, you need to execute some asynchronous code during a state transition and ensure the new state is not entered until your code has completed.
+---
+--- A good example of this is when you transition out of a menu state, perhaps you want to gradually fade the menu away, or slide it off the screen and don't want to transition to your game state until after that animation has been performed.
+---
+--- You can now return ASYNC from your onleavestate and/or onenterstate handlers and the state machine will be 'put on hold' until you are ready to trigger the transition using the new transition(eventName) method.
+---
+--- If another event is triggered during a state machine transition, the event will be triggered relative to the state the machine was transitioning to or from. Any calls to transition with the cancelled async event name will be invalidated.
+---
+--- During a state change, asyncState will transition from NONE to [event]WaitingOnLeave to [event]WaitingOnEnter, looping back to NONE. If the state machine is put on hold, asyncState will pause depending on which handler you returned ASYNC from.
+---
+--- Example of asynchronous transitions:
+---
+--- local machine = require('statemachine')
+--- local manager = require('SceneManager')
+---
+--- local fsm = machine.create({
+---
+---   initial = 'menu',
+---
+---   events = {
+---     { name = 'play', from = 'menu', to = 'game' },
+---     { name = 'quit', from = 'game', to = 'menu' }
+---   },
+---
+---   callbacks = {
+---
+---     onentermenu = function() manager.switch('menu') end,
+---     onentergame = function() manager.switch('game') end,
+---
+---     onleavemenu = function(fsm, name, from, to)
+---       manager.fade('fast', function()
+---         fsm:transition(name)
+---       end)
+---       return fsm.ASYNC --- tell machine to defer next state until we call transition (in fadeOut callback above)
+---     end,
+---
+---     onleavegame = function(fsm, name, from, to)
+---       manager.slide('slow', function()
+---         fsm:transition(name)
+---       end)
+---       return fsm.ASYNC --- tell machine to defer next state until we call transition (in slideDown callback above)
+---     end,
+---   }
+--- })
+---
+--- If you decide to cancel the async event, you can call fsm.cancelTransition(eventName)
+--- Initialization Options
+---
+--- How the state machine should initialize can depend on your application requirements, so the library provides a number of simple options.
+---
+--- By default, if you dont specify any initial state, the state machine will be in the 'none' state and you would need to provide an event to take it out of this state:
+---
+--- local machine = require('statemachine')
+---
+--- local fsm = machine.create({
+---   events = {
+---     { name = 'startup', from = 'none',  to = 'green' },
+---     { name = 'panic',   from = 'green', to = 'red'   },
+---     { name = 'calm',    from = 'red',   to = 'green' },
+--- }})
+---
+--- print(fsm.current) --- "none"
+--- fsm:startup()
+--- print(fsm.current) --- "green"
+---
+--- If you specify the name of your initial event (as in all the earlier examples), then an implicit startup event will be created for you and fired when the state machine is constructed.
+---
+--- local machine = require('statemachine')
+---
+--- local fsm = machine.create({
+---   inital = 'green',
+---   events = {
+---     { name = 'panic',   from = 'green', to = 'red'   },
+---     { name = 'calm',    from = 'red',   to = 'green' },
+--- }})
+--- print(fsm.current) --- "green"
+---
+---
+---
 --- @param options AETHR.FSM.Options
 --- @return AETHR.FSM instance New FSM table with event functions bound
 function AETHR.FSM:New(options)
