@@ -50,21 +50,23 @@ AETHR.WORLD = {} ---@diagnostic disable-line
 --- @field _spawnerAttributesDB table<string, table<string, table>> Internal use only, do not modify directly, filtered and prioritized spawnerAttributesDB
 --- @field spawnerUnitInfoCache table<string, table>             Cached unit descriptor keyed by typeName
 --- @field worldDivAABB table<number, table>                     Cached division AABB keyed by division ID
+--- @field townClusterDB AETHR.AI.DBSCAN_Cluster[]          Towns clusters database keyed by cluster ID
 AETHR.WORLD.DATA = {
-    AIRBASES               = {}, -- Airbase descriptors keyed by displayName.
-    worldDivisions         = {}, -- Grid division definitions keyed by ID.
-    worldDivAABB           = {}, -- Division AABB data keyed by ID.
-    saveDivisions          = {}, -- Active divisions keyed by ID.
-    divisionSceneryObjects = {}, -- Loaded scenery per division.
-    divisionStaticObjects  = {}, -- Loaded statics per division.
-    divisionBaseObjects    = {}, -- Loaded Base per division.
-    groundUnitsDB          = {}, -- Ground units database keyed by unit name.
-    groundGroupsDB         = {}, -- Ground groups database keyed by group name.
-    mizCacheDB             = {}, -- Cached MIZ file groups keyed by groupname.
-    spawnerTemplateDB      = {}, -- Cached group templates keyed by template name.
-    spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
-    _spawnerAttributesDB   = {}, -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
-    spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
+    AIRBASES               = {},       -- Airbase descriptors keyed by displayName.
+    worldDivisions         = {},       -- Grid division definitions keyed by ID.
+    worldDivAABB           = {},       -- Division AABB data keyed by ID.
+    saveDivisions          = {},       -- Active divisions keyed by ID.
+    divisionSceneryObjects = {},       -- Loaded scenery per division.
+    divisionStaticObjects  = {},       -- Loaded statics per division.
+    divisionBaseObjects    = {},       -- Loaded Base per division.
+    townClusterDB          = {},       -- Towns clusters database.
+    groundUnitsDB          = {},       -- Ground units database keyed by unit name.
+    groundGroupsDB         = {},       -- Ground groups database keyed by group name.
+    mizCacheDB             = {},       -- Cached MIZ file groups keyed by groupname.
+    spawnerTemplateDB      = {},       -- Cached group templates keyed by template name.
+    spawnerAttributesDB    = {},       -- Cached spawner attributes keyed by attribute, value is unit info object.
+    _spawnerAttributesDB   = {},       -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
+    spawnerUnitInfoCache   = {},       -- Cached spawner unit info keyed by unit typeName.
 }
 
 
@@ -1457,6 +1459,7 @@ function AETHR.WORLD:determineTowns()
 
 
     local clusters = self.AI:clusterPoints(buildingPoints, area)
+    self.DATA.townClusterDB = clusters
 
-    local p = ""
+    return self
 end

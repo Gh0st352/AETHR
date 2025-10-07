@@ -36,15 +36,22 @@ end
 --G_AETHR.BRAIN:scheduleTask(_testFunc,15,5)
 
 function _testFunc2()
-    G_AETHR.MARKERS:drawCircle(-1,
-        G_AETHR.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-        G_AETHR.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
-        G_AETHR.CONFIG.MAIN.Zone.paintColors.lineType,
-        G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
-        { x = -27626, y = 457048 },
-        6000
-    )
-    G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
+    -- G_AETHR.MARKERS:drawCircle(-1,
+    --     G_AETHR.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+    --     G_AETHR.CONFIG.MAIN.Zone.paintColors.CircleColors[0],
+    --     G_AETHR.CONFIG.MAIN.Zone.paintColors.lineType,
+    --     G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS,
+    --     { x = -27626, y = 457048 },
+    --     6000
+    -- )
+    -- G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
+    
+    for _, cluster in pairs(G_AETHR.WORLD.DATA.townClusterDB) do
+        if cluster.Radius >= 1000 then
+            G_AETHR.MARKERS:drawGenericCircle(cluster.Center, cluster.Radius, G_AETHR.MARKERS.DATA.townClusters)
+        end
+    end
+
 end
 
 -- local UnitArr = {}

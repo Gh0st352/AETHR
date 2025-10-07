@@ -22,6 +22,7 @@ AETHR.MARKERS.DATA = {
         InOutBoundsGaps = {},
         MizZones = {},
         ZoneArrows = {},
+        townClusters = {},
     },
 }
 function AETHR.MARKERS:New(parent)
