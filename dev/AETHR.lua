@@ -254,11 +254,6 @@ function AETHR:Start()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
     self:setupWatchers()
-
-
-    -- self.BRAIN:scheduleTask(function() self.UTILS:debugInfo("AETHR: TEST SCHED TASK-------------") end, nil,
-    --     5, nil, nil, self)
-
     return self
 end
 
