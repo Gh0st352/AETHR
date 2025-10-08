@@ -65,7 +65,6 @@ function AETHR.ZONE_MANAGER:_normalizeMizZones(zones)
     return changed
 end
 
-
 --- Creates a new AETHR.ZONE_MANAGER submodule instance.
 --- @function AETHR.ZONE_MANAGER:New
 --- @param parent AETHR Parent AETHR instance
@@ -161,7 +160,7 @@ function AETHR.ZONE_MANAGER:pairActiveDivisions()
         ---@param div _WorldDivision
         for divID, div in pairs(globalActiveDivisions) do
             local divVerts = div.corners
-            if self.POLY:polygonsOverlap(zoneVerts,divVerts) then
+            if self.POLY:polygonsOverlap(zoneVerts, divVerts) then
                 divsInZone[divID] = div
             end
         end
@@ -179,8 +178,8 @@ function AETHR.ZONE_MANAGER:pairTowns()
         local zoneVerts = zone.vertices
         ---@param cluster _dbCluster
         for ID, cluster in pairs(townClusters) do
-            local  clusterCenter = cluster.Center
-            if self.POLY:pointInPolygon(clusterCenter,zoneVerts) then
+            local clusterCenter = cluster.Center
+            if self.POLY:pointInPolygon(clusterCenter, zoneVerts) then
                 townsInZone[ID] = cluster
             end
         end
@@ -1079,5 +1078,13 @@ end
 function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
     local _zones = self.DATA.MIZ_ZONES
     self.BRAIN:buildWatcher(_zones, "ownedBy", self.WORLD.zoneOwnershipChanged, self)
+    return self
+end
+
+function AETHR.ZONE_MANAGER:fillSpawnAirbaseMizStart()
+    local p = ""
+
+
+
     return self
 end

@@ -250,6 +250,7 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
+    self.ZONE_MANAGER:fillSpawnAirbaseMizStart()
     self.WORLD:updateAirbaseOwnership()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
