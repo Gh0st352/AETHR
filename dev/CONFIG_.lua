@@ -167,7 +167,7 @@ AETHR.CONFIG.MAIN = {
         "It provides a set of tools and libraries to create dynamic and engaging scenarios.",
         "A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.",
     },
-    MISSION_ID = "1",     -- Default mission identifier.
+    MISSION_ID = "1",      -- Default mission identifier.
     DEBUG_ENABLED = false, -- Enable debug logging to DCS log.
     DefaultRedCountry = country.id.CJTF_BLUE,
     DefaultBlueCountry = country.id.CJTF_RED,
@@ -181,7 +181,7 @@ AETHR.CONFIG.MAIN = {
         AETHR_FIRST_RUN     = true,  -- True on first mission run.
         AETHR_LEARNING_MODE = false, -- Enable learning mode.
         AETHR_DEBUG_MODE    = false, -- Enable debug mode.
-        LEARN_WORLD_OBJECTS = true, -- Enable world item learning.
+        LEARN_WORLD_OBJECTS = true,  -- Enable world item learning.
     },
     COUNTERS = {                     -- Counters for generating unique IDs.
         MARKERS = 3523523,           -- Base ID for zone markers.
@@ -213,7 +213,7 @@ AETHR.CONFIG.MAIN = {
         },
         FILENAMES     = { -- lua filenames for data persistence.
             AETHER_CONFIG_FILE    = "AETHR_Config.lua",
-            WORLD_DIVISIONS_AABB   = "worldDivisionsAABB.lua",
+            WORLD_DIVISIONS_AABB  = "worldDivisionsAABB.lua",
             WORLD_DIVISIONS_FILE  = "worldDivisions.lua",
             USER_STORAGE_FILE     = "userStorage.lua",
             AIRBASES_FILE         = "airbases.lua",
@@ -225,10 +225,10 @@ AETHR.CONFIG.MAIN = {
             BASE_OBJECTS_FILE     = "baseObjects.lua",
             GAME_BOUNDS_FILE      = "gameBounds.lua",
             MIZ_CACHE_DB          = "mizCacheDB.lua",
-            TOWN_CLUSTERS_FILE     = "townClusters.lua",
+            TOWN_CLUSTERS_FILE    = "townClusters.lua",
             SPAWNER_TEMPLATE_DB   = "spawnerTemplateDB.lua",
             SPAWNER_ATTRIBUTE_DB  = "spawnerAttributesDB.lua",
-            _SPAWNER_ATTRIBUTE_DB  = "_spawnerAttributesDB.lua",
+            _SPAWNER_ATTRIBUTE_DB = "_spawnerAttributesDB.lua",
             SPAWNER_UNIT_CACHE_DB = "spawnerUnitInfoCache.lua",
         },
     },
@@ -305,8 +305,8 @@ AETHR.CONFIG.MAIN = {
                 [1] = { r = 0.941, g = 0.941, b = 0.941, a = 0.15 },
                 [2] = { r = 0.941, g = 0.941, b = 0.941, a = 0.15 },
             },
-            FillAlpha    = 0.20,                         -- Transparency for filled zones.
-            LineAlpha    = 0.5,                          -- Transparency for zone borders.
+            FillAlpha    = 0.20,                          -- Transparency for filled zones.
+            LineAlpha    = 0.5,                           -- Transparency for zone borders.
             lineType     = AETHR.ENUMS.LineTypes.DashDot, -- Default line style.
         },
         gameBounds            = {

@@ -1438,7 +1438,7 @@ end
 
 function AETHR.WORLD:determineTowns()
     local buildingPoints = {}
-   -- local test = {}
+    -- local test = {}
     for div, buildingObjects in pairs(self.DATA.divisionSceneryObjects) do
         for buildObjID, buildObj in pairs(buildingObjects) do
             local desc = buildObj.desc or nil
@@ -1462,7 +1462,7 @@ function AETHR.WORLD:determineTowns()
             local isBuilding = attributes and attributes.Buildings or nil
             if isBuilding then
                 if not self.ENUMS.restrictedTownTypes[desc.typeName] then
-               --     test[desc.typeName] = desc.typeName
+                    --     test[desc.typeName] = desc.typeName
                     buildingPoints[#buildingPoints + 1] = {
                         x = buildObj.position.x,
                         y = buildObj.position.z
@@ -1471,13 +1471,13 @@ function AETHR.WORLD:determineTowns()
             end
         end
     end
-    local area = 0 
-    
+    local area = 0
+
     ---@param div _WorldDivision
     for divID, div in pairs(self.DATA.saveDivisions) do
         area = area + self.POLY:polygonArea(div.corners)
     end
-    
+
 
     --self.POLY:polygonArea(self.ZONE_MANAGER.DATA.GAME_BOUNDS.inBounds.polyVerts)
     local clusters = self.AI:clusterPoints(buildingPoints, area)
@@ -1502,17 +1502,23 @@ function AETHR.WORLD:initTowns()
     return self
 end
 
-
 --- Loads world division definitions from config if present.
 --- @return _dbCluster[]|nil data
 function AETHR.WORLD:loadTowns()
-    local data = self.FILEOPS:loadData(
-        self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
-        self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE
-    )
+    local data = self.FILEOPS:loadandJoinData(
+    self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
+    self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER)
     if data then
         return data
     end
+
+    -- local data = self.FILEOPS:loadData(
+    --     self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
+    --     self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE
+    -- )
+    -- if data then
+    --     return data
+    -- end
     return nil
 end
 
@@ -1521,12 +1527,9 @@ end
 --- @return nil
 function AETHR.WORLD:saveTowns()
     --- Divs
-    local ok = self.FILEOPS:saveData(
-        self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
+    self.FILEOPS:splitAndSaveData(
+        self.DATA.townClusterDB,
         self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
-        self.DATA.townClusterDB
-    )
-    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
-        self.UTILS:debugInfo("AETHR.WORLD:saveTowns failed")
-    end
+        self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
+        500)
 end

@@ -9,6 +9,7 @@
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
 --- @field BRAIN AETHR.BRAIN AI behavior submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
@@ -232,4 +233,67 @@ function AETHR.FILEOPS:deepcopy(orig)
     end
 
     return _deepcopy(orig, {})
+end
+
+function AETHR.FILEOPS:splitAndSaveData(db, fileName, saveFolder, divParam)
+
+    local count = self.UTILS.sumTable(db)
+    local fileDB = {}
+    local fileTracker = {}
+
+    self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData - splitting and saving " .. count .. " datagroups")
+    local fileCounter = 1
+    local counter = 0
+    for i, array in pairs(db or {}) do
+        fileDB[i] = array
+        counter = counter + 1
+        if counter >= divParam then
+            counter = 0
+            local fileNamePart = fileCounter .. fileName
+            fileTracker[fileCounter] = fileNamePart
+            local ok = self.FILEOPS:saveData(
+                saveFolder,
+                fileNamePart,
+                fileDB
+            )
+            if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
+                self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData Part failed")
+            end
+            fileDB = {}
+        end
+    end
+
+    local ok = self.FILEOPS:saveData(
+        saveFolder,
+        fileName,
+        fileTracker
+    )
+    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData failed")
+    end
+
+end
+
+function AETHR.FILEOPS:loadandJoinData(fileName, saveFolder)
+    local totalData = {}
+    local masterData = self.FILEOPS:loadData(
+        saveFolder,
+        fileName
+    )
+    if masterData then
+        for i, file in pairs(masterData) do
+            local partData = self.FILEOPS:loadData(
+                saveFolder,
+                file
+            )
+            if partData then
+                for j, array in pairs(partData) do
+                    totalData[j] = array
+                end
+            end
+        end
+        return totalData
+    else
+        return nil
+    end
 end
