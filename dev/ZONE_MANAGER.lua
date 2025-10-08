@@ -5,6 +5,7 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
 --- @field UTILS AETHR.UTILS Utility helper table attached per-instance.
 --- @field BRAIN AETHR.BRAIN Brain submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
@@ -1082,8 +1083,11 @@ function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
 end
 
 function AETHR.ZONE_MANAGER:fillSpawnAirbaseMizStart()
+    local _zones = self.DATA.MIZ_ZONES
+    local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
+    local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
+    local airbaseSpawners = self.SPAWNER.DATA.dynamicSpawners.Airbase
     local p = ""
-
 
 
     return self

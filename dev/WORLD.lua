@@ -1383,19 +1383,27 @@ function AETHR.WORLD:_initObjectsInDivisions(objectCategory, filename, targetFie
     local storage = self.CONFIG.MAIN.STORAGE
     local root = storage.PATHS.OBJECTS_FOLDER
     local saveDivs = self.DATA.saveDivisions
-
+    local saveChunks = self.CONFIG.MAIN.saveChunks.divObjects
     -- Ensure target container exists
     self.DATA[targetField] = self.DATA[targetField] or {}
 
     for id, _ in pairs(saveDivs) do
         local dir = root .. "/" .. id
         local file = objectCategory .. "_" .. filename
-        local objs = self.FILEOPS:loadData(dir, file)
+        local objs = self.FILEOPS:loadandJoinData(
+            file,
+            dir)
+        --self.FILEOPS:loadData(dir, file)
 
         if not objs then
             objs = self:objectsInDivision(id, objectCategory)
             if next(objs) then
-                self.FILEOPS:saveData(dir, file, objs)
+                self.FILEOPS:splitAndSaveData(
+                    objs,
+                    file,
+                    dir,
+                    saveChunks)
+                --self.FILEOPS:saveData(dir, file, objs)
             end
         end
 
@@ -1506,8 +1514,8 @@ end
 --- @return _dbCluster[]|nil data
 function AETHR.WORLD:loadTowns()
     local data = self.FILEOPS:loadandJoinData(
-    self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
-    self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER)
+        self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
+        self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER)
     if data then
         return data
     end
@@ -1523,5 +1531,5 @@ function AETHR.WORLD:saveTowns()
         self.DATA.townClusterDB,
         self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
         self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
-        250)
+        self.CONFIG.MAIN.saveChunks.townDB)
 end

@@ -43,9 +43,10 @@ AETHR.SPAWNER = {} ---@diagnostic disable-line
 --- @field _genState table Internal state for async spawner generation runner.
 
 --- @class AETHR.SPAWNER.DATA.dynamicSpawners
---- @field dynamicSpawners.Airbase table<string, _dynamicSpawner> Dynamic spawners of type "Airbase" keyed by name.
---- @field dynamicSpawners.Zone table<string, _dynamicSpawner> Dynamic spawners of type "Zone" keyed by name.
---- @field dynamicSpawners.Point table<string, _dynamicSpawner> Dynamic spawners of type "Point" keyed by name.
+--- @field Airbase table<string, _dynamicSpawner> Dynamic spawners of type "Airbase" keyed by name.
+--- @field Zone table<string, _dynamicSpawner> Dynamic spawners of type "Zone" keyed by name.
+--- @field Point table<string, _dynamicSpawner> Dynamic spawners of type "Point" keyed by name.
+--- @field Town table<string, _dynamicSpawner> Dynamic spawners of type "Town" keyed by name.
 
 --- @class AETHR.SPAWNER.DATA.CONFIG
 --- @field BUILD_PAD number Meters of extra padding around buildings for center placement (>0).
@@ -85,6 +86,7 @@ AETHR.SPAWNER.DATA = {
         Airbase = {},
         Zone = {},
         Point = {},
+        Town = {},
     },
     BenchmarkLog = {},
     CONFIG = {

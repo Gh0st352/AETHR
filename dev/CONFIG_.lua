@@ -153,7 +153,12 @@ AETHR.CONFIG = {} ---@diagnostic disable-line
 --- @field worldDivisionArea number Desired area (m²) per world division.
 --- @field worldBounds table<string, AETHR.CONFIG.BoundsCoord>
 --- @field Zone AETHR.CONFIG.ZoneSettings
+--- @field saveChunks table Settings for chunked saving of large datasets
 --- @field outTextSettings AETHR.CONFIG.OutTextSettings
+
+--- @class AETHR.CONFIG.MAIN.saveChunks
+--- @field divObjects number Number of objects per chunk when saving division objects.
+--- @field townDB number Number of towns per chunk when saving town cluster DB.
 
 
 AETHR.CONFIG.MAIN = {
@@ -231,6 +236,10 @@ AETHR.CONFIG.MAIN = {
             _SPAWNER_ATTRIBUTE_DB = "_spawnerAttributesDB.lua",
             SPAWNER_UNIT_CACHE_DB = "spawnerUnitInfoCache.lua",
         },
+    },
+    saveChunks = {
+        divObjects = 300,
+        townDB = 250,
     },
     worldDivisionArea = 1862500000, -- Desired area (m²) per world division.
     worldBounds = {                 -- Coordinate bounds for supported theaters.
