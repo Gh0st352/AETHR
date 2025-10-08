@@ -821,11 +821,12 @@ end
 
 --- Computes the area of a polygon using the Shoelace formula.
 --- @function polygonArea
---- @param polygon _vec2[]|_vec2xz[] Array of `{x,z}` vertices
+--- @param polygon_ _vec2[]|_vec2xz[] Array of `{x,z}` vertices
 --- @return number Absolute area value (non-negative)
-function AETHR.POLY:polygonArea(polygon)
-for _, pt in pairs(polygon) do
-    pt= self:normalizePoint(pt)
+function AETHR.POLY:polygonArea(polygon_)
+    local polygon = {}
+for _, pt in pairs(polygon_) do
+    polygon[_] = self:normalizePoint(pt)
 end
     local n = #polygon
     if n < 3 then return 0 end

@@ -1471,7 +1471,15 @@ function AETHR.WORLD:determineTowns()
             end
         end
     end
-    local area = self.POLY:polygonArea(self.ZONE_MANAGER.DATA.GAME_BOUNDS.inBounds.polyVerts)
+    local area = 0 
+    
+    ---@param div _WorldDivision
+    for divID, div in pairs(self.DATA.saveDivisions) do
+        area = area + self.POLY:polygonArea(div.corners)
+    end
+    
+
+    --self.POLY:polygonArea(self.ZONE_MANAGER.DATA.GAME_BOUNDS.inBounds.polyVerts)
     local clusters = self.AI:clusterPoints(buildingPoints, area)
     self.DATA.townClusterDB = clusters
 

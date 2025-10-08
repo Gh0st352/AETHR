@@ -317,6 +317,7 @@
 ---@field Airbase string "Airbase"
 ---@field Zone string "Zone"
 ---@field Point string "Point"
+---@field Town string "Town"
 
 ---@class AETHR.ENUMS.FSM
 ---@field NONE string Sentinel value for "no state".
@@ -632,6 +633,7 @@ AETHR.ENUMS = {
         Airbase = "Airbase",
         Zone = "Zone",
         Point = "Point",
+        Town = "Town",
     },
     FSM = {
         onBefore = "onbefore",

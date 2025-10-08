@@ -2030,3 +2030,8 @@ function AETHR.SPAWNER:weightZones(dynamicSpawner)
 
     return self
 end
+
+function AETHR.SPAWNER:fillSpawnAirbase()
+
+return self
+end
