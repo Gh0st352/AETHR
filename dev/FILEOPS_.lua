@@ -235,65 +235,167 @@ function AETHR.FILEOPS:deepcopy(orig)
     return _deepcopy(orig, {})
 end
 
+--- @function AETHR.FILEOPS:splitAndSaveData
+--- @brief Deterministically splits a table into chunked part files and writes an ordered tracker file.
+--- @param db table Source dataset table to split
+--- @param fileName string Base filename for the tracker and part files
+--- @param saveFolder string Target directory
+--- @param divParam number|nil Desired chunk size (>0). Defaults to 500 when nil/invalid.
+--- @return table meta Metadata { parts, partCount, totalRecords, chunkSize, baseName, folder }
 function AETHR.FILEOPS:splitAndSaveData(db, fileName, saveFolder, divParam)
+    db = db or {}
 
-    local count = self.UTILS.sumTable(db)
+    -- Count records deterministically without relying on external helpers
+    local totalRecords = 0
+    for _ in pairs(db) do totalRecords = totalRecords + 1 end
+
+    -- Resolve chunk size
+    local chunkSize = tonumber(divParam)
+    if chunkSize then
+        chunkSize = math.max(1, math.floor(chunkSize))
+    else
+        chunkSize = 500
+    end
+
+    if self.CONFIG.MAIN.DEBUG_ENABLED and self.UTILS and self.UTILS.debugInfo then
+        self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData - splitting and saving " ..
+            tostring(totalRecords) .. " datagroups with chunkSize " .. tostring(chunkSize))
+    end
+
+    -- Collect and sort keys for deterministic chunking
+    local keys, allNumeric = {}, true
+    for k, _ in pairs(db) do
+        keys[#keys + 1] = k
+        if type(k) ~= "number" then allNumeric = false end
+    end
+    if allNumeric then
+        table.sort(keys, function(a, b) return a < b end)
+    else
+        table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
+    end
+
+    local parts = {}
     local fileDB = {}
-    local fileTracker = {}
-
-    self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData - splitting and saving " .. count .. " datagroups")
+    local countInChunk = 0
     local fileCounter = 1
-    local counter = 0
-    for i, array in pairs(db or {}) do
-        fileDB[i] = array
-        counter = counter + 1
-        if counter >= divParam then
-            counter = 0
-            local fileNamePart = fileCounter .. fileName
-            fileTracker[fileCounter] = fileNamePart
-            local ok = self.FILEOPS:saveData(
-                saveFolder,
-                fileNamePart,
-                fileDB
-            )
-            if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
-                self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData Part failed")
-            end
-            fileDB = {}
+
+    local function flushChunk()
+        if next(fileDB) == nil then return end
+        local partName = string.format("%s.part%04d", tostring(fileName), fileCounter)
+        local ok = self:saveData(saveFolder, partName, fileDB)
+        if not ok and self.CONFIG.MAIN.DEBUG_ENABLED and self.UTILS and self.UTILS.debugInfo then
+            self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData part save failed: " .. tostring(partName))
+        end
+        parts[#parts + 1] = partName
+        fileCounter = fileCounter + 1
+        fileDB = {}
+        countInChunk = 0
+    end
+
+    -- Build chunks deterministically
+    for _, k in ipairs(keys) do
+        fileDB[k] = db[k]
+        countInChunk = countInChunk + 1
+        if countInChunk >= chunkSize then
+            flushChunk()
         end
     end
+    -- Flush any remaining records
+    flushChunk()
 
-    local ok = self.FILEOPS:saveData(
-        saveFolder,
-        fileName,
-        fileTracker
-    )
-    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED then
-        self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData failed")
+    -- Write ordered tracker file (array of part filenames)
+    local ok = self:saveData(saveFolder, fileName, parts)
+    if not ok and self.CONFIG.MAIN.DEBUG_ENABLED and self.UTILS and self.UTILS.debugInfo then
+        self.UTILS:debugInfo("AETHR.FILEOPS:splitAndSaveData master tracker save failed: " .. tostring(fileName))
     end
 
+    return {
+        parts = parts,
+        partCount = #parts,
+        totalRecords = totalRecords,
+        chunkSize = chunkSize,
+        baseName = fileName,
+        folder = saveFolder,
+    }
 end
 
+--- @function AETHR.FILEOPS:loadandJoinData
+--- @brief Loads tracker for chunked files and merges parts deterministically.
+---        If the tracker file is actually the full dataset (not a tracker), returns it as-is.
+--- @param fileName string Base filename used for tracker or dataset
+--- @param saveFolder string Directory containing files
+--- @return table|nil Merged dataset table or nil when nothing found
 function AETHR.FILEOPS:loadandJoinData(fileName, saveFolder)
-    local totalData = {}
-    local masterData = self.FILEOPS:loadData(
-        saveFolder,
-        fileName
-    )
-    if masterData then
-        for i, file in pairs(masterData) do
-            local partData = self.FILEOPS:loadData(
-                saveFolder,
-                file
-            )
-            if partData then
-                for j, array in pairs(partData) do
-                    totalData[j] = array
-                end
-            end
+    local master = self:loadData(saveFolder, fileName)
+
+    if not master then
+        if self.CONFIG.MAIN.DEBUG_ENABLED and self.UTILS and self.UTILS.debugInfo then
+            self.UTILS:debugInfo("AETHR.FILEOPS:loadandJoinData: master not found: " .. tostring(fileName))
         end
-        return totalData
-    else
         return nil
     end
+
+    -- Determine whether master is a tracker (string values) or the dataset itself
+    local isTracker = false
+    if type(master) == "table" then
+        local hasStringValues = true
+        local count = 0
+        for _, v in pairs(master) do
+            count = count + 1
+            if type(v) ~= "string" then
+                hasStringValues = false
+                break
+            end
+        end
+        if hasStringValues and count > 0 then
+            isTracker = true
+        end
+    end
+
+    -- If not a tracker, treat as full dataset and return directly
+    if not isTracker then
+        return master
+    end
+
+    -- Build ordered list of part filenames from tracker
+    local parts = {}
+    if master[1] ~= nil then
+        -- Already array-like; preserve order
+        for i = 1, #master do parts[#parts + 1] = master[i] end
+    else
+        -- Map-like: prefer numeric key ordering when available
+        local numericKeys, nonNumericVals = {}, {}
+        for k, v in pairs(master) do
+            if type(k) == "number" then
+                numericKeys[#numericKeys + 1] = { k = k, v = v }
+            else
+                nonNumericVals[#nonNumericVals + 1] = v
+            end
+        end
+        if #numericKeys > 0 then
+            table.sort(numericKeys, function(a, b) return a.k < b.k end)
+            for _, kv in ipairs(numericKeys) do parts[#parts + 1] = kv.v end
+        end
+        if #nonNumericVals > 0 then
+            table.sort(nonNumericVals, function(a, b) return tostring(a) < tostring(b) end)
+            for _, v in ipairs(nonNumericVals) do parts[#parts + 1] = v end
+        end
+    end
+
+    -- Load and merge parts; later parts override earlier on duplicate keys
+    local totalData = {}
+    for _, partFile in ipairs(parts) do
+        local partData = self:loadData(saveFolder, partFile)
+        if partData then
+            for k, v in pairs(partData) do
+                totalData[k] = v
+            end
+        else
+            if self.CONFIG.MAIN.DEBUG_ENABLED and self.UTILS and self.UTILS.debugInfo then
+                self.UTILS:debugInfo("AETHR.FILEOPS:loadandJoinData: missing part " .. tostring(partFile))
+            end
+        end
+    end
+
+    return totalData
 end

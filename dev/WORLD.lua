@@ -1511,14 +1511,6 @@ function AETHR.WORLD:loadTowns()
     if data then
         return data
     end
-
-    -- local data = self.FILEOPS:loadData(
-    --     self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
-    --     self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE
-    -- )
-    -- if data then
-    --     return data
-    -- end
     return nil
 end
 
@@ -1531,5 +1523,5 @@ function AETHR.WORLD:saveTowns()
         self.DATA.townClusterDB,
         self.CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE,
         self.CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER,
-        500)
+        250)
 end
