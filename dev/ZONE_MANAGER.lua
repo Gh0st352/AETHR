@@ -1082,13 +1082,13 @@ function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
     return self
 end
 
-function AETHR.ZONE_MANAGER:fillSpawnAirbaseMizStart()
+
+function AETHR.ZONE_MANAGER:spawnAirbasesZone(zoneName, country, dynamicSpawner)
     local _zones = self.DATA.MIZ_ZONES
-    local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
-    local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
-    local airbaseSpawners = self.SPAWNER.DATA.dynamicSpawners.Airbase
-    local p = ""
-
-
+    local zone = _zones[zoneName]
+    if not zone then return self end
+    for _, airbase in ipairs(zone.Airbases or {}) do
+        self.SPAWNER:spawnAirbaseFill(airbase, country, dynamicSpawner)
+    end
     return self
 end

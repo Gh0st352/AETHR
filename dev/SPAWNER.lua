@@ -2033,3 +2033,16 @@ function AETHR.SPAWNER:weightZones(dynamicSpawner)
     return self
 end
 
+---@param airbase _airbase
+---@param country number
+---@param dynamicSpawner _dynamicSpawner
+function AETHR.SPAWNER:spawnAirbaseFill(airbase, country, dynamicSpawner)
+    -- local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    -- local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
+    -- local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
+    -- local airbaseSpawners = self.DATA.dynamicSpawners.Airbase
+    -- local p = ""
+
+
+    return self
+end

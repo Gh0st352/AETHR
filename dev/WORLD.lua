@@ -441,6 +441,9 @@ function AETHR.WORLD:getAirbases()
             zoneObject = {}, ---@diagnostic disable-line
             ---@type string
             categoryText = "",
+            runways = ab:getRunways() or {},
+            maxRunwayLength = 0,
+            longestRunway = {}
         }
         -- Map numeric category to text
         if desc.category == 0 then
@@ -449,6 +452,13 @@ function AETHR.WORLD:getAirbases()
             data.categoryText = "HELIPAD"
         elseif desc.category == 2 then
             data.categoryText = "SHIP"
+        end
+
+        for _, rw in ipairs(data.runways) do
+            if rw.length and rw.length > data.maxRunwayLength then
+                data.maxRunwayLength = rw.length
+                data.longestRunway = rw
+            end
         end
 
 
@@ -470,7 +480,8 @@ function AETHR.WORLD:getAirbases()
             data.description, data.zoneName, data.zoneObject,
             desc.displayName, desc.category,
             data.categoryText, coalitionNow, -- currentCoalition
-            coalitionNow                     -- previousCoalition (initially same)
+            coalitionNow,                     -- previousCoalition (initially same)
+            data.runways
         )
 
         if self.UTILS.sumTable(data.zoneObject) >= 1 and data.zoneObject.Airbases then

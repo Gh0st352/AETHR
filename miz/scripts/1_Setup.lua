@@ -24,6 +24,6 @@ local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
     :setSpawnTypeAmount(spawnTypes.Artillery, 3, false)
     :setSpawnTypeAmount(spawnTypes.IFV, 3, false)
 
-G_AETHR.ZONE_MANAGER:fillSpawnAirbaseMizStart()
+--G_AETHR.SPAWNER:spawnAirbaseFill()
 
 local pause = ""

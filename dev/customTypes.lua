@@ -409,6 +409,9 @@ end
 --- @field categoryText string                          Category text
 --- @field zoneName string                              Zone name this airbase belongs to (if any)
 --- @field zoneObject _MIZ_ZONE|nil               Zone object this airbase belongs to (if any)
+--- @field runways table                               Runways as returned by ab:getRunways()
+--- @field maxRunwayLength number|nil                   Maximum runway length in meters
+--- @field longestRunway table|nil                      Runway descriptor of the longest runway (if any)
 AETHR._airbase = {} ---@diagnostic disable-line
 --- Create a new airbase descriptor
 --- @param id table|nil Raw engine-provided airbase identifier object
@@ -422,9 +425,12 @@ AETHR._airbase = {} ---@diagnostic disable-line
 --- @param categoryText string|nil Category text
 --- @param coalition number|nil Current coalition
 --- @param previousCoalition number|nil Previous coalition
+--- @param runways table
+--- @param maxRunwayLength number|nil Maximum runway length in meters
+--- @param longestRunway table|nil Runway descriptor of the longest runway (if any)
 --- @return _airbase instance
 function AETHR._airbase:New(id, id_, coordinates, description, zoneName, zoneObject, name, category, categoryText,
-                            coalition, previousCoalition)
+                            coalition, previousCoalition, runways, maxRunwayLength, longestRunway)
     local instance = {
         id = id or {},
         id_ = id_ or 0,
@@ -437,6 +443,10 @@ function AETHR._airbase:New(id, id_, coordinates, description, zoneName, zoneObj
         categoryText = categoryText or "",
         coalition = coalition or 0,
         previousCoalition = previousCoalition or 0,
+        runways = runways or {},
+        maxRunwayLength = 0,
+        longestRunway = {},
+
 
     }
     setmetatable(instance, { __index = self })
