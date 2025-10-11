@@ -14,8 +14,9 @@
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 --- @field MARKERS AETHR.MARKERS Markers helper submodule attached per-instance.
---- @field DATA.GAME_BOUNDS _GameBounds|table Container for zone management data.
+--- @field DATA table Container for zone management data.
 --- @field DATA.MIZ_ZONES table<string, _MIZ_ZONE> Loaded mission trigger zones.
+--- @field DATA.GAME_BOUNDS _GameBounds In/out-of-bounds and gap polygons computed from mission zones.
 AETHR.ZONE_MANAGER = {} ---@diagnostic disable-line
 
 --- Container for zone management data.
@@ -46,6 +47,9 @@ AETHR.ZONE_MANAGER.DATA = {
 ---   - verticies -> vertices
 ---   - activeDivsions -> activeDivisions
 --- Recomputes LinesVec2 when absent.
+--- @function AETHR.ZONE_MANAGER:_normalizeMizZones
+--- @param zones table<string, _MIZ_ZONE>|nil Table of zones to normalize
+--- @return boolean changed True if any fields were modified or recomputed
 function AETHR.ZONE_MANAGER:_normalizeMizZones(zones)
     local changed = false
     for name, z in pairs(zones or {}) do
@@ -81,7 +85,7 @@ function AETHR.ZONE_MANAGER:New(parent)
 end
 
 --- Sets mission trigger zone names (all, red and blue start).
---- @function AETHR:setMizZones
+--- @function AETHR.ZONE_MANAGER:setMizZones
 --- @param zoneNames string[] List of all mission trigger zone names.
 --- @param RedStartZones string[]|nil Optional list of Red start mission trigger zones.
 --- @param BlueStartZones string[]|nil Optional list of Blue start mission trigger zones.
@@ -95,7 +99,7 @@ function AETHR.ZONE_MANAGER:setMizZones(zoneNames, RedStartZones, BlueStartZones
 end
 
 --- Sets Red start mission trigger zones.
---- @function AETHR:setRedStartMizZones
+--- @function AETHR.ZONE_MANAGER:setRedStartMizZones
 --- @param zoneNames string[] List of Red start mission trigger zone names.
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:setRedStartMizZones(zoneNames)
@@ -104,7 +108,7 @@ function AETHR.ZONE_MANAGER:setRedStartMizZones(zoneNames)
 end
 
 --- Sets Blue start mission trigger zones.
---- @function AETHR:setBlueStartMizZones
+--- @function AETHR.ZONE_MANAGER:setBlueStartMizZones
 --- @param zoneNames string[] List of Blue start mission trigger zone names.
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:setBlueStartMizZones(zoneNames)
@@ -113,7 +117,7 @@ function AETHR.ZONE_MANAGER:setBlueStartMizZones(zoneNames)
 end
 
 --- Initializes mission trigger zone data, loading existing or generating defaults.
---- @function AETHR:initMizZoneData
+--- @function AETHR.ZONE_MANAGER:initMizZoneData
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initMizZoneData()
     local data = self:getStoredMizZoneData()
@@ -132,7 +136,7 @@ function AETHR.ZONE_MANAGER:initMizZoneData()
 end
 
 --- Loads mission trigger zone data from storage file if available.
---- @function AETHR:getStoredMizZoneData
+--- @function AETHR.ZONE_MANAGER:getStoredMizZoneData
 --- @return table<string, _MIZ_ZONE>|nil Data table of mission trigger zones or nil if not found.
 function AETHR.ZONE_MANAGER:getStoredMizZoneData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
@@ -143,7 +147,7 @@ function AETHR.ZONE_MANAGER:getStoredMizZoneData()
 end
 
 --- Saves current mission trigger zone data to storage file.
---- @function AETHR:saveMizZoneData
+--- @function AETHR.ZONE_MANAGER:saveMizZoneData
 --- @return nil
 function AETHR.ZONE_MANAGER:saveMizZoneData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
@@ -151,7 +155,9 @@ function AETHR.ZONE_MANAGER:saveMizZoneData()
     self.FILEOPS:saveData(mapPath, saveFile, self.DATA.MIZ_ZONES)
 end
 
----determines active world divisions in each zone and adds to zone table
+--- Determines active world divisions for each zone by polygon overlap and stores them on zone.activeDivisions.
+--- @function AETHR.ZONE_MANAGER:pairActiveDivisions
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:pairActiveDivisions()
     local globalActiveDivisions = self.WORLD.DATA.saveDivisions
     ---@param zone _MIZ_ZONE
@@ -170,7 +176,9 @@ function AETHR.ZONE_MANAGER:pairActiveDivisions()
     return self
 end
 
----determines active world divisions in each zone and adds to zone table
+--- Determines towns contained within each zone (cluster center inside polygon) and stores them on zone.townsDB.
+--- @function AETHR.ZONE_MANAGER:pairTowns
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:pairTowns()
     local townClusters = self.WORLD.DATA.townClusterDB
     ---@param zone _MIZ_ZONE
@@ -191,7 +199,7 @@ end
 
 --- Generates mission trigger zone data based on configured zone names and environment data.
 --- Guards against missing env structures and missing constructors.
---- @function AETHR:generateMizZoneData
+--- @function AETHR.ZONE_MANAGER:generateMizZoneData
 --- @param allZoneNames string[]|nil Optional list of zone names to generate (defaults to config list)
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:generateMizZoneData(allZoneNames)
@@ -218,6 +226,7 @@ end
 
 --- Determine bordering zones.
 --- Compares every pair of zones and populates BorderingZones for each zone with arrays of _BorderInfo objects.
+--- @function AETHR.ZONE_MANAGER:determineBorderingZones
 --- @param MIZ_ZONES table<string, _MIZ_ZONE> Map of mission trigger zones.
 --- @return table<string, _MIZ_ZONE> Updated MIZ_ZONES with .BorderingZones populated.
 function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
@@ -309,9 +318,10 @@ function AETHR.ZONE_MANAGER:determineBorderingZones(MIZ_ZONES)
 end
 
 --- Draws a polygon marker on the F10 map.
+--- @function AETHR.ZONE_MANAGER:drawZone
 --- @param coalition integer Coalition ID (-1 all, or DCS coalition)
---- @param fillColor _ColorRGBA Fill color (r,g,b,a in 0..1)
---- @param borderColor _ColorRGBA Border color (r,g,b,a in 0..1)
+--- @param fillColor _ColorRGBA Fill color (r,g,b,a in 0..255)
+--- @param borderColor _ColorRGBA Border color (r,g,b,a in 0..255)
 --- @param linetype integer DCS line type enum
 --- @param cornerVec2s _PolygonVec2 Four corner points in Vec2 space (x,y)
 --- @param markerID integer Unique marker identifier
@@ -340,6 +350,7 @@ function AETHR.ZONE_MANAGER:drawZone(coalition, fillColor, borderColor, linetype
 end
 
 --- Builds a set of vertex keys to exclude (those that belong to shared/bordering edges).
+--- @function AETHR.ZONE_MANAGER:_buildBorderExclude
 --- @param zonesTable table<string, _MIZ_ZONE>
 --- @return table<string, boolean> exclude Map keyed by "x,y" -> true
 function AETHR.ZONE_MANAGER:_buildBorderExclude(zonesTable)
@@ -367,6 +378,7 @@ function AETHR.ZONE_MANAGER:_buildBorderExclude(zonesTable)
 end
 
 --- Collects polygons (Vec2 arrays) from zones, skipping vertices present in the exclude set.
+--- @function AETHR.ZONE_MANAGER:_collectPolygonsFromZones
 --- @param zonesTable table<string, _MIZ_ZONE>
 --- @param exclude table<string, boolean>|nil
 --- @return _PolygonList polygons
@@ -391,6 +403,7 @@ function AETHR.ZONE_MANAGER:_collectPolygonsFromZones(zonesTable, exclude)
 end
 
 --- Flattens polygons into a unique set of points, with fallback to zone vertices.
+--- @function AETHR.ZONE_MANAGER:_flattenUniquePoints
 --- @param polygons _PolygonList
 --- @param zonesTable table<string, _MIZ_ZONE>
 --- @return _vec2[] uniquePoints
@@ -427,6 +440,7 @@ function AETHR.ZONE_MANAGER:_flattenUniquePoints(polygons, zonesTable)
 end
 
 --- Processes a perimeter hull to produce out-of-bounds quads and stores them on DATA.GAME_BOUNDS.outOfBounds.
+--- @function AETHR.ZONE_MANAGER:_processHullLoop
 --- @param hull _PolygonVec2 Hull polygon loop to process
 --- @param polygons _PolygonList List of contributing polygons (used for densify)
 --- @param worldBounds _WorldBounds World bounds for ray-clipping
@@ -501,6 +515,7 @@ end
 
 --- Computes and stores the master in-bounds polygon from child zones, excluding shared borders.
 --- Populates DATA.GAME_BOUNDS.inBounds.polyLines and polyVerts.
+--- @function AETHR.ZONE_MANAGER:getMasterZonePolygon
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:getMasterZonePolygon()
     -- New logic flow implementing user's specification:
@@ -544,6 +559,7 @@ function AETHR.ZONE_MANAGER:getMasterZonePolygon()
 end
 
 --- Constructs the inner "hole" polygon from a list of contributing polygons.
+--- @function AETHR.ZONE_MANAGER:getPolygonCutout
 --- @param PolyTable _PolygonList List of polygons (each polygon is an array of { x: number, y: number })
 --- @return _PolygonVec2|nil Hollow inner polygon or nil if none
 function AETHR.ZONE_MANAGER:getPolygonCutout(PolyTable)
@@ -839,6 +855,7 @@ function AETHR.ZONE_MANAGER:getOutOfBounds(opts)
 end
 
 --- Initializes in/out-of-bounds and gaps data by loading from storage or generating it.
+--- @function AETHR.ZONE_MANAGER:initGameZoneBoundaries
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initGameZoneBoundaries()
     local data = self:getStoredGameBoundData()
@@ -852,6 +869,7 @@ function AETHR.ZONE_MANAGER:initGameZoneBoundaries()
 end
 
 --- Loads previously saved game bound data from storage if present.
+--- @function AETHR.ZONE_MANAGER:getStoredGameBoundData
 --- @return _GameBounds|nil
 function AETHR.ZONE_MANAGER:getStoredGameBoundData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
@@ -862,6 +880,7 @@ function AETHR.ZONE_MANAGER:getStoredGameBoundData()
 end
 
 --- Persists current DATA.GAME_BOUNDS to storage.
+--- @function AETHR.ZONE_MANAGER:saveGameBoundData
 --- @return nil
 function AETHR.ZONE_MANAGER:saveGameBoundData()
     local mapPath = self.CONFIG.MAIN.STORAGE.PATHS.MAP_FOLDER
@@ -870,6 +889,7 @@ function AETHR.ZONE_MANAGER:saveGameBoundData()
 end
 
 --- Computes master zone polygon, out-of-bounds tiles, and gap polygons and stores them under DATA.GAME_BOUNDS.
+--- @function AETHR.ZONE_MANAGER:generateGameBoundData
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:generateGameBoundData()
     self:getMasterZonePolygon()
@@ -905,6 +925,7 @@ function AETHR.ZONE_MANAGER:generateGameBoundData()
 end
 
 --- Renders computed game bound polygons as freeform markers.
+--- @function AETHR.ZONE_MANAGER:drawGameBounds
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawGameBounds()
     local function markerGen(poly)
@@ -954,6 +975,7 @@ function AETHR.ZONE_MANAGER:drawGameBounds()
 end
 
 --- Renders all mission zones as freeform markers colored by coalition.
+--- @function AETHR.ZONE_MANAGER:drawMissionZones
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawMissionZones()
     ---@param _ string
@@ -997,6 +1019,9 @@ function AETHR.ZONE_MANAGER:drawMissionZones()
     return self
 end
 
+--- Draws border-direction arrows for each bordering pair for all coalitions.
+--- @function AETHR.ZONE_MANAGER:drawZoneArrows
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:drawZoneArrows()
     local _zones = self.DATA.MIZ_ZONES
     local ArrowColors = self.CONFIG.MAIN.Zone.paintColors.ArrowColors
@@ -1044,6 +1069,9 @@ function AETHR.ZONE_MANAGER:drawZoneArrows()
     return self
 end
 
+--- Initializes arrow markers per border segment and assigns MarkIDs and endpoints.
+--- @function AETHR.ZONE_MANAGER:initZoneArrows
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initZoneArrows()
     local _zones = self.DATA.MIZ_ZONES
     for zName, zObj in pairs(_zones) do
@@ -1068,6 +1096,9 @@ function AETHR.ZONE_MANAGER:initZoneArrows()
     return self
 end
 
+--- Builds watchers for airbase coalition changes within each zone.
+--- @function AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()
     local _zones = self.DATA.MIZ_ZONES
     for zName, zObj in pairs(_zones) do
@@ -1076,6 +1107,9 @@ function AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()
     return self
 end
 
+--- Builds a watcher for zone ownership changes (ownedBy field) across all zones.
+--- @function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
     local _zones = self.DATA.MIZ_ZONES
     self.BRAIN:buildWatcher(_zones, "ownedBy", self.WORLD.zoneOwnershipChanged, self)
@@ -1083,6 +1117,12 @@ function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
 end
 
 
+--- Spawns airbase filler groups for all airbases within a zone using SPAWNER.
+--- @function AETHR.ZONE_MANAGER:spawnAirbasesZone
+--- @param zoneName string Zone name key
+--- @param country integer Engine country id
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
+--- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:spawnAirbasesZone(zoneName, country, dynamicSpawner)
     local _zones = self.DATA.MIZ_ZONES
     local zone = _zones[zoneName]
