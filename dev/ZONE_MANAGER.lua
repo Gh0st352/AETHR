@@ -1116,14 +1116,13 @@ function AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()
     return self
 end
 
-
 --- Spawns airbase filler groups for all airbases within a zone using SPAWNER.
 --- @function AETHR.ZONE_MANAGER:spawnAirbasesZone
 --- @param zoneName string Zone name key
---- @param country integer Engine country id
+--- @param countryID integer Engine country id
 --- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
 --- @return AETHR.ZONE_MANAGER self
-function AETHR.ZONE_MANAGER:spawnAirbasesZone(zoneName, country, dynamicSpawner)
+function AETHR.ZONE_MANAGER:spawnAirbasesZone(zoneName, countryID, dynamicSpawner)
     local _zones = self.DATA.MIZ_ZONES
     ---@type _MIZ_ZONE
     local zone = _zones[zoneName]
@@ -1132,17 +1131,38 @@ function AETHR.ZONE_MANAGER:spawnAirbasesZone(zoneName, country, dynamicSpawner)
     ---@param airbase _airbase
     for _, airbase in pairs(zone.Airbases or {}) do
         if not dynamicSpawner then dynamicSpawner = airBaseSpawners[self.UTILS:pickRandomKeyFromTable(airBaseSpawners)] end
-        self.SPAWNER:spawnAirbaseFill(airbase, country, dynamicSpawner)
+        self.SPAWNER:spawnAirbaseFill(airbase, countryID, dynamicSpawner)
     end
     return self
 end
+
 --- Spawns airbase filler groups for all airbases across all zones using SPAWNER.
 --- Uses RED and BLUE Start Zones to determine country of spawns for airbases.
---- @function AETHR.ZONE_MANAGER:spawnAirbasesAllZones
-function AETHR.ZONE_MANAGER:spawnAirbasesAllZones()
-    -- local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
-    -- local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
-    -- local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
-    -- local airbaseSpawners = self.DATA.dynamicSpawners.Airbase
+--- @function AETHR.ZONE_MANAGER:spawnStarterAirbasesAllZones
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
+--- @return AETHR.ZONE_MANAGER self
+function AETHR.ZONE_MANAGER:spawnAirbasesAllZones(dynamicSpawner)
+    --local _zones = self.CONFIG.MAIN.MIZ_ZONES.ALL--self.DATA.MIZ_ZONES
+    local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
+    local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
+    local redCountry = self.CONFIG.MAIN.DefaultRedCountry
+    local blueCountry = self.CONFIG.MAIN.DefaultBlueCountry
 
+    for _, zName in ipairs(redZones) do
+            self:spawnAirbasesZone(zName, redCountry, dynamicSpawner)
+    end
+    for _, zName in ipairs(blueZones) do
+            self:spawnAirbasesZone(zName, blueCountry, dynamicSpawner)
+    end
+    --     for _, zName in ipairs(_zones) do
+    --     local isRed = redZones and redZones[zName] or false
+    --     local isBlue = blueZones and blueZones[zName] or false
+    --     if isRed and not isBlue then
+    --         self:spawnAirbasesZone(zName, redCountry, nil)
+    --     elseif isBlue and not isRed then
+    --         self:spawnAirbasesZone(zName, blueCountry, nil)
+    --     end
+    -- end
+
+    return self
 end

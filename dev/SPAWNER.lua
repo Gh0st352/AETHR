@@ -2034,14 +2034,14 @@ function AETHR.SPAWNER:weightZones(dynamicSpawner)
 end
 
 ---@param airbase _airbase
----@param country number
+---@param countryID  number
 ---@param dynamicSpawner _dynamicSpawner
-function AETHR.SPAWNER:spawnAirbaseFill(airbase, country, dynamicSpawner)
+function AETHR.SPAWNER:spawnAirbaseFill(airbase, countryID, dynamicSpawner)
     local airbaseVec2 = {x = airbase.longestRunway.position.x, y = airbase.longestRunway.position.z}
     local minRad = airbase.longestRunway.length / 2
     local maxRad = airbase.longestRunway.length
     local nominalRadius = (minRad + maxRad) / 2
     self:enqueueGenerateDynamicSpawner(dynamicSpawner,airbaseVec2 ,
-        minRad, nominalRadius, maxRad, .5, country, true)
+        minRad, nominalRadius, maxRad, .5, countryID, true)
     return self
 end
