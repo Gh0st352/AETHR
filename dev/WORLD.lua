@@ -481,7 +481,9 @@ function AETHR.WORLD:getAirbases()
             desc.displayName, desc.category,
             data.categoryText, coalitionNow, -- currentCoalition
             coalitionNow,                     -- previousCoalition (initially same)
-            data.runways
+            data.runways,
+            data.maxRunwayLength,
+            data.longestRunway
         )
 
         if self.UTILS.sumTable(data.zoneObject) >= 1 and data.zoneObject.Airbases then

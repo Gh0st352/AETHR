@@ -2037,12 +2037,11 @@ end
 ---@param country number
 ---@param dynamicSpawner _dynamicSpawner
 function AETHR.SPAWNER:spawnAirbaseFill(airbase, country, dynamicSpawner)
-    -- local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
-    -- local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
-    -- local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
-    -- local airbaseSpawners = self.DATA.dynamicSpawners.Airbase
-    -- local p = ""
-
-
+    local airbaseVec2 = {x = airbase.longestRunway.position.x, y = airbase.longestRunway.position.z}
+    local minRad = airbase.longestRunway.length / 2
+    local maxRad = airbase.longestRunway.length
+    local nominalRadius = (minRad + maxRad) / 2
+    self:enqueueGenerateDynamicSpawner(dynamicSpawner,airbaseVec2 ,
+        minRad, nominalRadius, maxRad, .5, country, true)
     return self
 end

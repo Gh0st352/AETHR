@@ -444,8 +444,8 @@ function AETHR._airbase:New(id, id_, coordinates, description, zoneName, zoneObj
         coalition = coalition or 0,
         previousCoalition = previousCoalition or 0,
         runways = runways or {},
-        maxRunwayLength = 0,
-        longestRunway = {},
+        maxRunwayLength = maxRunwayLength and maxRunwayLength or 0,
+        longestRunway = longestRunway and longestRunway or {},
 
 
     }

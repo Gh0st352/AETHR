@@ -1125,10 +1125,24 @@ end
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:spawnAirbasesZone(zoneName, country, dynamicSpawner)
     local _zones = self.DATA.MIZ_ZONES
+    ---@type _MIZ_ZONE
     local zone = _zones[zoneName]
+    local airBaseSpawners = self.SPAWNER.DATA.dynamicSpawners.Airbase
     if not zone then return self end
-    for _, airbase in ipairs(zone.Airbases or {}) do
+    ---@param airbase _airbase
+    for _, airbase in pairs(zone.Airbases or {}) do
+        if not dynamicSpawner then dynamicSpawner = airBaseSpawners[self.UTILS:pickRandomKeyFromTable(airBaseSpawners)] end
         self.SPAWNER:spawnAirbaseFill(airbase, country, dynamicSpawner)
     end
     return self
+end
+--- Spawns airbase filler groups for all airbases across all zones using SPAWNER.
+--- Uses RED and BLUE Start Zones to determine country of spawns for airbases.
+--- @function AETHR.ZONE_MANAGER:spawnAirbasesAllZones
+function AETHR.ZONE_MANAGER:spawnAirbasesAllZones()
+    -- local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    -- local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
+    -- local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
+    -- local airbaseSpawners = self.DATA.dynamicSpawners.Airbase
+
 end
