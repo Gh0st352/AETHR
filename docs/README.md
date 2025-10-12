@@ -187,3 +187,15 @@ AI
 - Equality and centroid: [docs/math/equality_and_centroid.md](math/equality_and_centroid.md)
 - Randomization helpers: [docs/math/randomization.md](math/randomization.md)
 - Degree and turn angle notes: [docs/math/angles.md](math/angles.md)
+## POLY
+
+- Overview: [docs/poly/README.md](poly/README.md)
+- Intersections and orientation: [docs/poly/intersections_and_orientation.md](poly/intersections_and_orientation.md)
+- Point in polygon and overlap: [docs/poly/point_in_polygon_and_overlap.md](poly/point_in_polygon_and_overlap.md)
+- Distance, projection, and offset: [docs/poly/distance_projection_and_offset.md](poly/distance_projection_and_offset.md)
+- Random points and sampling: [docs/poly/random_points_and_sampling.md](poly/random_points_and_sampling.md)
+- Convert and order: [docs/poly/convert_and_order.md](poly/convert_and_order.md)
+- Bounds and divisions: [docs/poly/bounds_and_divisions.md](poly/bounds_and_divisions.md)
+- Hulls densify and gaps: [docs/poly/hulls_densify_and_gaps.md](poly/hulls_densify_and_gaps.md)
+- Rays, midpoints, and slopes: [docs/poly/rays_midpoints_and_slopes.md](poly/rays_midpoints_and_slopes.md)
+- Reorder and centroids: [docs/poly/reorder_and_centroids.md](poly/reorder_and_centroids.md)

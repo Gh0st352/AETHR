@@ -18,6 +18,7 @@ Module indexes
 - AI diagrams index: [docs/ai/README.md](docs/ai/README.md)
 - FSM diagrams index: [docs/fsm/README.md](docs/fsm/README.md)
 - MATH diagrams index: [docs/math/README.md](docs/math/README.md)
+- POLY diagrams index: [docs/poly/README.md](docs/poly/README.md)
 
 Upcoming module pages (standardized)
 
