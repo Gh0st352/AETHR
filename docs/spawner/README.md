@@ -33,3 +33,4 @@ Key anchors
 - Placement loops: [AETHR.SPAWNER:generateVec2GroupCenters()](dev/SPAWNER.lua:1067), [AETHR.SPAWNER:generateVec2UnitPos()](dev/SPAWNER.lua:1301)
 - NOGO checks: [AETHR.SPAWNER:checkIsInNOGO()](dev/SPAWNER.lua:2085), [AETHR.POLY:pointInPolygon()](dev/POLY.lua:66)
 - Async enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](dev/SPAWNER.lua:520)
+- Auxiliary logic wrappers and utilities: [auxiliary.md](docs/spawner/auxiliary.md)

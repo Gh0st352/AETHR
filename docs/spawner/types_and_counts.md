@@ -128,3 +128,53 @@ Group size allocation after counts
 - Fallback: when limited pool empties, non-limited pool supplies additional units until both pools are exhausted.
 - Extras: appended after core selection; they do not consume the limited/non-limited pools.
 - Deterministic execution: if enabled with a seed, all random draws in the outer pipeline run under [AETHR.UTILS:withSeed()](dev/UTILS.lua:242), ensuring repeatable group typing and counts for the same seed.
+
+6. Additional logic diagrams
+
+6.1 Attribute resolution flow for [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1748)
+
+```mermaid
+flowchart TB
+  R0[start _resolveTypesForAttribute targetKeyOrAttr] --> N0[normalize to attribute via _toSpawnAttr]
+  N0 --> P0{primary bucket has entries}
+  P0 -- yes --> OUTP[return primary with source primary]
+  P0 -- no --> C0[collect cross bucket by descending priority using spawnTypesPrio]
+  C0 --> C1{collected non empty}
+  C1 -- yes --> OUTC[return collected with source cross]
+  C1 -- no --> G0{global attribute map has entries}
+  G0 -- yes --> OUTG[return global with source global]
+  G0 -- no --> OUTE[return empty with source empty]
+```
+
+Notes
+- Priority ordering uses reverse map from attribute name to enum key via [AETHR.SPAWNER:_attrToEnumKey()](dev/SPAWNER.lua:1721).
+
+
+6.2 rollSpawnGroups wrapper [AETHR.SPAWNER:rollSpawnGroups()](dev/SPAWNER.lua:1588)
+
+```mermaid
+flowchart TB
+  RS0[start rollSpawnGroups] --> RS1[seedTypes]
+  RS1 --> RS2[generateGroupTypes]
+  RS2 --> OUT[return self]
+```
+
+
+6.3 Group size allocation flow [AETHR.SPAWNER:rollSpawnGroupSizes()](dev/SPAWNER.lua:1876)
+
+```mermaid
+flowchart TB
+  GS0[start rollSpawnGroupSizes] --> Z0[for each subZone]
+  Z0 --> O0[read groupSizesPrio and spawnSettings.generated.actual]
+  O0 --> L0[for each size in priority order]
+  L0 --> Q0[numGroups equals floor(remaining / size)]
+  Q0 --> C0{numGroups greater than zero}
+  C0 -- yes --> U0[set groupSettings at size .size and .numGroups; subtract allocated]
+  C0 -- no --> SKIP[no allocation for this size]
+  U0 --> NXT[next size]
+  SKIP --> NXT
+  NXT --> OUT[end]
+```
+
+Determinism note
+- When deterministic mode is enabled, upstream random draws for typing and counts execute under [AETHR.UTILS:withSeed()](dev/UTILS.lua:242), as documented in [pipeline.md](docs/spawner/pipeline.md).
