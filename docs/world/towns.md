@@ -21,11 +21,11 @@ The town clustering flow aggregates building object positions from cached per-di
 
 ```mermaid
 flowchart TD
-  IT[[initTowns]] --> LD[loadTowns()]
-  LD --> HAS{data present?}
-  HAS -- yes --> ASSIGN[DATA.townClusterDB = data] --> RET([return self])
-  HAS -- no --> DET[determineTowns()]
-  DET --> SV[saveTowns()]
+  IT[[initTowns]] --> LD[loadTowns]
+  LD --> HAS{data present}
+  HAS -->|yes| ASSIGN[assign townClusterDB to data] --> RET[return self]
+  HAS -->|no| DET[determineTowns]
+  DET --> SV[saveTowns]
   SV --> RET
 ```
 
@@ -40,17 +40,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  DT[[determineTowns]] --> BP[buildingPoints = []]
+  DT[[determineTowns]] --> BP[buildingPoints list]
   BP --> SCN[scan divisionSceneryObjects]
-  SCN --> FIL1[keep desc.attributes.Buildings and not restrictedTownTypes[typeName]]
-  FIL1 --> PUSH1[push {x=pos.x, y=pos.z}]
+  SCN --> FIL1[filter buildings and not restricted types]
+  FIL1 --> PUSH1[push point x and z]
   PUSH1 --> BAS[scan divisionBaseObjects]
   BAS --> FIL2[same filter]
-  FIL2 --> PUSH2[push {x=pos.x, y=pos.z}]
-  PUSH2 --> AREA[area = sum polygonArea(div.corners) over saveDivisions]
-  AREA --> CLUS[clusters = AI.clusterPoints(buildingPoints, area)]
-  CLUS --> SAVE[DATA.townClusterDB = clusters]
-  SAVE --> RET([return self])
+  FIL2 --> PUSH2[push point x and z]
+  PUSH2 --> AREA[compute total area of active divisions]
+  AREA --> CLUS[cluster points with AI using area]
+  CLUS --> SAVE[set townClusterDB to clusters]
+  SAVE --> RET[return self]
 ```
 
 Notes
@@ -64,16 +64,16 @@ Notes
 
 ```mermaid
 flowchart LR
-  LT[[loadTowns]] --> L0[FILEOPS.loadandJoinData(filename, learningFolder)]
-  L0 --> C{data?}
-  C -- yes --> RT[data]
-  C -- no --> RTN[nil]
+  LT[[loadTowns]] --> L0[FILEOPS loadandJoinData with filename and folder]
+  L0 --> C{data present}
+  C -->|yes| RT[return data]
+  C -->|no| RTN[return nil]
 ```
 
 ```mermaid
 flowchart LR
-  ST[[saveTowns]] --> W[FILEOPS.splitAndSaveData(DATA.townClusterDB, filename, learningFolder, saveChunks.townDB)]
-  W --> RET([return nil])
+  ST[[saveTowns]] --> W[FILEOPS splitAndSaveData with townClusterDB filename folder chunks]
+  W --> RET[return nil]
 ```
 
 ## Sequence overview
