@@ -128,6 +128,13 @@ AI
 - [Overview](ai/README.md)
 - [DBSCAN flow](ai/dbscan.md)
 - [Data structures](ai/data_structures.md)
+## FILEOPS
+
+- Overview: [docs/fileops/README.md](fileops/README.md)
+- Paths and ensure: [docs/fileops/paths_and_ensure.md](fileops/paths_and_ensure.md)
+- Save and load: [docs/fileops/save_and_load.md](fileops/save_and_load.md)
+- Chunking and tracker: [docs/fileops/chunking.md](fileops/chunking.md)
+- Deep copy helper: [docs/fileops/deepcopy.md](fileops/deepcopy.md)
 ## CONFIG
 
 - Overview: [docs/config/README.md](config/README.md)

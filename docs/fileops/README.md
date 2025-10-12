@@ -9,11 +9,17 @@ Primary anchors
 - [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
 - [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
 - [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
-- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:329)
+- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
 
 Documents and indices
-- Master diagrams index: [docs/README.md](docs/README.md)
-- AETHR overview: [docs/aethr/README.md](docs/aethr/README.md)
+- Master diagrams index: [docs/README.md](../README.md)
+- AETHR overview: [docs/aethr/README.md](../aethr/README.md)
+
+Breakout documents
+- Paths and ensure: [paths_and_ensure.md](./paths_and_ensure.md)
+- Save and load: [save_and_load.md](./save_and_load.md)
+- Chunking and tracker: [chunking.md](./chunking.md)
+- Deep copy helper: [deepcopy.md](./deepcopy.md)
 
 Overview relationships
 
@@ -100,7 +106,7 @@ Source anchors
 - [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
 - [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
 - [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
-- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:329)
+- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
 
 Notes
 - Mermaid labels avoid double quotes and parentheses.
