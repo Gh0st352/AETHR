@@ -30,7 +30,7 @@ flowchart TD
   VOL --> FOUND[found table]
   FOUND --> CBK[ifFound derive key and wrap to _foundObject]
   CBK --> WS[pcall world searchObjects category vol ifFound]
-  WS --> RET([return found])
+  WS --> RET[return found]
 ```
 
 searchObjectsSphere creates a spherical volume, same key semantics.
@@ -40,7 +40,7 @@ flowchart TD
   SOS[[searchObjectsSphere]] --> SV[self POLY createSphere with center radius y]
   SV --> FOUND[found table and ifFound callback]
   FOUND --> WS[pcall world searchObjects category vol ifFound]
-  WS --> RET([return found])
+  WS --> RET[return found]
 ```
 
 ## Division retrieval
@@ -50,9 +50,9 @@ objectsInDivision convenience: build a box from a division’s corners and searc
 ```mermaid
 flowchart LR
   OID[[objectsInDivision]] --> G[lookup DATA.worldDivisions by division ID]
-  G --> CHK{div exists?}
-  CHK -- no --> RETX([return {}])
-  CHK -- yes --> SB[searchObjectsBox for category using div corners and height or 2000] --> RET([return found])
+  G --> CHK{division exists}
+  CHK -->|no| RETX[return empty]
+  CHK -->|yes| SB[searchObjectsBox for category using div corners and height or 2000] --> RET[return found]
 ```
 
 ## Per-division cache initialization
@@ -65,13 +65,13 @@ flowchart TD
   L --> PATH[build path root slash id and file name from category and basename]
   PATH --> TRY[self FILEOPS loadandJoinData file dir]
   TRY --> C{objs exists?}
-  C -- no --> SCAN[objectsInDivision for id and category]
+  C -->|no| SCAN[objectsInDivision for id and category]
   SCAN --> SAVE[splitAndSaveData for objs file dir saveChunks]
-  C -- yes --> USE[use loaded objs]
+  C -->|yes| USE[use loaded objs]
   SAVE --> SET[set targetField for id to objs or empty]
   USE --> SET
   SET --> NEXT[loop]
-  NEXT --> RET([return self])
+  NEXT --> RET[return self]
 ```
 
 Specializations
@@ -88,8 +88,8 @@ flowchart TD
   GDB[[updateGroundUnitsDB]] --> PRE[guard no active divisions then return]
   PRE --> ST[state based on coroutine or cache]
   ST --> IDS{state.ids set?}
-  IDS -- no --> BIDS[collect and sort division IDs then index to one]
-  IDS -- yes --> SIDX[compute start index and end index from state and slice]
+  IDS -->|no| BIDS[collect and sort division IDs then index to one]
+  IDS -->|yes| SIDX[compute start index and end index from state and slice]
   BIDS --> SIDX
   SIDX --> LOOP[for each i from start index to end index]
   LOOP --> SCAN[searchObjectsBox for UNIT using div corners and height or 2000]
@@ -98,10 +98,10 @@ flowchart TD
   YL1 --> NEXT
   NEXT --> ADV[advance state index to end index plus one]
   ADV --> FULL{index past ids}
-  FULL -- no --> RET1([return self])
-  FULL -- yes --> REBLD[rebuild groundGroupsDB by group name and prune dead]
+  FULL -->|no| RET1[return self]
+  FULL -->|yes| REBLD[rebuild groundGroupsDB by group name and prune dead]
   REBLD --> RST[reset state ids and index]
-  RST --> RET2([return self])
+  RST --> RET2[return self]
 ```
 
 Sequence and yields
