@@ -167,7 +167,7 @@ flowchart TB
   GS0[start rollSpawnGroupSizes] --> Z0[for each subZone]
   Z0 --> O0[read groupSizesPrio and spawnSettings.generated.actual]
   O0 --> L0[for each size in priority order]
-  L0 --> Q0[numGroups equals floor(remaining / size)]
+  L0 --> Q0[numGroups equals floor of remaining over size]
   Q0 --> C0{numGroups greater than zero}
   C0 -- yes --> U0[set groupSettings at size .size and .numGroups; subtract allocated]
   C0 -- no --> SKIP[no allocation for this size]
