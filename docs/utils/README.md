@@ -121,3 +121,12 @@ Key anchors
 Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
+## Breakout documents
+
+- Overview and constructor: [docs/utils/overview_and_constructor.md](overview_and_constructor.md)
+- Debug and logging: [docs/utils/debug_and_logging.md](debug_and_logging.md)
+- Time and timestamps: [docs/utils/time_and_timestamps.md](time_and_timestamps.md)
+- Points and normalization: [docs/utils/points_and_normalization.md](points_and_normalization.md)
+- Lookups and markup: [docs/utils/lookups_and_markup.md](lookups_and_markup.md)
+- Randomization and RNG: [docs/utils/randomization_and_rng.md](randomization_and_rng.md)
+- Collections and membership: [docs/utils/collections_and_membership.md](collections_and_membership.md)

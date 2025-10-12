@@ -172,6 +172,16 @@ AI
 - Circles and generic circle: [docs/markers/circles.md](markers/circles.md)
 - Removal helpers: [docs/markers/removal.md](markers/removal.md)
 ## FSM
+## UTILS
+
+- Overview: [docs/utils/README.md](utils/README.md)
+- Overview and constructor: [docs/utils/overview_and_constructor.md](utils/overview_and_constructor.md)
+- Debug and logging: [docs/utils/debug_and_logging.md](utils/debug_and_logging.md)
+- Time and timestamps: [docs/utils/time_and_timestamps.md](utils/time_and_timestamps.md)
+- Points and normalization: [docs/utils/points_and_normalization.md](utils/points_and_normalization.md)
+- Lookups and markup: [docs/utils/lookups_and_markup.md](utils/lookups_and_markup.md)
+- Randomization and RNG: [docs/utils/randomization_and_rng.md](utils/randomization_and_rng.md)
+- Collections and membership: [docs/utils/collections_and_membership.md](utils/collections_and_membership.md)
 
 - Overview: [docs/fsm/README.md](fsm/README.md)
 - Transition lifecycle and async: [docs/fsm/transition_lifecycle.md](fsm/transition_lifecycle.md)

@@ -19,6 +19,7 @@ Module indexes
 - FSM diagrams index: [docs/fsm/README.md](docs/fsm/README.md)
 - MATH diagrams index: [docs/math/README.md](docs/math/README.md)
 - POLY diagrams index: [docs/poly/README.md](docs/poly/README.md)
+- UTILS diagrams index: [docs/utils/README.md](docs/utils/README.md)
 - TYPES diagrams index: [docs/types/README.md](docs/types/README.md)
 
 Upcoming module pages (standardized)
