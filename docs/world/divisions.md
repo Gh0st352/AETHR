@@ -63,9 +63,9 @@ Grid helpers
 
 ```mermaid
 flowchart LR
-  IG[[initGrid]] --> M[minX,minZ from corner[1]]
-  M --> DX[dx from corner[2]-corner[1]]
-  M --> DZ[dz from corner[4]-corner[1]]
+  IG[[initGrid]] --> M[minX and minZ from corner 1]
+  M --> DX[dx from corner 2 minus corner 1]
+  M --> DZ[dz from corner 4 minus corner 1]
   DX --> GRT[_Grid New with inverses]
   DZ --> GRT
 ```
@@ -73,8 +73,8 @@ flowchart LR
 ```mermaid
 flowchart LR
   BZ[[buildZoneCellIndex]] --> B0[for each zone compute bbox]
-  B0 --> P0[collect polygon (x,y from vertices)]
-  P0 --> C0[map bbox min/max to grid col/row bounds]
+  B0 --> P0[collect polygon x and y from vertices]
+  P0 --> C0[map bbox min and max to grid column and row bounds]
   C0 --> A0[assign entry into each covered cell list]
 ```
 
@@ -84,8 +84,8 @@ generateActiveDivisions computes active flags via intersection and fills `DATA.s
 
 ```mermaid
 flowchart TD
-  GAD[[generateActiveDivisions]] --> CDZ[checkDivisionsInZones(Divisions, Zones)]
-  CDZ --> LOOP[for each div if active then saveDivisions[ID]=div]
+  GAD[[generateActiveDivisions]] --> CDZ[checkDivisionsInZones for Divisions and Zones]
+  CDZ --> LOOP[for each division if active then set saveDivisions ID to div]
   LOOP --> GADRET([return self])
 ```
 
