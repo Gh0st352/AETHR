@@ -23,17 +23,17 @@ updateAirbaseOwnership iterates all MIZ zones and their airbases, querying the e
 ```mermaid
 flowchart TD
   UAO[[updateAirbaseOwnership]] --> ZL[for each zone in ZONE_MANAGER.DATA.MIZ_ZONES]
-  ZL --> ABL[for each airbase in zone.Airbases]
-  ABL --> GET[Airbase.getByName + getCoalition (pcall)]
-  GET --> CHK{coalition changed?}
-  CHK -- yes --> UPD[ab.previousCoalition = ab.coalition; ab.coalition = new]
-  CHK -- no --> NEXT
-  UPD --> YLD{co-routine yield threshold?}
+  ZL --> ABL[for each airbase in zone Airbases]
+  ABL --> GET[Airbase getByName and getCoalition via pcall]
+  GET --> CHK{coalition changed}
+  CHK -->|yes| UPD[update previousCoalition and coalition fields]
+  CHK -->|no| NEXT
+  UPD --> YLD{yield threshold}
   NEXT --> YLD
-  YLD -- hit --> CY[UTILS.debugInfo 'YIELD' + coroutine.yield()]
-  YLD -- not hit --> CONT
+  YLD -->|hit| CY[debug yield]
+  YLD -->|not hit| CONT
   CY --> CONT
-  CONT --> DONE([return self])
+  CONT --> DONE[return self]
 ```
 
 ## Zone ownership recompute
@@ -43,20 +43,20 @@ updateZoneOwnership tallies airbases per coalition within each zone, determines 
 ```mermaid
 flowchart TD
   UZO[[updateZoneOwnership]] --> ZL[for each zone]
-  ZL --> CNT[reset red/blue counters]
-  CNT --> ABL[for each airbase in zone.Airbases]
-  ABL --> INC[if ab.coalition==RED then red++ else if BLUE then blue++]
-  INC --> YLD{co-routine yield threshold?}
-  YLD -- hit --> CY[debugInfo + coroutine.yield]
-  YLD -- not hit --> CNCL{compare}
+  ZL --> CNT[reset red and blue counters]
+  CNT --> ABL[for each airbase in zone Airbases]
+  ABL --> INC[count red and blue by coalition]
+  INC --> YLD{yield threshold}
+  YLD -->|hit| CY[debug yield]
+  YLD -->|not hit| CNCL{compare counts}
   CY --> CNCL
-  CNCL -- red>blue --> OWN[owner = RED]
-  CNCL -- blue>red --> OWN2[owner = BLUE]
-  CNCL -- tie --> OWN3[owner = NEUTRAL]
-  OWN --> SET[if zone.ownedBy != owner then zone.oldOwnedBy=zone.ownedBy; zone.ownedBy=owner]
+  CNCL -->|red gt blue| OWN[owner is RED]
+  CNCL -->|blue gt red| OWN2[owner is BLUE]
+  CNCL -->|tie| OWN3[owner is NEUTRAL]
+  OWN --> SET[update zone ownership fields]
   OWN2 --> SET
   OWN3 --> SET
-  SET --> RET([return self])
+  SET --> RET[return self]
 ```
 
 ## Zone color updates
@@ -66,19 +66,19 @@ updateZoneColors changes the painted colors of zone polygons when ownership chan
 ```mermaid
 flowchart TD
   UZC[[updateZoneColors]] --> ZL[for each zone]
-  ZL --> COMP{ownedBy != lastMarkColorOwner?}
-  COMP -- no --> NXT
-  COMP -- yes --> CLR[select line/fill from CONFIG.MAIN.Zone.paintColors]
-  CLR --> MRK{zone.markerObject has markID?}
-  MRK -- yes --> CALL[UTILS.updateMarkupColors(markID, lineColor, fillColor)]
-  MRK -- no --> SKIP
-  CALL --> SAVE[zone.lastMarkColorOwner = ownedBy]
+  ZL --> COMP{ownedBy differs from lastMarkColorOwner}
+  COMP -->|no| NXT
+  COMP -->|yes| CLR[select line and fill from paintColors]
+  CLR --> MRK{zone markerObject has markID}
+  MRK -->|yes| CALL[UTILS updateMarkupColors with markID lineColor fillColor]
+  MRK -->|no| SKIP
+  CALL --> SAVE[set lastMarkColorOwner to ownedBy]
   SKIP --> SAVE
-  SAVE --> YLD{yield threshold?}
-  YLD -- hit --> CY[debugInfo + coroutine.yield]
-  YLD -- not hit --> NXT
+  SAVE --> YLD{yield threshold}
+  YLD -->|hit| CY[debug yield]
+  YLD -->|not hit| NXT
   CY --> NXT
-  NXT --> DONE([return self])
+  NXT --> DONE[return self]
 ```
 
 ## Border arrows visibility
@@ -89,17 +89,17 @@ updateZoneArrows toggles visibility of directional border arrows between neighbo
 flowchart TD
   UZA[[updateZoneArrows]] --> ZL[for each zone]
   ZL --> BZL[for each bordering zone and borderDetail]
-  BZL --> DES[desiredShown = ownedBy if ownedBy!=neighbor]
-  DES --> CHG{desiredShown != lastShownCoalition?}
-  CHG -- no --> NEXT
-  CHG -- yes --> HIDE[if lastShown arrow exists: set alpha 0 via updateMarkupColors]
-  HIDE --> SHOW[if desiredShown arrow exists: set alpha=ArrowColors[desiredShown].a or 1]
-  SHOW --> SAVE[borderDetail.lastShownCoalition = desiredShown]
-  SAVE --> YLD{yield threshold?}
-  YLD -- hit --> CY[debugInfo + coroutine.yield]
-  YLD -- not hit --> NEXT
+  BZL --> DES[desiredShown equals ownedBy if ownedBy differs from neighbor]
+  DES --> CHG{desiredShown differs from lastShownCoalition}
+  CHG -->|no| NEXT
+  CHG -->|yes| HIDE[if lastShown arrow exists then set alpha zero via updateMarkupColors]
+  HIDE --> SHOW[if desiredShown arrow exists then set alpha using ArrowColors value]
+  SHOW --> SAVE[set lastShownCoalition to desiredShown]
+  SAVE --> YLD{yield threshold}
+  YLD -->|hit| CY[debug yield]
+  YLD -->|not hit| NEXT
   CY --> NEXT
-  NEXT --> DONE([return self])
+  NEXT --> DONE[return self]
 ```
 
 Arrow colors source
@@ -114,24 +114,24 @@ Airbase
 
 ```mermaid
 flowchart LR
-  AOC[[airbaseOwnershipChanged]] --> GET[lookup old owner from ZONE_MANAGER.DATA]
-  GET --> DIFF{new != old?}
-  DIFF -- yes --> TEXT[compose outText using ENUMS.TextStrings and Teams]
-  TEXT --> OUT[trigger.action.outText(displayTime, clearView)]
-  OUT --> RET([return self])
-  DIFF -- no --> RET
+  AOC[[airbaseOwnershipChanged]] --> GET[lookup old owner from zones]
+  GET --> DIFF{new differs from old}
+  DIFF -->|yes| TEXT[compose outText using ENUMS text strings and teams]
+  TEXT --> OUT[trigger outText with displayTime and clearView]
+  OUT --> RET[return self]
+  DIFF -->|no| RET
 ```
 
 Zone
 
 ```mermaid
 flowchart LR
-  ZOC[[zoneOwnershipChanged]] --> GET[oldOwner from zone.oldOwnedBy]
-  GET --> DIFF{new != old?}
-  DIFF -- yes --> TEXT[compose contested/captured message]
-  TEXT --> OUT[trigger.action.outText(...)]
-  OUT --> RET([return self])
-  DIFF -- no --> RET
+  ZOC[[zoneOwnershipChanged]] --> GET[get oldOwner from zone]
+  GET --> DIFF{new differs from old}
+  DIFF -->|yes| TEXT[compose contested or captured message]
+  TEXT --> OUT[trigger outText]
+  OUT --> RET[return self]
+  DIFF -->|no| RET
 ```
 
 ## Sequence overview (ownership to visuals)
