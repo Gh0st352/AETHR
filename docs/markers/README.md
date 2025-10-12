@@ -15,7 +15,7 @@ Related anchors
 - Update colors: [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
 
 Documents and indices
-- Master diagrams index: [docs/README.md](docs/README.md)
+- Master diagrams index: [docs/README.md](../README.md)
 - ZONE_MANAGER: [docs/zone_manager/README.md](../zone_manager/README.md)
 - WORLD: [docs/world/README.md](../world/README.md)
 
@@ -100,3 +100,10 @@ Key anchors
 Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
+
+## Breakout documents
+
+- Polygons and freeform: [polygons.md](./polygons.md)
+- Arrows: [arrows.md](./arrows.md)
+- Circles and generic circle: [circles.md](./circles.md)
+- Removal helpers: [removal.md](./removal.md)

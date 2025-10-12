@@ -164,6 +164,13 @@ AI
 - Spawn types and priority: [docs/enums/spawn_types.md](enums/spawn_types.md)
 - Events: [docs/enums/events.md](enums/events.md)
 - Countries and skill: [docs/enums/countries_and_skill.md](enums/countries_and_skill.md)
+## MARKERS
+
+- Overview: [docs/markers/README.md](markers/README.md)
+- Polygons and freeform: [docs/markers/polygons.md](markers/polygons.md)
+- Arrows: [docs/markers/arrows.md](markers/arrows.md)
+- Circles and generic circle: [docs/markers/circles.md](markers/circles.md)
+- Removal helpers: [docs/markers/removal.md](markers/removal.md)
 ## FSM
 
 - Overview: [docs/fsm/README.md](fsm/README.md)
