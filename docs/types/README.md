@@ -8,7 +8,7 @@ Primary constructors and anchors
   - [AETHR._ColorRGBA:New()](../../dev/customTypes.lua:27)
   - [AETHR._BBox:New()](../../dev/customTypes.lua:136)
   - [AETHR._ZoneCellEntry:New()](../../dev/customTypes.lua:178)
-  - [AETHR._WorldBoundsAxis:New()](../../dev/customTypes.lua:52), [AETHR._WorldBounds:New()](../../dev/customTypes.lua:68)
+  - [AETHR._WorldBoundsAxis:New()](../../dev/customTypes.lua:51), [AETHR._WorldBounds:New()](../../dev/customTypes.lua:68)
 - Mission and world descriptors
   - [AETHR._MIZ_ZONE:New()](../../dev/customTypes.lua:283)
   - [AETHR._WorldDivision:New()](../../dev/customTypes.lua:159)
@@ -153,3 +153,12 @@ Key anchors by area
 Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
+## Breakout documents
+
+- Constructors and vectors: [docs/types/constructors_and_vectors.md](constructors_and_vectors.md)
+- Colors, markers, and grid: [docs/types/colors_markers_and_grid.md](colors_markers_and_grid.md)
+- Bounds and world: [docs/types/bounds_and_world.md](bounds_and_world.md)
+- Borders and zones: [docs/types/borders_and_zones.md](borders_and_zones.md)
+- Objects and airbases: [docs/types/objects_and_airbases.md](objects_and_airbases.md)
+- Scheduler and circle: [docs/types/scheduler_and_circle.md](scheduler_and_circle.md)
+- Spawner ecosystem: [docs/types/spawner_types.md](spawner_types.md)

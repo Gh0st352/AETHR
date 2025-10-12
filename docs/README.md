@@ -199,3 +199,13 @@ AI
 - Hulls densify and gaps: [docs/poly/hulls_densify_and_gaps.md](poly/hulls_densify_and_gaps.md)
 - Rays, midpoints, and slopes: [docs/poly/rays_midpoints_and_slopes.md](poly/rays_midpoints_and_slopes.md)
 - Reorder and centroids: [docs/poly/reorder_and_centroids.md](poly/reorder_and_centroids.md)
+## TYPES
+
+- Overview: [docs/types/README.md](types/README.md)
+- Constructors and vectors: [docs/types/constructors_and_vectors.md](types/constructors_and_vectors.md)
+- Colors markers and grid: [docs/types/colors_markers_and_grid.md](types/colors_markers_and_grid.md)
+- Bounds and world: [docs/types/bounds_and_world.md](types/bounds_and_world.md)
+- Borders and zones: [docs/types/borders_and_zones.md](types/borders_and_zones.md)
+- Objects and airbases: [docs/types/objects_and_airbases.md](types/objects_and_airbases.md)
+- Scheduler and circle: [docs/types/scheduler_and_circle.md](types/scheduler_and_circle.md)
+- Spawner ecosystem: [docs/types/spawner_types.md](types/spawner_types.md)
