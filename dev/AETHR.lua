@@ -306,7 +306,7 @@ function AETHR:BackgroundProcesses()
         parentAETHR.WORLD:spawnGroundGroups()
     end, self)
 
-        --deSpawn queued ground Groups
+    --deSpawn queued ground Groups
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.despawnGroundGroups, function(parentAETHR)
         parentAETHR.WORLD:despawnGroundGroups()
