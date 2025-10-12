@@ -1617,7 +1617,7 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
             for k, _ in pairs(zoneObject.groupSettings or {}) do table.insert(order, k) end
             table.sort(order, function(a, b) return (a or 0) < (b or 0) end)
         end
-        
+
         for _, size in ipairs(order) do
             ---@type _spawnerTypeConfig groupSizeConfig 
             local groupSizeConfig = zoneObject.groupSettings and zoneObject.groupSettings[size]
@@ -1631,35 +1631,57 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
                     local _specificUnitTypes = {}
                     -- Loop for the size of the group + extra units.
                     for _Unit = 1, groupSizeConfig.size do
-                        local typeToAdd -- Variable to store the type to add for this iteration.
-                        local _TypeK
+                        -- If no draw pools available, stop filling this group
+                        if (self.UTILS.sumTable(typesPool) == 0) and (self.UTILS.sumTable(nonLimitedTypesPool) == 0) then
+                            break
+                        end
 
-                        -- Pick a random type.
+                        -- Prefer limited pool; fall back to non-limited when exhausted
+                        local _TypeK = nil
                         if self.UTILS.sumTable(typesPool) > 0 then
                             _TypeK = self.UTILS:pickRandomKeyFromTable(typesPool)
-                        else
+                        elseif self.UTILS.sumTable(nonLimitedTypesPool) > 0 then
                             _TypeK = self.UTILS:pickRandomKeyFromTable(nonLimitedTypesPool)
                         end
+                        if not _TypeK then break end
 
                         local randType = spawnTypes[_TypeK]
-                        -- Increment the number used count for this type.
-                        randType.actual = randType.actual + 1
-
-                        if (randType.actual >= randType.max) then
+                        -- Defensive: ensure we have candidates for the chosen type
+                        if not (randType and randType.typesDB and next(randType.typesDB)) then
                             typesPool[_TypeK] = nil
+                            nonLimitedTypesPool[_TypeK] = nil
+                        else
+                            randType.actual = (randType.actual or 0) + 1
+                            if randType.actual >= randType.max then
+                                typesPool[_TypeK] = nil
+                            end
+                            local specific = self.UTILS:pickRandomKeyFromTable(randType.typesDB)
+                            if specific then
+                                table.insert(_UnitTypes, _TypeK)
+                                table.insert(_specificUnitTypes, specific)
+                            else
+                                -- Remove empty/invalid to avoid repeat nil picks
+                                typesPool[_TypeK] = nil
+                                nonLimitedTypesPool[_TypeK] = nil
+                            end
                         end
-                        typeToAdd = _TypeK
-                        -- Add the selected type to the group types list, all types list, and the main AllTypes list.
-                        table.insert(_UnitTypes, typeToAdd)
-                        table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(spawnTypes[typeToAdd].typesDB))
                     end
 
+                    -- Append extras only when their candidate pools are non-empty
                     for extraType, extraTypeInfo in pairs(extraTypes) do
-                        for _i = 1, extraTypeInfo.min, 1 do
-                            table.insert(_UnitTypes, extraType)
-                            table.insert(_specificUnitTypes, self.UTILS:pickRandomKeyFromTable(extraTypeInfo.typesDB))
+                        local tdb = extraTypeInfo and extraTypeInfo.typesDB
+                        if tdb and next(tdb) then
+                            local minCount = extraTypeInfo.min or 0
+                            for _i = 1, minCount do
+                                local specific = self.UTILS:pickRandomKeyFromTable(tdb)
+                                if specific then
+                                    table.insert(_UnitTypes, extraType)
+                                    table.insert(_specificUnitTypes, specific)
+                                end
+                            end
                         end
                     end
+
                     if _UnitTypes and #_UnitTypes > 0 then
                         table.insert(_groupTypes, _UnitTypes)
                         table.insert(_specificGroupTypes, _specificUnitTypes)
@@ -1673,6 +1695,7 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
             end
         end
     end
+
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.generateGroupTypes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.generateGroupTypes.Time.total =
@@ -1683,8 +1706,98 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     end
     return self
 end
+--- Helper: normalize a spawn type key or attribute into the canonical attribute string (e.g. "Armed vehicles")
+---@param keyOrAttr string
+---@return string|nil
+function AETHR.SPAWNER:_toSpawnAttr(keyOrAttr)
+    if not keyOrAttr then return nil end
+    return (self.ENUMS and self.ENUMS.spawnTypes and self.ENUMS.spawnTypes[keyOrAttr]) or keyOrAttr
+end
 
---- Seed the spawner's type pools from WORLD _spawnerAttributesDB and classify limited vs non-limited types.
+--- Helper: reverse-map an attribute string back to its ENUM key (e.g. "Armed vehicles" -> "ArmedVehicles")
+--- Uses a tiny cache to avoid repeated scans.
+---@param attr string
+---@return string|nil enumKey
+function AETHR.SPAWNER:_attrToEnumKey(attr)
+    if not attr then return nil end
+    self._cache = self._cache or {}
+    self._cache._attrToKey = self._cache._attrToKey or {}
+    local cached = self._cache._attrToKey[attr]
+    if cached ~= nil then return (cached ~= false) and cached or nil end
+    for k, v in pairs(self.ENUMS and self.ENUMS.spawnTypes or {}) do
+        if v == attr then
+            self._cache._attrToKey[attr] = k
+            return k
+        end
+    end
+    self._cache._attrToKey[attr] = false
+    return nil
+end
+
+--- Internal: resolve concrete unit types for a target spawn attribute using prioritized fallbacks.
+--- Strategy:
+--- 1) Primary: WORLD.DATA._spawnerAttributesDB[targetAttr] (units whose top attribute is targetAttr)
+--- 2) Cross-bucket scan: iterate other prioritized buckets (high -> low by ENUMS.spawnTypesPrio)
+---    and collect units whose desc.attributes include targetAttr
+--- 3) Last resort: WORLD.DATA.spawnerAttributesDB[targetAttr] (unfiltered attribute map)
+---
+--- Returns a map typeName -> unitDesc, plus a source tag: "primary"|"cross"|"global"|"empty"
+---@param targetKeyOrAttr string
+---@return table<string, table> typesDB
+---@return string sourceTag
+function AETHR.SPAWNER:_resolveTypesForAttribute(targetKeyOrAttr)
+    local attrName = self:_toSpawnAttr(targetKeyOrAttr)
+    local prioritizedDB = (self.WORLD and self.WORLD.DATA and self.WORLD.DATA._spawnerAttributesDB) or {}
+    local fullDB = (self.WORLD and self.WORLD.DATA and self.WORLD.DATA.spawnerAttributesDB) or {}
+
+    if not attrName then return {}, "empty" end
+
+    -- Primary bucket (units whose highest-priority attribute == attrName)
+    local primary = prioritizedDB[attrName]
+    if primary and next(primary) then
+        return primary, "primary"
+    end
+
+    -- Cross-bucket scan by descending priority
+    local prioMap = self.ENUMS and self.ENUMS.spawnTypesPrio or {}
+    local keys = {}
+    for k, _ in pairs(prioritizedDB) do
+        if k ~= attrName then keys[#keys + 1] = k end
+    end
+    table.sort(keys, function(a, b)
+        local ka = self:_attrToEnumKey(a)
+        local kb = self:_attrToEnumKey(b)
+        local pa = (ka and prioMap[ka]) or 0
+        local pb = (kb and prioMap[kb]) or 0
+        return pa > pb
+    end)
+
+    local collected = {}
+    for _, otherAttr in ipairs(keys) do
+        local bucket = prioritizedDB[otherAttr]
+        if bucket then
+            for typeName, desc in pairs(bucket) do
+                local at = desc and desc.attributes
+                if at and at[attrName] then
+                    collected[typeName] = desc
+                end
+            end
+            if next(collected) then
+                return collected, "cross"
+            end
+        end
+    end
+
+    -- Last resort: global attribute table
+    local global = fullDB[attrName]
+    if global and next(global) then
+        return global, "global"
+    end
+
+    return {}, "empty"
+end
+
+--- Seed the spawner's type pools using prioritized fallback resolution and classify limited vs non-limited.
 --- @function AETHR.SPAWNER:seedTypes
 --- @param dynamicSpawner _dynamicSpawner Dynamic spawner instance.
 --- @return AETHR.SPAWNER self For chaining.
@@ -1693,6 +1806,7 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
         self.DATA.BenchmarkLog.seedTypes = { Time = {}, }
         self.DATA.BenchmarkLog.seedTypes.Time.start = os.clock()
     end
+
     -- Reinitialize pools to ensure no carry-over between runs
     dynamicSpawner._typesPool = {}
     dynamicSpawner._limitedTypesPool = {}
@@ -1701,24 +1815,39 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
     local typesPool = dynamicSpawner._typesPool
     local spawnTypes = dynamicSpawner.spawnTypes or {}
     local extraTypes = dynamicSpawner.extraTypes or {}
-    local spawnerAttributesDB = self.WORLD.DATA._spawnerAttributesDB or {}
-    ---@param typeName string
-    ---@param typeData _spawnerTypeConfig
+
+    -- Resolve spawnTypes via prioritized fallback; include only non-empty
     for typeName, typeData in pairs(spawnTypes) do
-        -- Reset per-type usage counter and attach the latest typesDB
-        typeData.typesDB = spawnerAttributesDB[typeName] or {}
+        local resolvedDB, source = self:_resolveTypesForAttribute(typeName)
+        typeData.typesDB = resolvedDB or {}
         typeData.actual = 0
-        typesPool[typeName] = typeName
-    end
-    ---@param typeName string
-    ---@param typeData _spawnerTypeConfig
-    for typeName, typeData in pairs(extraTypes) do
-        -- Attach DB and clear tracker if present
-        typeData.typesDB = spawnerAttributesDB[typeName] or {}
-        if typeData.actual ~= nil then typeData.actual = 0 end
+        typeData._typesDBSource = source
+        if next(typeData.typesDB) then
+            typesPool[typeName] = typeName
+            if self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
+                if source ~= "primary" then
+                    self.UTILS:debugInfo("SPAWNER.seedTypes: fallback '" .. tostring(source) .. "' used for " .. tostring(typeName))
+                end
+            end
+        else
+            if self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
+                self.UTILS:debugInfo("SPAWNER.seedTypes: excluded empty type " .. tostring(typeName))
+            end
+        end
     end
 
-    -- Classify limited vs non-limited for this generation
+    -- Resolve extraTypes similarly; keep counters but do not add to draw pools
+    for typeName, typeData in pairs(extraTypes) do
+        local resolvedDB, source = self:_resolveTypesForAttribute(typeName)
+        typeData.typesDB = resolvedDB or {}
+        if typeData.actual ~= nil then typeData.actual = 0 end
+        typeData._typesDBSource = source
+        if (not next(typeData.typesDB)) and (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED) then
+            self.UTILS:debugInfo("SPAWNER.seedTypes: extraType '" .. tostring(typeName) .. "' has no candidates (source=" .. tostring(source) .. ")")
+        end
+    end
+
+    -- Classify limited vs non-limited for this generation based on filtered pool
     for k, _ in pairs(typesPool) do
         local _type = spawnTypes[k]
         if _type and _type.limited then
@@ -1727,6 +1856,7 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
             dynamicSpawner._nonLimitedTypesPool[k] = k
         end
     end
+
     if self.DATA.CONFIG.Benchmark then
         self.DATA.BenchmarkLog.seedTypes.Time.stop = os.clock()
         self.DATA.BenchmarkLog.seedTypes.Time.total =

@@ -23,6 +23,9 @@ local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
     :setSpawnTypeAmount(spawnTypes.ModernTanks, 3, true)
     :setSpawnTypeAmount(spawnTypes.Artillery, 3, false)
     :setSpawnTypeAmount(spawnTypes.IFV, 3, false)
+    :setSpawnTypeAmount(spawnTypes.Infantry_Carriers, 2, false)
+    :setSpawnTypeAmount(spawnTypes.CRAM , 2, false)
+    :setSpawnTypeAmount(spawnTypes.Infantry_Carriers, 2, false)
 
 --G_AETHR.SPAWNER:spawnAirbaseFill()
 

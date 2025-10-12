@@ -128,7 +128,7 @@ AETHR.BRAIN.DATA = {
             desc = "despawnGroundGroups",
         },
         spawnerGenerationQueue = {
-            interval = 1,
+            interval = 10,
             phase = 12,
             counter = 0,
             thread = nil,
@@ -137,7 +137,7 @@ AETHR.BRAIN.DATA = {
             desc = "spawnerGenerationQueue",
         },
         processFSMQueue = {
-            interval = 1,
+            interval = 10,
             phase = 5,
             counter = 0,
             thread = nil,
