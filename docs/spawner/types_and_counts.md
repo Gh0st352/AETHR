@@ -2,18 +2,18 @@
 
 Covered functions
 - Seeding and resolution
-  - [AETHR.SPAWNER:seedTypes()](dev/SPAWNER.lua#L1804)
-  - [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua#L1747)
-  - [AETHR.SPAWNER:_toSpawnAttr()](dev/SPAWNER.lua#L1712)
-  - [AETHR.SPAWNER:_attrToEnumKey()](dev/SPAWNER.lua#L1721)
+  - [AETHR.SPAWNER:seedTypes()](dev/SPAWNER.lua:1804)
+  - [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1747)
+  - [AETHR.SPAWNER:_toSpawnAttr()](dev/SPAWNER.lua:1712)
+  - [AETHR.SPAWNER:_attrToEnumKey()](dev/SPAWNER.lua:1721)
 - Group type generation
-  - [AETHR.SPAWNER:generateGroupTypes()](dev/SPAWNER.lua#L1600)
-  - [AETHR.SPAWNER:rollSpawnGroups()](dev/SPAWNER.lua#L1589)
+  - [AETHR.SPAWNER:generateGroupTypes()](dev/SPAWNER.lua:1600)
+  - [AETHR.SPAWNER:rollSpawnGroups()](dev/SPAWNER.lua:1589)
 - Counts and balancing
-  - [AETHR.SPAWNER:generateSpawnAmounts()](dev/SPAWNER.lua#L1918)
-  - [AETHR.SPAWNER:rollSpawnGroupSizes()](dev/SPAWNER.lua#L1876)
-  - [AETHR.SPAWNER:_Jiggle()](dev/SPAWNER.lua#L1978)
-  - [AETHR.SPAWNER:_RollUpdates()](dev/SPAWNER.lua#L2002)
+  - [AETHR.SPAWNER:generateSpawnAmounts()](dev/SPAWNER.lua:1918)
+  - [AETHR.SPAWNER:rollSpawnGroupSizes()](dev/SPAWNER.lua:1876)
+  - [AETHR.SPAWNER:_Jiggle()](dev/SPAWNER.lua:1978)
+  - [AETHR.SPAWNER:_RollUpdates()](dev/SPAWNER.lua:2002)
 
 1. Type seeding and attribute resolution
 
@@ -34,15 +34,15 @@ flowchart TB
   EXR --> DONE[end]
 ```
 
-Resolution strategy in [_resolveTypesForAttribute()](dev/SPAWNER.lua#L1747):
+Resolution strategy in [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1747):
 - Primary: WORLD prioritized bucket where the unit’s highest-priority attribute equals the target.
 - Cross-bucket: scan other prioritized buckets in descending priority; include units whose attributes include target.
 - Last resort: global attribute map in WORLD.
 - Returns empty map when nothing matches.
 
 Helpers:
-- [_toSpawnAttr()](dev/SPAWNER.lua#L1712) maps enum key or display string to canonical attribute.
-- [_attrToEnumKey()](dev/SPAWNER.lua#L1721) caches reverse mapping to enum key for priority ordering.
+- [AETHR.SPAWNER:_toSpawnAttr()](dev/SPAWNER.lua:1712) maps enum key or display string to canonical attribute.
+- [AETHR.SPAWNER:_attrToEnumKey()](dev/SPAWNER.lua:1721) caches reverse mapping to enum key for priority ordering.
 
 Notes
 - Each typeData tracks actual draws this run and a max. Limited types are removed from the limited pool when actual reaches max.
@@ -57,7 +57,7 @@ flowchart TB
   G0[start generateGroupTypes] --> Z0[for each subZone in dynamicSpawner.zones.sub]
   Z0 --> O0[determine iteration order: groupSizesPrio or sorted size keys]
   O0 --> L0[for each size in order]
-  L0 --> GS[groupSizeConfig = zone.groupSettings[size]]
+  L0 --> GS[groupSizeConfig equals zone.groupSettings at size]
   GS --> L1[repeat for numGroups]
   L1 --> L2[init UnitTypes list and SpecificTypes list]
   L2 --> D0{limited pool has keys}
@@ -65,7 +65,7 @@ flowchart TB
   D0 -- no --> D1{non-limited pool has keys}
   D1 -- yes --> P1[pick random type key from non-limited pool]
   D1 -- no --> S1[stop filling this group]
-  P0 --> C1[choose specific type from spawnTypes[key].typesDB]
+  P0 --> C1[choose specific type from spawnTypes key typesDB]
   P1 --> C1
   C1 --> C2{specific exists}
   C2 -- yes --> APP[append to UnitTypes and SpecificTypes; inc actual; if actual==max drop from limited pool]
@@ -89,11 +89,11 @@ The main zone computes the total target count, subzones receive nudged targets, 
 ```mermaid
 flowchart TB
   A0[start generateSpawnAmounts] --> M0[read main base settings from dynamicSpawner: min nominal max nudgeFactor]
-  M0 --> M1[mainZone:setSpawnAmounts():rollSpawnAmounts()]
+  M0 --> M1[mainZone setSpawnAmounts then rollSpawnAmounts]
   M1 --> CAVG[avg = main.generated.actual / numSubZones]
   CAVG --> B0[spawnsMin and spawnsMax from avg with ratio bounds and per-zone caps]
   B0 --> S0[for each subZone: set base.nominal=min=max around avg; nudgeFactor from main via MATH.generateNudge]
-  S0 --> S1[subZone:setSpawnAmounts():rollSpawnAmounts()]
+  S0 --> S1[subZone setSpawnAmounts then rollSpawnAmounts]
   S1 --> J0[call _Jiggle to rebalance]
   J0 --> DONE[end]
 ```
@@ -107,7 +107,7 @@ sequenceDiagram
   participant SPAWNER
   participant DSP as _dynamicSpawner
   SPAWNER->>DSP: _Jiggle
-  loop n times (main.generated.nudgeReciprocal)
+  loop n times main.generated.nudgeReciprocal
     SPAWNER->>DSP: _seedRollUpdates()
     DSP-->>DSP: internal selection of subzones to adjust
     SPAWNER->>DSP: _introduceRandomness()
@@ -120,11 +120,11 @@ sequenceDiagram
 ```
 
 Group size allocation after counts
-- [AETHR.SPAWNER:rollSpawnGroupSizes()](dev/SPAWNER.lua#L1876) converts each subzone’s generated count into discrete groups at sizes listed in groupSizesPrio, greedily filling larger sizes first.
+- [AETHR.SPAWNER:rollSpawnGroupSizes()](dev/SPAWNER.lua:1876) converts each subzone’s generated count into discrete groups at sizes listed in groupSizesPrio, greedily filling larger sizes first.
 
 5. Notes and guardrails
 
 - Pool separation: dynamicSpawner._limitedTypesPool vs _nonLimitedTypesPool; only limited pool enforces per-type caps.
 - Fallback: when limited pool empties, non-limited pool supplies additional units until both pools are exhausted.
 - Extras: appended after core selection; they do not consume the limited/non-limited pools.
-- Deterministic execution: if enabled with a seed, all random draws in the outer pipeline run under [AETHR.UTILS:withSeed()](dev/UTILS.lua#L192), ensuring repeatable group typing and counts for the same seed.
+- Deterministic execution: if enabled with a seed, all random draws in the outer pipeline run under [AETHR.UTILS:withSeed()](dev/UTILS.lua:192), ensuring repeatable group typing and counts for the same seed.
