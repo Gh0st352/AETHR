@@ -3,12 +3,12 @@
 Covered functions
 - Seeding and resolution
   - [AETHR.SPAWNER:seedTypes()](dev/SPAWNER.lua:1804)
-  - [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1747)
+  - [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1748)
   - [AETHR.SPAWNER:_toSpawnAttr()](dev/SPAWNER.lua:1712)
   - [AETHR.SPAWNER:_attrToEnumKey()](dev/SPAWNER.lua:1721)
 - Group type generation
   - [AETHR.SPAWNER:generateGroupTypes()](dev/SPAWNER.lua:1600)
-  - [AETHR.SPAWNER:rollSpawnGroups()](dev/SPAWNER.lua:1589)
+  - [AETHR.SPAWNER:rollSpawnGroups()](dev/SPAWNER.lua:1588)
 - Counts and balancing
   - [AETHR.SPAWNER:generateSpawnAmounts()](dev/SPAWNER.lua:1918)
   - [AETHR.SPAWNER:rollSpawnGroupSizes()](dev/SPAWNER.lua:1876)
@@ -34,7 +34,7 @@ flowchart TB
   EXR --> DONE[end]
 ```
 
-Resolution strategy in [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1747):
+Resolution strategy in [AETHR.SPAWNER:_resolveTypesForAttribute()](dev/SPAWNER.lua:1748):
 - Primary: WORLD prioritized bucket where the unit’s highest-priority attribute equals the target.
 - Cross-bucket: scan other prioritized buckets in descending priority; include units whose attributes include target.
 - Last resort: global attribute map in WORLD.
@@ -127,4 +127,4 @@ Group size allocation after counts
 - Pool separation: dynamicSpawner._limitedTypesPool vs _nonLimitedTypesPool; only limited pool enforces per-type caps.
 - Fallback: when limited pool empties, non-limited pool supplies additional units until both pools are exhausted.
 - Extras: appended after core selection; they do not consume the limited/non-limited pools.
-- Deterministic execution: if enabled with a seed, all random draws in the outer pipeline run under [AETHR.UTILS:withSeed()](dev/UTILS.lua:192), ensuring repeatable group typing and counts for the same seed.
+- Deterministic execution: if enabled with a seed, all random draws in the outer pipeline run under [AETHR.UTILS:withSeed()](dev/UTILS.lua:242), ensuring repeatable group typing and counts for the same seed.

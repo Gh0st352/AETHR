@@ -17,11 +17,11 @@ Covered functions
 
 ```mermaid
 flowchart TB
-  E0["start enqueueGenerateDynamicSpawner"] --> E1["id = DATA.GenerationJobCounter; increment counter"]
-  E1 --> E2["build job table: id, status queued, enqueuedAt via UTILS.getTime or os.time, params payload"]
-  E2 --> E3["DATA.GenerationJobs[id] = job"]
-  E3 --> E4["push id to DATA.GenerationQueue (FIFO)"]
-  E4 --> E5["return id to caller"]
+  E0[start enqueueGenerateDynamicSpawner] --> E1[id equals DATA.GenerationJobCounter; increment counter]
+  E1 --> E2[build job table id status queued enqueuedAt via UTILS.getTime or os.time params payload]
+  E2 --> E3[DATA.GenerationJobs id equals job]
+  E3 --> E4[push id to DATA.GenerationQueue FIFO]
+  E4 --> E5[return id to caller]
 ```
 
 Parameters payload stored on the job
@@ -86,7 +86,7 @@ Status accessor
 
 4) Deterministic execution interaction
 
-- The outer generation entry [AETHR.SPAWNER:generateDynamicSpawner()](dev/SPAWNER.lua:563) may run inside [AETHR.UTILS:withSeed()](dev/UTILS.lua:192) when either SPAWNER.DATA.CONFIG.Deterministic.Enab[...]
+- The outer generation entry [AETHR.SPAWNER:generateDynamicSpawner()](dev/SPAWNER.lua:563) may run inside [AETHR.UTILS:withSeed()](dev/UTILS.lua:242) when either SPAWNER.DATA.CONFIG.Deterministic.Enab[...]
 - Determinism scope covers type selection, counts, and placement randomness executed within the pipeline; yielding does not affect RNG behavior but controls scheduling across frames.
 
 

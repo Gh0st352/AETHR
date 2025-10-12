@@ -1,6 +1,6 @@
 # AETHR SPAWNER generation pipeline
 
-Primary entry point: [AETHR.SPAWNER:generateDynamicSpawner()](dev/SPAWNER.lua:563). Deterministic wrapper: [AETHR.UTILS:withSeed()](dev/UTILS.lua:192).
+Primary entry point: [AETHR.SPAWNER:generateDynamicSpawner()](dev/SPAWNER.lua:563). Deterministic wrapper: [AETHR.UTILS:withSeed()](dev/UTILS.lua:242).
 
 Key sub-steps referenced in this diagram:
 - Pair zones or divisions: [AETHR.SPAWNER:pairSpawnerActiveZones()](dev/SPAWNER.lua:760) and [AETHR.SPAWNER:pairSpawnerWorldDivisions()](dev/SPAWNER.lua:723)
