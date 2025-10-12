@@ -58,3 +58,13 @@ Manager overview
 Notes
 - Guards and mapping of events are built in [AETHR.FSM:New()](../../dev/FSM.lua:366) and [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
 - Graph export available through [AETHR.FSM:todot()](../../dev/FSM.lua:427)
+
+## Breakout documents
+
+Detailed FSM analysis pages with Mermaid diagrams and sequence charts.
+
+- Transition lifecycle and async: [transition_lifecycle.md](./transition_lifecycle.md)
+- Creation and callbacks: [creation_and_callbacks.md](./creation_and_callbacks.md)
+- Events and queries: [events_and_queries.md](./events_and_queries.md)
+- Manager and queue: [manager.md](./manager.md)
+- Export and tooling: [export_and_tooling.md](./export_and_tooling.md)

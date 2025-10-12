@@ -16,6 +16,7 @@ Module indexes
 - ZONE_MANAGER diagrams index: [docs/zone_manager/README.md](docs/zone_manager/README.md)
 - BRAIN diagrams index: [docs/brain/README.md](docs/brain/README.md)
 - AI diagrams index: [docs/ai/README.md](docs/ai/README.md)
+- FSM diagrams index: [docs/fsm/README.md](docs/fsm/README.md)
 
 Upcoming module pages (standardized)
 

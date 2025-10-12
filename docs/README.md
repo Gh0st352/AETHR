@@ -156,3 +156,11 @@ AI
 - Spawn types and priority: [docs/enums/spawn_types.md](enums/spawn_types.md)
 - Events: [docs/enums/events.md](enums/events.md)
 - Countries and skill: [docs/enums/countries_and_skill.md](enums/countries_and_skill.md)
+## FSM
+
+- Overview: [docs/fsm/README.md](fsm/README.md)
+- Transition lifecycle and async: [docs/fsm/transition_lifecycle.md](fsm/transition_lifecycle.md)
+- Creation and callbacks: [docs/fsm/creation_and_callbacks.md](fsm/creation_and_callbacks.md)
+- Events and queries: [docs/fsm/events_and_queries.md](fsm/events_and_queries.md)
+- Manager and queue: [docs/fsm/manager.md](fsm/manager.md)
+- Export and tooling: [docs/fsm/export_and_tooling.md](fsm/export_and_tooling.md)
