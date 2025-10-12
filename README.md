@@ -9,6 +9,7 @@ A high-fidelity simulation layer that weaves in adaptive machine learning decisi
 
 Module indexes
 - AETHR diagrams index: [docs/aethr/README.md](docs/aethr/README.md)
+- CONFIG diagrams index: [docs/config/README.md](docs/config/README.md)
 - WORLD diagrams index: [docs/world/README.md](docs/world/README.md)
 - SPAWNER diagrams index: [docs/spawner/README.md](docs/spawner/README.md)
 - ZONE_MANAGER diagrams index: [docs/zone_manager/README.md](docs/zone_manager/README.md)
@@ -17,7 +18,7 @@ Module indexes
 
 Upcoming module pages (standardized)
 
-- [docs/config/README.md](docs/config/README.md)
+
 - [docs/fileops/README.md](docs/fileops/README.md)
 - [docs/io/README.md](docs/io/README.md)
 - [docs/poly/README.md](docs/poly/README.md)

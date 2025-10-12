@@ -128,3 +128,14 @@ AI
 - [Overview](ai/README.md)
 - [DBSCAN flow](ai/dbscan.md)
 - [Data structures](ai/data_structures.md)
+## CONFIG
+
+- Overview: [docs/config/README.md](config/README.md)
+- Init and persistence: [docs/config/init_and_persistence.md](config/init_and_persistence.md)
+- Paths and filenames: [docs/config/paths_and_filenames.md](config/paths_and_filenames.md)
+- Main schema: [docs/config/main_schema.md](config/main_schema.md)
+- Flags and counters: [docs/config/flags_counters.md](config/flags_counters.md)
+- Zone paint and bounds: [docs/config/zone_paint_and_bounds.md](config/zone_paint_and_bounds.md)
+- World bounds and divisions: [docs/config/world_bounds_and_divisions.md](config/world_bounds_and_divisions.md)
+- OutText settings: [docs/config/out_text.md](config/out_text.md)
+- Save chunks: [docs/config/save_chunks.md](config/save_chunks.md)

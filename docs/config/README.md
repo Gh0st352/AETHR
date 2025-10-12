@@ -73,3 +73,28 @@ Source anchors
 Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
+## Breakout documents
+
+Detailed CONFIG analysis pages with Mermaid diagrams and sequence charts.
+
+- Init and persistence: [init_and_persistence.md](./init_and_persistence.md)
+- Paths and filenames: [paths_and_filenames.md](./paths_and_filenames.md)
+- Main schema: [main_schema.md](./main_schema.md)
+- Flags and counters: [flags_counters.md](./flags_counters.md)
+- Zone paint and bounds: [zone_paint_and_bounds.md](./zone_paint_and_bounds.md)
+- World bounds and divisions: [world_bounds_and_divisions.md](./world_bounds_and_divisions.md)
+- OutText settings: [out_text.md](./out_text.md)
+- Save chunks strategy: [save_chunks.md](./save_chunks.md)
+
+High-level overview
+
+```mermaid
+flowchart LR
+  New[AETHR New] --> Paths[Compute CONFIG PATHS]
+  Init[AETHR Init] --> Zones[ZONE_MANAGER init]
+  Init --> World[WORLD init divisions and caches]
+  Init --> Config[CONFIG initConfig]
+  Config --> Load[loadConfig]
+  Load -->|ok table| Use[Use loaded MAIN]
+  Load -->|nil| Save[saveConfig defaults]
+```
