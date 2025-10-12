@@ -36,20 +36,20 @@ generateMizFileCache scans env.mission grouped by coalition and country to build
 
 ```mermaid
 flowchart TD
-  G0[[generateMizFileCache]] --> SCAN[scan env.mission.coalition.* .country[].group[]]
-  SCAN --> META[attach AETHR metadata: coalition, countryID, countryName, typeKey]
-  META --> MC[mizCacheDB[groupName] = groupObj]
-  MC --> F0{spawnTemplateSearchString set and matches groupName?}
-  F0 -- yes --> T0[spawnerTemplateDB[groupName] = groupObj]
+  G0[[generateMizFileCache]] --> SCAN[scan env mission coalition and country groups]
+  SCAN --> META[attach AETHR metadata coalition countryID countryName typeKey]
+  META --> MC[cache group in mizCacheDB by groupName]
+  MC --> F0{spawnTemplateSearchString matches groupName}
+  F0 -- yes --> T0[add to spawnerTemplateDB]
   F0 -- no --> NEXT0[next group]
-  T0 --> U0[resolve live group via Group.getByName; if units available]
+  T0 --> U0[resolve live group via Group getByName if units available]
   U0 --> L0[loop units]
-  L0 --> D0[descUnit = unitObj:getDesc()]
-  D0 --> U1[spawnerUnitInfoCache[typeName] = descUnit if first time]
-  D0 --> A0[for each attribute in descUnit.attributes]
-  A0 --> A1[spawnerAttributesDB[attrib][typeName] = descUnit]
-  A1 --> P0[track highest attribute priority using ENUMS.spawnTypes / spawnTypesPrio]
-  P0 --> W0[_spawnerAttributesDB[maxAttrib][typeName] = descUnit]
+  L0 --> D0[get unit desc into descUnit]
+  D0 --> U1[add spawnerUnitInfoCache for typeName if first time]
+  D0 --> A0[for each attribute in descUnit attributes]
+  A0 --> A1[write spawnerAttributesDB for attrib and typeName]
+  A1 --> P0[track highest attribute priority using ENUMS spawnTypes and spawnTypesPrio]
+  P0 --> W0[write to _spawnerAttributesDB at maxAttrib and typeName]
   W0 --> END([return self])
 ```
 
