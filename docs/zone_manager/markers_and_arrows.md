@@ -3,21 +3,21 @@
 This document covers how mission zones, game bounds, and border-direction arrows are rendered.
 
 Primary anchors:
-- [AETHR.ZONE_MANAGER:drawGameBounds()](dev/ZONE_MANAGER.lua:931)
-- [AETHR.ZONE_MANAGER:drawMissionZones()](dev/ZONE_MANAGER.lua:980)
-- [AETHR.ZONE_MANAGER:initZoneArrows()](dev/ZONE_MANAGER.lua:1075)
-- [AETHR.ZONE_MANAGER:drawZoneArrows()](dev/ZONE_MANAGER.lua:1025)
-- [AETHR.ZONE_MANAGER:drawZone()](dev/ZONE_MANAGER.lua:329)
+- [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931)
+- [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980)
+- [AETHR.ZONE_MANAGER:initZoneArrows()](../../dev/ZONE_MANAGER.lua:1075)
+- [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025)
+- [AETHR.ZONE_MANAGER:drawZone()](../../dev/ZONE_MANAGER.lua:329)
 
 Related modules:
-- Marker helpers: [dev/MARKERS.lua](dev/MARKERS.lua)
-- Config colors and line styles: [dev/CONFIG_.lua](dev/CONFIG_.lua)
-- Enum types: [dev/ENUMS.lua](dev/ENUMS.lua)
+- Marker helpers: [dev/MARKERS.lua](../../dev/MARKERS.lua)
+- Config colors and line styles: [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
+- Enum types: [dev/ENUMS.lua](../../dev/ENUMS.lua)
 
 
 ## Rendering game bounds polygons
 
-Entry: [AETHR.ZONE_MANAGER:drawGameBounds()](dev/ZONE_MANAGER.lua:931)
+Entry: [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931)
 
 Behavior:
 - Builds a marker descriptor for each polygon in either HullPolysWithSample or HullPolysNoSample.
@@ -36,16 +36,16 @@ flowchart TD
 
 Configuration fields:
 - Colors and line style: 
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineColors](dev/CONFIG_.lua:322)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillColors](dev/CONFIG_.lua:323)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillAlpha](dev/CONFIG_.lua:324)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineAlpha](dev/CONFIG_.lua:325)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.lineType](dev/CONFIG_.lua:326)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineColors](../../dev/CONFIG_.lua:322)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillColors](../../dev/CONFIG_.lua:323)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillAlpha](../../dev/CONFIG_.lua:324)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineAlpha](../../dev/CONFIG_.lua:325)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.lineType](../../dev/CONFIG_.lua:326)
 
 
 ## Rendering mission zones
 
-Entry: [AETHR.ZONE_MANAGER:drawMissionZones()](dev/ZONE_MANAGER.lua:980)
+Entry: [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980)
 
 Behavior:
 - Creates a _Marker per zone using coalition keyed paint colors.
@@ -63,17 +63,17 @@ flowchart TD
 ```
 
 Configuration fields:
-- [AETHR.CONFIG.MAIN.Zone.paintColors.LineColors](dev/CONFIG_.lua:297)
-- [AETHR.CONFIG.MAIN.Zone.paintColors.FillColors](dev/CONFIG_.lua:302)
-- [AETHR.CONFIG.MAIN.Zone.paintColors.ArrowColors](dev/CONFIG_.lua:307)
-- [AETHR.CONFIG.MAIN.Zone.paintColors.FillAlpha](dev/CONFIG_.lua:317)
-- [AETHR.CONFIG.MAIN.Zone.paintColors.LineAlpha](dev/CONFIG_.lua:318)
-- [AETHR.CONFIG.MAIN.Zone.paintColors.lineType](dev/CONFIG_.lua:319)
+- [AETHR.CONFIG.MAIN.Zone.paintColors.LineColors](../../dev/CONFIG_.lua:297)
+- [AETHR.CONFIG.MAIN.Zone.paintColors.FillColors](../../dev/CONFIG_.lua:302)
+- [AETHR.CONFIG.MAIN.Zone.paintColors.ArrowColors](../../dev/CONFIG_.lua:307)
+- [AETHR.CONFIG.MAIN.Zone.paintColors.FillAlpha](../../dev/CONFIG_.lua:317)
+- [AETHR.CONFIG.MAIN.Zone.paintColors.LineAlpha](../../dev/CONFIG_.lua:318)
+- [AETHR.CONFIG.MAIN.Zone.paintColors.lineType](../../dev/CONFIG_.lua:319)
 
 
 ## Initializing arrow markers
 
-Entry: [AETHR.ZONE_MANAGER:initZoneArrows()](dev/ZONE_MANAGER.lua:1075)
+Entry: [AETHR.ZONE_MANAGER:initZoneArrows()](../../dev/ZONE_MANAGER.lua:1075)
 
 Behavior:
 - For every border segment on every zone, assigns MarkID for all coalitions if missing.
@@ -96,7 +96,7 @@ Notes:
 
 ## Drawing arrow markers
 
-Entry: [AETHR.ZONE_MANAGER:drawZoneArrows()](dev/ZONE_MANAGER.lua:1025)
+Entry: [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025)
 
 Behavior:
 - For each border segment, for each coalition from 0 to 2, builds an arrow _Marker using ArrowColors.
@@ -112,13 +112,13 @@ flowchart TD
 ```
 
 Configuration fields:
-- Arrow colors by coalition: [AETHR.CONFIG.MAIN.Zone.paintColors.ArrowColors](dev/CONFIG_.lua:307)
-- Line style used here: [AETHR.ENUMS.LineTypes.Solid](dev/ENUMS.lua)
+- Arrow colors by coalition: [AETHR.CONFIG.MAIN.Zone.paintColors.ArrowColors](../../dev/CONFIG_.lua:307)
+- Line style used here: [AETHR.ENUMS.LineTypes.Solid](../../dev/ENUMS.lua)
 
 
 ## Drawing a raw polygon shape on F10
 
-Entry: [AETHR.ZONE_MANAGER:drawZone()](dev/ZONE_MANAGER.lua:329)
+Entry: [AETHR.ZONE_MANAGER:drawZone()](../../dev/ZONE_MANAGER.lua:329)
 
 Behavior:
 - Sends a polygon draw command via trigger.action.markupToAll using four Vec3 points.
@@ -157,11 +157,11 @@ Downstream updates:
 
 ## Anchor index
 
-- [AETHR.ZONE_MANAGER:drawGameBounds()](dev/ZONE_MANAGER.lua:931)
-- [AETHR.ZONE_MANAGER:drawMissionZones()](dev/ZONE_MANAGER.lua:980)
-- [AETHR.ZONE_MANAGER:initZoneArrows()](dev/ZONE_MANAGER.lua:1075)
-- [AETHR.ZONE_MANAGER:drawZoneArrows()](dev/ZONE_MANAGER.lua:1025)
-- [AETHR.ZONE_MANAGER:drawZone()](dev/ZONE_MANAGER.lua:329)
-- [dev/MARKERS.lua](dev/MARKERS.lua)
-- [dev/CONFIG_.lua](dev/CONFIG_.lua)
-- [dev/ENUMS.lua](dev/ENUMS.lua)
+- [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931)
+- [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980)
+- [AETHR.ZONE_MANAGER:initZoneArrows()](../../dev/ZONE_MANAGER.lua:1075)
+- [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025)
+- [AETHR.ZONE_MANAGER:drawZone()](../../dev/ZONE_MANAGER.lua:329)
+- [dev/MARKERS.lua](../../dev/MARKERS.lua)
+- [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
+- [dev/ENUMS.lua](../../dev/ENUMS.lua)

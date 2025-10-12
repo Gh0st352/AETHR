@@ -3,17 +3,17 @@
 This document covers watchers that observe changes in airbase coalition and zone ownership, wiring them to WORLD callbacks via BRAIN utilities.
 
 Primary anchors:
-- [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](dev/ZONE_MANAGER.lua:1103)
-- [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](dev/ZONE_MANAGER.lua:1113)
+- [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103)
+- [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
 
 Related modules:
-- BRAIN watcher utilities: [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
-- WORLD callbacks and reactions: [dev/WORLD.lua](dev/WORLD.lua)
+- BRAIN watcher utilities: [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:242)
+- WORLD callbacks and reactions: [dev/WORLD.lua](../../dev/WORLD.lua)
 
 
 ## Airbase coalition ownership watcher
 
-Entry: [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](dev/ZONE_MANAGER.lua:1103)
+Entry: [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103)
 
 Behavior:
 - Iterates all MIZ zones
@@ -35,7 +35,7 @@ Notes:
 
 ## Zone ownership watcher
 
-Entry: [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](dev/ZONE_MANAGER.lua:1113)
+Entry: [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
 
 Behavior:
 - Registers a watcher across the MIZ_ZONES table for field ownedBy
@@ -71,13 +71,13 @@ sequenceDiagram
 
 Configuration references:
 - OutText display settings may be used by WORLD handlers
-  - [AETHR.CONFIG.MAIN.outTextSettings](dev/CONFIG_.lua:336)
+  - [AETHR.CONFIG.MAIN.outTextSettings](../../dev/CONFIG_.lua:336)
 
 
 ## Anchor index
 
-- [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](dev/ZONE_MANAGER.lua:1103)
-- [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](dev/ZONE_MANAGER.lua:1113)
-- [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
-- [dev/WORLD.lua](dev/WORLD.lua)
-- [dev/CONFIG_.lua](dev/CONFIG_.lua)
+- [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103)
+- [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
+- [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:242)
+- [dev/WORLD.lua](../../dev/WORLD.lua)
+- [dev/CONFIG_.lua](../../dev/CONFIG_.lua)

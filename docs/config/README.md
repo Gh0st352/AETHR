@@ -1,18 +1,18 @@
 # AETHR CONFIG diagrams and flows
 
 Primary anchors
-- [AETHR.CONFIG:initConfig()](dev/CONFIG_.lua:364)
-- [AETHR.CONFIG:loadConfig()](dev/CONFIG_.lua:380)
-- [AETHR.CONFIG:saveConfig()](dev/CONFIG_.lua:404)
+- [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
+- [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
+- [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
 
 Related code anchors
-- AETHR paths at creation: [AETHR:New()](dev/AETHR.lua:65), [dev/AETHR.lua](dev/AETHR.lua:125)
-- FILE I/O: [AETHR.FILEOPS:loadData()](dev/FILEOPS_.lua:173), [AETHR.FILEOPS:saveData()](dev/FILEOPS_.lua:155)
-- Debug logging: [AETHR.UTILS:debugInfo()](dev/UTILS.lua:79)
+- AETHR paths at creation: [AETHR:New()](../../dev/AETHR.lua:65), [dev/AETHR.lua](../../dev/AETHR.lua:125)
+- FILE I/O: [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173), [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
+- Debug logging: [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
 
 Documents and indices
-- Master diagrams index: [docs/README.md](docs/README.md)
-- AETHR overview: [docs/aethr/README.md](docs/aethr/README.md)
+- Master diagrams index: [docs/README.md](../README.md)
+- AETHR overview: [docs/aethr/README.md](../aethr/README.md)
 
 Init and persistence flow
 
@@ -61,14 +61,14 @@ flowchart LR
 ```
 
 Source anchors
-- [AETHR.CONFIG:initConfig()](dev/CONFIG_.lua:364)
-- [AETHR.CONFIG:loadConfig()](dev/CONFIG_.lua:380)
-- [AETHR.CONFIG:saveConfig()](dev/CONFIG_.lua:404)
-- [AETHR:New()](dev/AETHR.lua:65)
-- [AETHR.FILEOPS:joinPaths()](dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:loadData()](dev/FILEOPS_.lua:173)
-- [AETHR.FILEOPS:saveData()](dev/FILEOPS_.lua:155)
-- [AETHR.UTILS:debugInfo()](dev/UTILS.lua:79)
+- [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
+- [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
+- [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
+- [AETHR:New()](../../dev/AETHR.lua:65)
+- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
+- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
+- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
 
 Notes
 - Mermaid labels avoid double quotes and parentheses.

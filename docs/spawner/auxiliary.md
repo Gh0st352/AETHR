@@ -1,15 +1,15 @@
 # AETHR SPAWNER auxiliary logic flows
 
-This file documents additional logic sequences defined in [dev/SPAWNER.lua](dev/SPAWNER.lua) to ensure complete coverage.
+This file documents additional logic sequences defined in [dev/SPAWNER.lua](../../dev/SPAWNER.lua) to ensure complete coverage.
 
 Covered functions
 - Wrapper sequencing
-  - [AETHR.SPAWNER:generateSpawnerGroups()](dev/SPAWNER.lua:660)
-  - [AETHR.SPAWNER:rollGroupPlacement()](dev/SPAWNER.lua:670)
+  - [AETHR.SPAWNER:generateSpawnerGroups()](../../dev/SPAWNER.lua:660)
+  - [AETHR.SPAWNER:rollGroupPlacement()](../../dev/SPAWNER.lua:670)
 - Spawner lifecycle helpers
-  - [AETHR.SPAWNER:newDynamicSpawner()](dev/SPAWNER.lua:467)
-  - [AETHR.SPAWNER:assembleUnitsForGroup()](dev/SPAWNER.lua:358)
-  - [AETHR.SPAWNER:spawnAirbaseFill()](dev/SPAWNER.lua:2169)
+  - [AETHR.SPAWNER:newDynamicSpawner()](../../dev/SPAWNER.lua:467)
+  - [AETHR.SPAWNER:assembleUnitsForGroup()](../../dev/SPAWNER.lua:358)
+  - [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
 
 
 1) generateSpawnerGroups wrapper
@@ -53,7 +53,7 @@ flowchart TB
 ```
 
 References
-- Entry: [AETHR.SPAWNER:newDynamicSpawner()](dev/SPAWNER.lua:467)
+- Entry: [AETHR.SPAWNER:newDynamicSpawner()](../../dev/SPAWNER.lua:467)
 
 
 4) assembleUnitsForGroup
@@ -72,7 +72,7 @@ flowchart TB
 ```
 
 References
-- Entry: [AETHR.SPAWNER:assembleUnitsForGroup()](dev/SPAWNER.lua:358)
+- Entry: [AETHR.SPAWNER:assembleUnitsForGroup()](../../dev/SPAWNER.lua:358)
 
 
 5) spawnAirbaseFill
@@ -88,8 +88,8 @@ flowchart TB
 ```
 
 References
-- Entry: [AETHR.SPAWNER:spawnAirbaseFill()](dev/SPAWNER.lua:2169)
-- Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](dev/SPAWNER.lua:520)
+- Entry: [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
+- Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
 
 
 Notes

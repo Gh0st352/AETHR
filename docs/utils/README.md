@@ -1,19 +1,19 @@
 # AETHR UTILS diagrams and flows
 
 Primary anchors
-- [AETHR.UTILS:isDebug()](dev/UTILS.lua:70)
-- [AETHR.UTILS:debugInfo()](dev/UTILS.lua:79)
-- [AETHR.UTILS:debugInfoRate()](dev/UTILS.lua:101)
-- [AETHR.UTILS.getTime()](dev/UTILS.lua:56)
-- [AETHR.UTILS:getPointY()](dev/UTILS.lua:129)
-- [AETHR.UTILS:normalizePoint()](dev/UTILS.lua:137)
-- [AETHR.UTILS:hasValue()](dev/UTILS.lua:147)
-- [AETHR.UTILS:table_hasValue()](dev/UTILS.lua:162)
-- [AETHR.UTILS.safe_lookup()](dev/UTILS.lua:170)
-- [AETHR.UTILS:updateMarkupColors()](dev/UTILS.lua:188)
-- [AETHR.UTILS:pickRandomKeyFromTable()](dev/UTILS.lua:201)
-- [AETHR.UTILS:Shuffle()](dev/UTILS.lua:218)
-- [AETHR.UTILS:withSeed()](dev/UTILS.lua:243)
+- [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
+- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
+- [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101)
+- [AETHR.UTILS.getTime()](../../dev/UTILS.lua:56)
+- [AETHR.UTILS:getPointY()](../../dev/UTILS.lua:129)
+- [AETHR.UTILS:normalizePoint()](../../dev/UTILS.lua:137)
+- [AETHR.UTILS:hasValue()](../../dev/UTILS.lua:147)
+- [AETHR.UTILS:table_hasValue()](../../dev/UTILS.lua:162)
+- [AETHR.UTILS.safe_lookup()](../../dev/UTILS.lua:170)
+- [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+- [AETHR.UTILS:pickRandomKeyFromTable()](../../dev/UTILS.lua:201)
+- [AETHR.UTILS:Shuffle()](../../dev/UTILS.lua:218)
+- [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:243)
 
 Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -112,11 +112,11 @@ flowchart LR
 ```
 
 Key anchors
-- Debug: [isDebug](dev/UTILS.lua:70), [debugInfo](dev/UTILS.lua:79), [debugInfoRate](dev/UTILS.lua:101)
-- Time: [getTime](dev/UTILS.lua:56)
-- Geometry helpers: [getPointY](dev/UTILS.lua:129), [normalizePoint](dev/UTILS.lua:137)
-- Lookups and colors: [safe_lookup](dev/UTILS.lua:170), [updateMarkupColors](dev/UTILS.lua:188)
-- RNG and collections: [withSeed](dev/UTILS.lua:243), [Shuffle](dev/UTILS.lua:218), [pickRandomKeyFromTable](dev/UTILS.lua:201)
+- Debug: [isDebug](../../dev/UTILS.lua:70), [debugInfo](../../dev/UTILS.lua:79), [debugInfoRate](../../dev/UTILS.lua:101)
+- Time: [getTime](../../dev/UTILS.lua:56)
+- Geometry helpers: [getPointY](../../dev/UTILS.lua:129), [normalizePoint](../../dev/UTILS.lua:137)
+- Lookups and colors: [safe_lookup](../../dev/UTILS.lua:170), [updateMarkupColors](../../dev/UTILS.lua:188)
+- RNG and collections: [withSeed](../../dev/UTILS.lua:243), [Shuffle](../../dev/UTILS.lua:218), [pickRandomKeyFromTable](../../dev/UTILS.lua:201)
 
 Notes
 - Mermaid labels avoid double quotes and parentheses.

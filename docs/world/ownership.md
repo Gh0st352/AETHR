@@ -2,19 +2,19 @@
 
 Primary anchors
 - Airbase/zone ownership updates:
-  - [AETHR.WORLD:updateAirbaseOwnership()](dev/WORLD.lua:501)
-  - [AETHR.WORLD:updateZoneOwnership()](dev/WORLD.lua:633)
+  - [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501)
+  - [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633)
 - Visual updates:
-  - [AETHR.WORLD:updateZoneColors()](dev/WORLD.lua:683)
-  - [AETHR.WORLD:updateZoneArrows()](dev/WORLD.lua:730)
+  - [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
+  - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - Notifications:
-  - [AETHR.WORLD.airbaseOwnershipChanged()](dev/WORLD.lua:970)
-  - [AETHR.WORLD.zoneOwnershipChanged()](dev/WORLD.lua:1006)
+  - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
+  - [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
 
 Related modules and config
-- Colors and alphas: [dev/CONFIG_.lua](dev/CONFIG_.lua)
-- Text strings and enums: [dev/ENUMS.lua](dev/ENUMS.lua)
-- Marker color updates: [AETHR.UTILS:updateMarkupColors()](dev/UTILS.lua:188)
+- Colors and alphas: [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
+- Text strings and enums: [dev/ENUMS.lua](../../dev/ENUMS.lua)
+- Marker color updates: [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
 
 ## Airbase ownership refresh
 
@@ -103,8 +103,8 @@ flowchart TD
 ```
 
 Arrow colors source
-- [AETHR.CONFIG.MAIN.Zone.paintColors.ArrowColors](dev/CONFIG_.lua)
-- Line style typically solid (see [dev/ENUMS.lua](dev/ENUMS.lua))
+- [AETHR.CONFIG.MAIN.Zone.paintColors.ArrowColors](../../dev/CONFIG_.lua)
+- Line style typically solid (see [dev/ENUMS.lua](../../dev/ENUMS.lua))
 
 ## Notifications
 
@@ -151,11 +151,11 @@ sequenceDiagram
 ## Anchor index
 
 - Ownership updates
-  - [AETHR.WORLD:updateAirbaseOwnership()](dev/WORLD.lua:501)
-  - [AETHR.WORLD:updateZoneOwnership()](dev/WORLD.lua:633)
+  - [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501)
+  - [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633)
 - Visual updates
-  - [AETHR.WORLD:updateZoneColors()](dev/WORLD.lua:683)
-  - [AETHR.WORLD:updateZoneArrows()](dev/WORLD.lua:730)
+  - [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
+  - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - Notifications
-  - [AETHR.WORLD.airbaseOwnershipChanged()](dev/WORLD.lua:970)
-  - [AETHR.WORLD.zoneOwnershipChanged()](dev/WORLD.lua:1006)
+  - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
+  - [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)

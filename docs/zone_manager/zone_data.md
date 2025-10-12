@@ -1,19 +1,19 @@
 # Zone data lifecycle and normalization
 
-This document captures the end-to-end data flows for mission trigger zones managed by [dev/ZONE_MANAGER.lua](dev/ZONE_MANAGER.lua), with clickable anchors to the core logic:
-- [AETHR.ZONE_MANAGER:initMizZoneData()](dev/ZONE_MANAGER.lua:122)
-- [AETHR.ZONE_MANAGER:getStoredMizZoneData()](dev/ZONE_MANAGER.lua:141)
-- [AETHR.ZONE_MANAGER:saveMizZoneData()](dev/ZONE_MANAGER.lua:152)
-- [AETHR.ZONE_MANAGER:generateMizZoneData()](dev/ZONE_MANAGER.lua:205)
-- [AETHR.ZONE_MANAGER:_normalizeMizZones()](dev/ZONE_MANAGER.lua:53)
-- [AETHR.ZONE_MANAGER:pairActiveDivisions()](dev/ZONE_MANAGER.lua:161)
-- [AETHR.ZONE_MANAGER:pairTowns()](dev/ZONE_MANAGER.lua:182)
+This document captures the end-to-end data flows for mission trigger zones managed by [dev/ZONE_MANAGER.lua](../../dev/ZONE_MANAGER.lua), with clickable anchors to the core logic:
+- [AETHR.ZONE_MANAGER:initMizZoneData()](../../dev/ZONE_MANAGER.lua:122)
+- [AETHR.ZONE_MANAGER:getStoredMizZoneData()](../../dev/ZONE_MANAGER.lua:141)
+- [AETHR.ZONE_MANAGER:saveMizZoneData()](../../dev/ZONE_MANAGER.lua:152)
+- [AETHR.ZONE_MANAGER:generateMizZoneData()](../../dev/ZONE_MANAGER.lua:205)
+- [AETHR.ZONE_MANAGER:_normalizeMizZones()](../../dev/ZONE_MANAGER.lua:53)
+- [AETHR.ZONE_MANAGER:pairActiveDivisions()](../../dev/ZONE_MANAGER.lua:161)
+- [AETHR.ZONE_MANAGER:pairTowns()](../../dev/ZONE_MANAGER.lua:182)
 
 Related dependencies:
-- [dev/CONFIG_.lua](dev/CONFIG_.lua)
-- [dev/FILEOPS_.lua](dev/FILEOPS_.lua)
-- [dev/WORLD.lua](dev/WORLD.lua)
-- [dev/POLY.lua](dev/POLY.lua)
+- [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
+- [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua)
+- [dev/WORLD.lua](../../dev/WORLD.lua)
+- [dev/POLY.lua](../../dev/POLY.lua)
 
 Notes:
 - All bracket labels in diagrams avoid double quotes and parentheses for Mermaid compatibility.
@@ -21,7 +21,7 @@ Notes:
 
 ## Initialization flow
 
-Entry point: [AETHR.ZONE_MANAGER:initMizZoneData()](dev/ZONE_MANAGER.lua:122)
+Entry point: [AETHR.ZONE_MANAGER:initMizZoneData()](../../dev/ZONE_MANAGER.lua:122)
 
 ```mermaid
 flowchart LR
@@ -38,16 +38,16 @@ flowchart LR
 ```
 
 Key steps and anchors:
-- Load stored: [AETHR.ZONE_MANAGER:getStoredMizZoneData()](dev/ZONE_MANAGER.lua:141)
-- Normalize if loaded: [AETHR.ZONE_MANAGER:_normalizeMizZones()](dev/ZONE_MANAGER.lua:53)
-- Generate if not found: [AETHR.ZONE_MANAGER:generateMizZoneData()](dev/ZONE_MANAGER.lua:205)
-- Persist: [AETHR.ZONE_MANAGER:saveMizZoneData()](dev/ZONE_MANAGER.lua:152)
-- Airbases collection uses WORLD helpers: [dev/WORLD.lua](dev/WORLD.lua)
+- Load stored: [AETHR.ZONE_MANAGER:getStoredMizZoneData()](../../dev/ZONE_MANAGER.lua:141)
+- Normalize if loaded: [AETHR.ZONE_MANAGER:_normalizeMizZones()](../../dev/ZONE_MANAGER.lua:53)
+- Generate if not found: [AETHR.ZONE_MANAGER:generateMizZoneData()](../../dev/ZONE_MANAGER.lua:205)
+- Persist: [AETHR.ZONE_MANAGER:saveMizZoneData()](../../dev/ZONE_MANAGER.lua:152)
+- Airbases collection uses WORLD helpers: [dev/WORLD.lua](../../dev/WORLD.lua)
 
 
 ## Generation flow
 
-Constructor and bordering determination: [AETHR.ZONE_MANAGER:generateMizZoneData()](dev/ZONE_MANAGER.lua:205)
+Constructor and bordering determination: [AETHR.ZONE_MANAGER:generateMizZoneData()](../../dev/ZONE_MANAGER.lua:205)
 
 ```mermaid
 flowchart TD
@@ -66,12 +66,12 @@ flowchart TD
 Highlights:
 - Looks up env zones from the DCS mission scripting env.
 - Constructs mission zones using the module local or global constructor, then computes bordering relationships:
-  - Bordering detection: [AETHR.ZONE_MANAGER:determineBorderingZones()](dev/ZONE_MANAGER.lua:232)
+  - Bordering detection: [AETHR.ZONE_MANAGER:determineBorderingZones()](../../dev/ZONE_MANAGER.lua:232)
 
 
 ## Normalization flow
 
-Field canonicalization and derived lines: [AETHR.ZONE_MANAGER:_normalizeMizZones()](dev/ZONE_MANAGER.lua:53)
+Field canonicalization and derived lines: [AETHR.ZONE_MANAGER:_normalizeMizZones()](../../dev/ZONE_MANAGER.lua:53)
 
 ```mermaid
 flowchart LR
@@ -88,12 +88,12 @@ flowchart LR
 ```
 
 Derived computation relies on geometry helpers:
-- Convert to lines uses POLY utilities: [dev/POLY.lua](dev/POLY.lua)
+- Convert to lines uses POLY utilities: [dev/POLY.lua](../../dev/POLY.lua)
 
 
 ## Persistence helpers
 
-Load stored mission zones: [AETHR.ZONE_MANAGER:getStoredMizZoneData()](dev/ZONE_MANAGER.lua:141)
+Load stored mission zones: [AETHR.ZONE_MANAGER:getStoredMizZoneData()](../../dev/ZONE_MANAGER.lua:141)
 
 ```mermaid
 flowchart LR
@@ -104,7 +104,7 @@ flowchart LR
   L4 -->|nil| L6[return nil]
 ```
 
-Save mission zones: [AETHR.ZONE_MANAGER:saveMizZoneData()](dev/ZONE_MANAGER.lua:152)
+Save mission zones: [AETHR.ZONE_MANAGER:saveMizZoneData()](../../dev/ZONE_MANAGER.lua:152)
 
 ```mermaid
 flowchart LR
@@ -116,7 +116,7 @@ flowchart LR
 
 ## Zone pairing helpers
 
-Active world divisions by polygon overlap: [AETHR.ZONE_MANAGER:pairActiveDivisions()](dev/ZONE_MANAGER.lua:161)
+Active world divisions by polygon overlap: [AETHR.ZONE_MANAGER:pairActiveDivisions()](../../dev/ZONE_MANAGER.lua:161)
 
 ```mermaid
 flowchart TD
@@ -130,7 +130,7 @@ flowchart TD
   D7 --> D8[return self]
 ```
 
-Towns contained by point in polygon: [AETHR.ZONE_MANAGER:pairTowns()](dev/ZONE_MANAGER.lua:182)
+Towns contained by point in polygon: [AETHR.ZONE_MANAGER:pairTowns()](../../dev/ZONE_MANAGER.lua:182)
 
 ```mermaid
 flowchart TD
@@ -145,15 +145,15 @@ flowchart TD
 ```
 
 Geometry predicates used here are implemented in POLY:
-- Overlap and point tests: [dev/POLY.lua](dev/POLY.lua)
+- Overlap and point tests: [dev/POLY.lua](../../dev/POLY.lua)
 
 
 ## Anchor index
 
-- [AETHR.ZONE_MANAGER:initMizZoneData()](dev/ZONE_MANAGER.lua:122)
-- [AETHR.ZONE_MANAGER:getStoredMizZoneData()](dev/ZONE_MANAGER.lua:141)
-- [AETHR.ZONE_MANAGER:saveMizZoneData()](dev/ZONE_MANAGER.lua:152)
-- [AETHR.ZONE_MANAGER:generateMizZoneData()](dev/ZONE_MANAGER.lua:205)
-- [AETHR.ZONE_MANAGER:_normalizeMizZones()](dev/ZONE_MANAGER.lua:53)
-- [AETHR.ZONE_MANAGER:pairActiveDivisions()](dev/ZONE_MANAGER.lua:161)
-- [AETHR.ZONE_MANAGER:pairTowns()](dev/ZONE_MANAGER.lua:182)
+- [AETHR.ZONE_MANAGER:initMizZoneData()](../../dev/ZONE_MANAGER.lua:122)
+- [AETHR.ZONE_MANAGER:getStoredMizZoneData()](../../dev/ZONE_MANAGER.lua:141)
+- [AETHR.ZONE_MANAGER:saveMizZoneData()](../../dev/ZONE_MANAGER.lua:152)
+- [AETHR.ZONE_MANAGER:generateMizZoneData()](../../dev/ZONE_MANAGER.lua:205)
+- [AETHR.ZONE_MANAGER:_normalizeMizZones()](../../dev/ZONE_MANAGER.lua:53)
+- [AETHR.ZONE_MANAGER:pairActiveDivisions()](../../dev/ZONE_MANAGER.lua:161)
+- [AETHR.ZONE_MANAGER:pairTowns()](../../dev/ZONE_MANAGER.lua:182)

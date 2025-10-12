@@ -6,22 +6,22 @@ This document details the computation of:
 - Center cutout polygon and in–out gap polygons
 
 Primary anchors:
-- [AETHR.ZONE_MANAGER:getOutOfBounds()](dev/ZONE_MANAGER.lua:799)
-- [AETHR.ZONE_MANAGER:_buildBorderExclude()](dev/ZONE_MANAGER.lua:356)
-- [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](dev/ZONE_MANAGER.lua:385)
-- [AETHR.ZONE_MANAGER:_flattenUniquePoints()](dev/ZONE_MANAGER.lua:410)
-- [AETHR.ZONE_MANAGER:_processHullLoop()](dev/ZONE_MANAGER.lua:449)
-- [AETHR.ZONE_MANAGER:getPolygonCutout()](dev/ZONE_MANAGER.lua:565)
-- [AETHR.ZONE_MANAGER:generateGameBoundData()](dev/ZONE_MANAGER.lua:895)
+- [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
+- [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
+- [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
+- [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
+- [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
+- [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:565)
+- [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
 
 Related dependencies:
-- [dev/CONFIG_.lua](dev/CONFIG_.lua)
-- [dev/POLY.lua](dev/POLY.lua)
+- [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
+- [dev/POLY.lua](../../dev/POLY.lua)
 
 
 ## End to end pipeline
 
-Entry point: [AETHR.ZONE_MANAGER:generateGameBoundData()](dev/ZONE_MANAGER.lua:895)
+Entry point: [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
 
 ```mermaid
 flowchart TD
@@ -45,7 +45,7 @@ Outputs stored in:
 
 ## Computing out of bounds hull tiles
 
-Entry point: [AETHR.ZONE_MANAGER:getOutOfBounds()](dev/ZONE_MANAGER.lua:799)
+Entry point: [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
 
 Behavior summary:
 - Resolve world bounds from configuration
@@ -75,16 +75,16 @@ flowchart TD
 ```
 
 Key helpers:
-- Exclude set: [AETHR.ZONE_MANAGER:_buildBorderExclude()](dev/ZONE_MANAGER.lua:356)
-- Collect polygons: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](dev/ZONE_MANAGER.lua:385)
-- Unique points: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](dev/ZONE_MANAGER.lua:410)
-- Hull processing: [AETHR.ZONE_MANAGER:_processHullLoop()](dev/ZONE_MANAGER.lua:449)
-- Geometry hulls and bounds conversion: [dev/POLY.lua](dev/POLY.lua)
+- Exclude set: [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
+- Collect polygons: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
+- Unique points: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
+- Hull processing: [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
+- Geometry hulls and bounds conversion: [dev/POLY.lua](../../dev/POLY.lua)
 
 
 ## Excluding shared border vertices
 
-Entry point: [AETHR.ZONE_MANAGER:_buildBorderExclude()](dev/ZONE_MANAGER.lua:356)
+Entry point: [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
 
 ```mermaid
 flowchart LR
@@ -102,7 +102,7 @@ Purpose:
 
 ## Collecting polygons after exclude
 
-Entry point: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](dev/ZONE_MANAGER.lua:385)
+Entry point: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
 
 ```mermaid
 flowchart LR
@@ -115,7 +115,7 @@ flowchart LR
 
 ## Flattening to unique points
 
-Entry point: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](dev/ZONE_MANAGER.lua:410)
+Entry point: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
 
 ```mermaid
 flowchart TD
@@ -130,7 +130,7 @@ flowchart TD
 
 ## Hull loop to outward quads
 
-Entry point: [AETHR.ZONE_MANAGER:_processHullLoop()](dev/ZONE_MANAGER.lua:449)
+Entry point: [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
 
 Behavior summary:
 - Optional densification of hull edges using samples and snapping
@@ -152,12 +152,12 @@ flowchart TD
 ```
 
 Geometry dependencies:
-- Densify edges, centroid, bounds intersection: [dev/POLY.lua](dev/POLY.lua)
+- Densify edges, centroid, bounds intersection: [dev/POLY.lua](../../dev/POLY.lua)
 
 
 ## Center cutout polygon
 
-Entry point: [AETHR.ZONE_MANAGER:getPolygonCutout()](dev/ZONE_MANAGER.lua:565)
+Entry point: [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:565)
 
 Behavior summary:
 - Normalize input polygons to a canonical point form
@@ -184,27 +184,27 @@ flowchart TD
 ## Configuration inputs
 
 - Theater bounds used by out of bounds:
-  - [AETHR.CONFIG.MAIN.worldBounds](dev/CONFIG_.lua:245)
+  - [AETHR.CONFIG.MAIN.worldBounds](../../dev/CONFIG_.lua:245)
 - Game bounds rendering and sampling configuration:
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.samplesPerEdge](dev/CONFIG_.lua:327)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.useHoleSinglePolygon](dev/CONFIG_.lua:329)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.snapDistance](dev/CONFIG_.lua:330)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.samplesPerEdge](../../dev/CONFIG_.lua:327)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.useHoleSinglePolygon](../../dev/CONFIG_.lua:329)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.getOutOfBounds.snapDistance](../../dev/CONFIG_.lua:330)
 - Line and fill colors for game bounds markers:
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineColors](dev/CONFIG_.lua:322)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillColors](dev/CONFIG_.lua:323)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineAlpha](dev/CONFIG_.lua:325)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillAlpha](dev/CONFIG_.lua:324)
-  - [AETHR.CONFIG.MAIN.Zone.gameBounds.lineType](dev/CONFIG_.lua:326)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineColors](../../dev/CONFIG_.lua:322)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillColors](../../dev/CONFIG_.lua:323)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.LineAlpha](../../dev/CONFIG_.lua:325)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.FillAlpha](../../dev/CONFIG_.lua:324)
+  - [AETHR.CONFIG.MAIN.Zone.gameBounds.lineType](../../dev/CONFIG_.lua:326)
 
 
 ## Anchor index
 
-- [AETHR.ZONE_MANAGER:generateGameBoundData()](dev/ZONE_MANAGER.lua:895)
-- [AETHR.ZONE_MANAGER:getOutOfBounds()](dev/ZONE_MANAGER.lua:799)
-- [AETHR.ZONE_MANAGER:_buildBorderExclude()](dev/ZONE_MANAGER.lua:356)
-- [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](dev/ZONE_MANAGER.lua:385)
-- [AETHR.ZONE_MANAGER:_flattenUniquePoints()](dev/ZONE_MANAGER.lua:410)
-- [AETHR.ZONE_MANAGER:_processHullLoop()](dev/ZONE_MANAGER.lua:449)
-- [AETHR.ZONE_MANAGER:getPolygonCutout()](dev/ZONE_MANAGER.lua:565)
-- [dev/POLY.lua](dev/POLY.lua)
-- [dev/CONFIG_.lua](dev/CONFIG_.lua)
+- [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
+- [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
+- [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
+- [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
+- [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
+- [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
+- [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:565)
+- [dev/POLY.lua](../../dev/POLY.lua)
+- [dev/CONFIG_.lua](../../dev/CONFIG_.lua)

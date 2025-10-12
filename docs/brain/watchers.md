@@ -1,7 +1,7 @@
 # AETHR BRAIN watchers
 
 Entry anchor
-- [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
+- [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:242)
 
 Purpose
 BRAIN provides a lightweight table proxy that intercepts writes to a specific key across a collection, invoking a watcher callback with optional extra arguments. This is used to react to ownership changes and other state transitions.
@@ -36,9 +36,9 @@ sequenceDiagram
 ```
 
 Behavior notes mapped to code
-- Proxy stores original value under __actualValue and forwards reads via __index [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:250)
-- __newindex checks for the watched field and invokes the callback before assigning [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:255)
-- Extra args are captured once and passed to each callback invocation [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:243)
+- Proxy stores original value under __actualValue and forwards reads via __index [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:250)
+- __newindex checks for the watched field and invokes the callback before assigning [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:255)
+- Extra args are captured once and passed to each callback invocation [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:243)
 
 Typical usage
 - Airbase coalition change watcher in ZONE_MANAGER: [docs/zone_manager/watchers.md](docs/zone_manager/watchers.md)

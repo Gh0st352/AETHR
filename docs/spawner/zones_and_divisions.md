@@ -1,15 +1,15 @@
 # AETHR SPAWNER zones and divisions
 
 Covered functions
-- [AETHR.SPAWNER:generateSpawnerZones()](dev/SPAWNER.lua:2012)
-- [AETHR.SPAWNER:weightZones()](dev/SPAWNER.lua:2148)
-- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](dev/SPAWNER.lua:723)
-- [AETHR.SPAWNER:pairSpawnerActiveZones()](dev/SPAWNER.lua:760)
-- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](dev/SPAWNER.lua:803)
-- [AETHR.SPAWNER:determineZoneDivObjects()](dev/SPAWNER.lua:857)
+- [AETHR.SPAWNER:generateSpawnerZones()](../../dev/SPAWNER.lua:2012)
+- [AETHR.SPAWNER:weightZones()](../../dev/SPAWNER.lua:2148)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
 
 1. Zone generation and weighting
-The spawner constructs a main zone and subzones, then assigns weights to each. Generation avoids restricted zones when provided to POLY utilities. See [dev/POLY.lua](dev/POLY.lua).
+The spawner constructs a main zone and subzones, then assigns weights to each. Generation avoids restricted zones when provided to POLY utilities. See [dev/POLY.lua](../../dev/POLY.lua).
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
 ```
 
 3. Object collection per sub zone
-For each sub zone and its divisions, objects are collected into zoneDivSceneryObjects, zoneDivStaticObjects, and zoneDivBaseObjects using AABB prefilter and optional full include optimization. Config switches: [UseDivisionAABBReject](dev/SPAWNER.lua:96), [UseDivisionAABBFullInclude](dev/SPAWNER.lua:97). Cooperative yielding: [AETHR.SPAWNER:_maybeYield()](dev/SPAWNER.lua:255).
+For each sub zone and its divisions, objects are collected into zoneDivSceneryObjects, zoneDivStaticObjects, and zoneDivBaseObjects using AABB prefilter and optional full include optimization. Config switches: [UseDivisionAABBReject](../../dev/SPAWNER.lua:96), [UseDivisionAABBFullInclude](../../dev/SPAWNER.lua:97). Cooperative yielding: [AETHR.SPAWNER:_maybeYield()](../../dev/SPAWNER.lua:255).
 
 ```mermaid
 flowchart TB
@@ -67,3 +67,70 @@ Notes
 - Division object sources come from WORLD databases for scenery, static, and base objects.
 - Full include treats a division as entirely inside when all AABB corners lie inside the sub zone circle.
 - Distance checks use squared distances to avoid square roots.
+## Flowchart: Zones and divisions pipeline
+
+```mermaid
+flowchart LR
+  START[dynamicSpawner] --> CHOOSE{MIZ zones available}
+  CHOOSE -- yes --> PA[pairSpawnerActiveZones]
+  CHOOSE -- no --> PW[pairSpawnerWorldDivisions]
+  PA --> PZ[pairSpawnerZoneDivisions]
+  PW --> PZ
+  PZ --> OBJ[determineZoneDivObjects]
+  OBJ --> OUT[subZones have worldDivisions and per-division objects]
+```
+
+Source anchors
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
+- [AETHR.POLY:circleOverlapPoly()](../../dev/POLY.lua:115)
+
+## Sequence: Pair and collect divisions and objects
+
+```mermaid
+sequenceDiagram
+  participant SP as SPAWNER
+  participant DZ as dynamicSpawner
+  participant SUB as subZones[*]
+  participant WD as WORLD.DATA
+  participant POLY as POLY
+
+  Note over SP,DZ: Decide pairing mode
+  SP->>SP: pairSpawnerActiveZones or pairSpawnerWorldDivisions
+  alt MIZ zones present
+    SP->>DZ: pairSpawnerActiveZones()
+    SP->>WD: use ZONE_MANAGER.DATA.MIZ_ZONES activeDivisions
+    DZ-->>SP: spawnerActiveDivisions
+  else
+    SP->>DZ: pairSpawnerWorldDivisions()
+    SP->>WD: iterate WORLD.DATA.worldDivisions
+    loop for each division
+      SP->>POLY: circleOverlapPoly(maxRadius, center, div.corners)
+    end
+    DZ-->>SP: spawnerActiveDivisions
+  end
+
+  Note over SP,SUB: Pair per-subzone divisions
+  SP->>SUB: pairSpawnerZoneDivisions()
+  loop for each subZone
+    SP->>POLY: circleOverlapPoly(actualRadius, center, div.corners)
+    SUB-->>SP: subZone.worldDivisions populated
+  end
+
+  Note over SP,SUB: Collect per-division objects
+  SP->>SUB: determineZoneDivObjects()
+  loop for each subZone and its worldDivisions
+    SP->>WD: read divisionSceneryObjects/static/base
+    SP->>POLY: distance tests and AABB fast paths
+    SUB-->>SP: zoneDivSceneryObjects/static/base populated
+  end
+```
+
+Source anchors
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
+- [AETHR.POLY:circleOverlapPoly()](../../dev/POLY.lua:115)

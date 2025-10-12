@@ -1,11 +1,11 @@
 # AETHR BRAIN diagrams index
 
 Primary module anchors
-- [AETHR.BRAIN:New()](dev/BRAIN.lua:158)
-- [AETHR.BRAIN:doRoutine()](dev/BRAIN.lua:176)
-- [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
-- [AETHR.BRAIN:scheduleTask()](dev/BRAIN.lua:277)
-- [AETHR.BRAIN:runScheduledTasks()](dev/BRAIN.lua:306)
+- [AETHR.BRAIN:New()](../../dev/BRAIN.lua:158)
+- [AETHR.BRAIN:doRoutine()](../../dev/BRAIN.lua:176)
+- [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:242)
+- [AETHR.BRAIN:scheduleTask()](../../dev/BRAIN.lua:277)
+- [AETHR.BRAIN:runScheduledTasks()](../../dev/BRAIN.lua:306)
 
 Documents
 - [docs/brain/scheduler.md](docs/brain/scheduler.md)
@@ -56,7 +56,7 @@ Cross-module indexes
 - ZONE_MANAGER: [docs/zone_manager/README.md](docs/zone_manager/README.md)
 
 Key anchors
-- Scheduler core: [AETHR.BRAIN:scheduleTask()](dev/BRAIN.lua:277), [AETHR.BRAIN:runScheduledTasks()](dev/BRAIN.lua:306)
-- Coroutine runner: [AETHR.BRAIN:doRoutine()](dev/BRAIN.lua:176)
-- Watcher utility: [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
-- Constructor: [AETHR.BRAIN:New()](dev/BRAIN.lua:158)
+- Scheduler core: [AETHR.BRAIN:scheduleTask()](../../dev/BRAIN.lua:277), [AETHR.BRAIN:runScheduledTasks()](../../dev/BRAIN.lua:306)
+- Coroutine runner: [AETHR.BRAIN:doRoutine()](../../dev/BRAIN.lua:176)
+- Watcher utility: [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:242)
+- Constructor: [AETHR.BRAIN:New()](../../dev/BRAIN.lua:158)

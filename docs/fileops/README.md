@@ -1,15 +1,15 @@
 # AETHR FILEOPS diagrams and flows
 
 Primary anchors
-- [AETHR.FILEOPS:joinPaths()](dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:ensureDirectory()](dev/FILEOPS_.lua:46)
-- [AETHR.FILEOPS:ensureFile()](dev/FILEOPS_.lua:120)
-- [AETHR.FILEOPS:saveData()](dev/FILEOPS_.lua:155)
-- [AETHR.FILEOPS:loadData()](dev/FILEOPS_.lua:173)
-- [AETHR.FILEOPS:fileExists()](dev/FILEOPS_.lua:189)
-- [AETHR.FILEOPS:deepcopy()](dev/FILEOPS_.lua:206)
-- [AETHR.FILEOPS:splitAndSaveData()](dev/FILEOPS_.lua:246)
-- [AETHR.FILEOPS:loadandJoinData()](dev/FILEOPS_.lua:329)
+- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
+- [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
+- [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
+- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
+- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
+- [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
+- [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
+- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:329)
 
 Documents and indices
 - Master diagrams index: [docs/README.md](docs/README.md)
@@ -92,15 +92,15 @@ sequenceDiagram
 ```
 
 Source anchors
-- [AETHR.FILEOPS:joinPaths()](dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:ensureDirectory()](dev/FILEOPS_.lua:46)
-- [AETHR.FILEOPS:ensureFile()](dev/FILEOPS_.lua:120)
-- [AETHR.FILEOPS:saveData()](dev/FILEOPS_.lua:155)
-- [AETHR.FILEOPS:loadData()](dev/FILEOPS_.lua:173)
-- [AETHR.FILEOPS:fileExists()](dev/FILEOPS_.lua:189)
-- [AETHR.FILEOPS:deepcopy()](dev/FILEOPS_.lua:206)
-- [AETHR.FILEOPS:splitAndSaveData()](dev/FILEOPS_.lua:246)
-- [AETHR.FILEOPS:loadandJoinData()](dev/FILEOPS_.lua:329)
+- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
+- [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
+- [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
+- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
+- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
+- [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
+- [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
+- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:329)
 
 Notes
 - Mermaid labels avoid double quotes and parentheses.

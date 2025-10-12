@@ -2,18 +2,18 @@
 
 Primary anchors
 - Determine clusters:
-  - [AETHR.WORLD:determineTowns()](dev/WORLD.lua:1460)
+  - [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460)
 - Init/load/save:
-  - [AETHR.WORLD:initTowns()](dev/WORLD.lua:1513)
-  - [AETHR.WORLD:loadTowns()](dev/WORLD.lua:1528)
-  - [AETHR.WORLD:saveTowns()](dev/WORLD.lua:1541)
+  - [AETHR.WORLD:initTowns()](../../dev/WORLD.lua:1513)
+  - [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1528)
+  - [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541)
 
 Related modules and config
-- Storage helpers: [dev/FILEOPS_.lua](dev/FILEOPS_.lua)
-- Geometry helpers: [dev/POLY.lua](dev/POLY.lua)
-- AI clustering: [dev/_AI.lua](dev/_AI.lua)
-- Enums and filters: [dev/ENUMS.lua](dev/ENUMS.lua)
-- Config paths/files and save chunking: [dev/CONFIG_.lua](dev/CONFIG_.lua)
+- Storage helpers: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua)
+- Geometry helpers: [dev/POLY.lua](../../dev/POLY.lua)
+- AI clustering: [dev/_AI.lua](../../dev/_AI.lua)
+- Enums and filters: [dev/ENUMS.lua](../../dev/ENUMS.lua)
+- Config paths/files and save chunking: [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
 
 ## Overview
 
@@ -103,9 +103,9 @@ sequenceDiagram
 ## Anchor index
 
 - Core
-  - [AETHR.WORLD:determineTowns()](dev/WORLD.lua:1460)
-  - [AETHR.WORLD:initTowns()](dev/WORLD.lua:1513)
-  - [AETHR.WORLD:loadTowns()](dev/WORLD.lua:1528)
-  - [AETHR.WORLD:saveTowns()](dev/WORLD.lua:1541)
+  - [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460)
+  - [AETHR.WORLD:initTowns()](../../dev/WORLD.lua:1513)
+  - [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1528)
+  - [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541)
 - Related
   - Per-division caches used as inputs: [docs/world/objects_and_db.md](docs/world/objects_and_db.md)

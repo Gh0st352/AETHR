@@ -1,18 +1,18 @@
 # AETHR MARKERS diagrams and flows
 
 Primary anchors
-- [AETHR.MARKERS:markFreeform()](dev/MARKERS.lua:43)
-- [AETHR.MARKERS:drawPolygon()](dev/MARKERS.lua:85)
-- [AETHR.MARKERS:markArrow()](dev/MARKERS.lua:139)
-- [AETHR.MARKERS:drawArrow()](dev/MARKERS.lua:176)
-- [AETHR.MARKERS:markCircle()](dev/MARKERS.lua:229)
-- [AETHR.MARKERS:drawCircle()](dev/MARKERS.lua:269)
-- [AETHR.MARKERS:drawGenericCircle()](dev/MARKERS.lua:299)
-- [AETHR.MARKERS:removeMarksByID()](dev/MARKERS.lua:318)
+- [AETHR.MARKERS:markFreeform()](../../dev/MARKERS.lua:43)
+- [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85)
+- [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139)
+- [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
+- [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229)
+- [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269)
+- [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299)
+- [AETHR.MARKERS:removeMarksByID()](../../dev/MARKERS.lua:318)
 
 Related anchors
-- ENUM constants: [AETHR.ENUMS.MarkerTypes](dev/ENUMS.lua:461), [AETHR.ENUMS.LineTypes](dev/ENUMS.lua:452)
-- Update colors: [AETHR.UTILS:updateMarkupColors()](dev/UTILS.lua:188)
+- ENUM constants: [AETHR.ENUMS.MarkerTypes](../../dev/ENUMS.lua:461), [AETHR.ENUMS.LineTypes](../../dev/ENUMS.lua:452)
+- Update colors: [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
 
 Documents and indices
 - Master diagrams index: [docs/README.md](docs/README.md)
@@ -92,10 +92,10 @@ sequenceDiagram
 ```
 
 Key anchors
-- Freeform: [AETHR.MARKERS:markFreeform()](dev/MARKERS.lua:43), [AETHR.MARKERS:drawPolygon()](dev/MARKERS.lua:85)
-- Arrow: [AETHR.MARKERS:markArrow()](dev/MARKERS.lua:139), [AETHR.MARKERS:drawArrow()](dev/MARKERS.lua:176)
-- Circle: [AETHR.MARKERS:markCircle()](dev/MARKERS.lua:229), [AETHR.MARKERS:drawCircle()](dev/MARKERS.lua:269), [AETHR.MARKERS:drawGenericCircle()](dev/MARKERS.lua:299)
-- Removal: [AETHR.MARKERS:removeMarksByID()](dev/MARKERS.lua:318)
+- Freeform: [AETHR.MARKERS:markFreeform()](../../dev/MARKERS.lua:43), [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85)
+- Arrow: [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139), [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
+- Circle: [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229), [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269), [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299)
+- Removal: [AETHR.MARKERS:removeMarksByID()](../../dev/MARKERS.lua:318)
 
 Notes
 - Mermaid labels avoid double quotes and parentheses.

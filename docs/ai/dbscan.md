@@ -1,6 +1,6 @@
 # AETHR AI DBSCAN logic
 
-Logic coverage for [AETHR.AI:clusterPoints()](dev/_AI.lua:530), [AETHR.AI.DBSCANNER:New()](dev/_AI.lua:123), [AETHR.AI.DBSCANNER:generateDBSCANparams()](dev/_AI.lua:186), [AETHR.AI.DBSCANNER:_prepare_points_and_index()](dev/_AI.lua:224), [AETHR.AI.DBSCANNER:Scan()](dev/_AI.lua:319), [AETHR.AI.DBSCANNER:_DBScan()](dev/_AI.lua:333), [AETHR.AI.DBSCANNER:region_count()](dev/_AI.lua:275), [AETHR.AI.DBSCANNER:region_query()](dev/_AI.lua:370), [AETHR.AI.DBSCANNER:expand_cluster()](dev/_AI.lua:424), [AETHR.AI.DBSCANNER:post_process_clusters()](dev/_AI.lua:466).
+Logic coverage for [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530), [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123), [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186), [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224), [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319), [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333), [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275), [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370), [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424), [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466).
 
 Notes:
 - Node labels in Mermaid diagrams avoid double quotes and parentheses.
@@ -22,7 +22,7 @@ flowchart TD
   PP --> OUT[return Clusters]
 ```
 
-Facade [AETHR.AI:clusterPoints()](dev/_AI.lua:530)
+Facade [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
 
 ```mermaid
 flowchart LR
@@ -32,7 +32,7 @@ flowchart LR
   F3 --> F4[return scanner Clusters]
 ```
 
-Constructor [AETHR.AI.DBSCANNER:New()](dev/_AI.lua:123)
+Constructor [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
 
 ```mermaid
 flowchart TD
@@ -44,7 +44,7 @@ flowchart TD
   N5 --> N6[return generateDBSCANparams]
 ```
 
-Parameterization [AETHR.AI.DBSCANNER:generateDBSCANparams()](dev/_AI.lua:186)
+Parameterization [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
 
 ```mermaid
 flowchart TD
@@ -55,7 +55,7 @@ flowchart TD
   G4 --> G5[return self]
 ```
 
-Pre normalize and index [AETHR.AI.DBSCANNER:_prepare_points_and_index()](dev/_AI.lua:224)
+Pre normalize and index [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224)
 
 ```mermaid
 flowchart TD
@@ -67,7 +67,7 @@ flowchart TD
   P5 --> P6[return]
 ```
 
-Scan wrapper [AETHR.AI.DBSCANNER:Scan()](dev/_AI.lua:319)
+Scan wrapper [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
 
 ```mermaid
 flowchart LR
@@ -76,7 +76,7 @@ flowchart LR
   S2 --> S3[return self]
 ```
 
-Core clustering [AETHR.AI.DBSCANNER:_DBScan()](dev/_AI.lua:333)
+Core clustering [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
 
 ```mermaid
 flowchart TD
@@ -90,7 +90,7 @@ flowchart TD
   D7 --> D2
 ```
 
-Neighbor count [AETHR.AI.DBSCANNER:region_count()](dev/_AI.lua:275)
+Neighbor count [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275)
 
 ```mermaid
 flowchart LR
@@ -103,7 +103,7 @@ flowchart LR
   RC5 -->|else| RC4
 ```
 
-Neighbor query [AETHR.AI.DBSCANNER:region_query()](dev/_AI.lua:370)
+Neighbor query [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
 
 ```mermaid
 flowchart LR
@@ -115,7 +115,7 @@ flowchart LR
   RQ5 --> RQ6[return neighbors]
 ```
 
-Cluster expansion [AETHR.AI.DBSCANNER:expand_cluster()](dev/_AI.lua:424)
+Cluster expansion [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
 
 ```mermaid
 flowchart TD
@@ -130,7 +130,7 @@ flowchart TD
   E2 --> E7[return self]
 ```
 
-Post processing [AETHR.AI.DBSCANNER:post_process_clusters()](dev/_AI.lua:466)
+Post processing [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466)
 
 ```mermaid
 flowchart TD
@@ -159,7 +159,7 @@ sequenceDiagram
 
 References
 
-- Source: [dev/_AI.lua](dev/_AI.lua)
-- Facade: [AETHR.AI:clusterPoints()](dev/_AI.lua:530)
-- Core: [AETHR.AI.DBSCANNER:_DBScan()](dev/_AI.lua:333), [AETHR.AI.DBSCANNER:expand_cluster()](dev/_AI.lua:424)
-- Utilities: [AETHR.AI.DBSCANNER:region_count()](dev/_AI.lua:275), [AETHR.AI.DBSCANNER:region_query()](dev/_AI.lua:370)
+- Source: [dev/_AI.lua](../../dev/_AI.lua)
+- Facade: [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
+- Core: [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333), [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
+- Utilities: [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275), [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
