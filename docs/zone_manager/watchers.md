@@ -7,7 +7,7 @@ Primary anchors:
 - [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](dev/ZONE_MANAGER.lua:1113)
 
 Related modules:
-- BRAIN watcher utilities: [dev/BRAIN.lua](dev/BRAIN.lua)
+- BRAIN watcher utilities: [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
 - WORLD callbacks and reactions: [dev/WORLD.lua](dev/WORLD.lua)
 
 
@@ -78,6 +78,6 @@ Configuration references:
 
 - [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](dev/ZONE_MANAGER.lua:1103)
 - [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](dev/ZONE_MANAGER.lua:1113)
-- [dev/BRAIN.lua](dev/BRAIN.lua)
+- [AETHR.BRAIN:buildWatcher()](dev/BRAIN.lua:242)
 - [dev/WORLD.lua](dev/WORLD.lua)
 - [dev/CONFIG_.lua](dev/CONFIG_.lua)
