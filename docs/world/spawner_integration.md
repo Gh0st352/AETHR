@@ -21,22 +21,22 @@ Processes one queued generation job per invocation, marking job status and times
 
 ```mermaid
 flowchart TD
-  SGQ[[spawnerGenerationQueue]] --> STATE[ensure DATA._genState; read jobs and queue]
-  STATE --> RUN{already running job?}
-  RUN -- yes --> RET0([return self])
-  RUN -- no --> NEXTID[pop next jobId from GenerationQueue]
-  NEXTID -- none --> RET0
-  NEXTID -- found --> JOBJ[resolve job by id]
-  JOBJ --> MARK[set state.currentJobId; job.status='running'; startedAt=UTILS.getTime()]
-  MARK --> CALL[SPAWNER.generateDynamicSpawner(dynamicSpawner, vec2, radii, nudge, countryID)]
-  CALL --> OPT{autoSpawn?}
-  OPT -- yes --> SPAWN[SPAWNER.spawnDynamicSpawner(dynamicSpawner, countryID)]
-  OPT -- no --> SKIP
+  SGQ[[spawnerGenerationQueue]] --> STATE[ensure genState and read jobs and queue]
+  STATE --> RUN{already running job}
+  RUN -->|yes| RET0[return self]
+  RUN -->|no| NEXTID[pop next job id from queue]
+  NEXTID -->|none| RET0
+  NEXTID -->|found| JOBJ[resolve job by id]
+  JOBJ --> MARK[set currentJobId status running and startedAt]
+  MARK --> CALL[SPAWNER generateDynamicSpawner]
+  CALL --> OPT{autoSpawn}
+  OPT -->|yes| SPAWN[SPAWNER spawnDynamicSpawner]
+  OPT -->|no| SKIP
   SPAWN --> DONE
   SKIP --> DONE
-  DONE --> FIN[set completedAt; status='done'; clear currentJobId]
-  FIN --> YIELD[SPAWNER._maybeYield(1)]
-  YIELD --> RET([return self])
+  DONE --> FIN[set completedAt mark done and clear currentJobId]
+  FIN --> YIELD[SPAWNER maybeYield]
+  YIELD --> RET[return self]
 ```
 
 Anchors
@@ -49,21 +49,21 @@ Activates groups by name when their engine add time has aged past the configured
 
 ```mermaid
 flowchart TD
-  SGG[[spawnGroundGroups]] --> Q[queue = SPAWNER.DATA.spawnQueue]
-  Q --> LOOP[for i = #queue .. 1]
-  LOOP --> NAME[name = queue[i]]
-  NAME --> WAIT[compute curTime - groupAddTime < waitTime?]
-  WAIT -- true --> SKIP[debug: skip; continue]
-  WAIT -- false --> ACT[Group.getByName(name); Group.activate(g) via pcall]
-  ACT --> RES{activated?}
-  RES -- yes --> REM[table.remove(queue, i)]
-  RES -- no --> DBG[debug: activateFail]
-  REM --> YLD{yield threshold?}
+  SGG[[spawnGroundGroups]] --> Q[queue from spawner data spawnQueue]
+  Q --> LOOP[for i descending from queue length to one]
+  LOOP --> NAME[get name entry]
+  NAME --> WAIT{curTime minus addTime less than waitTime}
+  WAIT -->|true| SKIP[debug skip and continue]
+  WAIT -->|false| ACT[get group by name then activate via pcall]
+  ACT --> RES{activated}
+  RES -->|yes| REM[remove from queue]
+  RES -->|no| DBG[debug activate fail]
+  REM --> YLD{yield threshold}
   DBG --> YLD
-  YLD -- hit --> CY[debug 'YIELD' + coroutine.yield()]
-  YLD -- not hit --> NEXT
+  YLD -->|hit| CY[debug yield]
+  YLD -->|not hit| NEXT
   CY --> NEXT
-  NEXT --> END([return self])
+  NEXT --> END[return self]
 ```
 
 Anchors
@@ -75,19 +75,19 @@ Deactivates groups by name using trigger.action.deactivateGroup and removes succ
 
 ```mermaid
 flowchart TD
-  DSG[[despawnGroundGroups]] --> QD[queue = SPAWNER.DATA.despawnQueue]
-  QD --> LOOP[for i = #queue .. 1]
-  LOOP --> NAME[name = queue[i]]
-  NAME --> TRY[pcall: Group.getByName(name); trigger.action.deactivateGroup(g)]
-  TRY --> RES{deactivated?}
-  RES -- yes --> REM[table.remove(queue, i)]
-  RES -- no --> DBG[debug: deactivateFail]
-  REM --> YLD{yield threshold?}
+  DSG[[despawnGroundGroups]] --> QD[queue from spawner data despawnQueue]
+  QD --> LOOP[for i descending from queue length to one]
+  LOOP --> NAME[get name entry]
+  NAME --> TRY[pcall get group by name and deactivate]
+  TRY --> RES{deactivated}
+  RES -->|yes| REM[remove from queue]
+  RES -->|no| DBG[debug deactivate fail]
+  REM --> YLD{yield threshold}
   DBG --> YLD
-  YLD -- hit --> CY[debug 'YIELD' + coroutine.yield()]
-  YLD -- not hit --> NEXT
+  YLD -->|hit| CY[debug yield]
+  YLD -->|not hit| NEXT
   CY --> NEXT
-  NEXT --> END([return self])
+  NEXT --> END[return self]
 ```
 
 Anchors
