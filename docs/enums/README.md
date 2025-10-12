@@ -75,3 +75,35 @@ Anchors in consuming modules
 Notes
 - ENUMS provides engine constant pass-throughs; when running outside DCS, ensure the environment provides required globals or inject stubs.
 - Mermaid labels avoid double quotes and parentheses. All diagrams use GitHub Mermaid fenced blocks.
+## Breakout documents
+
+Focused ENUMS analysis pages with Mermaid diagrams and cross-module anchors.
+
+- Categories: [categories.md](./categories.md)
+- Lines and markers: [lines_and_markers.md](./lines_and_markers.md)
+- Coalition and text strings: [coalition_and_text.md](./coalition_and_text.md)
+- Surface types and NOGO: [surface_types.md](./surface_types.md)
+- Spawn types and priority: [spawn_types.md](./spawn_types.md)
+
+High-level usage map
+
+```mermaid
+flowchart LR
+  EN[ENUMS] --> CO[Coalition]
+  EN --> TS[TextStrings]
+  EN --> LT[LineTypes]
+  EN --> MT[MarkerTypes]
+  EN --> ST[SurfaceType]
+  EN --> SP[spawnTypes]
+  EN --> SPQ[spawnTypesPrio]
+  EN --> DST[dynamicSpawnerTypes]
+
+  CO -.-> W[WORLD ownership]
+  TS -.-> W
+  LT -.-> ZM[ZONE_MANAGER render]
+  MT -.-> MK[MARKERS draw]
+  ST -.-> SPNR[SPAWNER NOGO]
+  SP -.-> SPNR
+  SPQ -.-> SPNR
+  DST -.-> SPNR
+```

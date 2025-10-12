@@ -139,3 +139,13 @@ AI
 - World bounds and divisions: [docs/config/world_bounds_and_divisions.md](config/world_bounds_and_divisions.md)
 - OutText settings: [docs/config/out_text.md](config/out_text.md)
 - Save chunks: [docs/config/save_chunks.md](config/save_chunks.md)
+## ENUMS
+
+- Overview: [docs/enums/README.md](enums/README.md)
+- Categories: [docs/enums/categories.md](enums/categories.md)
+- Lines and markers: [docs/enums/lines_and_markers.md](enums/lines_and_markers.md)
+- Coalition and text: [docs/enums/coalition_and_text.md](enums/coalition_and_text.md)
+- Surface types and NOGO: [docs/enums/surface_types.md](enums/surface_types.md)
+- Spawn types and priority: [docs/enums/spawn_types.md](enums/spawn_types.md)
+- Events: [docs/enums/events.md](enums/events.md)
+- Countries and skill: [docs/enums/countries_and_skill.md](enums/countries_and_skill.md)
