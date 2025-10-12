@@ -1138,7 +1138,7 @@ end
 
 --- Spawns airbase filler groups for all airbases across all zones using SPAWNER.
 --- Uses RED and BLUE Start Zones to determine country of spawns for airbases.
---- @function AETHR.ZONE_MANAGER:spawnStarterAirbasesAllZones
+--- @function AETHR.ZONE_MANAGER:spawnAirbasesAllZones
 --- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
 --- @return AETHR.ZONE_MANAGER self
 function AETHR.ZONE_MANAGER:spawnAirbasesAllZones(dynamicSpawner)
