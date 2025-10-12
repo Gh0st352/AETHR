@@ -10,3 +10,5 @@ A high-fidelity simulation layer that weaves in adaptive machine learning decisi
 - ZONE_MANAGER diagrams index: [docs/zone_manager/README.md](docs/zone_manager/README.md)
 
 - BRAIN diagrams index: [docs/brain/README.md](docs/brain/README.md)
+
+- AI diagrams index: [docs/ai/README.md](docs/ai/README.md)
