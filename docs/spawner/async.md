@@ -17,11 +17,11 @@ Covered functions
 
 ```mermaid
 flowchart TB
-  E0[start enqueueGenerateDynamicSpawner] --> E1[id = DATA.GenerationJobCounter; increment counter]
-  E1 --> E2[build job table: id, status queued, enqueuedAt via UTILS.getTime or os.time, params payload]
-  E2 --> E3[DATA.GenerationJobs[id] = job]
-  E3 --> E4[push id to DATA.GenerationQueue (FIFO)]
-  E4 --> E5[return id to caller]
+  E0["start enqueueGenerateDynamicSpawner"] --> E1["id = DATA.GenerationJobCounter; increment counter"]
+  E1 --> E2["build job table: id, status queued, enqueuedAt via UTILS.getTime or os.time, params payload"]
+  E2 --> E3["DATA.GenerationJobs[id] = job"]
+  E3 --> E4["push id to DATA.GenerationQueue (FIFO)"]
+  E4 --> E5["return id to caller"]
 ```
 
 Parameters payload stored on the job
@@ -40,7 +40,7 @@ Jobs are processed by a coroutine-owned runner in BRAIN (see [dev/BRAIN.lua](dev
 sequenceDiagram
   participant Caller
   participant SPAWNER
-  participant BRAIN as BRAIN runner
+  participant BRAIN as "BRAIN runner"
   participant WORLD
   Caller->>SPAWNER: enqueueGenerateDynamicSpawner(params)
   SPAWNER-->>Caller: jobId
@@ -58,7 +58,8 @@ sequenceDiagram
   end
   alt job.params.autoSpawn is true
     BRAIN->>SPAWNER: spawnDynamicSpawner(dynamicSpawner, countryID)
-    SPAWNER->>WORLD: coalition.addGroup per group; enqueue spawnQueue
+    SPAWNER->>WORLD: coalition.addGroup per group
+    SPAWNER-->>WORLD: enqueue spawnQueue
   end
   BRAIN-->>BRAIN: mark job status completed
 ```
@@ -76,10 +77,7 @@ stateDiagram-v2
   [*] --> queued
   queued --> running: runner picks from GenerationQueue
   running --> completed: generation pipeline finishes
-  note right of completed
-    Runner may conditionally call
-    spawnDynamicSpawner when job.params.autoSpawn is true
-  end note
+  note right of completed: Runner may conditionally call<br/>spawnDynamicSpawner when job.params.autoSpawn is true
 ```
 
 Status accessor
@@ -88,7 +86,7 @@ Status accessor
 
 4) Deterministic execution interaction
 
-- The outer generation entry [AETHR.SPAWNER:generateDynamicSpawner()](dev/SPAWNER.lua:563) may run inside [AETHR.UTILS:withSeed()](dev/UTILS.lua:192) when either SPAWNER.DATA.CONFIG.Deterministic.Enabled or dynamicSpawner.deterministicEnabled is true and a numeric deterministicSeed is provided on the spawner.
+- The outer generation entry [AETHR.SPAWNER:generateDynamicSpawner()](dev/SPAWNER.lua:563) may run inside [AETHR.UTILS:withSeed()](dev/UTILS.lua:192) when either SPAWNER.DATA.CONFIG.Deterministic.Enab[...]
 - Determinism scope covers type selection, counts, and placement randomness executed within the pipeline; yielding does not affect RNG behavior but controls scheduling across frames.
 
 
@@ -96,5 +94,5 @@ Status accessor
 
 - FIFO fairness: DATA.GenerationQueue is first-in-first-out; long jobs periodically yield to maintain frame responsiveness.
 - Operation budgets: placement loops respect SPAWNER.DATA.CONFIG.operationLimit; yielding cadence is independent but complementary.
-- Auto spawn: When autoSpawn is true, runner triggers [spawnDynamicSpawner()](dev/SPAWNER.lua:438) after build, which sets _engineAddTime and enqueues group names into SPAWNER.DATA.spawnQueue for WORLD to process.
+- Auto spawn: When autoSpawn is true, runner triggers [spawnDynamicSpawner()](dev/SPAWNER.lua:438) after build, which sets _engineAddTime and enqueues group names into SPAWNER.DATA.spawnQueue for WORL[...]
 - Status and metrics: Consider extending job record with startedAt, finishedAt, and error fields in the runner for observability (current enqueue sets enqueuedAt).
