@@ -179,3 +179,11 @@ AI
 - Events and queries: [docs/fsm/events_and_queries.md](fsm/events_and_queries.md)
 - Manager and queue: [docs/fsm/manager.md](fsm/manager.md)
 - Export and tooling: [docs/fsm/export_and_tooling.md](fsm/export_and_tooling.md)
+## MATH
+
+- Overview: [docs/math/README.md](math/README.md)
+- Orientation: [docs/math/orientation.md](math/orientation.md)
+- Vectors and angles: [docs/math/vectors.md](math/vectors.md)
+- Equality and centroid: [docs/math/equality_and_centroid.md](math/equality_and_centroid.md)
+- Randomization helpers: [docs/math/randomization.md](math/randomization.md)
+- Degree and turn angle notes: [docs/math/angles.md](math/angles.md)

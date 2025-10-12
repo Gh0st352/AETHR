@@ -17,6 +17,7 @@ Module indexes
 - BRAIN diagrams index: [docs/brain/README.md](docs/brain/README.md)
 - AI diagrams index: [docs/ai/README.md](docs/ai/README.md)
 - FSM diagrams index: [docs/fsm/README.md](docs/fsm/README.md)
+- MATH diagrams index: [docs/math/README.md](docs/math/README.md)
 
 Upcoming module pages (standardized)
 
