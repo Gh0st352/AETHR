@@ -174,8 +174,8 @@ AETHR.CONFIG.MAIN = {
     },
     MISSION_ID = "1",      -- Default mission identifier.
     DEBUG_ENABLED = false, -- Enable debug logging to DCS log.
-    DefaultRedCountry = country.id.CJTF_BLUE,
-    DefaultBlueCountry = country.id.CJTF_RED,
+    DefaultRedCountry = country.id.CJTF_RED,
+    DefaultBlueCountry = country.id.CJTF_BLUE,
     spawnTemplateSearchString = "SPECTRESPAWNERTemplate",
     MIZ_ZONES = { -- Lists of mission trigger zone names.
         ALL = {},

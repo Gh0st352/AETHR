@@ -1154,15 +1154,6 @@ function AETHR.ZONE_MANAGER:spawnAirbasesAllZones(dynamicSpawner)
     for _, zName in ipairs(blueZones) do
             self:spawnAirbasesZone(zName, blueCountry, dynamicSpawner)
     end
-    --     for _, zName in ipairs(_zones) do
-    --     local isRed = redZones and redZones[zName] or false
-    --     local isBlue = blueZones and blueZones[zName] or false
-    --     if isRed and not isBlue then
-    --         self:spawnAirbasesZone(zName, redCountry, nil)
-    --     elseif isBlue and not isRed then
-    --         self:spawnAirbasesZone(zName, blueCountry, nil)
-    --     end
-    -- end
 
     return self
 end
