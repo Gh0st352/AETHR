@@ -79,6 +79,14 @@ Core orchestration
 - [TYPES](types/README.md)
 - [FSM](fsm/README.md)
 
+AETHR
+- [Overview](aethr/README.md)
+- [Instance creation](aethr/instance_creation.md)
+- [Modules wiring](aethr/modules_wiring.md)
+- [Init orchestration](aethr/init.md)
+- [Startup and watchers](aethr/startup_and_watchers.md)
+- [Background processes](aethr/background_processes.md)
+- [User storage](aethr/user_storage.md)
 WORLD
 - [Overview and init](world/README.md)
 - [Initialization timeline](world/initialization.md)

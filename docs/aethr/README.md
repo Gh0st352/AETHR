@@ -18,6 +18,13 @@ Documents
 - BRAIN module: [docs/brain/README.md](../brain/README.md)
 - AI module: [docs/ai/README.md](../ai/README.md)
 
+Breakout pages
+- Instance creation: [instance_creation.md](./instance_creation.md)
+- Modules wiring: [modules_wiring.md](./modules_wiring.md)
+- Init orchestration: [init.md](./init.md)
+- Startup and watchers: [startup_and_watchers.md](./startup_and_watchers.md)
+- Background processes: [background_processes.md](./background_processes.md)
+- User storage: [user_storage.md](./user_storage.md)
 Instance creation and wiring
 
 ```mermaid
