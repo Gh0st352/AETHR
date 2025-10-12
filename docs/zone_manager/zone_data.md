@@ -137,7 +137,7 @@ flowchart TD
   T1[pairTowns] --> T2[read WORLD townClusterDB]
   T2 --> T3[for each zone]
   T3 --> T4[for each cluster]
-  T4 --> T5{cluster center inside zone polygon]
+  T4 --> T5{cluster center inside zone polygon}
   T5 -->|yes| T6[add to zone townsDB]
   T5 -->|no| T7[next]
   T6 --> T7
