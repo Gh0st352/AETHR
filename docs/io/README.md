@@ -15,9 +15,17 @@ Related code anchors
 - FILEOPS usage: [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155), [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
 
 Documents and indices
-- Master diagrams index: [docs/README.md](docs/README.md)
-- FILEOPS: [docs/fileops/README.md](docs/fileops/README.md)
-- AETHR overview: [docs/aethr/README.md](docs/aethr/README.md)
+- Master diagrams index: [docs/README.md](../README.md)
+- FILEOPS: [docs/fileops/README.md](../fileops/README.md)
+- AETHR overview: [docs/aethr/README.md](../aethr/README.md)
+
+## Breakout documents
+
+- Store and variants: [store_and_variants.md](./store_and_variants.md)
+- Load and deSerialize: [load_and_deserialize.md](./load_and_deserialize.md)
+- Writers and refCount internals: [writers_and_refcount.md](./writers_and_refcount.md)
+- Serialize NoFunc: [serialize_nofunc.md](./serialize_nofunc.md)
+- Dump helper: [dump.md](./dump.md)
 
 Overview relationships
 

@@ -128,6 +128,14 @@ AI
 - [Overview](ai/README.md)
 - [DBSCAN flow](ai/dbscan.md)
 - [Data structures](ai/data_structures.md)
+## IO
+
+- Overview: [docs/io/README.md](io/README.md)
+- Store and variants: [docs/io/store_and_variants.md](io/store_and_variants.md)
+- Load and deSerialize: [docs/io/load_and_deserialize.md](io/load_and_deserialize.md)
+- Writers and refCount internals: [docs/io/writers_and_refcount.md](io/writers_and_refcount.md)
+- Serialize NoFunc: [docs/io/serialize_nofunc.md](io/serialize_nofunc.md)
+- Dump helper: [docs/io/dump.md](io/dump.md)
 ## FILEOPS
 
 - Overview: [docs/fileops/README.md](fileops/README.md)
