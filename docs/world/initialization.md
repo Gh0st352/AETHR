@@ -85,15 +85,15 @@ Queries engine airbases, normalizes descriptors, computes runway stats, and asso
 
 ```mermaid
 flowchart TD
-  GA[[getAirbases]] --> Q[world.getAirbases()]
+  GA[[getAirbases]] --> Q[world getAirbases]
   Q --> L[for each airbase]
-  L --> D[desc = getDesc(); pos = getPosition().p; coalition = getCoalition()]
+  L --> D[get desc, position p, coalition]
   D --> RT[runway stats: max length, longest runway]
   RT --> ASSIGN[build AETHR._airbase data object]
   ASSIGN --> ZCHK{any MIZ_ZONES?}
-  ZCHK -- yes --> INZ[find zone where POLY.PointWithinShape(pos, zone.vertices)]
+  ZCHK -- yes --> INZ[find zone where POLY PointWithinShape uses pos and zone.vertices]
   ZCHK -- no --> SKIPZ[no zone association]
-  INZ --> CREATE[AETHR._airbase:New(...)]
+  INZ --> CREATE[AETHR._airbase New]
   SKIPZ --> CREATE
   CREATE --> LINK[link _airbase to zone.Airbases and DATA.AIRBASES]
   LINK --> NEXT[loop]
@@ -128,7 +128,10 @@ sequenceDiagram
   W->>F: getStoredMizFileCache / saveMizFileCache
   W->>E: scan env.mission during generation
   A->>W: getAirbases
-  W->>E: getAirbases(); getDesc(); getRunways(); getCoalition()
+  W->>E: getAirbases
+  W->>E: getDesc
+  W->>E: getRunways
+  W->>E: getCoalition
   W->>Z: zone lookup and assignment
 ```
 
