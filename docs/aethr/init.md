@@ -66,12 +66,6 @@ flowchart LR
   ZP --> US
   US --> CS
 
-  %% Legend
-  subgraph Legend [Legend]
-    L1[Core (entry/exit)]
-    L2[Process step]
-    L1 -- "control flow" --> L2
-  end
 
   %% Styles
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -87,7 +81,6 @@ flowchart LR
   style LEARNING fill:#e6ffe6,stroke:#009900,stroke-width:2px
   style ZONES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
   style PERSIST fill:#f8f9fa,stroke:#495057,stroke-width:2px
-  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Sequence timeline
@@ -101,7 +94,6 @@ sequenceDiagram
   participant Z as ZONE_MANAGER
   participant W as WORLD
 
-  Note over A,F,C,Z,W: Legend: ->> call; -->> return; alt = branch; loop = iteration
 
   A->>A: read SUB_FOLDERS
   loop each folder

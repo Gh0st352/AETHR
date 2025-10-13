@@ -56,12 +56,7 @@ flowchart LR
   R9 --> RS
   RS --> NX[Return next time]
 
-  %% Legend
-  subgraph Legend [Legend]
-    L1[Core (entry/return)]
-    L2[Process step]
-    L1 -- "control flow" --> L2
-  end
+
 
   %% Styles
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -76,7 +71,6 @@ flowchart LR
   style SPAWNER fill:#fff0e6,stroke:#ff9900,stroke-width:2px
   style FSM fill:#f8f9fa,stroke:#495057,stroke-width:2px
   style BRAIN fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Coroutine scheduling timeline
@@ -89,7 +83,6 @@ sequenceDiagram
   participant W as WORLD
   participant F as FSM
 
-  Note over A,B: Legend: ->> call; -->> return; alt/else branch; loop iteration
 
   A->>A: now = timer.getTime
 
@@ -140,3 +133,4 @@ Source anchors
 - [doRoutine fsm queue](../../dev/AETHR.lua:323)
 - [runScheduledTasks](../../dev/AETHR.lua:327)
 - [return next time](../../dev/AETHR.lua:328)
+

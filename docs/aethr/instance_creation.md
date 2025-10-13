@@ -18,7 +18,7 @@ Instance creation flow
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
-flowchart LR
+flowchart
   %% Logical groupings
   subgraph SETUP [Instance setup]
     N[New called]
@@ -50,12 +50,6 @@ flowchart LR
   P1 --> P2
   P2 --> RT[Return instance]
 
-  %% Legend
-  subgraph Legend [Legend]
-    L1[Core (entry/return)]
-    L2[Process step]
-    L1 -- "control flow" --> L2
-  end
 
   %% Styles
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -69,7 +63,6 @@ flowchart LR
   style SETUP fill:#f9f9f9,stroke:#ccc,stroke-width:2px
   style CONFIG_PATHS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
   style MODULES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
-  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Sequence details
@@ -80,8 +73,6 @@ sequenceDiagram
   participant A as AETHR
   participant C as CONFIG
   participant F as FILEOPS
-
-  Note over A,C,F: Legend: ->> call; -->> return; alt/else branch; loop iteration
 
   A->>A: shallow copy of CONFIG tables
   A->>A: set mission id

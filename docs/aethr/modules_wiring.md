@@ -16,31 +16,11 @@ Flow of module wiring
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
-flowchart LR
-  %% Logical groupings
-  subgraph INPUT [Inputs]
-    M[AETHR MODULES list]
-  end
-  subgraph BUILD [List build]
-    L[Build modules list copy]
-  end
-  subgraph WIRING [Wiring phases]
-    P1[Phase 1 construct submodules]
-    P2[Phase 2 inject backrefs and siblings]
-    D[Instance modules wired]
-  end
-
-  M --> L
-  L --> P1
-  P1 --> P2
-  P2 --> D
-
-  %% Legend
-  subgraph Legend [Legend]
-    L1[Core (fixed components)]
-    L2[Process step]
-    L1 -- "control flow" --> L2
-  end
+flowchart
+  M[AETHR MODULES list] --> L[Build modules list copy]
+  L --> P1[Phase 1 construct submodules]
+  P1 --> P2[Phase 2 inject backrefs and siblings]
+  P2 --> D[Instance modules wired]
 
   %% Styles
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -49,12 +29,6 @@ flowchart LR
   %% Apply classes
   class M,D core
   class L,P1,P2 process
-
-  %% Subgraph styles
-  style INPUT fill:#f9f9f9,stroke:#ccc,stroke-width:2px
-  style BUILD fill:#f9f9f9,stroke:#ccc,stroke-width:2px
-  style WIRING fill:#fff0e6,stroke:#ff9900,stroke-width:2px
-  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Phase 1 construction
@@ -68,9 +42,6 @@ Phase 1 construction
 sequenceDiagram
   participant A as AETHR
   participant Mod as Module prototype
-
-  Note over A, Mod: Legend: ->> call; -->> return; alt/else branch; loop iteration
-
   loop each name in modules list
     A->>Mod: try construct via New
     alt returns table
@@ -90,9 +61,6 @@ Phase 2 backrefs and sibling injection
 sequenceDiagram
   participant A as AETHR
   participant S as Submodule
-
-  Note over A, S: Legend: -->> assignment; loop = iteration over submodules/siblings
-
   loop each submodule
     A-->>S: ensure AETHR reference
     loop each sibling
