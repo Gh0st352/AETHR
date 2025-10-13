@@ -17,26 +17,72 @@ The constructor [AETHR:New()](../../dev/AETHR.lua:65) creates an instance table 
 Instance creation flow
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
-  N[New called] --> I[Create instance table]
-  I --> SC[Clone config subtables]
-  SC --> ID[Select mission id]
-  ID --> WD[Resolve savegame dir]
-  WD --> JP[Compute config folder path]
-  JP --> TH[Capture theater if available]
-  TH --> ML[Build modules list]
-  ML --> P1[Phase 1 construct submodules]
-  P1 --> P2[Phase 2 wire backrefs and siblings]
+  %% Logical groupings
+  subgraph SETUP [Instance setup]
+    N[New called]
+    I[Create instance table]
+  end
+
+  subgraph CONFIG_PATHS [Config and paths]
+    SC[Clone config subtables]
+    ID[Select mission id]
+    WD[Resolve savegame dir]
+    JP[Compute config folder path]
+    TH[Capture theater if available]
+  end
+
+  subgraph MODULES [Modules]
+    ML[Build modules list]
+    P1[Phase 1 construct submodules]
+    P2[Phase 2 wire backrefs and siblings]
+  end
+
+  N --> I
+  I --> SC
+  SC --> ID
+  ID --> WD
+  WD --> JP
+  JP --> TH
+  TH --> ML
+  ML --> P1
+  P1 --> P2
   P2 --> RT[Return instance]
+
+  %% Legend
+  subgraph Legend [Legend]
+    L1[Core (entry/return)]
+    L2[Process step]
+    L1 -- "control flow" --> L2
+  end
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class N,RT core
+  class I,SC,ID,WD,JP,TH,ML,P1,P2 process
+
+  %% Subgraph styles
+  style SETUP fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style CONFIG_PATHS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style MODULES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Sequence details
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant C as CONFIG
   participant F as FILEOPS
+
+  Note over A,C,F: Legend: ->> call; -->> return; alt/else branch; loop iteration
+
   A->>A: shallow copy of CONFIG tables
   A->>A: set mission id
   alt lfs writedir available

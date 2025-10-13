@@ -28,40 +28,124 @@ Breakout pages
 Instance creation and wiring
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
-  N[New instance] --> C[Clone CONFIG defaults]
-  C --> ID[Apply mission id]
-  ID --> SD[Resolve savegame dir]
-  SD --> PC[Compute CONFIG paths]
-  PC --> AM[Attach modules from AETHR MODULES]
-  AM --> BR[Wire backrefs and siblings]
+  %% Logical groupings
+  subgraph CONFIG_PATHS [Config and paths]
+    C[Clone CONFIG defaults]
+    ID[Apply mission id]
+    SD[Resolve savegame dir]
+    PC[Compute CONFIG paths]
+  end
+
+  subgraph MODULES [Modules]
+    AM[Attach modules from AETHR MODULES]
+    BR[Wire backrefs and siblings]
+  end
+
+  N[New instance] --> C
+  C --> ID
+  ID --> SD
+  SD --> PC
+  PC --> AM
+  AM --> BR
   BR --> RT[Return instance]
+
+  %% Legend
+  subgraph Legend [Legend]
+    L1[Core (entry/return)]
+    L2[Process step]
+    L1 -- "control flow" --> L2
+  end
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class N,RT core
+  class C,ID,SD,PC,AM,BR process
+
+  %% Subgraph styles
+  style CONFIG_PATHS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style MODULES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Init orchestration
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
-  I[Init] --> P1[Ensure storage folders]
-  P1 --> L1[CONFIG initConfig]
-  L1 --> Z1[ZONE_MANAGER initMizZoneData]
-  Z1 --> W1[WORLD initWorldDivisions]
-  W1 --> W2[WORLD initActiveDivisions]
-  W2 --> W3[WORLD initMizFileCache]
-  W3 --> ZB[ZONE_MANAGER game bounds and arrows]
-  ZB --> T1[WORLD initTowns and ZONE_MANAGER pairTowns]
-  T1 --> US[Load and save USERSTORAGE]
-  US --> CS[saveConfig]
+  %% Logical groupings
+  subgraph PREP [Preparation]
+    P1[Ensure storage folders]
+  end
+
+  subgraph INIT_MODS [Initialize modules]
+    L1[CONFIG initConfig]
+    Z1[ZONE_MANAGER initMizZoneData]
+    W1[WORLD initWorldDivisions]
+    W2[WORLD initActiveDivisions]
+    W3[WORLD initMizFileCache]
+  end
+
+  subgraph ZONES [Zones]
+    ZB[ZONE_MANAGER game bounds and arrows]
+    T1[WORLD initTowns and ZONE_MANAGER pairTowns]
+  end
+
+  subgraph PERSIST [Persistence]
+    US[Load and save USERSTORAGE]
+    CS[saveConfig]
+  end
+
+  I[Init] --> P1
+  P1 --> L1
+  L1 --> Z1
+  Z1 --> W1
+  W1 --> W2
+  W2 --> W3
+  W3 --> ZB
+  ZB --> T1
+  T1 --> US
+  US --> CS
+
+  %% Legend
+  subgraph Legend [Legend]
+    Lg1[Core (entry/exit)]
+    Lg2[Process step]
+    Lg1 -- "control flow" --> Lg2
+  end
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class I,CS core
+  class P1,L1,Z1,W1,W2,W3,ZB,T1,US process
+
+  %% Subgraph styles
+  style PREP fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style INIT_MODS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style ZONES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style PERSIST fill:#f8f9fa,stroke:#495057,stroke-width:2px
+  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Runtime sequence during Init
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant C as CONFIG
   participant Z as ZONE_MANAGER
   participant W as WORLD
+
+  Note over A,C,Z,W: Legend: ->> call; -->> return; alt/else branch; loop iteration
+
   A->>C: initConfig
   A->>Z: initMizZoneData
   A->>W: initWorldDivisions
@@ -83,11 +167,15 @@ sequenceDiagram
 Background processes loop
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant B as BRAIN
   participant W as WORLD
   participant Z as ZONE_MANAGER
+
+  Note over A,B,W,Z: Legend: ->> call; -->> return; loop = iteration
+
   A->>B: schedule BackgroundProcesses
   loop background loop
     B->>W: updateAirbaseOwnership

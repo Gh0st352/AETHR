@@ -15,16 +15,26 @@ Overview
 Flowchart
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
   S[Start] --> U[Update airbase ownership]
   U --> SCH[Schedule BackgroundProcesses]
   SCH --> W[Setup watchers]
   W --> RT[Return self]
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class S,RT core
+  class U,SCH,W process
 ```
 
 Sequence timeline
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant W as WORLD
@@ -38,9 +48,18 @@ sequenceDiagram
 Watchers registered
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
   SW[setupWatchers] --> Z1[ZONE_MANAGER initWatcher AirbaseOwnership]
   SW --> Z2[ZONE_MANAGER initWatcher ZoneOwnership]
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class SW core
+  class Z1,Z2 process
 ```
 
 Notes

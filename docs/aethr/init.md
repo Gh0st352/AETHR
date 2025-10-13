@@ -21,31 +21,88 @@ The initializer [AETHR:Init()](../../dev/AETHR.lua:199) prepares storage directo
 Flowchart
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
-  I[Init] --> S[Defensive checks]
-  S --> SF[Iterate sub folders]
-  SF --> ED[Ensure directories]
-  ED --> PC[Cache PATHS into CONFIG]
-  PC --> C[CONFIG initConfig]
-  C --> Z[ZONE_MANAGER initMizZoneData]
-  Z --> W1[WORLD initWorldDivisions]
-  W1 --> W2[WORLD initActiveDivisions]
-  W2 --> W3[WORLD initMizFileCache]
-  W3 --> LWO[Optional learn world objects]
-  LWO --> ZP[If zones present do zone flows]
-  ZP --> US[load and save USERSTORAGE]
-  US --> CS[saveConfig]
+  %% Logical groupings
+  subgraph STORAGE [Storage prep]
+    S[Defensive checks]
+    SF[Iterate sub folders]
+    ED[Ensure directories]
+    PC[Cache PATHS into CONFIG]
+  end
+
+  subgraph INIT_MODS [Initialize modules]
+    C[CONFIG initConfig]
+    Z[ZONE_MANAGER initMizZoneData]
+    W1[WORLD initWorldDivisions]
+    W2[WORLD initActiveDivisions]
+    W3[WORLD initMizFileCache]
+  end
+
+  subgraph LEARNING [Optional object learning]
+    LWO[Optional learn world objects]
+  end
+
+  subgraph ZONES [Zones present flows]
+    ZP[If zones present do zone flows]
+  end
+
+  subgraph PERSIST [Persistence]
+    US[load and save USERSTORAGE]
+    CS[saveConfig]
+  end
+
+  I[Init] --> S
+  S --> SF
+  SF --> ED
+  ED --> PC
+  PC --> C
+  C --> Z
+  Z --> W1
+  W1 --> W2
+  W2 --> W3
+  W3 --> LWO
+  LWO --> ZP
+  ZP --> US
+  US --> CS
+
+  %% Legend
+  subgraph Legend [Legend]
+    L1[Core (entry/exit)]
+    L2[Process step]
+    L1 -- "control flow" --> L2
+  end
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class I,CS core
+  class S,SF,ED,PC,C,Z,W1,W2,W3,LWO,ZP,US process
+
+  %% Subgraph styles
+  style STORAGE fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style INIT_MODS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style LEARNING fill:#e6ffe6,stroke:#009900,stroke-width:2px
+  style ZONES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style PERSIST fill:#f8f9fa,stroke:#495057,stroke-width:2px
+  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Sequence timeline
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant F as FILEOPS
   participant C as CONFIG
   participant Z as ZONE_MANAGER
   participant W as WORLD
+
+  Note over A,F,C,Z,W: Legend: ->> call; -->> return; alt = branch; loop = iteration
+
   A->>A: read SUB_FOLDERS
   loop each folder
     A->>F: joinPaths to build full path

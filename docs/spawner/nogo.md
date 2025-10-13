@@ -55,7 +55,7 @@ sequenceDiagram
   participant Units as generateVec2UnitPos
   participant Spawner as SPAWNER
   participant Poly as POLY
-  note over Centers,Units: After fast grid checks and strict building direct checks
+  Note over Centers,Units: After fast grid checks and strict building direct checks
   Centers->>Spawner: checkIsInNOGO(candidate, zones.restricted)
   Units->>Spawner: checkIsInNOGO(candidate, zones.restricted)
   alt UseRestrictedZonePolys disabled

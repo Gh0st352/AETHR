@@ -21,40 +21,100 @@ Overview
 Loop flow
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
+  %% Logical groupings
+  subgraph WORLD [WORLD]
+    R1[Airbase ownership]
+    R2[Zone ownership]
+    R3[Zone colors]
+    R4[Zone arrows]
+    R5[Ground units DB]
+  end
+  subgraph SPAWNER [SPAWNER]
+    R6[Spawn groups]
+    R7[Despawn groups]
+    R8[Spawner generation queue]
+  end
+  subgraph FSM [FSM]
+    R9[FSM queue process]
+  end
+  subgraph BRAIN [BRAIN]
+    RS[Run scheduled tasks]
+  end
+
   BP[BackgroundProcesses] --> N[now timestamp]
-  N --> R1[Airbase ownership]
-  R1 --> R2[Zone ownership]
-  R2 --> R3[Zone colors]
-  R3 --> R4[Zone arrows]
-  R4 --> R5[Ground units DB]
-  R5 --> R6[Spawn groups]
-  R6 --> R7[Despawn groups]
-  R7 --> R8[Spawner generation queue]
-  R8 --> R9[FSM queue process]
-  R9 --> RS[Run scheduled tasks]
+  N --> R1
+  R1 --> R2
+  R2 --> R3
+  R3 --> R4
+  R4 --> R5
+  R5 --> R6
+  R6 --> R7
+  R7 --> R8
+  R8 --> R9
+  R9 --> RS
   RS --> NX[Return next time]
+
+  %% Legend
+  subgraph Legend [Legend]
+    L1[Core (entry/return)]
+    L2[Process step]
+    L1 -- "control flow" --> L2
+  end
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class BP,NX core
+  class N,R1,R2,R3,R4,R5,R6,R7,R8,R9,RS process
+
+  %% Subgraph styles
+  style WORLD fill:#e6ffe6,stroke:#009900,stroke-width:2px
+  style SPAWNER fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style FSM fill:#f8f9fa,stroke:#495057,stroke-width:2px
+  style BRAIN fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+  style Legend fill:#f9f9f9,stroke:#ccc,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
 Coroutine scheduling timeline
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant B as BRAIN
   participant W as WORLD
   participant F as FSM
+
+  Note over A,B: Legend: ->> call; -->> return; alt/else branch; loop iteration
+
   A->>A: now = timer.getTime
-  A->>B: doRoutine updateAirfieldOwnership with W.updateAirbaseOwnership
-  A->>B: doRoutine updateZoneOwnership with W.updateZoneOwnership
-  A->>B: doRoutine updateZoneColors with W.updateZoneColors
-  A->>B: doRoutine updateZoneArrows with W.updateZoneArrows
-  A->>B: doRoutine updateGroundUnitsDB with W.updateGroundUnitsDB
-  A->>B: doRoutine spawnGroundGroups with W.spawnGroundGroups
-  A->>B: doRoutine despawnGroundGroups with W.despawnGroundGroups
-  A->>B: doRoutine spawnerGenerationQueue with W.spawnerGenerationQueue
-  A->>B: doRoutine processFSMQueue with F.processQueue
-  A->>B: runScheduledTasks tick 2
+
+  rect rgb(230,243,255)
+    A->>B: doRoutine updateAirfieldOwnership with W.updateAirbaseOwnership
+    A->>B: doRoutine updateZoneOwnership with W.updateZoneOwnership
+    A->>B: doRoutine updateZoneColors with W.updateZoneColors
+    A->>B: doRoutine updateZoneArrows with W.updateZoneArrows
+    A->>B: doRoutine updateGroundUnitsDB with W.updateGroundUnitsDB
+  end
+
+  rect rgb(255,240,230)
+    A->>B: doRoutine spawnGroundGroups with W.spawnGroundGroups
+    A->>B: doRoutine despawnGroundGroups with W.despawnGroundGroups
+    A->>B: doRoutine spawnerGenerationQueue with W.spawnerGenerationQueue
+  end
+
+  rect rgb(249,249,249)
+    A->>B: doRoutine processFSMQueue with F.processQueue
+  end
+
+  rect rgb(255,243,205)
+    A->>B: runScheduledTasks tick 2
+  end
+
   A-->>A: return now plus interval
 ```
 

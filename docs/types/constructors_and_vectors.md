@@ -38,7 +38,9 @@ flowchart TD
   BB --> BBminy[miny default 0]
   BB --> BBmaxy[maxy default 0]
 
-  note over BBminx,BBmaxy Bounding box used for coarse filtering in zone grids
+  NB[Bounding box used for coarse filtering in zone grids]
+  BBminx -.-> NB
+  NB -.-> BBmaxy
 ```
 
 Key creation paths

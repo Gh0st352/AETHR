@@ -15,6 +15,7 @@ User specific data is persisted to and loaded from a configured folder and filen
 Flowchart
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
   L[loadUSERSTORAGE] --> LD[FILEOPS loadData]
   LD --> CK[Data present]
@@ -22,11 +23,20 @@ flowchart LR
   CK -->|no| SK[Skip assign keep defaults]
   AS --> RT[Return self]
   SK --> RT
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class L,RT core
+  class LD,CK,AS,SK process
 ```
 
 Sequence timeline
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant F as FILEOPS
@@ -43,14 +53,24 @@ sequenceDiagram
 Save flow
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
 flowchart LR
   S[saveUSERSTORAGE] --> SD[FILEOPS saveData]
   SD --> RT[Return self]
+
+  %% Styles
+  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
+  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
+
+  %% Apply classes
+  class S,RT core
+  class SD process
 ```
 
 Sequence timeline for save
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
 sequenceDiagram
   participant A as AETHR
   participant F as FILEOPS
