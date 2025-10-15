@@ -45,15 +45,15 @@ sequenceDiagram
   alt guards pass
     C->>F: loadData CONFIG_FOLDER AETHR_Config.lua
     F-->>C: table or nil
-    opt success path
+    alt loaded table
       C-->>C: MAIN = loaded
-    end
-    opt failure path
+    else not found or error
       C->>F: saveData CONFIG_FOLDER AETHR_Config.lua MAIN
       F-->>C: ok or error
-      opt error
+      alt save error
         C->>U: debugInfo Failed saving config
       end
+    end
   else guards fail
     C-->>C: return nil or false
   end
