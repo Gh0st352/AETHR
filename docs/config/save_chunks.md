@@ -27,20 +27,29 @@ Configuration
 Flow overview
 
 ```mermaid
-flowchart LR
-  DB[dataset table] --> CS[compute chunkSize from CONFIG saveChunks]
-  CS --> SK[collect and sort keys]
-  SK --> FILL[fill part map up to chunkSize]
-  FILL --> FLUSH[write part file name.partNNNN]
-  FLUSH --> REPEAT[repeat until done]
-  REPEAT --> TRACK[write tracker baseName file with ordered parts]
-  TRACK --> META[return metadata parts partCount totalRecords chunkSize folder]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph CHUNK_FLOW [Chunked persistence flow]
+    style CHUNK_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    DB[dataset table] --> CS[compute chunkSize from CONFIG saveChunks]
+    CS --> SK[collect and sort keys]
+    SK --> FILL[fill part map up to chunkSize]
+    FILL --> FLUSH[write part file name.partNNNN]
+    FLUSH --> REPEAT[repeat until done]
+    REPEAT --> TRACK[write tracker baseName file with ordered parts]
+    TRACK --> META[return metadata: parts, partCount, totalRecords, chunkSize, folder]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class DB,CS,SK,FILL,FLUSH,REPEAT,TRACK,META node
 ```
 
 Read sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant F as FILEOPS
   F->>F: load master file
   alt master is tracker
@@ -52,6 +61,7 @@ sequenceDiagram
     F-->>F: return merged dataset
   else master is full dataset
     F-->>F: return master directly
+  end
   end
 ```
 
@@ -69,11 +79,18 @@ WORLD integrations
 Parameter resolution
 
 ```mermaid
-flowchart TD
-  CFG[CONFIG MAIN saveChunks] --> DIV[divObjects]
-  CFG --> TOWN[townDB]
-  DIV --> WDIV[WORLD _initObjectsInDivisions chunk size]
-  TOWN --> WTOWN[WORLD saveTowns chunk size]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph PARAM_RES [Parameter resolution]
+    style PARAM_RES fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    CFG[CONFIG MAIN saveChunks] --> DIV[divObjects]
+    CFG --> TOWN[townDB]
+    DIV --> WDIV[WORLD _initObjectsInDivisions chunk size]
+    TOWN --> WTOWN[WORLD saveTowns chunk size]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class CFG,DIV,TOWN,WDIV,WTOWN node
 ```
 
 Determinism

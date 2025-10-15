@@ -40,13 +40,20 @@ Paint settings structure
 Color selection flow
 
 ```mermaid
-flowchart LR
-  OWN[zone.ownedBy] --> LC[Pick LineColors[ownedBy] or index 0]
-  OWN --> FC[Pick FillColors[ownedBy] or index 0]
-  LC --> LRGBA[Compose line RGBA using LineAlpha]
-  FC --> FRGBA[Compose fill RGBA using FillAlpha]
-  LRGBA --> APPLY[UTILS updateMarkupColors]
-  FRGBA --> APPLY
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph COLOR_FLOW [Color selection flow]
+    style COLOR_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    OWN[zone.ownedBy] --> LC[Pick LineColors for ownedBy or index 0]
+    OWN --> FC[Pick FillColors for ownedBy or index 0]
+    LC --> LRGBA[Compose line RGBA using LineAlpha]
+    FC --> FRGBA[Compose fill RGBA using FillAlpha]
+    LRGBA --> APPLY[UTILS.updateMarkupColors]
+    FRGBA --> APPLY
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class OWN,LC,FC,LRGBA,FRGBA,APPLY node
 ```
 
 - Implemented in [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
@@ -55,7 +62,9 @@ flowchart LR
 Sequence for zone color updates
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant W as WORLD
   participant U as UTILS
   W->>W: for each zone compute new owner
@@ -65,6 +74,7 @@ sequenceDiagram
   else unchanged
     W-->>W: no-op
   end
+  end
 ```
 
 Arrow visibility logic
@@ -72,20 +82,23 @@ Arrow visibility logic
 - WORLD shows arrows on borders only when adjacent zones differ in ownership; it toggles visibility by setting arrow markup alpha to 0 or configured alpha.
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant W as WORLD
   participant U as UTILS
   W->>W: for each bordering zone compute desiredShown
   alt new coalition differs from lastShown
     opt hide previous
-      W->>U: updateMarkupColors markID{last} rgba0 rgba0
+      W->>U: updateMarkupColors markID_last rgba0 rgba0
     end
     opt show new
-      W->>U: updateMarkupColors markID{new} rgbaA rgbaA
+      W->>U: updateMarkupColors markID_new rgbaA rgbaA
     end
     W-->>W: borderDetail.lastShownCoalition = desiredShown
   else no change
     W-->>W: no-op
+  end
   end
 ```
 
@@ -101,16 +114,23 @@ Game bounds visuals are configured under Zone.gameBounds and consumed by zone-ma
 Bounds rendering configuration
 
 ```mermaid
-flowchart TD
-  CFG[Zone.gameBounds settings] --> LC[LineColors]
-  CFG --> FC[FillColors]
-  CFG --> LA[LineAlpha]
-  CFG --> FA[FillAlpha]
-  CFG --> LT[lineType]
-  CFG --> OOB[getOutOfBounds]
-  OOB --> S1[samplesPerEdge]
-  OOB --> S2[useHoleSinglePolygon]
-  OOB --> S3[snapDistance]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph BOUNDS_CFG [Bounds rendering configuration]
+    style BOUNDS_CFG fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    CFG[Zone.gameBounds settings] --> LC[LineColors]
+    CFG --> FC[FillColors]
+    CFG --> LA[LineAlpha]
+    CFG --> FA[FillAlpha]
+    CFG --> LT[lineType]
+    CFG --> OOB[getOutOfBounds]
+    OOB --> S1[samplesPerEdge]
+    OOB --> S2[useHoleSinglePolygon]
+    OOB --> S3[snapDistance]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class CFG,LC,FC,LA,FA,LT,OOB,S1,S2,S3 node
 ```
 
 Key fields and defaults

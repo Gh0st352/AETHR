@@ -17,18 +17,27 @@ Documents and indices
 Init and persistence flow
 
 ```mermaid
-flowchart LR
-  I[initConfig] --> T[Try loadConfig]
-  T -->|ok and table| R[Replace MAIN with loaded]
-  T -->|nil or error| P[Persist defaults via saveConfig]
-  R --> RET[return self]
-  P --> RET
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph INIT_FLOW [Init and persistence flow]
+    style INIT_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    I[initConfig] --> T[Try loadConfig]
+    T -->|ok and table| R[Replace MAIN with loaded]
+    T -->|nil or error| P[Persist defaults via saveConfig]
+    R --> RET[return self]
+    P --> RET
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class I,T,R,P,RET node
 ```
 
 Storage guards and calls
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant C as CONFIG
   participant F as FILEOPS
   participant U as UTILS
@@ -48,16 +57,24 @@ sequenceDiagram
   else guards fail
     C-->>C: return nil or false
   end
+  end
 ```
 
 Paths and filenames resolution
 
 ```mermaid
-flowchart LR
-  N[New instance] --> JP[joinPaths SAVEGAME_DIR ROOT_FOLDER CONFIG_FOLDER]
-  JP --> CF[CONFIG.PATHS.CONFIG_FOLDER]
-  CF --> L1[loadConfig uses path and AETHER_CONFIG_FILE]
-  CF --> S1[saveConfig uses path and AETHER_CONFIG_FILE]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph PATHS_FLOW [Paths and filenames resolution]
+    style PATHS_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    N[New instance] --> JP[joinPaths SAVEGAME_DIR ROOT_FOLDER CONFIG_FOLDER]
+    JP --> CF[CONFIG.PATHS.CONFIG_FOLDER]
+    CF --> L1[loadConfig uses path and AETHER_CONFIG_FILE]
+    CF --> S1[saveConfig uses path and AETHER_CONFIG_FILE]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class N,JP,CF,L1,S1 node
 ```
 
 Source anchors
@@ -89,12 +106,19 @@ Detailed CONFIG analysis pages with Mermaid diagrams and sequence charts.
 High-level overview
 
 ```mermaid
-flowchart LR
-  New[AETHR New] --> Paths[Compute CONFIG PATHS]
-  Init[AETHR Init] --> Zones[ZONE_MANAGER init]
-  Init --> World[WORLD init divisions and caches]
-  Init --> Config[CONFIG initConfig]
-  Config --> Load[loadConfig]
-  Load -->|ok table| Use[Use loaded MAIN]
-  Load -->|nil| Save[saveConfig defaults]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph START [Startup overview]
+    style START fill:#ffe6cc,stroke:#e6b87a,stroke-width:2px
+    New[AETHR New] --> Paths[Compute CONFIG PATHS]
+    Init[AETHR Init] --> Zones[ZONE_MANAGER init]
+    Init --> World[WORLD init divisions and caches]
+    Init --> Config[CONFIG initConfig]
+    Config --> Load[loadConfig]
+    Load -->|ok table| Use[Use loaded MAIN]
+    Load -->|nil| Save[saveConfig defaults]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class New,Paths,Init,Zones,World,Config,Load,Use,Save node
 ```

@@ -18,19 +18,28 @@ initConfig performs a best effort load of persisted MAIN configuration and falls
 Init chain context
 
 ```mermaid
-flowchart LR
-  AETHR_Init[AETHR Init] --> CONFIG_init[CONFIG initConfig]
-  CONFIG_init --> TryLoad[Try loadConfig]
-  TryLoad -->|ok and table| Replace[Replace MAIN with loaded]
-  TryLoad -->|nil or error| Persist[Persist defaults via saveConfig]
-  Replace --> ReturnSelf[return self]
-  Persist --> ReturnSelf
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph INIT_CHAIN [Init chain context]
+    style INIT_CHAIN fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    AETHR_Init[AETHR Init] --> CONFIG_init[CONFIG initConfig]
+    CONFIG_init --> TryLoad[Try loadConfig]
+    TryLoad -->|ok and table| Replace[Replace MAIN with loaded]
+    TryLoad -->|nil or error| Persist[Persist defaults via saveConfig]
+    Replace --> ReturnSelf[return self]
+    Persist --> ReturnSelf
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class AETHR_Init,CONFIG_init,TryLoad,Replace,Persist,ReturnSelf node
 ```
 
 Sequence of calls
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant A as AETHR
   participant C as CONFIG
   participant F as FILEOPS
@@ -46,6 +55,7 @@ sequenceDiagram
     end
   end
   A-->>A: continue Init sequence
+  end
 ```
 
 Guarding and failure modes
@@ -84,13 +94,20 @@ Detailed logic per function
 Error handling matrix
 
 ```mermaid
-flowchart TD
-  G[Guards present] --> LD[loadData call]
-  LD -->|returns table| OK[Use loaded]
-  LD -->|nil or error| SV[save defaults]
-  SV -->|save ok| RET[return self]
-  SV -->|save error| LOG[emit debugInfo]
-  LOG --> RET
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph ERROR_MATRIX [Error handling matrix]
+    style ERROR_MATRIX fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    G[Guards present] --> LD[loadData call]
+    LD -->|returns table| OK[Use loaded]
+    LD -->|nil or error| SV[save defaults]
+    SV -->|save ok| RET[return self]
+    SV -->|save error| LOG[emit debugInfo]
+    LOG --> RET
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class G,LD,OK,SV,RET,LOG node
 ```
 
 Persistence file and directory

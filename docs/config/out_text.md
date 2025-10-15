@@ -40,14 +40,17 @@ zoneOwnershipChange:
 Ownership change flow
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant W as WORLD
   participant T as DCS trigger.action
   W->>W: detect ownership change
   alt airbase change
-    W->>T: outText message, duration=CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.displayTime
+    W->>T: outText message (airbase), duration = CONFIG.MAIN.outTextSettings.airbaseOwnershipChange.displayTime
   else zone change
-    W->>T: outText message, duration=CONFIG.MAIN.outTextSettings.zoneOwnershipChange.displayTime
+    W->>T: outText message (zone), duration = CONFIG.MAIN.outTextSettings.zoneOwnershipChange.displayTime
+  end
   end
 ```
 

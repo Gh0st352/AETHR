@@ -31,7 +31,9 @@ Gating flows
 LEARN_WORLD_OBJECTS controls whether world object discovery and per-division caches are initialized.
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
+  rect rgba(255,255,255,0.75)
   participant A as AETHR
   participant W as WORLD
   A->>A: Init
@@ -41,6 +43,7 @@ sequenceDiagram
     A->>W: initStaticInDivisions
   else false
     A-->>A: skip object learning flows
+  end
   end
 ```
 
@@ -56,10 +59,17 @@ Counters lifecycle
 COUNTERS provide monotonic seeds for IDs such as map markers. Example usage increments the MARKERS counter during world division rendering.
 
 ```mermaid
-flowchart LR
-  C[COUNTERS.MARKERS seed] --> D[Draw polygon markups]
-  D --> INC[Increment marker id]
-  INC --> SAVE[Write back to COUNTERS.MARKERS]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph COUNTER_FLOW [Counter increment flow]
+    style COUNTER_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    C[COUNTERS.MARKERS seed] --> D[Draw polygon markups]
+    D --> INC[Increment marker id]
+    INC --> SAVE[Write back to COUNTERS.MARKERS]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class C,D,INC,SAVE node
 ```
 
 Example path

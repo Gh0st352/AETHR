@@ -29,14 +29,21 @@ Overview
 Generation pipeline
 
 ```mermaid
-flowchart LR
-  WB[CONFIG MAIN worldBounds THEATER] --> BP[POLY convertBoundsToPolygon]
-  WDA[CONFIG MAIN worldDivisionArea] --> DP[POLY dividePolygon by area]
-  BP --> DP
-  DP --> DIVS[worldDivisions with IDs]
-  DIVS --> AABB[buildWorldDivAABBCache]
-  DIVS --> SAVE[saveWorldDivisions]
-  AABB --> SAVE_AABB[saveWorldDivisionsAABB]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph GEN_PIPE [Generation pipeline]
+    style GEN_PIPE fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    WB[CONFIG MAIN worldBounds THEATER] --> BP[POLY convertBoundsToPolygon]
+    WDA[CONFIG MAIN worldDivisionArea] --> DP[POLY dividePolygon by area]
+    BP --> DP
+    DP --> DIVS[worldDivisions with IDs]
+    DIVS --> AABB[buildWorldDivAABBCache]
+    DIVS --> SAVE[saveWorldDivisions]
+    AABB --> SAVE_AABB[saveWorldDivisionsAABB]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class WB,BP,WDA,DP,DIVS,AABB,SAVE,SAVE_AABB node
 ```
 
 Initialization and reuse
@@ -62,12 +69,19 @@ sequenceDiagram
 Activation against zones
 
 ```mermaid
-flowchart TD
-  DIVS[worldDivisions] --> GRID[initGrid metrics]
-  ZONES[MIZ_ZONES polygons] --> INDEX[buildZoneCellIndex]
-  GRID --> INDEX
-  INDEX --> TEST[checkDivisionsInZones overlap tests]
-  TEST --> ACTIVE[generateActiveDivisions saveDivisions]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart TB
+  subgraph ACTIVATION [Activation against zones]
+    style ACTIVATION fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    DIVS[worldDivisions] --> GRID[initGrid metrics]
+    ZONES[MIZ_ZONES polygons] --> INDEX[buildZoneCellIndex]
+    GRID --> INDEX
+    INDEX --> TEST[checkDivisionsInZones overlap tests]
+    TEST --> ACTIVE[generateActiveDivisions saveDivisions]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class DIVS,GRID,ZONES,INDEX,TEST,ACTIVE node
 ```
 
 Key logic details

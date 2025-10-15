@@ -32,175 +32,203 @@ The MAIN config table defines user facing defaults, storage layout, visualizatio
 High level relationships
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
 flowchart LR
-  MAIN[CONFIG MAIN] --> ZS[ZoneSettings]
-  MAIN --> GB[GameBoundsSettings]
-  MAIN --> MZ[MizZones]
-  MAIN --> FL[Flags]
-  MAIN --> CT[Counters]
-  MAIN --> ST[Storage]
-  MAIN --> WB[worldBounds]
-  MAIN --> SC[saveChunks]
-  MAIN --> OT[outTextSettings]
-  ST --> PATHS[PATHS map]
-  ST --> FNS[FILENAMES map]
-  ST --> SF[SUB_FOLDERS constants]
+  %% Main configuration relationships (grouped)
+  subgraph MAIN_BLOCK [CONFIG MAIN]
+    style MAIN_BLOCK fill:#ffe6cc,stroke:#e6b87a,stroke-width:2px
+    MAIN[CONFIG MAIN] --> ZS[ZoneSettings]
+    MAIN --> GB[GameBoundsSettings]
+    MAIN --> MZ[MizZones]
+    MAIN --> FL[Flags]
+    MAIN --> CT[Counters]
+    MAIN --> ST[Storage]
+    MAIN --> WB[worldBounds]
+    MAIN --> SC[saveChunks]
+    MAIN --> OT[outTextSettings]
+  end
+
+  subgraph STORAGE_BLOCK [Storage internals]
+    style STORAGE_BLOCK fill:#dae8fc,stroke:#9bb5e8,stroke-width:2px
+    ST --> PATHS[PATHS map]
+    ST --> FNS[FILENAMES map]
+    ST --> SF[SUB_FOLDERS constants]
+  end
+
+  %% Node visual style
+  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class MAIN node
+  class ZS node
+  class GB node
+  class MZ node
+  class FL node
+  class CT node
+  class ST node
+  class WB node
+  class SC node
+  class OT node
+  class PATHS node
+  class FNS node
+  class SF node
 ```
 
 Class diagram
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
 classDiagram
+  %% Simplified member type annotations to ensure GitHub Mermaid compatibility.
   class CONFIG_MAIN {
-    VERSION string
-    AUTHOR string
-    GITHUB string
-    THEATER string
-    DESCRIPTION string[]
-    MISSION_ID string
-    DEBUG_ENABLED boolean
-    DefaultRedCountry number
-    DefaultBlueCountry number
-    spawnTemplateSearchString string
-    MIZ_ZONES MizZones
-    FLAGS Flags
-    COUNTERS Counters
-    STORAGE Storage
-    worldDivisionArea number
-    worldBounds map string BoundsCoord
-    Zone ZoneSettings
-    saveChunks SaveChunks
-    outTextSettings OutTextSettings
+    VERSION : string
+    AUTHOR : string
+    GITHUB : string
+    THEATER : string
+    DESCRIPTION : stringArray
+    MISSION_ID : string
+    DEBUG_ENABLED : boolean
+    DefaultRedCountry : number
+    DefaultBlueCountry : number
+    spawnTemplateSearchString : string
+    MIZ_ZONES : MizZones
+    FLAGS : Flags
+    COUNTERS : Counters
+    STORAGE : Storage
+    worldDivisionArea : number
+    worldBounds : map
+    Zone : ZoneSettings
+    saveChunks : SaveChunks
+    outTextSettings : OutTextSettings
   }
 
   class MizZones {
-    ALL string[]
-    REDSTART string[]
-    BLUESTART string[]
+    ALL : stringArray
+    REDSTART : stringArray
+    BLUESTART : stringArray
   }
 
   class Flags {
-    AETHR_FIRST_RUN boolean
-    AETHR_LEARNING_MODE boolean
-    AETHR_DEBUG_MODE boolean
-    LEARN_WORLD_OBJECTS boolean
+    AETHR_FIRST_RUN : boolean
+    AETHR_LEARNING_MODE : boolean
+    AETHR_DEBUG_MODE : boolean
+    LEARN_WORLD_OBJECTS : boolean
   }
 
   class Counters {
-    MARKERS number
-    UNITS number
-    GROUPS number
-    OBJECTS number
-    SCENERY_OBJECTS number
-    STATIC_OBJECTS number
-    DYNAMIC_SPAWNERS number
+    MARKERS : number
+    UNITS : number
+    GROUPS : number
+    OBJECTS : number
+    SCENERY_OBJECTS : number
+    STATIC_OBJECTS : number
+    DYNAMIC_SPAWNERS : number
   }
 
   class Storage {
-    SAVEGAME_DIR string
-    ROOT_FOLDER string
-    CONFIG_FOLDER string
-    SUB_FOLDERS SubFolders
-    PATHS Paths
-    FILENAMES Filenames
+    SAVEGAME_DIR : string
+    ROOT_FOLDER : string
+    CONFIG_FOLDER : string
+    SUB_FOLDERS : SubFolders
+    PATHS : Paths
+    FILENAMES : Filenames
   }
 
   class SubFolders {
-    LEARNING_FOLDER string
-    MAP_FOLDER string
-    UNITS_FOLDER string
-    OBJECTS_FOLDER string
-    USER_FOLDER string
+    LEARNING_FOLDER : string
+    MAP_FOLDER : string
+    UNITS_FOLDER : string
+    OBJECTS_FOLDER : string
+    USER_FOLDER : string
   }
 
   class Paths {
-    LEARNING_FOLDER string
-    CONFIG_FOLDER string
-    MAP_FOLDER string
-    UNITS_FOLDER string
-    OBJECTS_FOLDER string
-    USER_FOLDER string
+    LEARNING_FOLDER : string
+    CONFIG_FOLDER : string
+    MAP_FOLDER : string
+    UNITS_FOLDER : string
+    OBJECTS_FOLDER : string
+    USER_FOLDER : string
   }
 
   class Filenames {
-    AETHER_CONFIG_FILE string
-    WORLD_DIVISIONS_AABB string
-    WORLD_DIVISIONS_FILE string
-    USER_STORAGE_FILE string
-    AIRBASES_FILE string
-    MIZ_ZONES_FILE string
-    SAVE_DIVS_FILE string
-    OBJECTS_FILE string
-    SCENERY_OBJECTS_FILE string
-    STATIC_OBJECTS_FILE string
-    BASE_OBJECTS_FILE string
-    GAME_BOUNDS_FILE string
-    MIZ_CACHE_DB string
-    TOWN_CLUSTERS_FILE string
-    SPAWNER_TEMPLATE_DB string
-    SPAWNER_ATTRIBUTE_DB string
-    _SPAWNER_ATTRIBUTE_DB string
-    SPAWNER_UNIT_CACHE_DB string
+    AETHER_CONFIG_FILE : string
+    WORLD_DIVISIONS_AABB : string
+    WORLD_DIVISIONS_FILE : string
+    USER_STORAGE_FILE : string
+    AIRBASES_FILE : string
+    MIZ_ZONES_FILE : string
+    SAVE_DIVS_FILE : string
+    OBJECTS_FILE : string
+    SCENERY_OBJECTS_FILE : string
+    STATIC_OBJECTS_FILE : string
+    BASE_OBJECTS_FILE : string
+    GAME_BOUNDS_FILE : string
+    MIZ_CACHE_DB : string
+    TOWN_CLUSTERS_FILE : string
+    SPAWNER_TEMPLATE_DB : string
+    SPAWNER_ATTRIBUTE_DB : string
+    _SPAWNER_ATTRIBUTE_DB : string
+    SPAWNER_UNIT_CACHE_DB : string
   }
 
   class AxisRange {
-    min number
-    max number
+    min : number
+    max : number
   }
 
   class BoundsCoord {
-    X AxisRange
-    Z AxisRange
+    X : AxisRange
+    Z : AxisRange
   }
 
   class Color {
-    r number
-    g number
-    b number
-    a number
+    r : number
+    g : number
+    b : number
+    a : number
   }
 
   class PaintColors {
-    LineColors map number Color
-    FillColors map number Color
-    ArrowColors map number Color
-    CircleColors map number Color
-    FillAlpha number
-    LineAlpha number
-    lineType number
+    LineColors : map
+    FillColors : map
+    ArrowColors : map
+    CircleColors : map
+    FillAlpha : number
+    LineAlpha : number
+    lineType : number
   }
 
   class GameBoundsSettings {
-    LineColors Color
-    FillColors Color
-    FillAlpha number
-    LineAlpha number
-    lineType number
-    getOutOfBounds table
+    LineColors : Color
+    FillColors : Color
+    FillAlpha : number
+    LineAlpha : number
+    lineType : number
+    getOutOfBounds : table
   }
 
   class ZoneSettings {
-    paintColors PaintColors
-    gameBounds GameBoundsSettings
-    BorderOffsetThreshold number
-    ArrowLength number
+    paintColors : PaintColors
+    gameBounds : GameBoundsSettings
+    BorderOffsetThreshold : number
+    ArrowLength : number
   }
 
   class OutTextSection {
-    displayTime number
-    clearView boolean
+    displayTime : number
+    clearView : boolean
   }
 
   class OutTextSettings {
-    airbaseOwnershipChange OutTextSection
-    zoneOwnershipChange OutTextSection
+    airbaseOwnershipChange : OutTextSection
+    zoneOwnershipChange : OutTextSection
   }
 
   class SaveChunks {
-    divObjects number
-    townDB number
+    divObjects : number
+    townDB : number
   }
 
+  %% Relationships
   CONFIG_MAIN --> MizZones
   CONFIG_MAIN --> Flags
   CONFIG_MAIN --> Counters
@@ -216,18 +244,55 @@ classDiagram
   ZoneSettings --> GameBoundsSettings
   PaintColors --> Color
   GameBoundsSettings --> Color
+
+  %% Visual styling per Mermaid Rules
+  classDef data fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class CONFIG_MAIN data
+  class MizZones data
+  class Flags data
+  class Counters data
+  class Storage data
+  class SubFolders data
+  class Paths data
+  class Filenames data
+  class AxisRange data
+  class BoundsCoord data
+  class Color data
+  class PaintColors data
+  class GameBoundsSettings data
+  class ZoneSettings data
+  class OutTextSection data
+  class OutTextSettings data
+  class SaveChunks data
 ```
 
 Consumption by modules
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
 flowchart LR
-  MAIN[CONFIG MAIN] --> WORLD[WORLD]
-  MAIN --> ZM[ZONE_MANAGER]
-  MAIN --> FILEOPS[FILEOPS]
-  WORLD --> uses[worldBounds worldDivisionArea saveChunks]
-  ZM --> uses[Zone paintColors gameBounds BorderOffsetThreshold ArrowLength]
-  FILEOPS --> uses[PATHS FILENAMES SUB_FOLDERS]
+  subgraph CONSUME [CONFIG consumption by modules]
+    style CONSUME fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    MAIN[CONFIG MAIN] --> WORLD[WORLD]
+    MAIN --> ZM[ZONE_MANAGER]
+    MAIN --> FILEOPS[FILEOPS]
+  end
+
+  subgraph USAGE [Key fields consumed]
+    style USAGE fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+    WORLD --> uses_world[worldBounds worldDivisionArea saveChunks]
+    ZM --> uses_zm[Zone paintColors gameBounds BorderOffsetThreshold ArrowLength]
+    FILEOPS --> uses_fileops[PATHS FILENAMES SUB_FOLDERS]
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class MAIN node
+  class WORLD node
+  class ZM node
+  class FILEOPS node
+  class uses_world node
+  class uses_zm node
+  class uses_fileops node
 ```
 
 Key usage links
