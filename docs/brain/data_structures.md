@@ -9,14 +9,16 @@ Entry anchors
 Class model
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
 classDiagram
-  class BRAIN_DATA {
+  %% Quote class identifiers to avoid issues with special characters
+  class "BRAIN_DATA" {
     Schedulers : map<int, ScheduledTask>
     SchedulerIDCounter : integer
     coroutines : map<string, CoroutineDescriptor>
     BackgroundLoopInterval : number
   }
-  class ScheduledTask {
+  class "ScheduledTask" {
     active : boolean
     running : boolean
     nextRun : number
@@ -30,7 +32,7 @@ classDiagram
     stopTime : number
     stopAfterIterations : integer
   }
-  class CoroutineDescriptor {
+  class "CoroutineDescriptor" {
     interval : number
     phase : integer
     counter : integer
@@ -39,8 +41,11 @@ classDiagram
     yieldCounter : integer
     desc : string
   }
-  BRAIN_DATA o-- ScheduledTask
-  BRAIN_DATA o-- CoroutineDescriptor
+  "BRAIN_DATA" o-- "ScheduledTask"
+  "BRAIN_DATA" o-- "CoroutineDescriptor"
+
+  classDef data fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class "BRAIN_DATA","ScheduledTask","CoroutineDescriptor" data
 ```
 
 Default coroutine descriptors
@@ -58,10 +63,19 @@ Default coroutine descriptors
 Flow: New instance
 
 ```mermaid
-flowchart TD
-  N1[call BRAIN New] --> N2[create instance with parent AETHR and _cache]
-  N2 --> N3[set metatable with __index self]
-  N3 --> N4[return instance]
+%%{init: {"theme":"base"}}%%
+flowchart 
+  subgraph NEW [BRAIN New instance flow]
+    style NEW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    N1[call BRAIN New]
+    N2[create instance with parent AETHR and _cache]
+    N3[set metatable with __index self]
+    N4[return instance]
+    N1 --> N2 --> N3 --> N4
+  end
+
+  classDef node fill:#f5f5f5,stroke:#bfbfbf
+  class N1,N2,N3,N4 node
 ```
 
 Cross links

@@ -16,38 +16,60 @@ Documents
 Overview relationships
 
 ```mermaid
-flowchart LR
-  BR[BRAIN module] --> SC[Scheduler]
-  BR --> CO[Coroutines]
-  BR --> WT[Watchers]
-  SC --> ST[Scheduled tasks]
-  CO --> WL[WORLD updates]
-  WT -.-> WL
-  WL -.-> SP[Spawner jobs]
-  WL -.-> ZM[Zone manager reactions]
-  ZM -.-> WT
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
+flowchart
+
+  %% Logical core: BRAIN and its areas
+  subgraph CORE [BRAIN core areas]
+    style CORE fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
+    BR[BRAIN module]
+    SC[Scheduler]
+    CO[Coroutines]
+    WT[Watchers]
+    BR --> SC
+    BR --> CO
+    BR --> WT
+  end
+
+  %% Effects and downstream systems
+  subgraph EFFECTS [Runtime effects]
+    style EFFECTS fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    SC --> ST[Scheduled tasks]
+    CO --> WL[WORLD updates]
+    WT -.-> WL
+    WL -.-> SP[Spawner jobs]
+    WL -.-> ZM[Zone manager reactions]
+    ZM -.-> WT
+  end
+
+  classDef nodeStyle fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class BR,SC,CO,WT,ST,WL,SP,ZM nodeStyle
 ```
 
 Runtime sequence overview
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
-  participant A as AETHR
-  participant BR as BRAIN
-  participant WL as WORLD
-  participant ZM as ZONE_MANAGER
-  participant SP as SPAWNER
-  A->>BR: New
-  BR-->>BR: init DATA and descriptors
-  ZM->>BR: buildWatcher for coalition and ownedBy
-  BR-->>WL: on change call ownership handlers
-  loop background loop
-    BR->>BR: doRoutine per descriptor
-    BR-->>WL: call update ownership colors arrows when due
+  %% background rect improves contrast on dark docs
+  rect rgba(255,255,255,0.75)
+    participant A as AETHR
+    participant BR as BRAIN
+    participant WL as WORLD
+    participant ZM as ZONE_MANAGER
+    participant SP as SPAWNER
+    A->>BR: New
+    BR-->>BR: init DATA and descriptors
+    ZM->>BR: buildWatcher for coalition and ownedBy
+    BR-->>WL: on change call ownership handlers
+    loop background loop
+      BR->>BR: doRoutine per descriptor
+      BR-->>WL: call update ownership colors arrows when due
+    end
+    WL->>BR: scheduleTask for spawner queues
+    BR->>BR: runScheduledTasks
+    BR-->>SP: dispatch spawn and despawn
   end
-  WL->>BR: scheduleTask for spawner queues
-  BR->>BR: runScheduledTasks
-  BR-->>SP: dispatch spawn and despawn
 ```
 
 Cross-module indexes

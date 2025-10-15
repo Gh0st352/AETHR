@@ -12,15 +12,20 @@ Class diagram
 ```mermaid
 %%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
 classDiagram
-  %% Use quoted class names to allow dots and periods in identifiers
-  class "AETHR.AI" {
+  %% Use safe identifiers (underscores) for class IDs. Legend below maps IDs to dotted names.
+  %% Legend:
+  %%   AETHR_AI -> "AETHR.AI"
+  %%   AETHR_AI_DBSCANNER -> "AETHR.AI.DBSCANNER"
+  %%   AETHR_AI_DATA_DBSCANNER -> "AETHR.AI.DATA.DBSCANNER"
+
+  class AETHR_AI {
     +New parent : AETHR.AI
     +clusterPoints points area opts : _dbCluster list
     -_cache table
     -AETHR AETHR
   }
 
-  class "AETHR.AI.DBSCANNER" {
+  class AETHR_AI_DBSCANNER {
     +New ai Points Area RadiusExtension params : DBSCANNER
     +generateDBSCANparams : DBSCANNER
     +Scan : DBSCANNER
@@ -50,7 +55,7 @@ classDiagram
     -min_samples_override number
   }
 
-  class "AETHR.AI.DATA.DBSCANNER" {
+  class AETHR_AI_DATA_DBSCANNER {
     +params table
     +_DBScanData map int int
     +Clusters list
@@ -65,19 +70,19 @@ classDiagram
     +_RadiusExtension number
   }
 
-  %% Relationships (use quoted names to avoid parsing issues)
-  "AETHR.AI" ..> "AETHR.AI.DBSCANNER" : uses for clustering
-  "AETHR.AI.DBSCANNER" ..> "AETHR.UTILS" : normalizePoint
-  "AETHR.AI.DBSCANNER" ..> "AETHR" : default params from DATA
+  %% Relationships (use safe IDs)
+  AETHR_AI ..> AETHR_AI_DBSCANNER : uses for clustering
+  AETHR_AI_DBSCANNER ..> AETHR_UTILS : normalizePoint
+  AETHR_AI_DBSCANNER ..> AETHR : default params from DATA
 
   %% Styling for readability
   classDef aiClass fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
   classDef scanner fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
   classDef dataClass fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
 
-  class "AETHR.AI" aiClass
-  class "AETHR.AI.DBSCANNER" scanner
-  class "AETHR.AI.DATA.DBSCANNER" dataClass
+  class AETHR_AI aiClass
+  class AETHR_AI_DBSCANNER scanner
+  class AETHR_AI_DATA_DBSCANNER dataClass
 ```
 
 Field sources

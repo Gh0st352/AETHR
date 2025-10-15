@@ -9,29 +9,45 @@ BRAIN provides a lightweight table proxy that intercepts writes to a specific ke
 Flow: buildWatcher
 
 ```mermaid
-flowchart TD
-  W1[iterate pairs on target table] --> W2[create proxy per entry with __actualValue]
-  W2 --> W3[set metatable with __index passthrough]
-  W3 --> W4[__newindex intercept]
-  W4 --> W5{key equals watched key}
-  W5 -->|yes| W6[call watcherFunction with tableKey newValue extraArgs]
-  W5 -->|no| W7[skip callback]
-  W6 --> W8[update actual value]
-  W7 --> W8[update actual value]
-  W8 --> W9[replace original entry with proxy]
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+flowchart
+  %% buildWatcher: create proxies and intercept writes
+  subgraph BUILD [buildWatcher flow]
+    style BUILD fill:#d5e8d4,stroke:#6b9f73,stroke-width:2px
+    W1[iterate pairs on target table]
+    W2[create proxy per entry with __actualValue]
+    W3[set metatable with __index passthrough]
+    W4[__newindex intercept]
+    W5{key equals watched key}
+    W6[call watcherFunction with tableKey newValue extraArgs]
+    W7[skip callback]
+    W8[update actual value]
+    W9[replace original entry with proxy]
+    W1 --> W2 --> W3 --> W4 --> W5
+    W5 -- "yes" --> W6 --> W8
+    W5 -- "no" --> W7 --> W8
+    W8 --> W9
+  end
+
+  classDef watcher fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class W1,W2,W3,W4,W5,W6,W7,W8,W9 watcher
 ```
 
 Sequence: wiring watchers to WORLD
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
-  participant ZM as ZONE_MANAGER
-  participant BR as BRAIN
-  participant WL as WORLD
-  ZM->>BR: buildWatcher target table and key with handler
-  BR-->>BR: proxy entries and intercept writes
-  alt watched key changes
-    BR-->>WL: invoke handler with provided context
+  %% Background rect improves readability on dark docs
+  rect rgba(255,255,255,0.75)
+    participant ZM as ZONE_MANAGER
+    participant BR as BRAIN
+    participant WL as WORLD
+    ZM->>BR: buildWatcher target table and key with handler
+    BR-->>BR: proxy entries and intercept writes
+    alt watched key changes
+      BR-->>WL: invoke handler with provided context
+    end
   end
 ```
 
