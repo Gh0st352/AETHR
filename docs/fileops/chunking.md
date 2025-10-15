@@ -20,7 +20,7 @@ High-level flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart LR
+flowchart
   %% Write phase
   subgraph Write[Write: split and track]
     DB[dataset table] -- "collect" --> KEYS[collect keys deterministic]
