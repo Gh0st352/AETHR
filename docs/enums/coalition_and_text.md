@@ -30,38 +30,84 @@ Consumers and anchors
 Ownership to text flow
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart LR
-  OWN[Ownership change] --> MAP[Map enum -> label]
-  MAP --> TXT[Build TextStrings message]
-  TXT --> OUT[trigger.action.outText with duration]
+
+%% Classes
+classDef world fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef trigger fill:#f8cecc,stroke:#b85450,stroke-width:2px;
+classDef process fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px;
+
+%% Subgraphs
+subgraph sgWorld [WORLD]
+  OWN[Ownership change]
+end
+
+subgraph sgEnums [ENUMS]
+  MAP[Map enum -> label]
+end
+
+subgraph sgMsg [Messaging]
+  TXT[Build TextStrings message]
+end
+
+subgraph sgTrigger [trigger.action]
+  OUT[trigger.action.outText with duration]
+end
+
+%% Edges
+OWN -- "enum map" --> MAP
+MAP -- "compose" --> TXT
+TXT -- "outText" --> OUT
+
+%% Class applications
+class OWN world
+class MAP enums
+class TXT process
+class OUT trigger
+
+%% Styles for subgraphs
+style sgWorld fill:#edf7ed,stroke:#82b366,stroke-width:2px
+style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
+style sgMsg fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
+style sgTrigger fill:#ffe6e6,stroke:#b85450,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 Airbase change sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant W as WORLD
   participant EN as ENUMS
   participant T as trigger.action
-  W->>W: detect change RED|BLUE|CONTESTED
-  W->>EN: TextStrings.capturedBy|contestedBy and Teams table
-  W->>T: outText message, duration from CONFIG.MAIN.outTextSettings
+
+  rect rgba(255, 255, 255, 0.75)
+    W->>W: detect change RED|BLUE|CONTESTED
+    W->>EN: TextStrings.capturedBy|contestedBy and Teams table
+    W->>T: outText message, duration from CONFIG.MAIN.outTextSettings
+  end
 ```
 
 Zone change sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant W as WORLD
   participant EN as ENUMS
   participant T as trigger.action
-  W->>W: compare newOwner vs oldOwner
-  alt contested or neutral
-    W->>EN: TextStrings.contestedBy + Teams.CONTESTED
-  else captured by side
-    W->>EN: TextStrings.capturedBy + Teams.REDFOR|BLUFOR
+
+  rect rgba(255, 255, 255, 0.75)
+    W->>W: compare newOwner vs oldOwner
+    alt contested or neutral
+      W->>EN: TextStrings.contestedBy + Teams.CONTESTED
+    else captured by side
+      W->>EN: TextStrings.capturedBy + Teams.REDFOR|BLUFOR
+    end
+    W->>T: outText with configured timing
   end
-  W->>T: outText with configured timing
 ```
 
 Coalition indexing and visuals

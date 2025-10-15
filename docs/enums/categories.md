@@ -18,15 +18,51 @@ Primary sources
 Overview relationships
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart LR
-  EN[ENUMS root] --> OC[ObjectCategory]
-  EN --> UC[UnitCategory]
-  EN --> GC[GroupCategory]
-  EN --> AC[AirbaseCategory]
 
-  OC -.-> WS[WORLD searchObjects]
-  GC -.-> SP[SPAWNER spawnGroup]
-  AC -.-> GA[WORLD getAirbases]
+%% Styles
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef world fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef spawner fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+
+%% Groups
+subgraph sgEnums [ENUMS]
+  EN[ENUMS root]
+  OC[ObjectCategory]
+  UC[UnitCategory]
+  GC[GroupCategory]
+  AC[AirbaseCategory]
+end
+
+subgraph sgWorld [WORLD]
+  WS[WORLD searchObjects]
+  GA[WORLD getAirbases]
+end
+
+subgraph sgSpawner [SPAWNER]
+  SP[SPAWNER spawnGroup]
+end
+
+%% Relationships
+EN --> OC
+EN --> UC
+EN --> GC
+EN --> AC
+
+OC -.-> WS
+GC -.-> SP
+AC -.-> GA
+
+%% Apply classes
+class EN,OC,UC,GC,AC enums
+class WS,GA world
+class SP spawner
+
+%% Subgraph styles
+style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
+style sgWorld fill:#edf7ed,stroke:#82b366,stroke-width:2px
+style sgSpawner fill:#fff9e6,stroke:#d6b656,stroke-width:2px
 ```
 
 Consumption anchors
@@ -47,18 +83,24 @@ Consumption anchors
 Lookup and usage sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant W as WORLD
   participant SP as SPAWNER
   participant EN as ENUMS
-  note over W: Object search
-  W->>EN: ObjectCategory.UNIT|STATIC|SCENERY
-  W->>W: searchObjectsBox/searchObjectsSphere
-  note over SP: Group engine activate
-  SP->>SP: coalition.addGroup(..., Group.Category.GROUND, ...)
-  note over W: Airbase classification
-  W->>W: getAirbases uses ab:getDesc().category
-  W-->>EN: AirbaseCategory AIRDROME|HELIPAD|SHIP
+
+  rect rgba(255, 255, 255, 0.75)
+    Note over W: Object search
+    W->>EN: ObjectCategory.UNIT|STATIC|SCENERY
+    W->>W: searchObjectsBox/searchObjectsSphere
+
+    Note over SP: Group engine activate
+    SP->>SP: coalition.addGroup(..., Group.Category.GROUND, ...)
+
+    Note over W: Airbase classification
+    W->>W: getAirbases uses ab:getDesc().category
+    W-->>EN: AirbaseCategory AIRDROME|HELIPAD|SHIP
+  end
 ```
 
 Common patterns and guardrails

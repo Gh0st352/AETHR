@@ -30,45 +30,95 @@ Consumers and anchors
 Overview relationships
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart LR
-  EN[ENUMS] --> CT[Countries]
-  EN --> SK[Skill]
-  CFG[CONFIG DefaultRedCountry DefaultBlueCountry] --> ZM[ZONE_MANAGER spawnAirbasesAllZones]
-  CT -.-> SP[SPAWNER buildGroundGroup spawnGroup]
-  SK -.-> SPU[SPAWNER buildGroundUnit]
+
+%% Classes
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef config fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+classDef zm fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef spawner fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
+
+%% Groups
+subgraph sgEnums [ENUMS]
+  EN[ENUMS]
+  CT[Countries]
+  SK[Skill]
+end
+
+subgraph sgConfig [CONFIG]
+  CFG[DefaultRedCountry DefaultBlueCountry]
+end
+
+subgraph sgZM [ZONE_MANAGER]
+  ZM[spawnAirbasesAllZones]
+end
+
+subgraph sgSP [SPAWNER]
+  SP[buildGroundGroup spawnGroup]
+  SPU[buildGroundUnit]
+end
+
+%% Relationships
+EN --> CT
+EN --> SK
+CFG -- "defaults" --> ZM
+CT -.-> SP
+SK -.-> SPU
+
+%% Apply classes
+class EN,CT,SK enums
+class CFG config
+class ZM zm
+class SP,SPU spawner
+
+%% Subgraph styles
+style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
+style sgConfig fill:#fff9e6,stroke:#d6b656,stroke-width:2px
+style sgZM fill:#edf7ed,stroke:#82b366,stroke-width:2px
+style sgSP fill:#ffeeda,stroke:#d79b00,stroke-width:2px
 ```
 
 Group build and spawn sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant SP as SPAWNER
   participant EN as ENUMS
   participant CFG as CONFIG
   participant DCS as coalition
-  note over SP: Unit prototypes first
-  SP->>EN: Skill.Excellent|High|Good|Average|Random|Player
-  SP-->>SP: buildGroundUnit with chosen skill
-  note over SP: Build group and add to engine
-  SP->>SP: buildGroundGroup(countryID, units...)
-  opt spawn now
-    SP->>DCS: addGroup(countryID, Group.Category.GROUND, group)
+
+  rect rgba(255, 255, 255, 0.75)
+    Note over SP: Unit prototypes first
+    SP->>EN: Skill.Excellent|High|Good|Average|Random|Player
+    SP-->>SP: buildGroundUnit with chosen skill
+
+    Note over SP: Build group and add to engine
+    SP->>SP: buildGroundGroup(countryID, units...)
+    opt spawn now
+      SP->>DCS: addGroup(countryID, Group.Category.GROUND, group)
+    end
   end
 ```
 
 Airbase fillers by coalition
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant CFG as CONFIG
   participant SP as SPAWNER
-  ZM->>CFG: DefaultRedCountry, DefaultBlueCountry
-  loop each red start zone
-    ZM->>SP: spawnAirbasesZone(zName, DefaultRedCountry)
-  end
-  loop each blue start zone
-    ZM->>SP: spawnAirbasesZone(zName, DefaultBlueCountry)
+
+  rect rgba(255, 255, 255, 0.75)
+    ZM->>CFG: DefaultRedCountry, DefaultBlueCountry
+    loop each red start zone
+      ZM->>SP: spawnAirbasesZone(zName, DefaultRedCountry)
+    end
+    loop each blue start zone
+      ZM->>SP: spawnAirbasesZone(zName, DefaultBlueCountry)
+    end
   end
 ```
 

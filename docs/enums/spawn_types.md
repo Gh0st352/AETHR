@@ -26,36 +26,82 @@ Consumers and anchors
 Resolution strategy overview
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart TD
-  K[keyOrAttr] --> T1[spawnTypes map to attribute string]
-  T1 --> R0[Resolve candidates]
-  R0 --> P1[Primary _spawnerAttributesDB[targetAttr]]
-  R0 --> P2[Cross-bucket scan by spawnTypesPrio]
-  R0 --> P3[Global spawnerAttributesDB[targetAttr]]
-  P1 --> OUT[typesDB non-empty]
-  P2 --> OUT
-  P3 --> OUT
-  OUT --> POOLS[seed typesPool limited or non-limited]
+
+%% Classes
+classDef sp fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef src fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px;
+
+%% Inputs
+subgraph sgInputs [Inputs]
+  K[keyOrAttr]
+end
+
+%% Steps
+subgraph sgSteps [Resolution Steps]
+  T1[spawnTypes map to attribute string]
+  R0[Resolve candidates]
+end
+
+%% Sources
+subgraph sgSources [Sources]
+  P1[Primary _spawnerAttributesDB targetAttr]
+  P2[Cross bucket by spawnTypesPrio]
+  P3[Global spawnerAttributesDB targetAttr]
+end
+
+%% Outcome
+subgraph sgOutcome [Outcome]
+  OUT[typesDB non empty]
+  POOLS[seed typesPool limited or non limited]
+end
+
+%% Flow
+K --> T1
+T1 --> R0
+R0 --> P1
+R0 --> P2
+R0 --> P3
+P1 --> OUT
+P2 --> OUT
+P3 --> OUT
+OUT --> POOLS
+
+%% Classes
+class K,T1,R0,OUT,POOLS sp
+class P1,P2,P3 src
+
+%% Styles
+style sgInputs fill:#fff9e6,stroke:#d6b656,stroke-width:2px
+style sgSteps fill:#fff9e6,stroke:#d6b656,stroke-width:2px
+style sgSources fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
+style sgOutcome fill:#fff9e6,stroke:#d6b656,stroke-width:2px
 ```
 
 Seeding and generation sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant SP as SPAWNER
   participant EN as ENUMS
-  SP->>SP: _resolveTypesForAttribute for each spawnTypes key
-  alt typesDB found
-    SP-->>SP: add to typesPool, classify limited vs non-limited
-  else none
-    SP-->>SP: exclude empty type
-  end
-  SP->>SP: generateGroupTypes
-  loop for each zone/group size
-    SP->>SP: draw from typesPool; fall back to nonLimited pool
-    SP-->>SP: append UnitTypes and specific typeName
-    opt extras
-      SP-->>SP: append extra types from extraTypes.typesDB
+
+  rect rgba(255, 255, 255, 0.75)
+    SP->>SP: _resolveTypesForAttribute for each spawnTypes key
+    alt typesDB found
+      SP-->>SP: add to typesPool, classify limited vs non limited
+    else none
+      SP-->>SP: exclude empty type
+    end
+    SP->>SP: generateGroupTypes
+    loop for each zone group size
+      SP->>SP: draw from typesPool then fall back to nonLimited pool
+      SP-->>SP: append UnitTypes and specific typeName
+      opt extras
+        SP-->>SP: append extra types from extraTypes.typesDB
+      end
     end
   end
 ```
@@ -68,12 +114,46 @@ Pool classification
 Dynamic spawner types and containers
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart LR
-  EN[ENUMS] --> DST[dynamicSpawnerTypes Airbase Zone Point Town]
-  DST -.-> SPDATA[SPAWNER.DATA.dynamicSpawners]
-  SPDATA --> NEW[newDynamicSpawner]
-  NEW --> REG[register dynamicSpawner under type]
-  REG --> RUN[enqueue/build/spawn flows]
+
+%% Classes
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef sp fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+
+%% ENUMS
+subgraph sgEnums [ENUMS]
+  EN[ENUMS]
+  DST[dynamicSpawnerTypes Airbase Zone Point Town]
+end
+
+%% SPAWNER DATA
+subgraph sgSPData [SPAWNER DATA]
+  SPDATA[dynamicSpawners]
+end
+
+%% SPAWNER
+subgraph sgSP [SPAWNER]
+  NEW[newDynamicSpawner]
+  REG[register dynamicSpawner under type]
+  RUN[enqueue build spawn flows]
+end
+
+%% Edges
+EN --> DST
+DST -.-> SPDATA
+SPDATA --> NEW
+NEW --> REG
+REG --> RUN
+
+%% Classes
+class EN,DST enums
+class SPDATA,NEW,REG,RUN sp
+
+%% Styles
+style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
+style sgSPData fill:#fff9e6,stroke:#d6b656,stroke-width:2px
+style sgSP fill:#fff9e6,stroke:#d6b656,stroke-width:2px
 ```
 
 Key behaviors and guardrails

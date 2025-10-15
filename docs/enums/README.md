@@ -26,44 +26,107 @@ Documents and indices
 Overview relationships
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart LR
-  E[ENUMS root] --> LT[LineTypes]
-  E --> MT[MarkerTypes]
-  E --> CO[Coalition]
-  E --> ST[SurfaceType]
-  E --> EV[Events]
-  E --> CT[Countries]
-  E --> SK[Skill]
-  E --> SP[spawnTypes]
-  E --> SPQ[spawnTypesPrio]
-  E --> DST[dynamicSpawnerTypes]
-  E --> FSM[FSM]
-  E --> RTT[restrictedTownTypes]
 
-  MT -.-> MK[MARKERS]
-  LT -.-> MK
-  CO -.-> W[WORLD]
-  CO -.-> ZM[ZONE_MANAGER]
-  ST -.-> ZM
-  SP -.-> SPN[SPAWNER]
-  SPQ -.-> SPN
-  DST -.-> SPN
-  SK -.-> SPN
+%% Classes
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef module fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px;
+classDef world fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef zm fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef spawner fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+classDef markers fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
+
+%% ENUMS
+subgraph sgEnums [ENUMS]
+  E[ENUMS root]
+  LT[LineTypes]
+  MT[MarkerTypes]
+  CO[Coalition]
+  ST[SurfaceType]
+  EV[Events]
+  CT[Countries]
+  SK[Skill]
+  SP[spawnTypes]
+  SPQ[spawnTypesPrio]
+  DST[dynamicSpawnerTypes]
+  FSM[FSM]
+  RTT[restrictedTownTypes]
+end
+
+%% Consumers
+subgraph sgConsumers [Consumers]
+  subgraph sgWorld [WORLD]
+    W[WORLD]
+  end
+  subgraph sgZM [ZONE_MANAGER]
+    ZM[ZONE_MANAGER]
+  end
+  subgraph sgSP [SPAWNER]
+    SPN[SPAWNER]
+  end
+  subgraph sgMK [MARKERS]
+    MK[MARKERS]
+  end
+end
+
+%% Edges
+E --> LT
+E --> MT
+E --> CO
+E --> ST
+E --> EV
+E --> CT
+E --> SK
+E --> SP
+E --> SPQ
+E --> DST
+E --> FSM
+E --> RTT
+
+MT -.-> MK
+LT -.-> MK
+CO -.-> W
+CO -.-> ZM
+ST -.-> ZM
+SP -.-> SPN
+SPQ -.-> SPN
+DST -.-> SPN
+SK -.-> SPN
+
+%% Class applications
+class E,LT,MT,CO,ST,EV,CT,SK,SP,SPQ,DST,FSM,RTT enums
+class W world
+class ZM zm
+class SPN spawner
+class MK markers
+
+%% Styles
+style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
+style sgConsumers fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
+style sgWorld fill:#edf7ed,stroke:#82b366,stroke-width:2px
+style sgZM fill:#edf7ed,stroke:#82b366,stroke-width:2px
+style sgSP fill:#fff9e6,stroke:#d6b656,stroke-width:2px
+style sgMK fill:#fff1db,stroke:#d79b00,stroke-width:2px
 ```
 
 Lookup and usage sequence
 
 ```mermaid
+%%{init: {"theme":"base"}}%%
 sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant W as WORLD
   participant SP as SPAWNER
   participant MK as MARKERS
   participant EN as ENUMS
-  ZM->>EN: SurfaceType, Coalition
-  W->>EN: Coalition
-  SP->>EN: spawnTypes, spawnTypesPrio, dynamicSpawnerTypes, Skill
-  MK->>EN: MarkerTypes, LineTypes
+
+  rect rgba(255, 255, 255, 0.75)
+    ZM->>EN: SurfaceType, Coalition
+    W->>EN: Coalition
+    SP->>EN: spawnTypes, spawnTypesPrio, dynamicSpawnerTypes, Skill
+    MK->>EN: MarkerTypes, LineTypes
+  end
 ```
 
 Anchors in consuming modules
@@ -88,22 +151,64 @@ Focused ENUMS analysis pages with Mermaid diagrams and cross-module anchors.
 High-level usage map
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#ffffff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
 flowchart LR
-  EN[ENUMS] --> CO[Coalition]
-  EN --> TS[TextStrings]
-  EN --> LT[LineTypes]
-  EN --> MT[MarkerTypes]
-  EN --> ST[SurfaceType]
-  EN --> SP[spawnTypes]
-  EN --> SPQ[spawnTypesPrio]
-  EN --> DST[dynamicSpawnerTypes]
 
-  CO -.-> W[WORLD ownership]
-  TS -.-> W
-  LT -.-> ZM[ZONE_MANAGER render]
-  MT -.-> MK[MARKERS draw]
-  ST -.-> SPNR[SPAWNER NOGO]
-  SP -.-> SPNR
-  SPQ -.-> SPNR
-  DST -.-> SPNR
+%% Classes
+classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+classDef world fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef zm fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+classDef spawner fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+classDef markers fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
+
+%% ENUMS
+subgraph sgEN [ENUMS]
+  EN[ENUMS]
+  CO[Coalition]
+  TS[TextStrings]
+  LT[LineTypes]
+  MT[MarkerTypes]
+  ST[SurfaceType]
+  SP[spawnTypes]
+  SPQ[spawnTypesPrio]
+  DST[dynamicSpawnerTypes]
+end
+
+%% Consumers
+subgraph sgC [Consumers]
+  W[WORLD ownership]
+  ZM[ZONE_MANAGER render]
+  MK[MARKERS draw]
+  SPNR[SPAWNER NOGO]
+end
+
+%% Edges
+EN --> CO
+EN --> TS
+EN --> LT
+EN --> MT
+EN --> ST
+EN --> SP
+EN --> SPQ
+EN --> DST
+
+CO -.-> W
+TS -.-> W
+LT -.-> ZM
+MT -.-> MK
+ST -.-> SPNR
+SP -.-> SPNR
+SPQ -.-> SPNR
+DST -.-> SPNR
+
+%% Class applications
+class EN,CO,TS,LT,MT,ST,SP,SPQ,DST enums
+class W world
+class ZM zm
+class SPNR spawner
+class MK markers
+
+%% Styles
+style sgEN fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
+style sgC fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
 ```
