@@ -11,14 +11,14 @@ Class model
 ```mermaid
 %%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
 classDiagram
-  %% Quote class identifiers to avoid issues with special characters
-  class "BRAIN_DATA" {
+  %% Use identifier-friendly names (underscores) to avoid parser issues
+  class BRAIN_DATA {
     Schedulers : map<int, ScheduledTask>
     SchedulerIDCounter : integer
     coroutines : map<string, CoroutineDescriptor>
     BackgroundLoopInterval : number
   }
-  class "ScheduledTask" {
+  class ScheduledTask {
     active : boolean
     running : boolean
     nextRun : number
@@ -32,7 +32,7 @@ classDiagram
     stopTime : number
     stopAfterIterations : integer
   }
-  class "CoroutineDescriptor" {
+  class CoroutineDescriptor {
     interval : number
     phase : integer
     counter : integer
@@ -41,11 +41,11 @@ classDiagram
     yieldCounter : integer
     desc : string
   }
-  "BRAIN_DATA" o-- "ScheduledTask"
-  "BRAIN_DATA" o-- "CoroutineDescriptor"
+  BRAIN_DATA o-- ScheduledTask
+  BRAIN_DATA o-- CoroutineDescriptor
 
   classDef data fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class "BRAIN_DATA","ScheduledTask","CoroutineDescriptor" data
+  class BRAIN_DATA,ScheduledTask,CoroutineDescriptor data
 ```
 
 Default coroutine descriptors
