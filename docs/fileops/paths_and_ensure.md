@@ -18,31 +18,50 @@ Overview
 Path joining
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  Seg[segments list] --> Sep[system separator]
-  Sep --> Concat[concat with sep]
-  Concat --> Out[joined path]
+  subgraph Join[Join path segments]
+    Seg[segments list] --> Sep[system separator]
+    Sep --> Concat[concat with sep]
+    Concat --> Out[joined path]
+  end
+
+  class Seg,Sep,Concat class-step;
+  class Out class-data;
 ```
 
 Directory ensure flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  P[path input] --> N[normalize separators]
+  subgraph Normalize[Normalize path]
+    P[path input] --> N[normalize separators]
+  end
+
   N --> S[split path into parts]
-  S --> L[loop parts]
-  L --> Q[existsDir check]
-  Q -->|exists| C[continue]
-  Q -->|missing| M[mkdir part]
-  M --> E[error check]
-  E -->|ok| C
-  E -->|fail| X[stop and return false]
+
+  subgraph Iterate[Iterate and mkdir as needed]
+    S --> L[loop parts]
+    L --> Q{existsDir check}
+    Q -- "exists" --> C[continue]
+    Q -- "missing" --> M[mkdir part]
+    M --> E{error check}
+    E -- "ok" --> C
+    E -- "fail" --> X[stop and return false]
+  end
+
   C --> D[done return true]
+
+  class Q,E class-decision;
+  class N,S,L,M,C,Normalize,Iterate class-step;
+  class D class-result;
 ```
 
 File ensure sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
   participant L as lfs

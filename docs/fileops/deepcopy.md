@@ -16,36 +16,59 @@ Overview
 Deep copy flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  S[input value] --> T{type is table}
-  T -- no --> R[return value]
-  T -- yes --> V{visited exists}
-  V -- yes --> RV[return visited copy]
-  V -- no --> NC[new table copy]
-  NC --> MAP[put obj to copy in visited]
-  MAP --> LOOP[for each k v in pairs]
-  LOOP --> DK[deepcopy k]
-  DK --> DV[deepcopy v]
-  DV --> SET[copy[nk] = nv]
+
+  %% Phases grouped with subgraphs
+  subgraph TypeCheck[Type check]
+    S[input value] --> T{type is table}
+    T -- "no" --> R[return value]
+  end
+
+  T -- "yes" --> TableBranch
+
+  subgraph TableBranch[Table branch: copy and visit]
+    direction
+    T --> V{visited exists}
+    V -- "yes" --> RV[return visited copy]
+    V -- "no" --> NC[new table copy]
+    NC --> MAP["put obj->copy in visited"]
+    MAP --> LOOP[for each k,v in pairs]
+    LOOP --> DK[deepcopy key]
+    DK --> DV[deepcopy value]
+    DV --> SET["copy[nk] = nv"]
+  end
+
   SET --> MT{has metatable}
-  MT -- no --> OUT[return copy]
-  MT -- yes --> DMT[deepcopy mt]
-  DMT --> SMT[setmetatable copy mtcopy]
-  SMT --> OUT
+
+  subgraph MetaBranch[Metatable handling]
+    direction TB
+    MT -- "no" --> OUT[return copy]
+    MT -- "yes" --> DMT[deepcopy metatable]
+    DMT --> SMT["setmetatable(copy, mtcopy)"]
+    SMT --> OUT
+  end
+
+  %% Assign classes; styling via shared theme
+  class T,V,MT class-decision;
+  class DK,DV,SET,DMT,SMT,NC,MAP,LOOP class-compute;
+  class S,R,RV,OUT class-data;
 ```
 
 Sequence illustration
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant C as deepcopy
   participant V as visited
+
   C->>C: check type
   alt non table
     C-->>C: return value
   else table
     C->>V: lookup obj
-    alt found
+    alt found in visited
       V-->>C: existing copy
       C-->>C: return existing copy
     else not found

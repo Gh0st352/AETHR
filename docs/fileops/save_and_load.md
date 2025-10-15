@@ -21,24 +21,46 @@ Callers
 Save flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  D[data table] --> ED[ensureDirectory]
-  ED --> JP[joinPaths directory filename]
-  JP --> STORE[IO store path data]
+  subgraph Prepare[Prepare path]
+    D[data table] --> ED[ensureDirectory]
+    ED --> JP[joinPaths directory filename]
+  end
+
+  subgraph Persist[Persist to disk]
+    JP --> STORE[IO store path data]
+  end
+
   STORE --> RES[return true or false]
+
+  class ED,JP,Prepare,Persist class-step;
+  class STORE class-io;
+  class D class-data;
+  class RES class-result;
 ```
 
 Load flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  JP2[joinPaths directory filename] --> LOAD[IO load path]
+  subgraph ResolvePath[Resolve path]
+    JP2[joinPaths directory filename]
+  end
+
+  JP2 --> LOAD[IO load path]
   LOAD --> T[table or nil]
+
+  class JP2,ResolvePath class-step;
+  class LOAD class-io;
+  class T class-data;
 ```
 
 Save sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
   participant IO as IO.store
@@ -51,6 +73,7 @@ sequenceDiagram
 Load sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
   participant IO as IO.load

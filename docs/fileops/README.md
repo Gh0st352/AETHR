@@ -24,25 +24,47 @@ Breakout documents
 Overview relationships
 
 ```mermaid
-flowchart LR
-  JP[joinPaths] --> SD[saveData]
-  JP --> LD[loadData]
-  ED[ensureDirectory] --> SD
-  ED --> EF[ensureFile]
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart
+
+  subgraph API[Core FILEOPS API]
+    JP[joinPaths]
+    ED[ensureDirectory]
+    EF[ensureFile]
+    FE[fileExists]
+    SD[saveData]
+    LD[loadData]
+    DC[deepcopy]
+  end
+
+  subgraph Chunking[Chunking and tracker]
+    SPT[splitAndSaveData tracker]
+    LAD[loadandJoinData]
+  end
+
+  JP --> SD
+  JP --> LD
+  ED --> SD
+  ED --> EF
   EF --> SD
-  SD --> SPT[splitAndSaveData tracker]
-  SPT --> LAD[loadandJoinData]
+  SD --> SPT
+  SPT --> LAD
   LD --> LAD
-  FE[fileExists] -.-> IO[IO read write]
-  DC[deepcopy] -.-> LAD
+  FE -.-> IO[IO read write]
+  DC -.-> LAD
+
+  class JP,ED,EF,FE,SD,LD,DC,SPT,LAD class-step;
+  class IO class-io;
 ```
 
 Save and load sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
   participant IO as IO
+
   F->>F: ensureDirectory
   F->>IO: store data to file
   IO-->>F: ok or error
@@ -53,37 +75,59 @@ sequenceDiagram
 Directory creation flow
 
 ```mermaid
-flowchart TD
-  P[path input] --> N[normalize separators]
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart
+  subgraph Normalize[Normalize path]
+    P[path input] --> N[normalize separators]
+  end
   N --> S[split path into parts]
-  S --> L[loop parts]
-  L --> Q[existsDir check]
-  Q -->|exists| C[continue]
-  Q -->|missing| M[mkdir part]
-  M --> E[error check]
-  E -->|ok| C
-  E -->|fail| X[stop and return false]
+
+  subgraph Iterate[Iterate and mkdir as needed]
+    S --> L[loop parts]
+    L --> Q{existsDir check}
+    Q -- "exists" --> C[continue]
+    Q -- "missing" --> M[mkdir part]
+    M --> E{error check}
+    E -- "ok" --> C
+    E -- "fail" --> X[stop and return false]
+  end
+
   C --> D[done return true]
+
+  class Q,E class-decision;
+  class N,S,L,M,C,Normalize,Iterate class-step;
+  class D class-result;
 ```
 
 Chunked persistence flow
 
 ```mermaid
-flowchart LR
-  S1[count records] --> S2[resolve chunk size]
-  S2 --> S3[sort keys deterministic]
-  S3 --> S4[fill chunk map]
-  S4 --> S5[flushChunk write part file]
-  S5 --> S6[repeat until done]
-  S6 --> S7[write tracker file]
-  S7 --> OUT[return metadata]
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart
+  subgraph SortChunk[Sort and chunk]
+    S1[count records] --> S2[resolve chunk size]
+    S2 --> S3[sort keys deterministic]
+    S3 --> S4[fill chunk map]
+  end
+
+  subgraph PersistMeta[Persist and metadata]
+    S4 --> S5[flushChunk write part file]
+    S5 --> S6[repeat until done]
+    S6 --> S7[write tracker file]
+    S7 --> OUT[return metadata]
+  end
+
+  class S1,S2,S3,S4,S5,S6,S7 class-step;
+  class OUT class-result;
 ```
 
 Chunked load sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
+
   F->>F: load tracker or dataset
   alt not tracker
     F-->>F: return master
@@ -109,5 +153,5 @@ Source anchors
 - [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
 
 Notes
-- Mermaid labels avoid double quotes and parentheses.
-- All diagrams use GitHub Mermaid fenced blocks.
+- Diagrams reference a shared theme snippet for generation: [docs/_mermaid/theme.json](../_mermaid/theme.json)
+- Sequence diagrams omit inline color; generation pipeline should inject styles from the shared theme.

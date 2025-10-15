@@ -1,0 +1,48 @@
+{
+  "$schema": "https://mermaid-js.github.io/mermaid/#/configSchema",
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Segoe UI,Roboto,Arial",
+    "fontSize": "14px",
+    "lineColor": "#666666",
+    "primaryColor": "#222222",
+    "primaryTextColor": "#222222",
+    "tertiaryColor": "#f5f5f5",
+
+    "ioFill": "#dae8fc",
+    "ioStroke": "#6c8ebf",
+    "computeFill": "#fff2cc",
+    "computeStroke": "#d6b656",
+    "dataFill": "#f5f5f5",
+    "dataStroke": "#999999",
+    "trackerFill": "#e1d5e7",
+    "trackerStroke": "#9673a6",
+    "decisionFill": "#ffe6cc",
+    "decisionStroke": "#d79b00",
+    "resultFill": "#d5e8d4",
+    "resultStroke": "#82b366",
+    "stepFill": "#fff2cc",
+    "stepStroke": "#d6b656",
+
+    "subgraphFill": "#f5f5f5",
+    "subgraphStroke": "#999999",
+    "subgraphStrokeWidth": "2px",
+    "nodeStrokeWidth": "2px",
+
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#999999",
+    "signalColor": "#666666",
+    "signalTextColor": "#222222",
+    "activationBkgColor": "#f5f5f5",
+    "activationBorderColor": "#999999",
+    "altSectionBkgColor": "#f5f5f5",
+    "sequenceNumberColor": "#666666",
+
+    "seqBackdrop": "rgba(255, 255, 255, 0.75)",
+    "seqComputeFill": "#fff2cc",
+    "seqIOFill": "#dae8fc",
+    "seqTrackerFill": "#e1d5e7",
+    "seqDatasetFill": "#d5e8d4"
+  },
+  "themeCSS": ".class-io > rect, .class-io > path { fill: #dae8fc; stroke: #6c8ebf; stroke-width: 2px; }\n.class-compute > rect, .class-compute > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n.class-data > rect, .class-data > path { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }\n.class-tracker > rect, .class-tracker > path { fill: #e1d5e7; stroke: #9673a6; stroke-width: 2px; }\n.class-decision > rect, .class-decision > path { fill: #ffe6cc; stroke: #d79b00; stroke-width: 2px; }\n.class-result > rect, .class-result > path { fill: #d5e8d4; stroke: #82b366; stroke-width: 2px; }\n.class-step > rect, .class-step > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n\ng.cluster > rect { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }"
+}

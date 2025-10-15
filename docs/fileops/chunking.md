@@ -19,17 +19,31 @@ Consumers
 High-level flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  DB[dataset table] --> KEYS[collect keys deterministic]
-  KEYS --> CHUNK[fill chunk up to chunkSize]
-  CHUNK --> FLUSH[write part file baseName.partNNNN]
-  FLUSH --> REPEAT[repeat until done]
-  REPEAT --> TRACK[write tracker baseName with ordered parts]
-  TRACK --> READ[loadandJoinData]
-  READ --> master[load tracker or dataset]
-  master --> parts[resolve ordered part filenames]
-  parts --> MERGE[merge parts later overrides earlier]
-  MERGE --> OUT[return totalData]
+  %% Write phase
+  subgraph Write[Write: split and track]
+    DB[dataset table] -- "collect" --> KEYS[collect keys deterministic]
+    KEYS -- "fill up to chunkSize" --> CHUNK[fill chunk]
+    CHUNK -- "flush part" --> FLUSH[write part file baseName.partNNNN]
+    FLUSH -- "iterate" --> REPEAT[repeat until done]
+    REPEAT -- "persist" --> TRACK[write tracker baseName with ordered parts]
+  end
+
+  %% Read phase
+  subgraph Read[Read: resolve and merge]
+    TRACK -- "input" --> READ[loadandJoinData]
+    READ -- "load" --> master[load tracker or dataset]
+    master -- "resolve" --> parts[resolve ordered part filenames]
+    parts -- "override-later" --> MERGE[merge parts]
+    MERGE --> OUT[return totalData]
+  end
+
+  %% Classes only; styling via shared theme
+  class FLUSH,READ class-io;
+  class CHUNK,MERGE class-compute;
+  class DB,master,parts,OUT class-data;
+  class TRACK class-tracker;
 ```
 
 Split writer details
@@ -52,6 +66,7 @@ Merge reader details
 Write sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
   participant IO as IO.store
@@ -67,6 +82,7 @@ sequenceDiagram
 Read sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant F as FILEOPS
   participant IO as IO.load
