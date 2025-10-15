@@ -19,30 +19,55 @@ Documents
 End to end relationship
 
 ```mermaid
-flowchart LR
-  CP[clusterPoints] --> NW[DBSCANNER New]
-  NW --> GP[generate params]
-  GP --> PR[prepare points and index]
-  PR --> SC[Scan]
-  SC --> DB[_DBScan]
-  DB --> PP[post process clusters]
-  PP --> OUT[Clusters result]
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5","edgeLabelBackground":"#ffffff"}}}%%
+flowchart
+  %% End-to-end split with subgraphs per Mermaid Rules
+  subgraph CON [Construction]
+    style CON fill:#ffe6cc,stroke:#d99a5a,stroke-width:2px
+    CP[clusterPoints]
+    NW[DBSCANNER New]
+    CP --> NW
+    NW --> GP[generate params]
+  end
+
+  subgraph PREP [Preparation]
+    style PREP fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+    GP --> PR[prepare points and index]
+  end
+
+  subgraph SCAN [Scan & Clustering]
+    style SCAN fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
+    PR --> SC[Scan]
+    SC --> DB[_DBScan]
+    DB -->|cnt < min_samples| NS[mark NOISE]
+    DB -->|cnt >= min_samples| EX[expand cluster]
+    EX --> DB
+    SC --> PP[post process clusters]
+    PP --> OUT[Clusters result]
+  end
+
+  classDef nodeStyle fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  class CP,NW,GP,PR,SC,DB,NS,EX,PP,OUT nodeStyle
 ```
 
 Runtime sequence overview
 
 ```mermaid
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
 sequenceDiagram
-  participant AI as AETHR AI
-  participant DB as DBSCANNER
-  participant U as UTILS
-  AI->>DB: New with points area params
-  DB-->>DB: generateDBSCANparams
-  DB->>U: normalizePoint per input
-  AI->>DB: Scan
-  DB-->>DB: _DBScan with region_count and region_query
-  DB-->>DB: expand_cluster then post_process_clusters
-  DB-->>AI: Clusters
+  %% Background rect improves readability on dark docs
+  rect rgba(255,255,255,0.75)
+    participant AI as AETHR AI
+    participant DB as DBSCANNER
+    participant U as UTILS
+    AI->>DB: New with points area params
+    DB-->>DB: generateDBSCANparams and prepare index
+    DB->>U: normalizePoint per input
+    AI->>DB: Scan
+    DB-->>DB: _DBScan with region_count and region_query
+    DB-->>DB: expand_cluster then post_process_clusters
+    DB-->>AI: Clusters
+  end
 ```
 
 Key anchors
@@ -68,5 +93,7 @@ Cross-module indexes
 - BRAIN: [docs/brain/README.md](docs/brain/README.md)
 
 Notes
-- Mermaid node labels avoid double quotes and parentheses to align with renderer constraints.
+- Mermaid node labels avoid double quotes and parentheses to reduce syntax issues.
+- Diagrams follow the project Mermaid Rules: subgraphs for logical areas, classDef styles, and a contrast-friendly background rect for sequence diagrams.
 - All diagrams use GitHub Mermaid fenced blocks.
+- See detailed diagram implementations: [`docs/ai/dbscan.md`](docs/ai/dbscan.md:1) and [`docs/ai/data_structures.md`](docs/ai/data_structures.md:1)
