@@ -15,12 +15,29 @@ Overview
 Flowchart
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
-flowchart LR
-  S[Start] --> U[Update airbase ownership]
-  U --> SCH[Schedule BackgroundProcesses]
-  SCH --> W[Setup watchers]
-  W --> RT[Return self]
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","lineColor":"#495057","textColor":"#e9ecef","fontSize":"14px"}}}%%
+flowchart
+  %% Groupings
+  subgraph BOOT ["Startup"]
+    S["Start"]
+    U["Update airbase ownership"]
+  end
+
+  subgraph SCHED ["Scheduling"]
+    SCH["Schedule BackgroundProcesses"]
+  end
+
+  subgraph WATCH ["Watchers"]
+    W["Setup watchers"]
+  end
+
+  RT["Return self"]
+
+  %% Flow
+  S --> U
+  U --> SCH
+  SCH --> W
+  W --> RT
 
   %% Styles
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -29,29 +46,46 @@ flowchart LR
   %% Apply classes
   class S,RT core
   class U,SCH,W process
+
+  %% Subgraph styles
+  style BOOT fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style SCHED fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style WATCH fill:#f8f9fa,stroke:#495057,stroke-width:2px
 ```
 
 Sequence timeline
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000000ff","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000000ff","textColor":"#000000ff","fontSize":"14px"}}}%%
 sequenceDiagram
-  participant A as AETHR
-  participant W as WORLD
-  participant T as Timer
-  A->>W: updateAirbaseOwnership
-  A->>T: schedule BackgroundProcesses at now plus interval
-  A->>A: setupWatchers
-  A-->>A: return self
+  participant A as "AETHR"
+  participant W as "WORLD"
+  participant T as "Timer"
+
+  rect rgba(255,255,255,0.75)
+    A->>W: updateAirbaseOwnership
+    A->>T: schedule BackgroundProcesses at now plus interval
+    A->>A: setupWatchers
+    A-->>A: return self
+  end
 ```
 
 Watchers registered
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
-flowchart LR
-  SW[setupWatchers] --> Z1[ZONE_MANAGER initWatcher AirbaseOwnership]
-  SW --> Z2[ZONE_MANAGER initWatcher ZoneOwnership]
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","lineColor":"#495057","textColor":"#000000ff","fontSize":"14px"}}}%%
+flowchart TB
+  %% Group
+  subgraph WATCHERS ["Watchers"]
+    SW["setupWatchers"]
+    subgraph ZM_WATCHERS ["ZONE_MANAGER watchers"]
+      Z1["initWatcher AirbaseOwnership"]
+      Z2["initWatcher ZoneOwnership"]
+    end
+  end
+
+  SW --> Z1
+  SW --> Z2
 
   %% Styles
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -60,6 +94,10 @@ flowchart LR
   %% Apply classes
   class SW core
   class Z1,Z2 process
+
+  %% Subgraph style
+  style WATCHERS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
+  style ZM_WATCHERS fill:#e9ecef,stroke:#6c757d,stroke-width:2px
 ```
 
 Notes

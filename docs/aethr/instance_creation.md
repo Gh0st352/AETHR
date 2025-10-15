@@ -17,28 +17,38 @@ The constructor [AETHR:New()](../../dev/AETHR.lua:65) creates an instance table 
 Instance creation flow
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","primaryTextColor":"#000","lineColor":"#495057","textColor":"#000","fontSize":"14px"}}}%%
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","lineColor":"#495057","textColor":"#e9ecef","fontSize":"14px"}}}%%
 flowchart
   %% Logical groupings
-  subgraph SETUP [Instance setup]
-    N[New called]
-    I[Create instance table]
+  subgraph SETUP ["Instance setup"]
+    N["New called"]
+    I["Create instance table"]
   end
 
-  subgraph CONFIG_PATHS [Config and paths]
-    SC[Clone config subtables]
-    ID[Select mission id]
-    WD[Resolve savegame dir]
-    JP[Compute config folder path]
-    TH[Capture theater if available]
+  subgraph CONFIG_PATHS ["Config and paths"]
+    SC["Clone config subtables"]
+    ID["Select mission id"]
+    WD["Resolve savegame dir"]
+    JP["Compute config folder path"]
+    TH["Capture theater if available"]
   end
 
-  subgraph MODULES [Modules]
-    ML[Build modules list]
-    P1[Phase 1 construct submodules]
-    P2[Phase 2 wire backrefs and siblings]
+  subgraph MODULES ["Modules"]
+    ML["Build modules list"]
+
+    %% Split complex module wiring into two small subgroups
+    subgraph P1GRP ["Phase 1 (construct)"]
+      P1["Phase 1 construct submodules"]
+    end
+
+    subgraph P2GRP ["Phase 2 (wire)"]
+      P2["Phase 2 wire backrefs and siblings"]
+    end
+
+    RT["Return instance"]
   end
 
+  %% Flow (linear for readability)
   N --> I
   I --> SC
   SC --> ID
@@ -48,10 +58,9 @@ flowchart
   TH --> ML
   ML --> P1
   P1 --> P2
-  P2 --> RT[Return instance]
+  P2 --> RT
 
-
-  %% Styles
+  %% Styles (house system)
   classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
   classDef process fill:#cce5ff,stroke:#0066cc,color:#000
 
@@ -63,37 +72,51 @@ flowchart
   style SETUP fill:#f9f9f9,stroke:#ccc,stroke-width:2px
   style CONFIG_PATHS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
   style MODULES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  style P1GRP fill:#ffeecf,stroke:#ff9900,stroke-width:2px
+  style P2GRP fill:#fff7e6,stroke:#ff9900,stroke-width:2px
 ```
 
 Sequence details
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000","fontSize":"14px"}}}%%
+%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000000ff","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000000ff","textColor":"#e9ecef","fontSize":"14px"}}}%%
 sequenceDiagram
-  participant A as AETHR
-  participant C as CONFIG
-  participant F as FILEOPS
+  rect rgba(255,255,255,0.75)
+    participant A as "AETHR"
+    participant C as "CONFIG"
+    participant F as "FILEOPS"
 
-  A->>A: shallow copy of CONFIG tables
-  A->>A: set mission id
-  alt lfs writedir available
-    A->>A: set SAVEGAME_DIR from lfs
-  else fallback
-    A->>A: keep existing SAVEGAME_DIR or empty
+    A->>A: shallow copy of CONFIG tables
+    A->>A: set mission id
+
+    alt lfs writedir available
+      A->>A: set SAVEGAME_DIR from lfs
+    else fallback
+      A->>A: keep existing SAVEGAME_DIR or empty
+    end
+
+    alt FILEOPS joinPaths present
+      A->>F: joinPaths to compute CONFIG folder
+    else fallback
+      A->>A: concat path segments using separator
+    end
+
+    A->>A: capture theater if env present
+
+    rect rgb(230,243,255)
+      loop modules list
+        A->>A: Phase 1 construct or reuse module
+      end
+    end
+
+    rect rgb(255,250,240)
+      loop modules list
+        A->>A: Phase 2 wire backrefs and siblings
+      end
+    end
+
+    A-->>A: return instance
   end
-  alt FILEOPS joinPaths present
-    A->>F: joinPaths to compute CONFIG folder
-  else fallback
-    A->>A: concat path segments using separator
-  end
-  A->>A: capture theater if env present
-  loop modules list
-    A->>A: Phase 1 construct or reuse module
-  end
-  loop modules list
-    A->>A: Phase 2 wire backrefs and siblings
-  end
-  A-->>A: return instance
 ```
 
 Notes and edge cases
