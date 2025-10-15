@@ -11,41 +11,43 @@ Class model
 ```mermaid
 %%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
 classDiagram
-  %% Use identifier-friendly names (underscores) to avoid parser issues
+  %% Simplified property types to avoid parser issues with punctuation/generics
   class BRAIN_DATA {
-    Schedulers : map<int, ScheduledTask>
-    SchedulerIDCounter : integer
-    coroutines : map<string, CoroutineDescriptor>
-    BackgroundLoopInterval : number
+    Schedulers: map
+    SchedulerIDCounter: int
+    coroutines: map
+    BackgroundLoopInterval: number
   }
   class ScheduledTask {
-    active : boolean
-    running : boolean
-    nextRun : number
-    lastRun : number
-    iterations : integer
-    taskFunction : fun(...)
-    functionArgs : any[]
-    repeatInterval : number
-    delay : number
-    repeating : boolean
-    stopTime : number
-    stopAfterIterations : integer
+    active: boolean
+    running: boolean
+    nextRun: number
+    lastRun: number
+    iterations: int
+    taskFunction: function
+    functionArgs: array
+    repeatInterval: number
+    delay: number
+    repeating: boolean
+    stopTime: number
+    stopAfterIterations: int
   }
   class CoroutineDescriptor {
-    interval : number
-    phase : integer
-    counter : integer
-    thread : thread
-    yieldThreshold : integer
-    yieldCounter : integer
-    desc : string
+    interval: number
+    phase: int
+    counter: int
+    thread: thread
+    yieldThreshold: int
+    yieldCounter: int
+    desc: string
   }
   BRAIN_DATA o-- ScheduledTask
   BRAIN_DATA o-- CoroutineDescriptor
 
   classDef data fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class BRAIN_DATA,ScheduledTask,CoroutineDescriptor data
+  class BRAIN_DATA data
+  class ScheduledTask data
+  class CoroutineDescriptor data
 ```
 
 Default coroutine descriptors
@@ -64,7 +66,7 @@ Flow: New instance
 
 ```mermaid
 %%{init: {"theme":"base"}}%%
-flowchart 
+flowchart TB
   subgraph NEW [BRAIN New instance flow]
     style NEW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     N1[call BRAIN New]
