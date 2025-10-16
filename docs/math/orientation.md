@@ -6,7 +6,7 @@ Source anchors
 - [AETHR.MATH:crossProduct()](../../dev/MATH_.lua:29)
 - [AETHR.MATH:direction()](../../dev/MATH_.lua:96)
 
-Overview
+# Overview
 
 - crossProduct returns the signed area determinant in 2D for three points
   - positive means counterclockwise
@@ -17,31 +17,51 @@ Overview
   - 1 clockwise
   - 2 counterclockwise
 
-Flow of orientation
+# Flow of orientation
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  P1[point p1] --> DET[crossProduct determinant]
-  P2[point p2] --> DET
-  P3[point p3] --> DET
+  subgraph "Inputs"
+    P1[point p1]
+    P2[point p2]
+    P3[point p3]
+  end
+  P1 --> DET[crossProduct determinant]
+  P2 --> DET
+  P3 --> DET
   DET --> SIGN[sign of value]
   SIGN -->|gt 0| CCW[counterclockwise]
   SIGN -->|lt 0| CW[clockwise]
   SIGN -->|eq 0| COL[colinear]
+  class P1,P2,P3 class_io;
+  class DET class_compute;
+  class SIGN class_decision;
+  class CCW,CW,COL class_result;
 ```
 
-direction return mapping
+# direction return mapping
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  DET[crossProduct sign] -->|gt 0| OUT2[return 2]
-  DET -->|lt 0| OUT1[return 1]
-  DET -->|eq 0| OUT0[return 0]
+  subgraph "Return mapping"
+    DET[crossProduct sign]
+    OUT2[return 2]
+    OUT1[return 1]
+    OUT0[return 0]
+  end
+  DET -->|gt 0| OUT2
+  DET -->|lt 0| OUT1
+  DET -->|eq 0| OUT0
+  class DET class_compute;
+  class OUT2,OUT1,OUT0 class_result;
 ```
 
-Sequence of use in geometry
+# Sequence of use in geometry
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MATH
   participant P as POLY
@@ -52,7 +72,7 @@ sequenceDiagram
   P-->>P: branch in intersection or hull logic
 ```
 
-Implementation notes
+# Implementation notes
 
 - Coordinate convention
   - crossProduct accepts tables with x and z or x and y
@@ -65,38 +85,63 @@ Implementation notes
   - direction returns integer codes instead of boolean flags to simplify branching
   - 0 collinear, 1 clockwise, 2 counterclockwise
 
-Mermaid sketches
+# Mermaid sketches
 
-- Orientation decision
+## - Orientation decision
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  A[p1 p2 p3] --> CP[crossProduct]
-  CP --> S[sign test]
+  subgraph "Orientation decision"
+    A[p1 p2 p3]
+    CP[crossProduct]
+    S[sign test]
+  end
+  A --> CP
+  CP --> S
   S --> C0[colinear]
   S --> C1[clockwise]
   S --> C2[counterclockwise]
+  class A class_io;
+  class CP class_compute;
+  class S class_decision;
+  class C0,C1,C2 class_result;
 ```
 
-- Integration point with polygon intersection
+## - Integration point with polygon intersection
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  SEG[segment pairs] --> ORI[direction at endpoints]
-  ORI --> BR[branch for general case and special colinear case]
-  BR --> RES[intersection decision]
+  subgraph "Segments"
+    SEG[segment pairs]
+  end
+  subgraph "Orientation"
+    ORI[direction at endpoints]
+  end
+  subgraph "Branching"
+    BR[branch for general case and special colinear case]
+    RES[intersection decision]
+  end
+  SEG --> ORI
+  ORI --> BR
+  BR --> RES
+  class SEG class_io;
+  class ORI class_compute;
+  class BR class_decision;
+  class RES class_result;
 ```
 
-Validation checklist
+# Validation checklist
 
 - cross product anchor: [dev/MATH_.lua](../../dev/MATH_.lua:29)
 - direction anchor: [dev/MATH_.lua](../../dev/MATH_.lua:96)
 
-Related docs
+# Related docs
 
 - POLY overview and geometry flows: [docs/poly/README.md](../poly/README.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks use GitHub Mermaid parser
 - Labels inside brackets avoid double quotes and parentheses

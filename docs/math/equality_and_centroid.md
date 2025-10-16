@@ -13,40 +13,70 @@ Overview
 - pointsEqual uses almostEqual on x and y to compare two points
 - centroid computes arithmetic mean of a set of points
 
-almostEqual flow
+# almostEqual flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[a b eps opt] --> DEF[eps default 1e-9]
+  subgraph "Inputs and compute"
+    IN[a b eps opt]
+    DEF[eps default 1e-9]
+  end
+  IN --> DEF
   DEF --> ABS[abs a minus b]
   ABS --> CMP[abs le eps]
   CMP --> OUT[return boolean]
+  class IN class_io;
+  class DEF,ABS class_compute;
+  class CMP class_decision;
+  class OUT class_result;
 ```
 
-pointsEqual flow
+# pointsEqual flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[p1 p2 eps opt] --> NIL[check p1 and p2]
+  subgraph "Point presence check"
+    IN[p1 p2 eps opt]
+    NIL[check p1 and p2]
+  end
+  IN --> NIL
   NIL -->|either nil| FALSE[return false]
   NIL -->|both present| X[self almostEqual p1 x p2 x]
   X --> Y[self almostEqual p1 y p2 y]
   Y --> OUT[return x and y result]
+  class IN class_io;
+  class NIL class_decision;
+  class X,Y class_compute;
+  class FALSE,OUT class_result;
 ```
 
-centroid flow
+# centroid flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[pts array] --> EMPTY[if empty return 0 0]
-  EMPTY --> SUM[sum x and y]
-  SUM --> DIV[divide by count]
+  subgraph "Centroid computation"
+    IN[pts array]
+    EMPTY[if empty return 0 0]
+    SUM[sum x and y]
+    DIV[divide by count]
+  end
+  IN --> EMPTY
+  EMPTY --> SUM
+  SUM --> DIV
   DIV --> OUT[return cx cy]
+  class IN class_io;
+  class SUM,DIV class_compute;
+  class EMPTY class_decision;
+  class OUT class_result;
 ```
 
-Sequence usage in POLY and ZONE_MANAGER
+# Sequence usage in POLY and ZONE_MANAGER
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant P as POLY
   participant M as MATH
@@ -59,7 +89,7 @@ sequenceDiagram
   M-->>Z: boolean
 ```
 
-Implementation notes
+# Implementation notes
 
 - eps tolerance
   - Default epsilon is 1e-9 which is adequate for typical map scale units
@@ -68,18 +98,18 @@ Implementation notes
   - Implements arithmetic mean not polygon area centroid
   - For polygon centroid by area use a shoelace based method in geometry code
 
-Validation checklist
+# Validation checklist
 
 - almostEqual: [dev/MATH_.lua](../../dev/MATH_.lua:118)
 - pointsEqual: [dev/MATH_.lua](../../dev/MATH_.lua:129)
 - centroid: [dev/MATH_.lua](../../dev/MATH_.lua:157)
 
-Related docs
+# Related docs
 
 - Geometry consumers and hulls: [docs/poly/README.md](../poly/README.md)
 - Orientation helpers: [docs/math/orientation.md](./orientation.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks use GitHub Mermaid parser
 - Labels inside brackets avoid double quotes and parentheses

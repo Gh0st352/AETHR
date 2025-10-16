@@ -1,6 +1,6 @@
 # AETHR MATH diagrams and flows
 
-Primary anchors
+## Primary anchors
 - [AETHR.MATH:crossProduct()](../../dev/MATH_.lua:29)
 - [AETHR.MATH:computeRatio()](../../dev/MATH_.lua:43)
 - [AETHR.MATH:distanceSquared()](../../dev/MATH_.lua:58)
@@ -15,22 +15,23 @@ Primary anchors
 - [AETHR.MATH:generateNudge()](../../dev/MATH_.lua:233)
 - [AETHR.MATH:degreeToRadian()](../../dev/MATH_.lua:252)
 
-Breakout documents
+## Breakout documents
 - Orientation: [docs/math/orientation.md](orientation.md)
 - Vectors and angles: [docs/math/vectors.md](vectors.md)
 - Equality and centroid: [docs/math/equality_and_centroid.md](equality_and_centroid.md)
 - Randomization helpers: [docs/math/randomization.md](randomization.md)
 - Degree and turn angle notes: [docs/math/angles.md](angles.md)
 
-Documents and indices
+## Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
 - POLY: [docs/poly/README.md](../poly/README.md)
 - SPAWNER: [docs/spawner/README.md](../spawner/README.md)
 - ZONE_MANAGER: [docs/zone_manager/README.md](../zone_manager/README.md)
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   DS[distanceSquared] --> P2S[pointToSegmentSquared in POLY]
   DOT[dot] --> P2S
@@ -45,9 +46,10 @@ flowchart LR
   DR[degreeToRadian] --> ANG[angle math helpers]
 ```
 
-Geometry helper usage
+# Geometry helper usage
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant P as POLY
   participant M as MATH
@@ -65,9 +67,10 @@ sequenceDiagram
   M-->>P: angle 0..2pi
 ```
 
-Spawner numeric generation
+# Spawner numeric generation
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   BASE[base settings] --> NOM[generateNominal]
   NOM --> RNG[randomDecimalBetween]
@@ -75,11 +78,12 @@ flowchart TD
   NUDGE --> OUT[actual and thresholds]
 ```
 
-Algorithm sketches
+# Algorithm sketches
 
-- Orientation and intersection
+## - Orientation and intersection
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   A[p1 p2 p3] --> CP[crossProduct]
   CP --> SIGN[sign of determinant]
@@ -87,9 +91,10 @@ flowchart TD
   ORIENT --> USE[branch for intersection tests]
 ```
 
-- Centroid of point set
+## - Centroid of point set
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   PTS[normalized points] --> SUM[accumulate x and y]
   SUM --> CNT[count points]
@@ -97,10 +102,10 @@ flowchart LR
   AVG --> RET[return centroid]
 ```
 
-Key anchors in consumers
+# Key anchors in consumers
 - POLY: [pointToSegmentSquared](../../dev/POLY.lua:1149), [getEquallySpacedPoints](../../dev/POLY.lua:1074), [isWithinOffset](../../dev/POLY.lua:1106), [concaveHull](../../dev/POLY.lua:1309), [convexHull](../../dev/POLY.lua:1461)
 - SPAWNER types and counts: see [docs/spawner/types_and_counts.md](../spawner/types_and_counts.md) and [docs/spawner/pipeline.md](../spawner/pipeline.md)
 
-Notes
+# Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
