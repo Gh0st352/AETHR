@@ -9,45 +9,39 @@ Notes:
 Overview
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5","edgeLabelBackground":"#ffffff"}}}%%
-flowchart 
-  %% Overview split into Construction, Preparation, Scan/Core, and PostProcessing
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart LR
   subgraph CONSTR [Construction]
     CP[clusterPoints facade]
     NW[DBSCANNER New]
     CP --> NW
     NW --> GP[generate params]
   end
-  style CONSTR fill:#ffe6cc,stroke:#d99a5a,stroke-width:2px
 
   subgraph PREP [Preparation]
     GP --> PR[prepare points and index]
   end
-  style PREP fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
 
   subgraph SCAN [Scan and Clustering]
     PR --> SC[Scan]
     SC --> DB[_DBScan core]
-    DB -->|cnt < min_samples| NS[mark NOISE]
-    DB -->|cnt >= min_samples| EX[expand cluster]
+    DB -- "cnt < min_samples" --> NS[mark NOISE]
+    DB -- "cnt >= min_samples" --> EX[expand cluster]
     EX --> DB
     SC --> PP[post process clusters]
     PP --> OUT[return Clusters]
   end
-  style SCAN fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
 
-  %% Styling for nodes
-  classDef process fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class CP,NW,GP,PR,SC,DB,NS,EX,PP,OUT process
+  class CP,NW,GP,PR,SC,DB,EX class-compute;
+  class NS,OUT class-result;
 ```
 
 Facade [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   subgraph FACADE [Facade]
-    style FACADE fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
     F0[start clusterPoints]
     F1[extract radiusExtension f p min_samples from opts]
     F2[call DBSCANNER New]
@@ -55,17 +49,15 @@ flowchart LR
     F4[return scanner Clusters]
     F0 --> F1 --> F2 --> F3 --> F4
   end
-  classDef facade fill:#e1d5e7,stroke:#a48fb1,stroke-width:1px
-  class F0,F1,F2,F3,F4 facade
+  class F0,F1,F2,F3,F4 class-step;
 ```
 
 Constructor [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   subgraph NEW [Constructor - New]
-    style NEW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     N0[start New]
     N1[assign AI AETHR UTILS and dataset]
     N2[init arrays and fields]
@@ -75,17 +67,15 @@ flowchart TD
     N6[return generateDBSCANparams]
     N0 --> N1 --> N2 --> N3 --> N4 --> N5 --> N6
   end
-  classDef ctor fill:#fff2cc,stroke:#d4b86f
-  class N0,N1,N2,N3,N4,N5,N6 ctor
+  class N0,N1,N2,N3,N4,N5,N6 class-step;
 ```
 
 Parameterization [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   subgraph PARAM [Parameterization]
-    style PARAM fill:#e1f5e7,stroke:#8fbf9a,stroke-width:2px
     G0[start generate params]
     G1[compute epsilon and epsilon2]
     G2[compute min_samples from override or p proportion]
@@ -94,17 +84,15 @@ flowchart TD
     G5[return self]
     G0 --> G1 --> G2 --> G3 --> G4 --> G5
   end
-  classDef param fill:#e1f5e7,stroke:#8fbf9a
-  class G0,G1,G2,G3,G4,G5 param
+  class G0,G1,G2,G3,G4,G5 class-step;
 ```
 
 Pre normalize and index [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph PREP2 [Pre-normalize & Index]
-    style PREP2 fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     P0[start prepare]
     P1[guard n and eps]
     P2[clear grid and return]
@@ -116,33 +104,28 @@ flowchart TB
     P1 -->|n <= 0 or eps <= 0| P2
     P1 -->|ok| P3 --> P4 --> P5 --> P6
   end
-  classDef prep2 fill:#fff2cc,stroke:#d4b86f
-  class P0,P1,P2,P3,P4,P5,P6 prep2
+  class P0,P1,P2,P3,P4,P5,P6 class-step;
 ```
 
 Scan wrapper [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   subgraph SCANWRAP [Scan wrapper]
-    style SCANWRAP fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
     S0[start Scan] --> S1[call _DBScan]
     S1 --> S2[call post process clusters]
     S2 --> S3[return self]
   end
-  classDef scanwrap fill:#dae8fc,stroke:#6c8ebf
-  class S0,S1,S2,S3 scanwrap
+  class S0,S1,S2,S3 class-compute;
 ```
 
 Core clustering [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  %% Core loop and labeling
   subgraph CORE [Core _DBScan]
-    style CORE fill:#d5e8d4,stroke:#6b9f73,stroke-width:2px
     D0[start _DBScan]
     D1[init labels and cluster counter]
     D2[for each point if unmarked]
@@ -155,17 +138,15 @@ flowchart TB
     D3 -->|cnt < min_samples| D4
     D3 -->|cnt >= min_samples| D5 --> D6 --> D7 --> D2
   end
-  classDef core fill:#d5e8d4,stroke:#6b9f73
-  class D0,D1,D2,D3,D4,D5,D6,D7 core
+  class D0,D1,D2,D3,D4,D5,D6,D7 class-compute;
 ```
 
 Neighbor count [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   subgraph RCOUNT [Neighbor count]
-    style RCOUNT fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     RC0[start region_count]
     RC1[guard epsilon2 and cellSize]
     RC2[return 0]
@@ -178,17 +159,15 @@ flowchart LR
     RC1 -->|valid| RC3 --> RC4 --> RC5 --> RC1
     RC5 -->|count >= target| RC6
   end
-  classDef rcount fill:#fff2cc,stroke:#d4b86f
-  class RC0,RC1,RC2,RC3,RC4,RC5,RC6 rcount
+  class RC0,RC1,RC2,RC3,RC4,RC5,RC6 class-step;
 ```
 
 Neighbor query [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   subgraph RQUERY [Neighbor query]
-    style RQUERY fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     RQ0[start region_query]
     RQ1[guard epsilon2 and cellSize]
     RQ2[return empty]
@@ -200,17 +179,15 @@ flowchart LR
     RQ1 -->|invalid| RQ2
     RQ1 -->|valid| RQ3 --> RQ4 --> RQ5 --> RQ6
   end
-  classDef rquery fill:#fff2cc,stroke:#d4b86f
-  class RQ0,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6 rquery
+  class RQ0,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6 class-step;
 ```
 
 Cluster expansion [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph EXPAND [Expand cluster]
-    style EXPAND fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
     E0[start expand_cluster]
     E1[label seed and init i]
     E2[while i <= neighbors length]
@@ -225,17 +202,15 @@ flowchart TB
     E4 -->|not core| E6 --> E2
     E2 --> E7
   end
-  classDef expand fill:#f5f5f5,stroke:#bfbfbf
-  class E0,E1,E2,E3,E4,E5,E6,E7 expand
+  class E0,E1,E2,E3,E4,E5,E6,E7 class-step;
 ```
 
 Post processing [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466)
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph POST [Post processing]
-    style POST fill:#ffe6cc,stroke:#d99a5a,stroke-width:2px
     PP0[start post process]
     PP1[group points by cluster id]
     PP2[compute centers via mean x y]
@@ -244,28 +219,24 @@ flowchart TB
     PP5[assign to self Clusters]
     PP0 --> PP1 --> PP2 --> PP3 --> PP4 --> PP5
   end
-  classDef post fill:#ffe6cc,stroke:#d99a5a
-  class PP0,PP1,PP2,PP3,PP4,PP5 post
+  class PP0,PP1,PP2,PP3,PP4,PP5 class-step;
 ```
 
 Sequence overview
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  %% Add a faint background rect for readability on dark docs background
-  rect rgba(255,255,255,0.75)
-    participant AI as AETHR AI
-    participant DB as DBSCANNER
-    participant U as UTILS
-    AI->>DB: New with points area params
-    DB-->>DB: generateDBSCANparams and prepare index
-    DB->>U: normalizePoint per input
-    AI->>DB: Scan
-    DB-->>DB: _DBScan with region_count and region_query
-    DB-->>DB: expand_cluster and post process clusters
-    DB-->>AI: Clusters
-  end
+  participant AI as AETHR AI
+  participant DB as DBSCANNER
+  participant U as UTILS
+  AI->>DB: New with points area params
+  DB-->>DB: generateDBSCANparams and prepare index
+  DB->>U: normalizePoint per input
+  AI->>DB: Scan
+  DB-->>DB: _DBScan with region_count and region_query
+  DB-->>DB: expand_cluster and post process clusters
+  DB-->>AI: Clusters
 ```
 
 References

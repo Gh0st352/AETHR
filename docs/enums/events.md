@@ -11,80 +11,49 @@ Primary sources
 Overview relationships
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#000000ff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
+  subgraph ENUMS [ENUMS]
+    EN[ENUMS]
+    EV[Events]
+  end
 
-%% Classes
-classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
-classDef handler fill:#e1d5e7,stroke:#9673a6,stroke-width:2px;
-classDef world fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
-classDef zm fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
-classDef spawner fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+  subgraph HANDLERS [Event Handlers]
+    EH[Event Handlers]
+  end
 
-%% ENUMS
-subgraph sgEnums [ENUMS]
-  EN[ENUMS]
-  EV[Events]
-end
-
-%% Handlers
-subgraph sgHandlers [Event Handlers]
-  EH[Event Handlers]
-end
-
-%% Mission Systems
-subgraph sgSystems [Mission Systems]
-  subgraph sgW [WORLD]
+  subgraph SYSTEMS [Mission Systems]
     W[WORLD]
-  end
-  subgraph sgZM [ZONE_MANAGER]
     ZM[ZONE_MANAGER]
-  end
-  subgraph sgSP [SPAWNER]
     SP[SPAWNER]
   end
-end
 
-%% Edges
-EN --> EV
-EV -.-> EH
-EH -.-> W
-EH -.-> ZM
-EH -.-> SP
+  EN --> EV
+  EV -.-> EH
+  EH -.-> W
+  EH -.-> ZM
+  EH -.-> SP
 
-%% Class applications
-class EN,EV enums
-class EH handler
-class W world
-class ZM zm
-class SP spawner
-
-%% Styles
-style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
-style sgHandlers fill:#f1e6f7,stroke:#9673a6,stroke-width:2px
-style sgSystems fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
-style sgW fill:#edf7ed,stroke:#82b366,stroke-width:2px
-style sgZM fill:#edf7ed,stroke:#82b366,stroke-width:2px
-style sgSP fill:#fff9e6,stroke:#d6b656,stroke-width:2px
+  class EN,EV class-data;
+  class EH class-tracker;
+  class W,ZM,SP class-compute;
 ```
 
 Typical usage pattern
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant DCS as world
   participant H as EventHandler
   participant EN as ENUMS
 
-  rect rgba(255, 255, 255, 0.75)
-    DCS->>H: onEvent(event)
-    alt match event.id
-      H->>EN: Events.S_EVENT_SHOT|HIT|LAND etc
-      H-->>H: dispatch to subsystem logic
-    else ignore
-      H-->>H: no-op
-    end
+  DCS->>H: onEvent(event)
+  alt match event.id
+    H->>EN: Events.S_EVENT_SHOT|HIT|LAND etc
+    H-->>H: dispatch to subsystem logic
+  else ignore
+    H-->>H: no-op
   end
 ```
 

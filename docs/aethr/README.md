@@ -28,8 +28,8 @@ Breakout pages
 Instance creation and wiring
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","lineColor":"#495057","textColor":"#e9ecef","fontSize":"14px"}}}%%
-flowchart
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart LR
   %% Groupings
   subgraph INSTANCE ["Instance creation"]
     N["New instance"]
@@ -48,23 +48,15 @@ flowchart
   %% Flow
   N --> C --> ID --> SD --> PC --> AM --> BR --> RT
 
-  %% Styles
-  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
-  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
-
-  %% Apply classes
-  class N,RT core
-  class C,ID,SD,PC,AM,BR process
-
-  %% Subgraph styles
-  style INSTANCE fill:#f9f9f9,stroke:#ccc,stroke-width:2px
-  style MODULES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
+  %% Class assignments (house buckets)
+  class N,RT class-result;
+  class C,ID,SD,PC,AM,BR class-step;
 ```
 
 Init orchestration
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","lineColor":"#495057","textColor":"#000000ff","fontSize":"14px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   %% Main container
   subgraph INIT ["Initialization"]
@@ -89,92 +81,68 @@ flowchart TB
     end
 
     %% Flow
-    I --> P1
-    P1 --> L1
-    L1 --> Z1
-    Z1 --> W1
-    W1 --> W2
-    W2 --> W3
-    W3 --> ZB
-    ZB --> T1
-    T1 --> US
-    US --> CS
+    I --> P1 --> L1 --> Z1 --> W1 --> W2 --> W3 --> ZB --> T1 --> US --> CS
   end
 
-  %% Styles
-  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
-  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
-
-  %% Apply classes
-  class I,CS core
-  class P1,L1,Z1,W1,W2,W3,ZB,T1,US process
-
-  %% Subgraph styles
-  style INIT fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-  style STORAGE fill:#f9f9f9,stroke:#ccc,stroke-width:2px
-  style MODS fill:#f9f9f9,stroke:#ccc,stroke-width:2px
-  style ZONES fill:#fff0e6,stroke:#ff9900,stroke-width:2px
-  style PERSIST fill:#f8f9fa,stroke:#495057,stroke-width:2px
+  %% Class assignments (house buckets)
+  class I,CS class-result;
+  class P1,L1,Z1,W1,W2,W3,ZB,T1,US class-step;
 ```
 
 Runtime sequence during Init
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000000ff","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#070707ff","textColor":"#000000ff","fontSize":"14px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  participant A as "AETHR"
-  participant C as "CONFIG"
-  participant Z as "ZONE_MANAGER"
-  participant W as "WORLD"
+  participant A as AETHR
+  participant C as CONFIG
+  participant Z as ZONE_MANAGER
+  participant W as WORLD
 
-  rect rgba(255,255,255,0.75)
-    A->>C: initConfig
-    A->>Z: initMizZoneData
-    A->>W: initWorldDivisions
-    A->>W: initActiveDivisions
-    A->>W: initMizFileCache
+  A->>C: initConfig
+  A->>Z: initMizZoneData
+  A->>W: initWorldDivisions
+  A->>W: initActiveDivisions
+  A->>W: initMizFileCache
 
-    alt zones present
-      A->>Z: initZoneArrows
-      A->>Z: initGameZoneBoundaries
-      A->>Z: drawMissionZones
-      A->>Z: drawGameBounds
-      A->>Z: drawZoneArrows
-      A->>Z: pairActiveDivisions
-      A->>W: initTowns
-      A->>Z: pairTowns
-    end
-
-    A->>A: loadUSERSTORAGE
-    A->>A: saveUSERSTORAGE
-    A->>C: saveConfig
+  alt zones present
+    A->>Z: initZoneArrows
+    A->>Z: initGameZoneBoundaries
+    A->>Z: drawMissionZones
+    A->>Z: drawGameBounds
+    A->>Z: drawZoneArrows
+    A->>Z: pairActiveDivisions
+    A->>W: initTowns
+    A->>Z: pairTowns
   end
+
+  A->>A: loadUSERSTORAGE
+  A->>A: saveUSERSTORAGE
+  A->>C: saveConfig
 ```
 
 Background processes loop
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000000ff","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000000ff","textColor":"#000000ff","fontSize":"14px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  participant A as "AETHR"
-  participant B as "BRAIN"
-  participant W as "WORLD"
-  participant Z as "ZONE_MANAGER"
+  participant A as AETHR
+  participant B as BRAIN
+  participant W as WORLD
+  participant Z as ZONE_MANAGER
 
-  rect rgba(255,255,255,0.75)
-    A->>B: schedule BackgroundProcesses
-    loop background loop
-      B->>W: updateAirbaseOwnership
-      B->>W: updateZoneOwnership
-      B->>W: updateZoneColors
-      B->>W: updateZoneArrows
-      B->>W: updateGroundUnitsDB
-      B->>W: spawnGroundGroups
-      B->>W: despawnGroundGroups
-      B->>A: FSM queue process
-      B->>W: spawnerGenerationQueue
-      B->>B: runScheduledTasks
-    end
+  A->>B: schedule BackgroundProcesses
+  loop background loop
+    B->>W: updateAirbaseOwnership
+    B->>W: updateZoneOwnership
+    B->>W: updateZoneColors
+    B->>W: updateZoneArrows
+    B->>W: updateGroundUnitsDB
+    B->>W: spawnGroundGroups
+    B->>W: despawnGroundGroups
+    B->>A: FSM queue process
+    B->>W: spawnerGenerationQueue
+    B->>B: runScheduledTasks
   end
 ```
 

@@ -11,46 +11,40 @@ The coroutine runner executes periodic routines based on interval and phase with
 Flow: doRoutine
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5","edgeLabelBackground":"#ffffff"}}}%%
-flowchart
-  %% doRoutine: top-down control flow with guarded branches
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart TB
   subgraph DO [doRoutine flow]
-    style DO fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
     DR1[increment counter] --> DR2[compute interval and phase]
     DR2 --> DR3{matches interval window}
-    DR3 -->|no| DR0[return self]
-    DR3 -->|yes| DR4[set counter to zero]
+    DR3 -- "no" --> DR0[return self]
+    DR3 -- "yes" --> DR4[set counter to zero]
     DR4 --> DR5{thread missing or dead}
-    DR5 -->|yes| DR6[create coroutine from routineFn with args]
-    DR5 -->|no| DR7[keep existing thread]
+    DR5 -- "yes" --> DR6[create coroutine from routineFn with args]
+    DR5 -- "no" --> DR7[keep existing thread]
     DR6 --> DR8[status suspended]
     DR7 --> DR8[status suspended]
     DR8 --> DR9[resume thread]
     DR9 --> DR10{resume ok}
-    DR10 -->|no| DR11[log error and clear thread]
-    DR10 -->|yes| DR12[continue]
+    DR10 -- "no" --> DR11[log error and clear thread]
+    DR10 -- "yes" --> DR12[continue]
     DR12 --> DR13{thread dead}
-    DR13 -->|yes| DR14[clear thread]
-    DR13 -->|no| DR0
+    DR13 -- "yes" --> DR14[clear thread]
+    DR13 -- "no" --> DR0
   end
-
-  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class DR1,DR2,DR3,DR0,DR4,DR5,DR6,DR7,DR8,DR9,DR10,DR11,DR12,DR13,DR14 node
+  class DR1,DR2,DR3,DR0,DR4,DR5,DR6,DR7,DR8,DR9,DR10,DR11,DR12,DR13,DR14 class-step;
+  class DO class-compute;
 ```
 
 Sequence: background usage
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  %% background rect improves readability on dark docs
-  rect rgba(255,255,255,0.75)
-    participant BR as BRAIN
-    participant FN as routineFn
-    loop background ticks
-      BR->>BR: doRoutine per descriptor
-      BR->>FN: execute step until yield or complete
-    end
+  participant BR as BRAIN
+  participant FN as routineFn
+  loop background ticks
+    BR->>BR: doRoutine per descriptor
+    BR->>FN: execute step until yield or complete
   end
 ```
 
@@ -69,10 +63,9 @@ Configured descriptors
 Descriptors subgraph
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   subgraph Descriptors [Configured coroutine descriptors]
-    style Descriptors fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     D1[saveGroundUnits int 10 phase 9 yield 5]
     D2[updateZoneOwnership int 10 phase 2 yield 5]
     D3[updateAirfieldOwnership int 10 phase 0 yield 5]
@@ -84,9 +77,7 @@ flowchart LR
     D9[spawnerGenerationQueue int 10 phase 12 yield 10]
     D10[processFSMQueue int 10 phase 5 yield 10]
   end
-
-  classDef desc fill:#f5f5f5,stroke:#bfbfbf
-  class D1,D2,D3,D4,D5,D6,D7,D8,D9,D10 desc
+  class D1,D2,D3,D4,D5,D6,D7,D8,D9,D10 class-step;
 ```
 
 Cross links

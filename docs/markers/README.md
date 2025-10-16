@@ -22,6 +22,7 @@ Documents and indices
 Overview relationships
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   MF[markFreeform] --> DP[drawPolygon]
   MA[markArrow] --> DA[drawArrow]
@@ -36,6 +37,7 @@ flowchart LR
 Freeform polygon flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN[_Marker with verts] --> NORM[normalize vertices]
   NORM --> ARGS[build arguments list]
@@ -46,6 +48,7 @@ flowchart TD
 Arrow flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN2[_Marker with 2 points] --> NORM2[normalize points]
   NORM2 --> ARGS2[build arguments list]
@@ -56,6 +59,7 @@ flowchart TD
 Circle flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   IN3[_Marker vec2Origin radius] --> ARGS3[build arguments list]
   ARGS3 --> CALL3[trigger.action.circleToAll]
@@ -65,6 +69,7 @@ flowchart LR
 Runtime sequence for drawing polygon
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MARKERS
   participant U as UTILS
@@ -81,6 +86,7 @@ sequenceDiagram
 Remove marks sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MARKERS
   participant T as trigger.action

@@ -15,47 +15,28 @@ AETHR uses a simple registry [AETHR.MODULES](../../dev/AETHR.lua:40) to determin
 Flow of module wiring
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e6f3ff","primaryBorderColor":"#0066cc","lineColor":"#495057","textColor":"#e9ecef","fontSize":"14px"}}}%%
-flowchart
-  %% Groupings
-  subgraph REG ["Registry"]
-    M["AETHR MODULES list"]
-    L["Build modules list copy"]
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart LR
+  subgraph REG [Registry]
+    M[AETHR MODULES list]
+    L[Build modules list copy]
   end
 
-  subgraph CON ["Construction"]
-    P1GRP["Phase 1 (construct)"]
-    P1["Phase 1 construct submodules"]
+  subgraph CON [Construction]
+    P1GRP[Phase 1 (construct)]
+    P1[Phase 1 construct submodules]
   end
 
-  subgraph WIR ["Wiring"]
-    P2GRP["Phase 2 (wire)"]
-    P2["Phase 2 inject backrefs and siblings"]
-    D["Instance modules wired"]
+  subgraph WIR [Wiring]
+    P2GRP[Phase 2 (wire)]
+    P2[Phase 2 inject backrefs and siblings]
+    D[Instance modules wired]
   end
 
-  %% Flow
-  M --> L
-  L --> P1GRP
-  P1GRP --> P1
-  P1 --> P2GRP
-  P2GRP --> P2
-  P2 --> D
+  M --> L --> P1GRP --> P1 --> P2GRP --> P2 --> D
 
-  %% Styles
-  classDef core fill:#e6f3ff,stroke:#0066cc,stroke-width:2px,color:#000
-  classDef process fill:#cce5ff,stroke:#0066cc,color:#000
-
-  %% Apply classes
-  class M,D core
-  class L,P1,P2 process
-
-  %% Subgraph styles
-  style REG fill:#f9f9f9,stroke:#ccc,stroke-width:2px
-  style CON fill:#fff0e6,stroke:#ff9900,stroke-width:2px
-  style WIR fill:#f8f9fa,stroke:#495057,stroke-width:2px
-  style P1GRP fill:#fff7e6,stroke:#ff9900,stroke-width:2px
-  style P2GRP fill:#fffbe6,stroke:#ff9900,stroke-width:2px
+  class M,D class-result;
+  class L,P1,P2 class-step;
 ```
 
 Phase 1 construction
@@ -65,21 +46,17 @@ Phase 1 construction
 - On failure or non table return, assign the prototype table directly
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000000ff","textColor":"#000000ff","fontSize":"14px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  participant A as "AETHR"
-  participant Mod as "Module prototype"
+  participant A as AETHR
+  participant Mod as Module prototype
 
-  rect rgba(255,255,255,0.75)
-    rect rgb(230,243,255)
-      loop each name in modules list
-        A->>Mod: try construct via New
-        alt returns table
-          A-->>A: set instance submodule to returned table
-        else no New or failure
-          A-->>A: set instance submodule to prototype table
-        end
-      end
+  loop each name in modules list
+    A->>Mod: try construct via New
+    alt returns table
+      A-->>A: set instance submodule to returned table
+    else no New or failure
+      A-->>A: set instance submodule to prototype table
     end
   end
 ```
@@ -89,17 +66,15 @@ Phase 2 backrefs and sibling injection
 - For each submodule, shallow inject references to all other submodules for direct calls
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"actorBkg":"#e6f3ff","actorTextColor":"#000","lineColor":"#495057","signalColor":"#0066cc","signalTextColor":"#000000ff","textColor":"#000000ff","fontSize":"14px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  participant A as "AETHR"
-  participant S as "Submodule"
+  participant A as AETHR
+  participant S as Submodule
 
-  rect rgba(255,255,255,0.75)
-    loop each submodule
-      A-->>S: ensure AETHR reference
-      loop each sibling
-        A-->>S: inject sibling reference
-      end
+  loop each submodule
+    A-->>S: ensure AETHR reference
+    loop each sibling
+      A-->>S: inject sibling reference
     end
   end
 ```

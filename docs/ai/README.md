@@ -19,11 +19,10 @@ Documents
 End to end relationship
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5","edgeLabelBackground":"#ffffff"}}}%%
-flowchart
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart LR
   %% End-to-end split with subgraphs per Mermaid Rules
   subgraph CON [Construction]
-    style CON fill:#ffe6cc,stroke:#d99a5a,stroke-width:2px
     CP[clusterPoints]
     NW[DBSCANNER New]
     CP --> NW
@@ -31,43 +30,40 @@ flowchart
   end
 
   subgraph PREP [Preparation]
-    style PREP fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     GP --> PR[prepare points and index]
   end
 
   subgraph SCAN [Scan & Clustering]
-    style SCAN fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
     PR --> SC[Scan]
     SC --> DB[_DBScan]
-    DB -->|cnt < min_samples| NS[mark NOISE]
-    DB -->|cnt >= min_samples| EX[expand cluster]
+    DB -- "cnt < min_samples" --> NS[mark NOISE]
+    DB -- "cnt >= min_samples" --> EX[expand cluster]
     EX --> DB
     SC --> PP[post process clusters]
     PP --> OUT[Clusters result]
   end
 
-  classDef nodeStyle fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class CP,NW,GP,PR,SC,DB,NS,EX,PP,OUT nodeStyle
+  %% House class buckets
+  class CP,NW,GP,PR,SC,DB,EX class-compute;
+  class NS,OUT class-result;
 ```
 
 Runtime sequence overview
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  %% Background rect improves readability on dark docs
-  rect rgba(255,255,255,0.75)
-    participant AI as AETHR AI
-    participant DB as DBSCANNER
-    participant U as UTILS
-    AI->>DB: New with points area params
-    DB-->>DB: generateDBSCANparams and prepare index
-    DB->>U: normalizePoint per input
-    AI->>DB: Scan
-    DB-->>DB: _DBScan with region_count and region_query
-    DB-->>DB: expand_cluster then post_process_clusters
-    DB-->>AI: Clusters
-  end
+  participant AI as AETHR AI
+  participant DB as DBSCANNER
+  participant U as UTILS
+
+  AI->>DB: New with points area params
+  DB-->>DB: generateDBSCANparams and prepare index
+  DB->>U: normalizePoint per input
+  AI->>DB: Scan
+  DB-->>DB: _DBScan with region_count and region_query
+  DB-->>DB: expand_cluster then post_process_clusters
+  DB-->>AI: Clusters
 ```
 
 Key anchors

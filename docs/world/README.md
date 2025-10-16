@@ -20,23 +20,52 @@ Documents
 End to end relationship
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  I[Init divisions and caches] --> D[World divisions]
-  D --> A[Active divisions]
-  A --> ODB[Objects & Ground DB]
-  I --> MIZ[MIZ cache]
-  D --> AB[getAirbases]
-  AB --> OWN[Ownership updates]
-  OWN --> C[Zone colors]
-  OWN --> AR[Zone arrows]
-  SPAWNER[Spawner jobs] -.-> GQ[WORLD spawnerGenerationQueue]
-  GQ --> SD[Spawn/Despawn]
+  subgraph INIT [Init & Caches]
+    I[Init divisions and caches]
+    MIZ[MIZ cache]
+  end
+
+  subgraph DIVS [Divisions]
+    D[World divisions]
+    A[Active divisions]
+  end
+
+  subgraph OWN [Ownership]
+    AB[getAirbases]
+    OWN[Ownership updates]
+    C[Zone colors]
+    AR[Zone arrows]
+  end
+
+  subgraph SPAWN [Spawner]
+    SPAWNER[Spawner jobs]
+    GQ[WORLD spawnerGenerationQueue]
+    SD[Spawn/Despawn]
+  end
+
+  subgraph DB [Data]
+    ODB[Objects & Ground DB]
+  end
+
+  I --> D --> A
+  I --> MIZ
+  D --> AB
+  AB --> OWN
+  OWN --> C
+  OWN --> AR
+  SPAWNER -.-> GQ
+  GQ --> SD
   ODB -.-> SPAWNER
+
+  class I,D,A,MIZ,AB,OWN,C,AR,GQ,SD,SPAWNER,ODB class-step;
 ```
 
 Module interactions during runtime
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant A as AETHR
   participant Z as ZONE_MANAGER
@@ -44,6 +73,7 @@ sequenceDiagram
   participant S as SPAWNER
   participant P as POLY
   participant U as UTILS
+
   A->>W: initWorldDivisions, initActiveDivisions, initMizFileCache
   W->>P: bounds conversion, grid metrics, polygon ops
   W->>Z: getAirbases for zone association

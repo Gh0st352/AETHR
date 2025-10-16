@@ -16,12 +16,9 @@ Documents
 Overview relationships
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
-flowchart
-
-  %% Logical core: BRAIN and its areas
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart LR
   subgraph CORE [BRAIN core areas]
-    style CORE fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
     BR[BRAIN module]
     SC[Scheduler]
     CO[Coroutines]
@@ -31,45 +28,45 @@ flowchart
     BR --> WT
   end
 
-  %% Effects and downstream systems
   subgraph EFFECTS [Runtime effects]
-    style EFFECTS fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
-    SC --> ST[Scheduled tasks]
-    CO --> WL[WORLD updates]
+    ST[Scheduled tasks]
+    WL[WORLD updates]
+    SP[Spawner jobs]
+    ZM[Zone manager reactions]
+    SC --> ST
+    CO --> WL
     WT -.-> WL
-    WL -.-> SP[Spawner jobs]
-    WL -.-> ZM[Zone manager reactions]
+    WL -.-> SP
+    WL -.-> ZM
     ZM -.-> WT
   end
 
-  classDef nodeStyle fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class BR,SC,CO,WT,ST,WL,SP,ZM nodeStyle
+  class BR,SC,CO,WT class-compute;
+  class ST,WL,SP,ZM class-step;
 ```
 
 Runtime sequence overview
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  %% background rect improves contrast on dark docs
-  rect rgba(255,255,255,0.75)
-    participant A as AETHR
-    participant BR as BRAIN
-    participant WL as WORLD
-    participant ZM as ZONE_MANAGER
-    participant SP as SPAWNER
-    A->>BR: New
-    BR-->>BR: init DATA and descriptors
-    ZM->>BR: buildWatcher for coalition and ownedBy
-    BR-->>WL: on change call ownership handlers
-    loop background loop
-      BR->>BR: doRoutine per descriptor
-      BR-->>WL: call update ownership colors arrows when due
-    end
-    WL->>BR: scheduleTask for spawner queues
-    BR->>BR: runScheduledTasks
-    BR-->>SP: dispatch spawn and despawn
+  participant A as AETHR
+  participant BR as BRAIN
+  participant WL as WORLD
+  participant ZM as ZONE_MANAGER
+  participant SP as SPAWNER
+
+  A->>BR: New
+  BR-->>BR: init DATA and descriptors
+  ZM->>BR: buildWatcher for coalition and ownedBy
+  BR-->>WL: on change call ownership handlers
+  loop background loop
+    BR->>BR: doRoutine per descriptor
+    BR-->>WL: call update ownership colors arrows when due
   end
+  WL->>BR: scheduleTask for spawner queues
+  BR->>BR: runScheduledTasks
+  BR-->>SP: dispatch spawn and despawn
 ```
 
 Cross-module indexes

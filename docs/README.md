@@ -11,19 +11,51 @@ Conventions
 Cross-module overview
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  A[AETHR] --> C[CONFIG]
-  C --> F[FILEOPS]
-  A --> W[WORLD]
-  W --> ZM[ZONE_MANAGER]
+  %% Groupings to clarify domains
+  subgraph CORE ["Core orchestration"]
+    A[AETHR]
+    C[CONFIG]
+    F[FILEOPS]
+    IO[IO]
+    U[UTILS]
+    EN[ENUMS]
+    P[POLY]
+    FSM[FSM]
+    TYP[TYPES]
+    MATH[MATH]
+    AS[AUTOSAVE]
+  end
+
+  subgraph RUNTIME ["Runtime systems"]
+    W[WORLD]
+    ZM[ZONE_MANAGER]
+    SP[SPAWNER]
+    B[BRAIN]
+    AI[AI]
+  end
+
+  %% Edges
+  A --> C
+  C --> F
+  C --> IO
+  A --> W
+  W --> ZM
   ZM --> M[MARKERS]
-  ZM --> P[POLY]
-  ZM --> U[UTILS]
-  W <--> SP[SPAWNER]
-  SP --> AI[AI]
-  B[BRAIN] --> W
+  ZM --> P
+  ZM --> U
+  W <--> SP
+  SP --> AI
+  B --> W
   B --> SP
   B --> ZM
+
+  %% House class buckets (styling via shared theme)
+  class F,IO class-io;
+  class A,B,W,ZM,SP,AI class-compute;
+  class C,EN,TYP,MATH class-data;
+  class M,P,U,FSM,AS class-step;
 ```
 
 Module documentation index

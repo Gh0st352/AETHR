@@ -22,10 +22,9 @@ Context
 Path assembly overview
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph PATH_ASSEMBLY [Path assembly overview]
-    style PATH_ASSEMBLY fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     S[SAVEGAME_DIR] --> R[ROOT_FOLDER]
     R --> C[CONFIG_FOLDER name]
     C --> CFG_PATH[CONFIG.PATHS.CONFIG_FOLDER]
@@ -35,16 +34,14 @@ flowchart TB
     PATHS_CACHED --> ENSURE[ensureDirectory per path]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class S,R,C,CFG_PATH,MISSION,SUBS,PATHS_CACHED,ENSURE node
+  class S,R,C,CFG_PATH,MISSION,SUBS,PATHS_CACHED,ENSURE class-step;
 ```
 
 Sequence across construction and init
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  rect rgba(255,255,255,0.75)
   participant N as AETHR New
   participant F as FILEOPS
   participant I as AETHR Init
@@ -58,7 +55,6 @@ sequenceDiagram
   I-->>I: cache PATHS[name] = full path
   I->>C: initConfig
   C->>F: loadData CONFIG.PATHS.CONFIG_FOLDER AETHR_Config.lua
-  end
 ```
 
 Subfolders to PATHS mapping
@@ -94,10 +90,9 @@ CONFIG persistence filenames
 CONFIG folder vs mission subfolders
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph CFG_VS_MISSION [CONFIG folder vs mission subfolders]
-    style CFG_VS_MISSION fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     WD[Writable root SAVEGAME_DIR] --> RF[ROOT_FOLDER AETHR]
     RF --> CFGN[CONFIG folder name]
     CFGN --> CFGP[PATHS.CONFIG_FOLDER]
@@ -110,8 +105,7 @@ flowchart TB
     SUBS --> M5[PATHS.USER_FOLDER]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class WD,RF,CFGN,CFGP,MID,SUBS,M1,M2,M3,M4,M5 node
+  class WD,RF,CFGN,CFGP,MID,SUBS,M1,M2,M3,M4,M5 class-step;
 ```
 
 Edge cases and guards

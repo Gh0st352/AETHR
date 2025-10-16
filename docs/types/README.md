@@ -37,32 +37,44 @@ Documents and indices
 Core relationships
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  Z[_MIZ_ZONE] --> BIF[_BorderInfo]
-  Z --> L2[LinesVec2]
-  Z --> AB[_airbase]
-  WD[_WorldDivision] --> G[_Grid]
+  subgraph TYPES [Core Types]
+    Z[_MIZ_ZONE] --> BIF[_BorderInfo]
+    Z --> L2[LinesVec2]
+    Z --> AB[_airbase]
+    WD[_WorldDivision] --> G[_Grid]
 
-  DS[_dynamicSpawner] --> SZ[_spawnerZone]
-  SZ --> SS[_spawnSettings]
-  DS --> STC[_spawnerTypeConfig]
-  SZ --> C[_circle]
-  FO[_FoundObject] -.-> WORLD[WORLD DBs]
+    DS[_dynamicSpawner] --> SZ[_spawnerZone]
+    SZ --> SS[_spawnSettings]
+    DS --> STC[_spawnerTypeConfig]
+    SZ --> C[_circle]
+    FO[_FoundObject]
+    MK[_Marker]
+  end
 
-  MK[_Marker] -.-> MARKERS
+  subgraph INTEGRATIONS [Integrations]
+    WORLD[WORLD DBs]
+    MARKERS[MARKERS]
+  end
 
-  style WORLD fill:#eee
-  style MARKERS fill:#eee
+  FO -.-> WORLD
+  MK -.-> MARKERS
+
+  class Z,BIF,L2,AB,WD,G,DS,SZ,SS,STC,C,FO,MK class-data;
+  class WORLD,MARKERS class-compute;
 ```
 
 Spawner data flow at a glance
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant DS as _dynamicSpawner
   participant SZ as _spawnerZone
   participant SS as _spawnSettings
   participant STC as _spawnerTypeConfig
+
   DS->>DS: setNumSpawnZones(...)
   DS->>DS: setSpawnAmount(...)
   DS->>DS: _seedRollUpdates()
@@ -79,21 +91,31 @@ sequenceDiagram
 _zone and border structures
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  ZC[_MIZ_ZONE] --> Lines[LinesVec2]
-  ZC --> BORDERS[BorderingZones map]
-  BORDERS --> BI[_BorderInfo]
-  BI --> ZLine[ZoneLine]
-  BI --> NLine[NeighborLine]
-  BI --> Arrow[ArrowTip ArrowEnd]
-  ZC --> Towns[townsDB]
-  ZC --> Divs[activeDivisions]
-  ZC --> ABs[Airbases]
+  subgraph ZONE [Zone structures]
+    ZC[_MIZ_ZONE] --> Lines[LinesVec2]
+    ZC --> Towns[townsDB]
+    ZC --> Divs[activeDivisions]
+    ZC --> ABs[Airbases]
+  end
+
+  subgraph BORDER [Borders]
+    BORDERS[BorderingZones map] --> BI[_BorderInfo]
+    BI --> ZLine[ZoneLine]
+    BI --> NLine[NeighborLine]
+    BI --> Arrow[ArrowTip ArrowEnd]
+  end
+
+  ZC --> BORDERS
+
+  class ZC,Lines,Towns,Divs,ABs,BORDERS,BI,ZLine,NLine,Arrow class-data;
 ```
 
 Airbase descriptor fields
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   AB[_airbase] --> ID[id, id_]
   AB --> POS[coordinates _vec3]
@@ -102,11 +124,14 @@ flowchart LR
   AB --> COA[coalition previousCoalition]
   AB --> RW[runways longestRunway maxRunwayLength]
   AB --> ZN[zoneName zoneObject]
+
+  class AB,ID,POS,DESC,N,COA,RW,ZN class-data;
 ```
 
 Grid and world division
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   WD[_WorldDivision] --> ID2[ID active]
   WD --> CNR[corners[4]]
@@ -115,22 +140,28 @@ flowchart TD
   G2 --> ORG[minX minZ]
   G2 --> STEP[dx dz invDx invDz]
   G2 --> COR[corners]
+
+  class WD,ID2,CNR,HT,G2,ORG,STEP,COR class-data;
 ```
 
 Marker structure
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   MK[_Marker] --> id[markID]
   MK --> str[label string]
   MK --> pos[vec2Origin radius]
   MK --> style[lineType lineColor fillColor coalition]
   MK --> verts[freeFormVec2Table]
+
+  class MK,id,str,pos,style,verts class-data;
 ```
 
 Found object container
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   FO[_foundObject] --> meta[callsign category country coalition]
   FO --> geo[position _vec3]
@@ -138,6 +169,8 @@ flowchart TD
   FO --> ids[id ObjectID name]
   FO --> state[isActive isAlive isDead etc]
   FO --> nest[AETHR.spawned divisionID groundUnitID]
+
+  class FO,meta,geo,group,ids,state,nest class-data;
 ```
 
 Key anchors by area

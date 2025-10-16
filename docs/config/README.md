@@ -17,27 +17,25 @@ Documents and indices
 Init and persistence flow
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph INIT_FLOW [Init and persistence flow]
-    style INIT_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     I[initConfig] --> T[Try loadConfig]
-    T -->|ok and table| R[Replace MAIN with loaded]
-    T -->|nil or error| P[Persist defaults via saveConfig]
+    T -- "ok and table" --> R[Replace MAIN with loaded]
+    T -- "nil or error" --> P[Persist defaults via saveConfig]
     R --> RET[return self]
     P --> RET
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class I,T,R,P,RET node
+  class I,T,R,P class-step;
+  class RET class-result;
 ```
 
 Storage guards and calls
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  rect rgba(255,255,255,0.75)
   participant C as CONFIG
   participant F as FILEOPS
   participant U as UTILS
@@ -56,7 +54,6 @@ sequenceDiagram
     end
   else guards fail
     C-->>C: return nil or false
-  end
   end
 ```
 
@@ -106,19 +103,18 @@ Detailed CONFIG analysis pages with Mermaid diagrams and sequence charts.
 High-level overview
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph START [Startup overview]
-    style START fill:#ffe6cc,stroke:#e6b87a,stroke-width:2px
     New[AETHR New] --> Paths[Compute CONFIG PATHS]
     Init[AETHR Init] --> Zones[ZONE_MANAGER init]
     Init --> World[WORLD init divisions and caches]
     Init --> Config[CONFIG initConfig]
     Config --> Load[loadConfig]
-    Load -->|ok table| Use[Use loaded MAIN]
-    Load -->|nil| Save[saveConfig defaults]
+    Load -- "ok table" --> Use[Use loaded MAIN]
+    Load -- "nil" --> Save[saveConfig defaults]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class New,Paths,Init,Zones,World,Config,Load,Use,Save node
+  class New,Paths,Init,Zones,World,Config,Load class-step;
+  class Use,Save class-result;
 ```

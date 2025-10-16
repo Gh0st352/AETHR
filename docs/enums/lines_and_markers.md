@@ -26,45 +26,30 @@ Consumers and anchors
 Overview relationships
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#000000ff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
+  subgraph ENUMS [ENUMS]
+    EN[ENUMS]
+    LT[LineTypes]
+    MT[MarkerTypes]
+  end
 
-%% Classes
-classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
-classDef zm fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
-classDef mk fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
+  subgraph ZM [ZONE_MANAGER]
+    ZM[ZONE_MANAGER]
+  end
 
-%% Groups
-subgraph sgEnums [ENUMS]
-  EN[ENUMS]
-  LT[LineTypes]
-  MT[MarkerTypes]
-end
+  subgraph MK [MARKERS]
+    MK[MARKERS]
+  end
 
-subgraph sgZM [ZONE_MANAGER]
-  ZM[ZONE_MANAGER]
-end
+  EN --> LT
+  EN --> MT
+  LT -.-> ZM
+  MT -.-> MK
+  ZM -.-> MK
 
-subgraph sgMK [MARKERS]
-  MK[MARKERS]
-end
-
-%% Relationships
-EN --> LT
-EN --> MT
-LT -.-> ZM
-MT -.-> MK
-ZM -.-> MK
-
-%% Apply classes
-class EN,LT,MT enums
-class ZM zm
-class MK mk
-
-%% Subgraph styles
-style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
-style sgZM fill:#edf7ed,stroke:#82b366,stroke-width:2px
-style sgMK fill:#fff1db,stroke:#d79b00,stroke-width:2px
+  class EN,LT,MT class-data;
+  class ZM,MK class-compute;
 ```
 
 Drawing sequences
@@ -72,49 +57,46 @@ Drawing sequences
 Polygon freeform
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant MK as MARKERS
   participant EN as ENUMS
+  participant DCS as DCS
 
-  rect rgba(255, 255, 255, 0.75)
-    ZM->>EN: LineTypes.Solid|DashDot etc
-    ZM->>MK: markFreeform with MarkerTypes.Freeform
-    MK->>MK: drawPolygon linetype, MarkerTypes.Freeform
-    MK->>DCS: trigger.action.markupToAll args
-  end
+  ZM->>EN: LineTypes.Solid|DashDot etc
+  ZM->>MK: markFreeform with MarkerTypes.Freeform
+  MK->>MK: drawPolygon linetype, MarkerTypes.Freeform
+  MK->>DCS: trigger.action.markupToAll args
 ```
 
 Arrow borders
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant MK as MARKERS
   participant EN as ENUMS
+  participant DCS as DCS
 
-  rect rgba(255, 255, 255, 0.75)
-    ZM->>EN: MarkerTypes.Arrow, LineTypes.Solid
-    ZM->>MK: markArrow with endpoints
-    MK->>MK: drawArrow with linetype
-    MK->>DCS: trigger.action.markupToAll args
-  end
+  ZM->>EN: MarkerTypes.Arrow, LineTypes.Solid
+  ZM->>MK: markArrow with endpoints
+  MK->>MK: drawArrow with linetype
+  MK->>DCS: trigger.action.markupToAll args
 ```
 
 Circle helpers
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant MK as MARKERS
   participant EN as ENUMS
+  participant DCS as DCS
 
-  rect rgba(255, 255, 255, 0.75)
-    MK->>EN: LineTypes from CONFIG defaults
-    MK->>DCS: trigger.action.circleToAll center, radius, colors, linetype
-  end
+  MK->>EN: LineTypes from CONFIG defaults
+  MK->>DCS: trigger.action.circleToAll center, radius, colors, linetype
 ```
 
 Key integration notes
