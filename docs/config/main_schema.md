@@ -2,7 +2,7 @@
 
 Structure and relationships for AETHR.CONFIG.MAIN and its nested types.
 
-Source anchors
+# Source anchors
 
 - Types and schema definitions
   - [AETHR.CONFIG.Color](../../dev/CONFIG_.lua:33)
@@ -25,18 +25,17 @@ Source anchors
 - MAIN defaults table
   - [AETHR.CONFIG.MAIN = { ... }](../../dev/CONFIG_.lua:164)
 
-Overview
+# Overview
 
 The MAIN config table defines user facing defaults, storage layout, visualization settings, world bounds, saving behavior and runtime toggles. Submodules consume specific parts of MAIN during AETHR initialization and at runtime.
 
-High level relationships
+# High level relationships
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   %% Main configuration relationships (grouped)
-  subgraph MAIN_BLOCK [CONFIG MAIN]
-    style MAIN_BLOCK fill:#ffe6cc,stroke:#e6b87a,stroke-width:2px
+  subgraph MAIN_BLOCK["CONFIG MAIN"]
     MAIN[CONFIG MAIN] --> ZS[ZoneSettings]
     MAIN --> GB[GameBoundsSettings]
     MAIN --> MZ[MizZones]
@@ -48,34 +47,20 @@ flowchart LR
     MAIN --> OT[outTextSettings]
   end
 
-  subgraph STORAGE_BLOCK [Storage internals]
-    style STORAGE_BLOCK fill:#dae8fc,stroke:#9bb5e8,stroke-width:2px
+  subgraph STORAGE_BLOCK["Storage internals"]
     ST --> PATHS[PATHS map]
     ST --> FNS[FILENAMES map]
     ST --> SF[SUB_FOLDERS constants]
   end
 
-  %% Node visual style
-  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class MAIN node
-  class ZS node
-  class GB node
-  class MZ node
-  class FL node
-  class CT node
-  class ST node
-  class WB node
-  class SC node
-  class OT node
-  class PATHS node
-  class FNS node
-  class SF node
+  %% Visual styling: use shared theme class buckets (no inline colors)
+  class MAIN,ZS,GB,MZ,FL,CT,ST,WB,SC,OT,PATHS,FNS,SF class_data;
 ```
 
-Class diagram
+# Class diagram
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 classDiagram
   %% Simplified member type annotations to ensure GitHub Mermaid compatibility.
   class CONFIG_MAIN {
@@ -245,54 +230,46 @@ classDiagram
   PaintColors --> Color
   GameBoundsSettings --> Color
 
-  %% Visual styling per Mermaid Rules
-  classDef data fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class CONFIG_MAIN data
-  class MizZones data
-  class Flags data
-  class Counters data
-  class Storage data
-  class SubFolders data
-  class Paths data
-  class Filenames data
-  class AxisRange data
-  class BoundsCoord data
-  class Color data
-  class PaintColors data
-  class GameBoundsSettings data
-  class ZoneSettings data
-  class OutTextSection data
-  class OutTextSettings data
-  class SaveChunks data
+  %% Visual styling via shared class buckets (no inline styling)
+  class CONFIG_MAIN class_data
+  class MizZones class_data
+  class Flags class_data
+  class Counters class_data
+  class Storage class_data
+  class SubFolders class_data
+  class Paths class_data
+  class Filenames class_data
+  class AxisRange class_data
+  class BoundsCoord class_data
+  class GameBoundsSettings class_data
+  class class_data class_data
+  class Color class_data
+  class PaintColors class_data
+  class ZoneSettings class_data
+  class OutTextSection class_data
+  class OutTextSettings class_data
+  class SaveChunks class_data
 ```
 
-Consumption by modules
+# Consumption by modules
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph CONSUME [CONFIG consumption by modules]
-    style CONSUME fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+  subgraph CONSUME["CONFIG consumption by modules"]
     MAIN[CONFIG MAIN] --> WORLD[WORLD]
     MAIN --> ZM[ZONE_MANAGER]
     MAIN --> FILEOPS[FILEOPS]
   end
 
-  subgraph USAGE [Key fields consumed]
-    style USAGE fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  subgraph USAGE["Key fields consumed"]
     WORLD --> uses_world[worldBounds worldDivisionArea saveChunks]
     ZM --> uses_zm[Zone paintColors gameBounds BorderOffsetThreshold ArrowLength]
     FILEOPS --> uses_fileops[PATHS FILENAMES SUB_FOLDERS]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class MAIN node
-  class WORLD node
-  class ZM node
-  class FILEOPS node
-  class uses_world node
-  class uses_zm node
-  class uses_fileops node
+  %% Use shared class buckets for styling
+  class MAIN,WORLD,ZM,FILEOPS,uses_world,uses_zm,uses_fileops class_data;
 ```
 
 Key usage links

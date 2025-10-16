@@ -2,7 +2,7 @@
 
 How worldBounds and worldDivisionArea drive grid generation, AABB caching, activation against zones, and persistence.
 
-Source anchors
+# Source anchors
 
 - Config fields
   - worldDivisionArea default at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:244)
@@ -19,20 +19,19 @@ Source anchors
   - [AETHR.WORLD:loadWorldDivisionsAABB()](../../dev/WORLD.lua:1126)
   - [AETHR.WORLD:saveWorldDivisionsAABB()](../../dev/WORLD.lua:1140)
 
-Overview
+# Overview
 
 - worldBounds selects theater coordinate ranges for X and Z
 - worldDivisionArea determines target area per grid division in square meters
 - WORLD converts bounds to a polygon, divides it into rectangular divisions, assigns IDs, and caches AABB for fast spatial tests
 - Divisions are marked active when they overlap mission zones
 
-Generation pipeline
+# Generation pipeline
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph GEN_PIPE [Generation pipeline]
-    style GEN_PIPE fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
     WB[CONFIG MAIN worldBounds THEATER] --> BP[POLY convertBoundsToPolygon]
     WDA[CONFIG MAIN worldDivisionArea] --> DP[POLY dividePolygon by area]
     BP --> DP
@@ -42,13 +41,14 @@ flowchart TB
     AABB --> SAVE_AABB[saveWorldDivisionsAABB]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
+  classDef node class_node
   class WB,BP,WDA,DP,DIVS,AABB,SAVE,SAVE_AABB node
 ```
 
-Initialization and reuse
+# Initialization and reuse
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant W as WORLD
   W->>W: initWorldDivisions
@@ -66,13 +66,12 @@ sequenceDiagram
   end
 ```
 
-Activation against zones
+# Activation against zones
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  subgraph ACTIVATION [Activation against zones]
-    style ACTIVATION fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+  subgraph ACTIVATION["Activation against zones"]
     DIVS[worldDivisions] --> GRID[initGrid metrics]
     ZONES[MIZ_ZONES polygons] --> INDEX[buildZoneCellIndex]
     GRID --> INDEX
@@ -80,11 +79,10 @@ flowchart TB
     TEST --> ACTIVE[generateActiveDivisions saveDivisions]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class DIVS,GRID,ZONES,INDEX,TEST,ACTIVE node
+  class DIVS,GRID,ZONES,INDEX,TEST,ACTIVE class_step;
 ```
 
-Key logic details
+# Key logic details
 
 - [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
   - Uses POLY helpers to convert config bounds to a polygon and divide it by area
@@ -100,17 +98,17 @@ Key logic details
 - [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
   - Populates DATA.saveDivisions with active divisions
 
-Persistence locations
+# Persistence locations
 
 - Divisions file: [CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE](../../dev/CONFIG_.lua:222) under PATHS.CONFIG_FOLDER
 - AABB file: [CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_AABB](../../dev/CONFIG_.lua:221) under PATHS.CONFIG_FOLDER
 
-Theater configuration
+# Theater configuration
 
 - Supported theaters are listed at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:246)
 - THEATER is set at instance creation when available in env.mission; see [AETHR:New()](../../dev/AETHR.lua:141)
 
-Validation checklist
+# Validation checklist
 
 - worldDivisionArea defined at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:244)
 - worldBounds theaters block at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:246)
@@ -119,7 +117,7 @@ Validation checklist
 - AABB cache at [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
 - Persistence methods at [dev/WORLD.lua](../../dev/WORLD.lua:1096)
 
-Related breakouts
+# Related breakouts
 
 - Paths and filenames: [paths_and_filenames.md](./paths_and_filenames.md)
 - Zone paint and bounds: [zone_paint_and_bounds.md](./zone_paint_and_bounds.md)

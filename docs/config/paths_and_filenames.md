@@ -2,7 +2,7 @@
 
 How writable paths and filenames are computed and used during initialization and persistence.
 
-Source anchors
+# Source anchors
 
 - [AETHR:New()](../../dev/AETHR.lua:65)
 - [Path join in AETHR:New](../../dev/AETHR.lua:125)
@@ -12,14 +12,14 @@ Source anchors
 - [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
 - [AETHR.CONFIG.MAIN STORAGE defaults in dev/CONFIG_.lua](../../dev/CONFIG_.lua:200)
 
-Context
+# Context
 
 - SAVEGAME_DIR is resolved at instance construction in [AETHR:New()](../../dev/AETHR.lua:65)
 - CONFIG_FOLDER path is assembled via [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
 - Subfolder paths are constructed during [AETHR:Init()](../../dev/AETHR.lua:199) and ensured via [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
 - CONFIG persistence reads and writes use PATHS.CONFIG_FOLDER and FILENAMES.AETHER_CONFIG_FILE
 
-Path assembly overview
+# Path assembly overview
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -34,10 +34,10 @@ flowchart TB
     PATHS_CACHED --> ENSURE[ensureDirectory per path]
   end
 
-  class S,R,C,CFG_PATH,MISSION,SUBS,PATHS_CACHED,ENSURE class-step;
+  class S,R,C,CFG_PATH,MISSION,SUBS,PATHS_CACHED,ENSURE class_step;
 ```
 
-Sequence across construction and init
+# Sequence across construction and init
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -57,7 +57,7 @@ sequenceDiagram
   C->>F: loadData CONFIG.PATHS.CONFIG_FOLDER AETHR_Config.lua
 ```
 
-Subfolders to PATHS mapping
+# Subfolders to PATHS mapping
 
 - SUB_FOLDERS.LEARNING_FOLDER -> PATHS.LEARNING_FOLDER
 - SUB_FOLDERS.MAP_FOLDER -> PATHS.MAP_FOLDER
@@ -66,7 +66,7 @@ Subfolders to PATHS mapping
 - SUB_FOLDERS.USER_FOLDER -> PATHS.USER_FOLDER
 - Additionally CONFIG_FOLDER is a separate top level folder under ROOT_FOLDER used for persisted configuration
 
-CONFIG persistence filenames
+# CONFIG persistence filenames
 
 - AETHER_CONFIG_FILE: AETHR_Config.lua
 - WORLD_DIVISIONS_AABB: worldDivisionsAABB.lua
@@ -87,7 +87,7 @@ CONFIG persistence filenames
 - _SPAWNER_ATTRIBUTE_DB: _spawnerAttributesDB.lua
 - SPAWNER_UNIT_CACHE_DB: spawnerUnitInfoCache.lua
 
-CONFIG folder vs mission subfolders
+# CONFIG folder vs mission subfolders
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -105,28 +105,28 @@ flowchart TB
     SUBS --> M5[PATHS.USER_FOLDER]
   end
 
-  class WD,RF,CFGN,CFGP,MID,SUBS,M1,M2,M3,M4,M5 class-step;
+  class WD,RF,CFGN,CFGP,MID,SUBS,M1,M2,M3,M4,M5 class_step;
 ```
 
-Edge cases and guards
+# Edge cases and guards
 
 - If lfs is not available, SAVEGAME_DIR remains fallback value; joins still occur using system separator
 - ensureDirectory tolerates sandboxed environments and attempts OS mkdir fallback
 - loadData and saveData are guarded with pcall in CONFIG to avoid hard failures
 
-Validation checklist
+# Validation checklist
 
 - [AETHR:New()](../../dev/AETHR.lua:65) constructs CONFIG.PATHS.CONFIG_FOLDER using [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37) at [path join in AETHR:New](../../dev/AETHR.lua:125)
 - [AETHR:Init()](../../dev/AETHR.lua:199) iterates SUB_FOLDERS and calls [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46) after join
 - CONFIG persistence uses PATHS.CONFIG_FOLDER and [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380) and [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
 
-Related breakouts
+# Related breakouts
 
 - Init and persistence: [init_and_persistence.md](./init_and_persistence.md)
 - Main schema: [main_schema.md](./main_schema.md)
 - Save chunks: [save_chunks.md](./save_chunks.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside brackets

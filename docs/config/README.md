@@ -1,20 +1,20 @@
 # AETHR CONFIG diagrams and flows
 
-Primary anchors
+# Primary anchors
 - [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
 - [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
 - [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
 
-Related code anchors
+# Related code anchors
 - AETHR paths at creation: [AETHR:New()](../../dev/AETHR.lua:65), [dev/AETHR.lua](../../dev/AETHR.lua:125)
 - FILE I/O: [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173), [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
 - Debug logging: [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
 
-Documents and indices
+# Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
 - AETHR overview: [docs/aethr/README.md](../aethr/README.md)
 
-Init and persistence flow
+# Init and persistence flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -27,11 +27,11 @@ flowchart TB
     P --> RET
   end
 
-  class I,T,R,P class-step;
-  class RET class-result;
+  class I,T,R,P class_step;
+  class RET class_result;
 ```
 
-Storage guards and calls
+# Storage guards and calls
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -57,24 +57,22 @@ sequenceDiagram
   end
 ```
 
-Paths and filenames resolution
+# Paths and filenames resolution
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  subgraph PATHS_FLOW [Paths and filenames resolution]
-    style PATHS_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+  subgraph PATHS_FLOW["Paths and filenames resolution"]
     N[New instance] --> JP[joinPaths SAVEGAME_DIR ROOT_FOLDER CONFIG_FOLDER]
     JP --> CF[CONFIG.PATHS.CONFIG_FOLDER]
     CF --> L1[loadConfig uses path and AETHER_CONFIG_FILE]
     CF --> S1[saveConfig uses path and AETHER_CONFIG_FILE]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class N,JP,CF,L1,S1 node
+  class N,JP,CF,L1,S1 class_step;
 ```
 
-Source anchors
+# Source anchors
 - [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
 - [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
 - [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
@@ -84,7 +82,7 @@ Source anchors
 - [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
 - [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
 
-Notes
+# Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
 ## Breakout documents
@@ -100,7 +98,7 @@ Detailed CONFIG analysis pages with Mermaid diagrams and sequence charts.
 - OutText settings: [out_text.md](./out_text.md)
 - Save chunks strategy: [save_chunks.md](./save_chunks.md)
 
-High-level overview
+# High-level overview
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -115,6 +113,6 @@ flowchart TB
     Load -- "nil" --> Save[saveConfig defaults]
   end
 
-  class New,Paths,Init,Zones,World,Config,Load class-step;
-  class Use,Save class-result;
+  class New,Paths,Init,Zones,World,Config,Load class_step;
+  class Use,Save class_result;
 ```

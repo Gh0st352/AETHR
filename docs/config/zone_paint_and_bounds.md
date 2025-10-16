@@ -2,7 +2,7 @@
 
 Visualization settings for zones and world bounds. Explains how paint colors, alphas, and line types are used by runtime flows, and how game-bounds rendering is configured.
 
-Source anchors
+# Source anchors
 
 - Schema
   - [AETHR.CONFIG.ZoneSettings](../../dev/CONFIG_.lua:124)
@@ -15,11 +15,11 @@ Source anchors
   - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
   - [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
 
-Overview
+# Overview
 
 Zone paint settings provide indexed color sets for outline, fill, arrows and circles. Indices are aligned to coalition IDs used by WORLD ownership updates. Game bounds settings specialize rendering for world boundary polygons.
 
-Paint settings structure
+# Paint settings structure
 
 - Zone.paintColors
   - LineColors[number] -> Color
@@ -37,13 +37,12 @@ Paint settings structure
   - lineType number
   - getOutOfBounds table settings
 
-Color selection flow
+# Color selection flow
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  subgraph COLOR_FLOW [Color selection flow]
-    style COLOR_FLOW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+  subgraph COLOR_FLOW["Color selection flow"]
     OWN[zone.ownedBy] --> LC[Pick LineColors for ownedBy or index 0]
     OWN --> FC[Pick FillColors for ownedBy or index 0]
     LC --> LRGBA[Compose line RGBA using LineAlpha]
@@ -52,19 +51,17 @@ flowchart TB
     FRGBA --> APPLY
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class OWN,LC,FC,LRGBA,FRGBA,APPLY node
+  class OWN,LC,FC,LRGBA,FRGBA,APPLY class_step;
 ```
 
 - Implemented in [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
 - Fallback to index 0 when no specific coalition index is found
 
-Sequence for zone color updates
+# Sequence for zone color updates
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  rect rgba(255,255,255,0.75)
   participant W as WORLD
   participant U as UTILS
   W->>W: for each zone compute new owner
@@ -74,17 +71,15 @@ sequenceDiagram
   else unchanged
     W-->>W: no-op
   end
-  end
 ```
 
-Arrow visibility logic
+# Arrow visibility logic
 
 - WORLD shows arrows on borders only when adjacent zones differ in ownership; it toggles visibility by setting arrow markup alpha to 0 or configured alpha.
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  rect rgba(255,255,255,0.75)
   participant W as WORLD
   participant U as UTILS
   W->>W: for each bordering zone compute desiredShown
@@ -99,25 +94,23 @@ sequenceDiagram
   else no change
     W-->>W: no-op
   end
-  end
 ```
 
 - Implemented in [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - Arrow colors sourced from Zone.paintColors.ArrowColors using coalition index, with alpha from color table or default 1
 
-Game bounds rendering
+# Game bounds rendering
 
 Game bounds visuals are configured under Zone.gameBounds and consumed by zone-manager rendering flows. See detailed pages:
 - [Markers and arrows](../zone_manager/markers_and_arrows.md)
 - [Game bounds](../zone_manager/game_bounds.md)
 
-Bounds rendering configuration
+# Bounds rendering configuration
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  subgraph BOUNDS_CFG [Bounds rendering configuration]
-    style BOUNDS_CFG fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+  subgraph BOUNDS_CFG["Bounds rendering configuration"]
     CFG[Zone.gameBounds settings] --> LC[LineColors]
     CFG --> FC[FillColors]
     CFG --> LA[LineAlpha]
@@ -129,18 +122,17 @@ flowchart TB
     OOB --> S3[snapDistance]
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class CFG,LC,FC,LA,FA,LT,OOB,S1,S2,S3 node
+  class CFG,LC,FC,LA,FA,LT,OOB,S1,S2,S3 class_step;
 ```
 
-Key fields and defaults
+# Key fields and defaults
 
 - BorderOffsetThreshold: distance threshold for bordering detection
 - ArrowLength: default arrow length in meters
 - lineType values come from enums set in CONFIG defaults
   - See [dev/CONFIG_.lua](../../dev/CONFIG_.lua:319) and [dev/CONFIG_.lua](../../dev/CONFIG_.lua:326)
 
-Validation checklist
+# Validation checklist
 
 - Paint colors present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:296)
 - Arrow colors present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:307)
@@ -149,7 +141,7 @@ Validation checklist
 - WORLD arrow updates at [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - UTILS color setter at [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
 
-Related breakouts
+# Related breakouts
 
 - Main schema: [main_schema.md](./main_schema.md)
 - Init and persistence: [init_and_persistence.md](./init_and_persistence.md)

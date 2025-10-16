@@ -2,7 +2,7 @@
 
 Display timings and view-clearing behavior for ownership change messages.
 
-Source anchors
+## Source anchors
 
 - Types and schema
   - [AETHR.CONFIG.OutTextSection](../../dev/CONFIG_.lua:130)
@@ -13,11 +13,11 @@ Source anchors
   - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
   - [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
 
-Overview
+# Overview
 
 The outText settings define how long messages appear and whether prior messages are cleared when airbase or zone ownership changes. WORLD emits outText in those change handlers using the configured durations and clearView flags.
 
-Structure
+# Structure
 
 - OutTextSection
   - displayTime number
@@ -26,7 +26,7 @@ Structure
   - airbaseOwnershipChange OutTextSection
   - zoneOwnershipChange OutTextSection
 
-Defaults
+# Defaults
 
 ```text
 airbaseOwnershipChange:
@@ -37,12 +37,11 @@ zoneOwnershipChange:
   clearView   = false
 ```
 
-Ownership change flow
+# Ownership change flow
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  rect rgba(255,255,255,0.75)
   participant W as WORLD
   participant T as DCS trigger.action
   W->>W: detect ownership change
@@ -51,7 +50,6 @@ sequenceDiagram
   else zone change
     W->>T: outText message (zone), duration = CONFIG.MAIN.outTextSettings.zoneOwnershipChange.displayTime
   end
-  end
 ```
 
 - Airbase flow in [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
@@ -59,17 +57,17 @@ sequenceDiagram
 - Zone flow in [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
   - Emits capture or contested text at [dev/WORLD.lua](../../dev/WORLD.lua:1035)
 
-Message composition
+# Message composition
 
 - Uses enum text strings to build user-facing messages
 - Duration and clearing behavior sourced directly from CONFIG.MAIN.outTextSettings
 
-Related breakouts
+# Related breakouts
 
 - Main schema: [main_schema.md](./main_schema.md)
 - Init and persistence: [init_and_persistence.md](./init_and_persistence.md)
 
-Validation checklist
+# Validation checklist
 
 - OutTextSection defined at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:130)
 - OutTextSettings defined at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:134)
@@ -77,7 +75,7 @@ Validation checklist
 - Airbase handler at [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
 - Zone handler at [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside bracket labels
