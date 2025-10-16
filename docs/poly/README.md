@@ -1,6 +1,6 @@
 # AETHR POLY diagrams and flows
 
-Primary anchors
+### Primary anchors
 - [AETHR.POLY:segmentsIntersect()](../../dev/POLY.lua:44)
 - [AETHR.POLY:pointInPolygon()](../../dev/POLY.lua:66)
 - [AETHR.POLY:polygonsOverlap()](../../dev/POLY.lua:92)
@@ -32,7 +32,7 @@ Primary anchors
 - [AETHR.POLY:getRandomVec2inCircle()](../../dev/POLY.lua:276)
 - [AETHR.POLY:getRandomVec2inPolygon()](../../dev/POLY.lua:343)
 
-Breakout documents
+### Breakout documents
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](intersections_and_orientation.md)
 - Point in polygon and overlap: [docs/poly/point_in_polygon_and_overlap.md](point_in_polygon_and_overlap.md)
 - Distance, projection, and offset: [docs/poly/distance_projection_and_offset.md](distance_projection_and_offset.md)
@@ -42,32 +42,42 @@ Breakout documents
 - Hulls densify and gaps: [docs/poly/hulls_densify_and_gaps.md](hulls_densify_and_gaps.md)
 - Rays, midpoints, and slopes: [docs/poly/rays_midpoints_and_slopes.md](rays_midpoints_and_slopes.md)
 
-Documents and indices
+### Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
 - ZONE_MANAGER: [docs/zone_manager/README.md](../zone_manager/README.md)
 - WORLD: [docs/world/README.md](../world/README.md)
 
-Core geometry relationships
+# Core geometry relationships
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
+  subgraph "Hull processing"
+    CH[concaveHull] --> HULL[processed hull]
+    CV[convexHull] -.-> HULL
+    DEN[densifyHullEdges] --> HULL
+  end
+  subgraph "Division"
+    CBB[convertBoundsToPolygon] --> DIV[dividePolygon]
+    DIV --> GRID[division grid]
+  end
+  subgraph "Overlap and gaps"
+    FOG[findOverlaidPolygonGaps] --> GAPS[gap polygons]
+  end
+  CPL[convertPolygonToLines] --> L2P[convertLinesToPolygon]
   PIP[pointInPolygon] --> POLYOV[polygonsOverlap]
   SEG[segmentsIntersect] --> POLYOV
-  CPL[convertPolygonToLines] --> L2P[convertLinesToPolygon]
-  DIV[dividePolygon] --> GRID[division grid]
-  ENS[ensureConvexN] --> RAND[getRandomVec2inPolygon]
   P2S[pointToSegmentSquared] --> IOFF[isWithinOffset]
   ESP[getEquallySpacedPoints] --> IOFF
-  DEN[densifyHullEdges] --> HULL[processed hull]
-  CH[concaveHull] --> HULL
-  CV[convexHull] -.-> HULL
-  FOG[findOverlaidPolygonGaps] --> GAPS[gap polygons]
-  CBB[convertBoundsToPolygon] --> DIV
+
+  class GRID,HULL,GAPS class_data;
+  class CH,CV,DEN,DIV,CBB,PIP,POLYOV,SEG,CPL,L2P,P2S,ESP,IOFF class_compute;
 ```
 
-Module interactions
+# Module interactions
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant Z as ZONE_MANAGER
   participant P as POLY
@@ -79,85 +89,136 @@ sequenceDiagram
   P-->>W: division grid and bounds polygon
 ```
 
-Algorithm: pointInPolygon
+# Algorithm: pointInPolygon
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   S[Start] --> J[Set j = n]
-  J --> L[Loop i from 1..n]
-  L --> C[Edge crosses horizontal ray?]
-  C -->|yes| T[Toggle inside flag]
-  C -->|no| N[No change]
-  T --> U[Set j = i]
-  N --> U
-  U --> L
+  subgraph "Iteration"
+    J --> L[Loop i from 1..n]
+    L --> C[Edge crosses horizontal ray?]
+    C -->|yes| T[Toggle inside flag]
+    C -->|no| N[No change]
+    T --> U[Set j = i]
+    N --> U
+    U --> L
+  end
   L -->|done| R[Return inside]
+
+  class S class_io;
+  class R class_result;
+  class C class_decision;
+  class L,T,N,U,J class_step;
 ```
 
-Algorithm: convertLinesToPolygon
+# Algorithm: convertLinesToPolygon
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  ST[Start] --> TRY[Try each segment as start and orientation]
-  TRY --> WALK[Walk segments by endpoint proximity]
-  WALK --> FOUND[Found connecting segment?]
-  FOUND -->|no| FAIL[Fail and try other start]
-  FOUND -->|yes| APP[Append vertices and continue]
-  APP --> CLOSED[End connects back to start?]
+  subgraph "Bootstrap"
+    ST[Start] --> TRY[Try each segment as start and orientation]
+  end
+  subgraph "Walk"
+    TRY --> WALK[Walk segments by endpoint proximity]
+    WALK --> FOUND[Found connecting segment?]
+    FOUND -->|no| FAIL[Fail and try other start]
+    FOUND -->|yes| APP[Append vertices and continue]
+    APP --> CLOSED[End connects back to start?]
+  end
   CLOSED -->|yes| DEDUP[remove_duplicate_vertices]
   CLOSED -->|no| TRY
-  DEDUP --> RET[Return ordered polygon]
+  subgraph "Finalize"
+    DEDUP --> RET[Return ordered polygon]
+  end
+
+  class ST,TRY,WALK,APP,DEDUP,RET class_step;
+  class FOUND,CLOSED class_decision;
+  class RET class_result;
 ```
 
-Algorithm: densifyHullEdges
+# Algorithm: densifyHullEdges
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN[hull and polygons] --> E[for each edge]
-  E --> SAMP[getEquallySpacedPoints]
-  SAMP --> SNAP[find nearest original segment]
-  SNAP --> THR[distance within snapDistance?]
-  THR -->|yes| INS[insert projected point]
-  THR -->|no| INS2[insert sample point]
+  subgraph "Sample"
+    E --> SAMP[getEquallySpacedPoints]
+  end
+  subgraph "Snap"
+    SAMP --> SNAP[find nearest original segment]
+    SNAP --> THR[distance within snapDistance?]
+    THR -->|yes| INS[insert projected point]
+    THR -->|no| INS2[insert sample point]
+  end
   INS --> NEXT[next edge]
   INS2 --> NEXT
-  NEXT -->|done| OUT[new hull]
+  subgraph "Finalize"
+    NEXT -->|done| OUT[new hull]
+  end
+
+  class IN class_io;
+  class OUT class_result;
+  class THR class_decision;
+  class E,SAMP,SNAP,INS,INS2,NEXT class_step;
 ```
 
-Algorithm: concaveHull with convex fallback
+# Algorithm: concaveHull with convex fallback
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   A[Start] --> K[Set k or concavity]
-  K --> LOOP[Build hull by k-nearest]
-  LOOP --> CROSS[crossing edges?]
-  CROSS -->|yes| INC[increase k and retry]
-  CROSS -->|no| VERIFY[all points inside?]
-  VERIFY -->|yes| DONE[return hull]
-  VERIFY -->|no| INC
+  subgraph "k-nearest Build"
+    K --> LOOP[Build hull by k-nearest]
+    LOOP --> CROSS[crossing edges?]
+  end
+  subgraph "Validate"
+    CROSS -->|no| VERIFY[all points inside?]
+    VERIFY -->|yes| DONE[return hull]
+    VERIFY -->|no| INC[increase k and retry]
+  end
+  CROSS -->|yes| INC
   INC --> LOOP
   K --> FAIL[exceeds N-1]
-  FAIL --> CH[convexHull]
+  subgraph "Fallback"
+    FAIL --> CH[convexHull]
+  end
+
+  class A,K,LOOP,INC class_step;
+  class CROSS,VERIFY,FAIL class_decision;
+  class DONE class_result;
+  class CH class_compute;
 ```
 
-Algorithm: dividePolygon into grid
+# Algorithm: dividePolygon into grid
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  TA[polygonArea] --> CNT[count cells]
-  CNT --> AR[aspect ratio]
-  AR --> RC[rows and cols]
-  RC --> GEN[interpolate cell corners]
-  GEN --> OUT[corners list per cell]
+  subgraph "Sizing"
+    TA[polygonArea] --> CNT[count cells]
+    CNT --> AR[aspect ratio]
+    AR --> RC[rows and cols]
+  end
+  subgraph "Generate"
+    RC --> GEN[interpolate cell corners]
+    GEN --> OUT[corners list per cell]
+  end
+
+  class OUT class_result;
+  class TA,CNT,AR,RC,GEN class_step;
 ```
 
-Key anchors
+# Key anchors
 - Bounds conversion: [AETHR.POLY:convertBoundsToPolygon()](../../dev/POLY.lua:1039)
 - Hull processing: [AETHR.POLY:concaveHull()](../../dev/POLY.lua:1308), [AETHR.POLY:convexHull()](../../dev/POLY.lua:1461), [AETHR.POLY:densifyHullEdges()](../../dev/POLY.lua:1556)
 - Gap detection: [AETHR.POLY:findOverlaidPolygonGaps()](../../dev/POLY.lua:1618)
 - Grid division: [AETHR.POLY:dividePolygon()](../../dev/POLY.lua:753)
 - Distance helpers: [AETHR.POLY:pointToSegmentSquared()](../../dev/POLY.lua:1148), [AETHR.POLY:getEquallySpacedPoints()](../../dev/POLY.lua:1074), [AETHR.POLY:isWithinOffset()](../../dev/POLY.lua:1106)
 
-Notes
-- Mermaid labels avoid double quotes and parentheses.
+# Notes
+- Subgraph labels use double quotes per [docs/_mermaid/README.md](../_mermaid/README.md).
 - All diagrams use GitHub Mermaid fenced blocks.

@@ -13,18 +13,25 @@ Overview
 - dividePolygon splits a quad into rows and columns informed by area and aspect ratio, interpolating the four edges to generate cell polygons
 - polygonArea computes area using the shoelace formula on normalized x y coordinates
 
-convertBoundsToPolygon flow
+# convertBoundsToPolygon flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN[bounds Xmin Xmax Zmin Zmax] --> QUAD[build 4 corners]
   QUAD --> CONV[ensureConvex]
   CONV --> OUT[return 4 point polygon]
+
+  class IN class_io;
+  class QUAD class_step;
+  class CONV class_compute;
+  class OUT class_result;
 ```
 
-dividePolygon flow
+# dividePolygon flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN[quad and targetArea] --> AREA[total area by polygonArea]
   AREA --> CNT[cell count round total over target]
@@ -33,21 +40,52 @@ flowchart TD
   ASPECT --> SHAPE[cols ceil sqrt count times ratio and rows ceil count over cols adjust]
   SHAPE --> GEN[for each row and col interpolate edges]
   GEN --> OUT[list of cell corner quads]
+
+  subgraph "Sizing"
+    AREA
+    CNT
+    ASPECT
+  end
+  subgraph "Layout"
+    EDGES
+    SHAPE
+  end
+  subgraph "Generate"
+    GEN
+    OUT
+  end
+
+  class IN class_io;
+  class AREA,CNT,ASPECT,SHAPE,GEN class_step;
+  class EDGES class_data;
+  class OUT class_result;
 ```
 
-polygonArea flow
+# polygonArea flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN[vertices] --> NORM[normalize to x y]
   NORM --> LOOP[for i sum xi yj minus xj yi]
   LOOP --> ABS[abs sum]
   ABS --> RET[return area over 2]
+
+  subgraph "Accumulate"
+    LOOP
+    ABS
+  end
+
+  class IN class_io;
+  class NORM,LOOP class_step;
+  class ABS class_compute;
+  class RET class_result;
 ```
 
-Sequence usage
+# Sequence usage
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant W as WORLD
   participant P as POLY
@@ -57,7 +95,7 @@ sequenceDiagram
   P-->>W: array of cell polygons
 ```
 
-Implementation notes
+# Implementation notes
 - convertBoundsToPolygon
   - Produces consistent corner order bottom left bottom right top right top left
   - Uses ensureConvex to swap vertices if any cross sign checks disagree
@@ -67,16 +105,16 @@ Implementation notes
 - polygonArea
   - Normalizes each input vertex to {x,y} allowing inputs that carry y or z
 
-Validation checklist
+# Validation checklist
 - convertBoundsToPolygon: [dev/POLY.lua](../../dev/POLY.lua:1039)
 - dividePolygon: [dev/POLY.lua](../../dev/POLY.lua:753)
 - polygonArea: [dev/POLY.lua](../../dev/POLY.lua:826)
 
-Related docs
+# Related docs
 - Convert and order: [docs/poly/convert_and_order.md](./convert_and_order.md)
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](./intersections_and_orientation.md)
 
-Conventions
+# Conventions
 - Mermaid fenced blocks use GitHub Mermaid parser
 - Labels inside brackets avoid double quotes and parentheses
 - Links use relative paths for repository portability
