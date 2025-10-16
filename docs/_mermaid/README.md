@@ -57,7 +57,7 @@ Validation checklist
 - Diagrams use class assignments only, e.g.:
   - class NODE_A,NODE_B class_io;
   - class NODE_C class_compute;
-- Wrap the subgraph labels in double quotes in the Mermaid diagram: `["xxxx (xx)"]`
+- Wrap the subgraph labels in double quotes in the Mermaid diagram : `["xxxx (xx)"]`
 - Ensure all documentation section titles have level-1, level-2, or level 3 headings. example: # Title
 
 Notes

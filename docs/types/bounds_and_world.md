@@ -14,33 +14,65 @@ Overview
 - [_ZoneCellEntry](../../dev/customTypes.lua) pairs a polygon with its axis aligned bounding box for coarse checks.
 - [_GameBounds](../../dev/customTypes.lua) aggregates in bounds and out of bounds polygons used by zone manager and markers.
 
-Mermaid flow overview
+# Mermaid flow overview
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  WBAX[_WorldBoundsAxis New] --> MIN[min default 0]
-  WBAX --> MAX[max default 0]
+  subgraph AXIS ["_WorldBoundsAxis New"]
+    WBAX[_WorldBoundsAxis New]
+    MIN[min default 0]
+    MAX[max default 0]
+    WBAX --> MIN
+    WBAX --> MAX
+  end
 
-  WB[_WorldBounds New] --> XAX[X axis bounds]
-  WB --> ZAX[Z axis bounds]
+  subgraph BOUNDS ["_WorldBounds New"]
+    WB[_WorldBounds New]
+    XAX[X axis bounds]
+    ZAX[Z axis bounds]
+    WB --> XAX
+    WB --> ZAX
+  end
 
-  WD[_WorldDivision New] --> ID[ID default 0]
-  WD --> ACT[active default false]
-  WD --> CNR[corners vec2xz list]
-  WD --> HGT[height optional]
+  subgraph DIVISION ["_WorldDivision New"]
+    WD[_WorldDivision New]
+    ID[ID default 0]
+    ACT[active default false]
+    CNR[corners vec2xz list]
+    HGT[height optional]
+    WD --> ID
+    WD --> ACT
+    WD --> CNR
+    WD --> HGT
+  end
 
-  ZCE[_ZoneCellEntry New] --> BB[bbox BBox]
-  ZCE --> POLY[poly vec2 list]
+  subgraph ZCE_SCOPE ["_ZoneCellEntry New"]
+    ZCE[_ZoneCellEntry New]
+    BB[bbox BBox]
+    POLY[poly vec2 list]
+    ZCE --> BB
+    ZCE --> POLY
+  end
 
-  GB[_GameBounds] --> OOB[outOfBounds sets]
-  GB --> IB[inBounds sets]
-  GB --> GAPS[inOutBoundsGaps sets]
+  subgraph GAME_BOUNDS ["_GameBounds"]
+    GB[_GameBounds]
+    OOB[outOfBounds sets]
+    IB[inBounds sets]
+    GAPS[inOutBoundsGaps sets]
+    GB --> OOB
+    GB --> IB
+    GB --> GAPS
+  end
+
+  class WBAX,MIN,MAX,WB,XAX,ZAX,WD,ID,ACT,CNR,HGT,ZCE,BB,POLY,GB,OOB,IB,GAPS class_data;
 ```
 
-World bounds to polygon rendering
+# World bounds to polygon rendering
 - World bounds polygons are derived for visualization and clipping using POLY helpers:
   - [AETHR.POLY:convertBoundsToPolygon()](../../dev/POLY.lua:1039)
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant C as Caller
   participant T as TYPES
@@ -51,27 +83,43 @@ sequenceDiagram
   P-->>C: vertices for drawing and clipping
 ```
 
-Division grid concept
+# Division grid concept
 - Divisions represent coarse spatial buckets for world lookups, overlays, and spawning.
 - Each [_WorldDivision](../../dev/customTypes.lua) stores 4 corners in XZ for quick polygon tests and intersections.
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  WB[World bounds] --> DIVS[Compute divisions]
-  DIVS --> WD1[_WorldDivision 1]
-  DIVS --> WD2[_WorldDivision 2]
-  DIVS --> WDn[_WorldDivision n]
-  WD1 -.-> ZCE1[ZoneCellEntry]
-  WD2 -.-> ZCE2[ZoneCellEntry]
+  subgraph WORLD_BOUNDS ["World bounds to divisions"]
+    WB[World bounds] --> DIVS[Compute divisions]
+  end
+
+  subgraph DIVS_SCOPE ["Division instances"]
+    WD1[_WorldDivision 1]
+    WD2[_WorldDivision 2]
+    WDn[_WorldDivision n]
+    DIVS --> WD1
+    DIVS --> WD2
+    DIVS --> WDn
+  end
+
+  subgraph CELL_REF ["Zone cells"]
+    ZCE1[ZoneCellEntry]
+    ZCE2[ZoneCellEntry]
+    WD1 -.-> ZCE1
+    WD2 -.-> ZCE2
+  end
+
+  class WB,DIVS,WD1,WD2,WDn,ZCE1,ZCE2,WORLD_BOUNDS,DIVS_SCOPE,CELL_REF class_data;
 ```
 
-Key constructors and defaults
+# Key constructors and defaults
 - Axis: [AETHR._WorldBoundsAxis:New()](../../dev/customTypes.lua:51) initializes min and max to 0 when nil.
 - Bounds: [AETHR._WorldBounds:New()](../../dev/customTypes.lua:68) defaults each axis via axis constructor.
 - Division: [AETHR._WorldDivision:New()](../../dev/customTypes.lua:159) defaults ID 0, active false, empty corners.
 - Zone cell entry: [AETHR._ZoneCellEntry:New()](../../dev/customTypes.lua:178) defaults bbox to [AETHR._BBox:New()](../../dev/customTypes.lua:136) and empty polygon.
 
-Related anchors
+# Related anchors
 - [AETHR._BBox:New()](../../dev/customTypes.lua:136)
 - [AETHR._vec2xz:New()](../../dev/customTypes.lua:542), [AETHR._vec2:New()](../../dev/customTypes.lua:522)
 - [_GameBounds fields](../../dev/customTypes.lua:795)

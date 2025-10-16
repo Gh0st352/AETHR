@@ -1,6 +1,6 @@
 # TYPES spawner ecosystem
 
-Anchors
+### Anchors
 - [AETHR._dynamicSpawner:New()](../../dev/customTypes.lua:868)
 - Setters:
   - [setNumSpawnZones](../../dev/customTypes.lua:928)
@@ -25,14 +25,15 @@ Anchors
   - [AETHR._spawnSettings:New()](../../dev/customTypes.lua:1401)
   - [AETHR._spawnerTypeConfig:New()](../../dev/customTypes.lua:1444)
 
-Overview
+# Overview
 - _dynamicSpawner coordinates counts and type distribution across a main zone and multiple sub-zones.
 - Setters define nominal ranges and nudge factors. Internals roll values, introduce bounded randomness, clamp thresholds, and confirm totals.
 - _spawnerZone stores per-zone weights, spacing, and generated spawn settings, leveraging _spawnSettings for min max nominal with thresholds.
 - _spawnerTypeConfig defines per-type limits and pools.
 
-Spawner orchestration
+# Spawner orchestration
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant DS as _dynamicSpawner
   participant SZ as _spawnerZone
@@ -57,51 +58,81 @@ sequenceDiagram
   DS-->>DS: _confirmTotals()
 ```
 
-Zones and spacing
+# Zones and spacing
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  SZ[_spawnerZone New] --> RADS[nominal min max nudge actual]
-  SZ --> AREA[area diameter]
-  SZ --> WEIGHT[weight]
-  SZ --> CENTER[center vec2]
-  SZ --> GROUPS[groupSettings groupSizesPrio]
-  GROUPS --> SPACING[setGroupSpacing per size]
+  subgraph SZ_SCOPE ["_spawnerZone New"]
+    SZ[_spawnerZone New]
+    RADS[nominal min max nudge actual]
+    AREA[area diameter]
+    WEIGHT[weight]
+    CENTER[center vec2]
+    GROUPS[groupSettings groupSizesPrio]
+    SZ --> RADS
+    SZ --> AREA
+    SZ --> WEIGHT
+    SZ --> CENTER
+    SZ --> GROUPS
+  end
 
-  SPACING --> Gmin[minGroups]
-  SPACING --> Gmax[maxGroups]
-  SPACING --> Umin[minUnits]
-  SPACING --> Umax[maxUnits]
-  SPACING --> Bmin[minBuildings]
+  subgraph SPACING_SCOPE ["Spacing per group size"]
+    SPACING[setGroupSpacing per size]
+    Gmin[minGroups]
+    Gmax[maxGroups]
+    Umin[minUnits]
+    Umax[maxUnits]
+    Bmin[minBuildings]
+    SPACING --> Gmin
+    SPACING --> Gmax
+    SPACING --> Umin
+    SPACING --> Umax
+    SPACING --> Bmin
+  end
 
-  SZ --> BASE[spawnSettings base]
-  SZ --> GEN[spawnSettings generated]
+  subgraph SETTINGS_SCOPE ["Spawn settings"]
+    BASE[spawnSettings base]
+    GEN[spawnSettings generated]
+    GROUPS --> SPACING
+    SZ --> BASE
+    SZ --> GEN
+  end
+
+  class SZ,RADS,AREA,WEIGHT,CENTER,GROUPS,SPACING,Gmin,Gmax,Umin,Umax,Bmin,BASE,GEN,SZ_SCOPE,SPACING_SCOPE,SETTINGS_SCOPE class_data;
 ```
 
-Spawn settings lifecycle
+# Spawn settings lifecycle
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  BASE[setSpawnAmounts] --> calcNom[ceil nominal]
-  calcNom --> ratios[ratioMax ratioMin]
-  ratios --> weighted[weighted actualWeighted divisionFactor]
-  weighted --> thresholds1[overNom underNom overMax underMax overMin underMin]
+  subgraph BASE_SCOPE ["setSpawnAmounts (base)"]
+    BASE[setSpawnAmounts] --> calcNom[ceil nominal]
+    calcNom --> ratios[ratioMax ratioMin]
+    ratios --> weighted[weighted actualWeighted divisionFactor]
+    weighted --> thresholds1[overNom underNom overMax underMax overMin underMin]
+  end
 
-  GEN[rollSpawnAmounts] --> nudge[generateNudge]
-  nudge --> genNom[generateNominal]
-  genNom --> genBounds[min max]
-  genBounds --> genWeighted[weighted divisionFactor actual]
-  genWeighted --> thresholds2[overNom underNom overMax underMax overMin underMin]
+  subgraph GEN_SCOPE ["rollSpawnAmounts (generated)"]
+    GEN[rollSpawnAmounts] --> nudge[generateNudge]
+    nudge --> genNom[generateNominal]
+    genNom --> genBounds[min max]
+    genBounds --> genWeighted[weighted divisionFactor actual]
+    genWeighted --> thresholds2[overNom underNom overMax underMax overMin underMin]
+  end
 
   UPDATE[_UpdateGenThresholds] --> thresholds2
+
+  class BASE,calcNom,ratios,weighted,thresholds1,GEN,nudge,genNom,genBounds,genWeighted,thresholds2,UPDATE,BASE_SCOPE,GEN_SCOPE class_data;
 ```
 
-Key behaviors
+# Key behaviors
 - setNumSpawnZones and setSpawnAmount compute final counts using MATH.generateNominal under the hood, with nudge factors to vary around nominal while honoring min and max.
 - _introduceRandomness perturbs sub-zone actuals within allowed ranges and the main max constraint.
 - _distributeDifference reconciles totals to match the main expected actual.
 - _thresholdClamp nudges out-of-bounds sub-zone actuals back toward valid ranges using a randomized index selection.
 - _confirmTotals recomputes and stores the aggregate for later verification.
 
-Related anchors and modules
+# Related anchors and modules
 - MATH randomization helpers indexed under MATH docs:
   - [Randomization helpers](../math/randomization.md)
 - WORLD integration of divisions and zone pairing:

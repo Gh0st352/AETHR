@@ -1,6 +1,6 @@
 # AETHR TYPES data structures and flows
 
-Primary constructors and anchors
+### Primary constructors and anchors
 - Basic geometry and containers
   - [AETHR._vec3:New()](../../dev/customTypes.lua:114)
   - [AETHR._vec2:New()](../../dev/customTypes.lua:522)
@@ -25,7 +25,7 @@ Primary constructors and anchors
   - [AETHR._spawnerTypeConfig:New()](../../dev/customTypes.lua:1444)
   - [AETHR._circle:New()](../../dev/customTypes.lua:1471)
 
-Documents and indices
+### Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
 - WORLD: [docs/world/README.md](../world/README.md)
 - ZONE_MANAGER: [docs/zone_manager/README.md](../zone_manager/README.md)
@@ -34,12 +34,12 @@ Documents and indices
 - POLY: [docs/poly/README.md](../poly/README.md)
 - MATH: [docs/math/README.md](../math/README.md)
 
-Core relationships
+# Core relationships
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph TYPES [Core Types]
+  subgraph TYPES ["Core Types"]
     Z[_MIZ_ZONE] --> BIF[_BorderInfo]
     Z --> L2[LinesVec2]
     Z --> AB[_airbase]
@@ -53,7 +53,7 @@ flowchart LR
     MK[_Marker]
   end
 
-  subgraph INTEGRATIONS [Integrations]
+  subgraph INTEGRATIONS ["Integrations"]
     WORLD[WORLD DBs]
     MARKERS[MARKERS]
   end
@@ -61,11 +61,11 @@ flowchart LR
   FO -.-> WORLD
   MK -.-> MARKERS
 
-  class Z,BIF,L2,AB,WD,G,DS,SZ,SS,STC,C,FO,MK class-data;
-  class WORLD,MARKERS class-compute;
+  class Z,BIF,L2,AB,WD,G,DS,SZ,SS,STC,C,FO,MK class_data;
+  class WORLD,MARKERS class_compute;
 ```
 
-Spawner data flow at a glance
+# Spawner data flow at a glance
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -88,19 +88,19 @@ sequenceDiagram
   DS-->>STC: type limits and pools
 ```
 
-_zone and border structures
+# _zone and border structures
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  subgraph ZONE [Zone structures]
+  subgraph ZONE ["Zone structures"]
     ZC[_MIZ_ZONE] --> Lines[LinesVec2]
     ZC --> Towns[townsDB]
     ZC --> Divs[activeDivisions]
     ZC --> ABs[Airbases]
   end
 
-  subgraph BORDER [Borders]
+  subgraph BORDER ["Borders"]
     BORDERS[BorderingZones map] --> BI[_BorderInfo]
     BI --> ZLine[ZoneLine]
     BI --> NLine[NeighborLine]
@@ -109,10 +109,10 @@ flowchart TD
 
   ZC --> BORDERS
 
-  class ZC,Lines,Towns,Divs,ABs,BORDERS,BI,ZLine,NLine,Arrow class-data;
+  class ZC,Lines,Towns,Divs,ABs,BORDERS,BI,ZLine,NLine,Arrow class_data;
 ```
 
-Airbase descriptor fields
+# Airbase descriptor fields
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -125,26 +125,26 @@ flowchart LR
   AB --> RW[runways longestRunway maxRunwayLength]
   AB --> ZN[zoneName zoneObject]
 
-  class AB,ID,POS,DESC,N,COA,RW,ZN class-data;
+  class AB,ID,POS,DESC,N,COA,RW,ZN class_data;
 ```
 
-Grid and world division
+# Grid and world division
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   WD[_WorldDivision] --> ID2[ID active]
-  WD --> CNR[corners[4]]
+  WD --> CNR["corners[4]"]
   WD --> HT[height]
   WD --> G2[_Grid]
   G2 --> ORG[minX minZ]
   G2 --> STEP[dx dz invDx invDz]
   G2 --> COR[corners]
 
-  class WD,ID2,CNR,HT,G2,ORG,STEP,COR class-data;
+  class WD,ID2,CNR,HT,G2,ORG,STEP,COR class_data;
 ```
 
-Marker structure
+# Marker structure
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -152,13 +152,13 @@ flowchart LR
   MK[_Marker] --> id[markID]
   MK --> str[label string]
   MK --> pos[vec2Origin radius]
-  MK --> style[lineType lineColor fillColor coalition]
+  MK --> style_[lineType lineColor fillColor coalition]
   MK --> verts[freeFormVec2Table]
 
-  class MK,id,str,pos,style,verts class-data;
+  class MK,id,str,pos,style_,verts class_data;
 ```
 
-Found object container
+# Found object container
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -170,10 +170,10 @@ flowchart TD
   FO --> state[isActive isAlive isDead etc]
   FO --> nest[AETHR.spawned divisionID groundUnitID]
 
-  class FO,meta,geo,group,ids,state,nest class-data;
+  class FO,meta,geo,group,ids,state,nest class_data;
 ```
 
-Key anchors by area
+# Key anchors by area
 - Zones and borders
   - [AETHR._MIZ_ZONE:New()](../../dev/customTypes.lua:283), [AETHR._BorderInfo:New()](../../dev/customTypes.lua:232)
 - World and grid
@@ -183,7 +183,7 @@ Key anchors by area
 - Markers and IO-facing
   - [AETHR._Marker:New()](../../dev/customTypes.lua:375), [AETHR._FoundObject:New()](../../dev/customTypes.lua:198), [AETHR._airbase:New()](../../dev/customTypes.lua:432)
 
-Notes
+### Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
 ## Breakout documents

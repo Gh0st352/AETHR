@@ -15,42 +15,71 @@ Overview
 - Defaults are defensive: unset numeric fields default to 0 to ensure arithmetic safety.
 - _vec2 is the canonical 2D point for POLY and MATH. Many APIs also accept _vec2xz for world XZ.
 
-Mermaid flow overview
+# Mermaid flow overview
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  CALLER[Caller] --> V2[vec2 New]
-  CALLER --> V2XZ[vec2xz New]
-  CALLER --> V3[vec3 New]
-  CALLER --> BB[BBox New]
+  CALLER[Caller]
 
-  V2 --> V2x[x default 0]
-  V2 --> V2y[y default 0]
+  subgraph VEC2 ["_vec2 fields"]
+    V2[vec2 New]
+    V2x[x default 0]
+    V2y[y default 0]
+    V2 --> V2x
+    V2 --> V2y
+  end
 
-  V2XZ --> V2xZ[x default 0]
-  V2XZ --> V2zZ[z default 0]
+  subgraph VEC2XZ ["_vec2xz fields"]
+    V2XZ[vec2xz New]
+    V2xZ[x default 0]
+    V2zZ[z default 0]
+    V2XZ --> V2xZ
+    V2XZ --> V2zZ
+  end
 
-  V3 --> V3x[x default 0]
-  V3 --> V3y[y default 0]
-  V3 --> V3z[z default 0]
+  subgraph VEC3 ["_vec3 fields"]
+    V3[vec3 New]
+    V3x[x default 0]
+    V3y[y default 0]
+    V3z[z default 0]
+    V3 --> V3x
+    V3 --> V3y
+    V3 --> V3z
+  end
 
-  BB --> BBminx[minx default 0]
-  BB --> BBmaxx[maxx default 0]
-  BB --> BBminy[miny default 0]
-  BB --> BBmaxy[maxy default 0]
+  subgraph BBOX ["_BBox fields"]
+    BB[BBox New]
+    BBminx[minx default 0]
+    BBmaxx[maxx default 0]
+    BBminy[miny default 0]
+    BBmaxy[maxy default 0]
+    BB --> BBminx
+    BB --> BBmaxx
+    BB --> BBminy
+    BB --> BBmaxy
+  end
+
+  CALLER --> V2
+  CALLER --> V2XZ
+  CALLER --> V3
+  CALLER --> BB
 
   NB[Bounding box used for coarse filtering in zone grids]
   BBminx -.-> NB
   NB -.-> BBmaxy
+
+  class V2,V2x,V2y,V2XZ,V2xZ,V2zZ,V3,V3x,V3y,V3z,BB,BBminx,BBmaxx,BBminy,BBmaxy,CALLER,NB,VEC2,VEC2XZ,VEC3,BBOX class_data;
 ```
 
-Key creation paths
+# Key creation paths
 - _vec2: [AETHR._vec2:New()](../../dev/customTypes.lua:522) sets x and y, defaulting to 0.
 - _vec2xz: [AETHR._vec2xz:New()](../../dev/customTypes.lua:542) sets x and z for world plane calculations.
 - _vec3: [AETHR._vec3:New()](../../dev/customTypes.lua:114) sets x y z for world coordinates.
 - _BBox: [AETHR._BBox:New()](../../dev/customTypes.lua:136) sets minx maxx miny maxy for spatial indexing.
 
-Typical usage sequences
+## Typical usage sequences
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant C as Caller
   participant T as Types
@@ -63,14 +92,14 @@ sequenceDiagram
   Note over P: uses PolygonVec2 and LineVec2 internally
 ```
 
-Cross module references
+## Cross module references
 - POLY polygon conversion: [AETHR.POLY:convertPolygonToLines()](../../dev/POLY.lua:737)
 - POLY bounds to polygon: [AETHR.POLY:convertBoundsToPolygon()](../../dev/POLY.lua:1039)
 
-Notes
+## Notes
 - Prefer _vec2 for planar math; pass _vec2xz when consuming world XZ data and normalize at module edges.
 - Maintain consistent winding for polygon vertices when interoperating with POLY utilities.
 
-Source anchors
+## Source anchors
 - [_LineVec2](../../dev/customTypes.lua:38), [_PolygonVec2](../../dev/customTypes.lua:39)
 - [AETHR._vec2:New()](../../dev/customTypes.lua:522), [AETHR._vec2xz:New()](../../dev/customTypes.lua:542), [AETHR._vec3:New()](../../dev/customTypes.lua:114), [AETHR._BBox:New()](../../dev/customTypes.lua:136)

@@ -10,27 +10,56 @@ Overview
 - _circle provides a minimal geometric helper with precomputed diameter, circumference, and area.
 - _dbCluster is a data structure returned by clustering utilities, containing references to points, a center, and a radius.
 
-Task constructor defaults and timing
+# Task constructor defaults and timing
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  T[AETHR._task New] --> STA[stopAfterTime default nil]
-  T --> SAI[stopAfterIterations passthrough]
-  T --> RI[repeatInterval default nil]
-  T --> DLY[delay default 0]
-  T --> TF[taskFunction default nil]
-  T --> ARGS[functionArgs default []]
-  T --> ITR[iterations 0]
-  T --> LR[lastRun 0]
-  T --> NR[nextRun now plus delay]
-  T --> ST[stopTime now plus stopAfterTime or nil]
-  T --> RUN[running false]
-  T --> ACT[active true]
-  T --> SID[schedulerID default 0]
-  T --> REP[repeating computed flag]
+  subgraph TASK ["AETHR._task New"]
+    T["AETHR._task New"]
+    subgraph TIME ["Timing"]
+      DLY[delay default 0]
+      LR[lastRun 0]
+      NR[nextRun now plus delay]
+      ST[stopTime now plus stopAfterTime or nil]
+    end
+    subgraph LIMITS ["Limits and repeats"]
+      STA[stopAfterTime default nil]
+      SAI[stopAfterIterations passthrough]
+      RI[repeatInterval default nil]
+      ITR[iterations 0]
+      REP[repeating computed flag]
+    end
+    subgraph EXEC ["Execution"]
+      TF[taskFunction default nil]
+      ARGS["functionArgs default []"]
+    end
+    subgraph FLAGS ["Flags and IDs"]
+      RUN[running false]
+      ACT[active true]
+      SID[schedulerID default 0]
+    end
+    T --> STA
+    T --> SAI
+    T --> RI
+    T --> DLY
+    T --> TF
+    T --> ARGS
+    T --> ITR
+    T --> LR
+    T --> NR
+    T --> ST
+    T --> RUN
+    T --> ACT
+    T --> SID
+    T --> REP
+  end
+
+  class T,STA,SAI,RI,DLY,TF,ARGS,ITR,LR,NR,ST,RUN,ACT,SID,REP,TASK,TIME,LIMITS,EXEC,FLAGS class_data;
 ```
 
-Scheduler interaction sequence
+# Scheduler interaction sequence
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant C as Caller
   participant T as _task
@@ -47,25 +76,33 @@ sequenceDiagram
   end
 ```
 
-Circle constructor fields
+# Circle constructor fields
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  C2[_circle New] --> Ctr[center vec2]
-  C2 --> Rad[radius]
-  C2 --> Dia[diameter radius times 2]
-  C2 --> Circ[circumference 2 pi r]
-  C2 --> Area[area pi r^2]
+  subgraph CIRCLE ["_circle New"]
+    C2[_circle New] --> Ctr[center vec2]
+    C2 --> Rad[radius]
+    C2 --> Dia[diameter 2r]
+    C2 --> Circ[circumference 2 pi r]
+    C2 --> Area[area pi r^2]
+  end
+  class C2,Ctr,Rad,Dia,Circ,Area,CIRCLE class_data;
 ```
 
-Cluster result structure
+# Cluster result structure
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  CL[_dbCluster] --> PTS[Points references]
-  CL --> CTR[Center vec2]
-  CL --> RAD[Radius meters]
+  subgraph CLUSTER ["_dbCluster"]
+    CL[_dbCluster] --> PTS[Points references]
+    CL --> CTR[Center vec2]
+    CL --> RAD[Radius meters]
+  end
+  class CL,PTS,CTR,RAD,CLUSTER class_data;
 ```
 
-Source anchors
+# Source anchors
 - Task: [AETHR._task:New()](../../dev/customTypes.lua:483)
 - Circle: [AETHR._circle:New()](../../dev/customTypes.lua:1471)
 - Cluster: [_dbCluster](../../dev/customTypes.lua:1482)

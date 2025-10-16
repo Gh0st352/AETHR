@@ -10,38 +10,72 @@ Overview
 - _Marker encapsulates drawing primitives compatible with DCS map markup, including style and geometry fields.
 - _Grid provides precomputed step and inverse step for fast cell indexing in spatial maps.
 
-Mermaid flow overview
+# Mermaid flow overview
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  CALLER[Caller] --> C[_ColorRGBA New]
-  CALLER --> M[_Marker New]
-  CALLER --> G[_Grid New]
+  CALLER[Caller]
 
-  C --> Cr[r default 0]
-  C --> Cg[g default 0]
-  C --> Cb[b default 0]
-  C --> Ca[a default 0]
+  subgraph COLOR ["_ColorRGBA fields"]
+    C[_ColorRGBA New]
+    Cr[r default 0]
+    Cg[g default 0]
+    Cb[b default 0]
+    Ca[a default 0]
+    C --> Cr
+    C --> Cg
+    C --> Cb
+    C --> Ca
+  end
 
-  M --> Mid[markID]
-  M --> Mstr[label string]
-  M --> Morigin[vec2Origin]
-  M --> Mro[readOnly default true]
-  M --> Mmsg[message]
-  M --> Mshape[shapeId]
-  M --> Mcoal[coalition]
-  M --> Mlt[lineType]
-  M --> Mlc[lineColor]
-  M --> Mfc[fillColor]
-  M --> Mverts[freeFormVec2Table]
-  M --> Mrad[radius]
+  subgraph MARKER ["_Marker fields"]
+    M[_Marker New]
+    Mid[markID]
+    Mstr[label string]
+    Morigin[vec2Origin]
+    Mro[readOnly default true]
+    Mmsg[message]
+    Mshape[shapeId]
+    Mcoal[coalition]
+    Mlt[lineType]
+    Mlc[lineColor]
+    Mfc[fillColor]
+    Mverts[freeFormVec2Table]
+    Mrad[radius]
+    M --> Mid
+    M --> Mstr
+    M --> Morigin
+    M --> Mro
+    M --> Mmsg
+    M --> Mshape
+    M --> Mcoal
+    M --> Mlt
+    M --> Mlc
+    M --> Mfc
+    M --> Mverts
+    M --> Mrad
+  end
 
-  G --> Gorg[minX minZ]
-  G --> Gstep[dx dz]
-  G --> Ginv[invDx invDz]
-  G --> Gcorners[corners]
+  subgraph GRID ["_Grid fields"]
+    G[_Grid New]
+    Gorg[minX minZ]
+    Gstep[dx dz]
+    Ginv[invDx invDz]
+    Gcorners[corners]
+    G --> Gorg
+    G --> Gstep
+    G --> Ginv
+    G --> Gcorners
+  end
+
+  CALLER --> C
+  CALLER --> M
+  CALLER --> G
+
+  class C,Cr,Cg,Cb,Ca,M,Mid,Mstr,Morigin,Mro,Mmsg,Mshape,Mcoal,Mlt,Mlc,Mfc,Mverts,Mrad,G,Gorg,Gstep,Ginv,Gcorners,COLOR,MARKER,GRID,CALLER class_data;
 ```
 
-Marker structure and defaults
+# Marker structure and defaults
 - Field defaults in constructor:
   - markID as provided
   - string and label default to empty
@@ -53,8 +87,9 @@ Marker structure and defaults
   - freeFormVec2Table defaults to {}
   - radius defaults to 0
 
-Typical marker creation sequence
+## Typical marker creation sequence
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant C as Caller
   participant T as _Marker
@@ -62,8 +97,9 @@ sequenceDiagram
   T-->>C: marker instance with style and geometry fields
 ```
 
-Grid initialization sequence
+## Grid initialization sequence
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant C as Caller
   participant G as _Grid
