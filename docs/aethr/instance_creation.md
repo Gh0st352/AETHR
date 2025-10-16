@@ -35,11 +35,11 @@ flowchart LR
   subgraph MODULES [Modules]
     ML[Build modules list]
 
-    subgraph P1GRP [Phase 1 (construct)]
+    subgraph P1GRP ["Phase 1 (construct)"]
       P1[Phase 1 construct submodules]
     end
 
-    subgraph P2GRP [Phase 2 (wire)]
+    subgraph P2GRP ["Phase 2 (wire)"]
       P2[Phase 2 wire backrefs and siblings]
     end
 
