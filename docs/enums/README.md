@@ -23,12 +23,12 @@ Documents and indices
 - WORLD: [docs/world/README.md](../world/README.md)
 - MARKERS: [docs/markers/README.md](../markers/README.md)
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph ENUMS [ENUMS]
+  subgraph "ENUMS" ["ENUMS"]
     E[ENUMS root]
     LT[LineTypes]
     MT[MarkerTypes]
@@ -44,17 +44,17 @@ flowchart LR
     RTT[restrictedTownTypes]
   end
 
-  subgraph Consumers [Consumers]
-    subgraph WORLD [WORLD]
+  subgraph "Consumers" ["Consumers"]
+    subgraph "WORLD" ["WORLD"]
       W[WORLD]
     end
-    subgraph ZM [ZONE_MANAGER]
+    subgraph "ZONE_MANAGER" ["ZONE_MANAGER"]
       ZM[ZONE_MANAGER]
     end
-    subgraph SPNR [SPAWNER]
+    subgraph "SPAWNER" ["SPAWNER"]
       SPN[SPAWNER]
     end
-    subgraph MK [MARKERS]
+    subgraph "MARKERS" ["MARKERS"]
       MK[MARKERS]
     end
   end
@@ -84,11 +84,11 @@ flowchart LR
   SK -.-> SPN
 
   %% Class bucket assignments
-  class E,LT,MT,CO,ST,EV,CT,SK,SP,SPQ,DST,FSM,RTT class-data;
-  class W,ZM,SPN,MK class-compute;
+  class E,LT,MT,CO,ST,EV,CT,SK,SP,SPQ,DST,FSM,RTT class_data;
+  class W,ZM,SPN,MK class_compute;
 ```
 
-Lookup and usage sequence
+# Lookup and usage sequence
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -105,13 +105,13 @@ sequenceDiagram
   MK->>EN: MarkerTypes, LineTypes
 ```
 
-Anchors in consuming modules
+# Anchors in consuming modules
 - MARKERS uses shapes and lines: [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85), [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
 - ZONE_MANAGER ownership integration: [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103), [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
 - WORLD ownership texts and updates: [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - SPAWNER types and priorities: [AETHR.SPAWNER:seedTypes()](../../dev/SPAWNER.lua:1804), [AETHR.SPAWNER:generateGroupTypes()](../../dev/SPAWNER.lua:1600)
 
-Notes
+### Notes
 - ENUMS provides engine constant pass-throughs; when running outside DCS, ensure the environment provides required globals or inject stubs.
 - Mermaid labels avoid double quotes and parentheses. All diagrams use GitHub Mermaid fenced blocks.
 ## Breakout documents
@@ -124,12 +124,12 @@ Focused ENUMS analysis pages with Mermaid diagrams and cross-module anchors.
 - Surface types and NOGO: [surface_types.md](./surface_types.md)
 - Spawn types and priority: [spawn_types.md](./spawn_types.md)
 
-High-level usage map
+# High-level usage map
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph ENUMS [ENUMS]
+  subgraph "ENUMS" ["ENUMS"]
     EN[ENUMS]
     CO[Coalition]
     TS[TextStrings]
@@ -141,7 +141,7 @@ flowchart LR
     DST[dynamicSpawnerTypes]
   end
 
-  subgraph Consumers [Consumers]
+  subgraph "Consumers" ["Consumers"]
     W[WORLD ownership]
     ZM[ZONE_MANAGER render]
     MK[MARKERS draw]
@@ -166,6 +166,6 @@ flowchart LR
   SPQ -.-> SPNR
   DST -.-> SPNR
 
-  class EN,CO,TS,LT,MT,ST,SP,SPQ,DST class-data;
-  class W,ZM,SPNR,MK class-compute;
+  class EN,CO,TS,LT,MT,ST,SP,SPQ,DST class_data;
+  class W,ZM,SPNR,MK class_compute;
 ```

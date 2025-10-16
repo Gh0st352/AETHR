@@ -2,27 +2,27 @@
 
 Enumeration of DCS world events exposed via AETHR.ENUMS and guidance for usage in event handlers.
 
-Primary sources
+# Primary sources
 
 - Events class doc: [AETHR.ENUMS.Events](../../dev/ENUMS.lua:58)
 - Events mapping table: [AETHR.ENUMS.Events = { ... }](../../dev/ENUMS.lua:374)
 - Root table initialization: [AETHR.ENUMS](../../dev/ENUMS.lua:337)
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph ENUMS [ENUMS]
+  subgraph "ENUMS" ["ENUMS"]
     EN[ENUMS]
     EV[Events]
   end
 
-  subgraph HANDLERS [Event Handlers]
+  subgraph "Event Handlers" ["Event Handlers"]
     EH[Event Handlers]
   end
 
-  subgraph SYSTEMS [Mission Systems]
+  subgraph "Mission Systems" ["Mission Systems"]
     W[WORLD]
     ZM[ZONE_MANAGER]
     SP[SPAWNER]
@@ -34,12 +34,12 @@ flowchart LR
   EH -.-> ZM
   EH -.-> SP
 
-  class EN,EV class-data;
-  class EH class-tracker;
-  class W,ZM,SP class-compute;
+  class EN,EV class_data;
+  class EH class_tracker;
+  class W,ZM,SP class_compute;
 ```
 
-Typical usage pattern
+# Typical usage pattern
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -57,7 +57,7 @@ sequenceDiagram
   end
 ```
 
-Event keys provided
+# Event keys provided
 
 - Combat and object lifecycle
   - S_EVENT_SHOT, S_EVENT_HIT, S_EVENT_DEAD, S_EVENT_KILL, S_EVENT_WEAPON_ADD
@@ -78,19 +78,19 @@ Event keys provided
   - S_EVENT_BDA, S_EVENT_AI_ABORT_MISSION, S_EVENT_DAYNIGHT, S_EVENT_FLIGHT_TIME
   - S_EVENT_PLAYER_CAPTURE_AIRFIELD, S_EVENT_EMERGENCY_LANDING
 
-Notes and guardrails
+# Notes and guardrails
 
 - The mapping is a pass-through to world.event.* constants via ENUMS, allowing editor-friendly references and static analysis out of DCS
 - Some events cannot be caught during script init due to timing (see comments in [Events mapping](../../dev/ENUMS.lua:384))
 - Handlers should be robust to missing fields on the event structure depending on event.id
 
-Validation checklist
+# Validation checklist
 
 - Class docs for Events at [dev/ENUMS.lua](../../dev/ENUMS.lua:58)
 - Mapping block for Events at [dev/ENUMS.lua](../../dev/ENUMS.lua:374)
 - Root ENUMS initialization at [dev/ENUMS.lua](../../dev/ENUMS.lua:337)
 
-Related breakouts
+# Related breakouts
 
 - Categories: [categories.md](./categories.md)
 - Coalition and texts: [coalition_and_text.md](./coalition_and_text.md)
@@ -98,7 +98,7 @@ Related breakouts
 - Spawn types and priority: [spawn_types.md](./spawn_types.md)
 - Lines and markers: [lines_and_markers.md](./lines_and_markers.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside bracket labels

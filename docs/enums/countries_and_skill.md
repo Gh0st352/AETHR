@@ -2,18 +2,18 @@
 
 Country id mapping and AI skill strings exposed via ENUMS, with consumers across SPAWNER, WORLD and ZONE_MANAGER.
 
-Primary sources
+# Primary sources
 
 - Countries mapping: [AETHR.ENUMS.Countries](../../dev/ENUMS.lua:481)
 - Skill class doc: [AETHR.ENUMS.Skill](../../dev/ENUMS.lua:165)
 - Skill mapping: [AETHR.ENUMS.Skill = { ... }](../../dev/ENUMS.lua:482)
 - Root table init: [AETHR.ENUMS](../../dev/ENUMS.lua:337)
 
-Related CONFIG defaults
+# Related CONFIG defaults
 
 - Default country ids for zone-based spawning: [AETHR.CONFIG.MAIN.DefaultRedCountry](../../dev/CONFIG_.lua:177), [AETHR.CONFIG.MAIN.DefaultBlueCountry](../../dev/CONFIG_.lua:178)
 
-Consumers and anchors
+# Consumers and anchors
 
 - SPAWNER
   - Build group with country: [AETHR.SPAWNER:buildGroundGroup()](../../dev/SPAWNER.lua:321) uses countryID for coalition.addGroup payload
@@ -27,108 +27,90 @@ Consumers and anchors
 - WORLD
   - Ownership updates do not use Countries directly, but country ids impact coalition on engine objects created via SPAWNER
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#0f172a","primaryTextColor":"#000000ff","lineColor":"#94a3b8","fontSize":"12px"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
 
-%% Classes
-classDef enums fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
-classDef config fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
-classDef zm fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
-classDef spawner fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
-
-%% Groups
-subgraph sgEnums [ENUMS]
+subgraph "ENUMS" ["ENUMS"]
   EN[ENUMS]
   CT[Countries]
   SK[Skill]
 end
 
-subgraph sgConfig [CONFIG]
+subgraph "CONFIG" ["CONFIG"]
   CFG[DefaultRedCountry DefaultBlueCountry]
 end
 
-subgraph sgZM [ZONE_MANAGER]
+subgraph "ZONE_MANAGER" ["ZONE_MANAGER"]
   ZM[spawnAirbasesAllZones]
 end
 
-subgraph sgSP [SPAWNER]
+subgraph "SPAWNER" ["SPAWNER"]
   SP[buildGroundGroup spawnGroup]
   SPU[buildGroundUnit]
 end
 
-%% Relationships
 EN --> CT
 EN --> SK
 CFG -- "defaults" --> ZM
 CT -.-> SP
 SK -.-> SPU
 
-%% Apply classes
-class EN,CT,SK enums
-class CFG config
-class ZM zm
-class SP,SPU spawner
-
-%% Subgraph styles
-style sgEnums fill:#eef4ff,stroke:#6c8ebf,stroke-width:2px
-style sgConfig fill:#fff9e6,stroke:#d6b656,stroke-width:2px
-style sgZM fill:#edf7ed,stroke:#82b366,stroke-width:2px
-style sgSP fill:#ffeeda,stroke:#d79b00,stroke-width:2px
+class EN,CT,SK class_data;
+class CFG class_compute;
+class ZM class_compute;
+class SP,SPU class_step;
 ```
 
-Group build and spawn sequence
+# Group build and spawn sequence
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant SP as SPAWNER
   participant EN as ENUMS
   participant CFG as CONFIG
   participant DCS as coalition
 
-  rect rgba(255, 255, 255, 0.75)
-    Note over SP: Unit prototypes first
-    SP->>EN: Skill.Excellent|High|Good|Average|Random|Player
-    SP-->>SP: buildGroundUnit with chosen skill
+  note over SP: Unit prototypes first
+  SP->>EN: Skill.Excellent | High | Good | Average | Random | Player
+  SP-->>SP: buildGroundUnit with chosen skill
 
-    Note over SP: Build group and add to engine
-    SP->>SP: buildGroundGroup(countryID, units...)
-    opt spawn now
-      SP->>DCS: addGroup(countryID, Group.Category.GROUND, group)
-    end
+  note over SP: Build group and add to engine
+  SP->>SP: buildGroundGroup(countryID, units...)
+  opt spawn now
+    SP->>DCS: addGroup(countryID, Group.Category.GROUND, group)
   end
 ```
 
-Airbase fillers by coalition
+# Airbase fillers by coalition
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant CFG as CONFIG
   participant SP as SPAWNER
 
-  rect rgba(255, 255, 255, 0.75)
-    ZM->>CFG: DefaultRedCountry, DefaultBlueCountry
-    loop each red start zone
-      ZM->>SP: spawnAirbasesZone(zName, DefaultRedCountry)
-    end
-    loop each blue start zone
-      ZM->>SP: spawnAirbasesZone(zName, DefaultBlueCountry)
-    end
+  note over ZM: Seeding airbases per coalition
+  ZM->>CFG: DefaultRedCountry, DefaultBlueCountry
+  loop each red start zone
+    ZM->>SP: spawnAirbasesZone(zName, DefaultRedCountry)
+  end
+  loop each blue start zone
+    ZM->>SP: spawnAirbasesZone(zName, DefaultBlueCountry)
   end
 ```
 
-Notes and guardrails
+# Notes and guardrails
 
 - Countries provides engine country.id passthrough; when running outside DCS, inject stubs if needed for static analysis
 - Skill strings must be DCS-accepted values; use [AETHR.ENUMS.Skill](../../dev/ENUMS.lua:482) to avoid typos
 - For side selection at scale, prefer CONFIG defaults and ZONE_MANAGER zone lists to keep coalition consistency
 
-Validation checklist
+# Validation checklist
 
 - Countries mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:481)
 - Skill mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:482)
@@ -136,7 +118,7 @@ Validation checklist
 - ZONE_MANAGER zone-wide spawn by country at [dev/ZONE_MANAGER.lua](../../dev/ZONE_MANAGER.lua:1142)
 - CONFIG default countries at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:177)
 
-Related breakouts
+# Related breakouts
 
 - Categories: [categories.md](./categories.md)
 - Coalition and text strings: [coalition_and_text.md](./coalition_and_text.md)
