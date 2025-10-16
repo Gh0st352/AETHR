@@ -11,21 +11,33 @@ Documents
 - NOGO checks: [nogo.md](./nogo.md)
 - Async jobs: [async.md](./async.md)
 
-End to end relationship
+# End to end relationship
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  P[Pipeline] --> Z[Zones and divisions]
-  P --> T[Types and counts]
-  Z --> L[Placement]
-  T --> L
-  L --> S[Spawn and despawn]
-  N[NOGO checks] -.-> L
-  A[Async jobs] -.-> P
+  subgraph "Generation flow"
+    direction LR
+    P[Pipeline] --> Z[Zones and divisions]
+    P --> T[Types and counts]
+    Z --> L[Placement]
+    T --> L
+    L --> S[Spawn and despawn]
+  end
+
+  subgraph "Support & controls"
+    direction TB
+    N[NOGO checks] -.-> L
+    A[Async jobs] -.-> P
+  end
+
+  class P,Z,L,T,S,A,N class_step;
 ```
-Sequence overview
+
+# Sequence overview
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant Caller
   participant SP as SPAWNER
@@ -33,9 +45,19 @@ sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant U as UTILS
 
-  Caller->>SP: newDynamicSpawner
+  Caller->>SP: generateDynamicSpawner
+  alt deterministic enabled with seed
+    SP->>U: withSeed(seed)
+  else nondeterministic
+    Note over SP: run without seeded RNG
+  end
+
   SP->>SP: generateSpawnerZones
-  SP->>SP: pairSpawnerWorldDivisions or pairSpawnerActiveZones
+  alt MIZ zones exist
+    SP->>ZM: pairSpawnerActiveZones
+  else no MIZ zones
+    SP->>W: pairSpawnerWorldDivisions
+  end
   SP->>SP: pairSpawnerZoneDivisions
   SP->>SP: determineZoneDivObjects
   SP->>SP: generateSpawnAmounts and _Jiggle
@@ -45,7 +67,7 @@ sequenceDiagram
   W-->>SP: queue for activation
 ```
 
-Key anchors
+# Key anchors
 - Deterministic scope: [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:242)
 - Zone generation: [AETHR.SPAWNER:generateSpawnerZones()](../../dev/SPAWNER.lua:2012)
 - Pair to divisions: [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723), [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)

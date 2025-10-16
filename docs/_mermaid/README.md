@@ -58,8 +58,7 @@ Validation checklist
   - class NODE_A,NODE_B class_io;
   - class NODE_C class_compute;
 - Wrap the subgraph labels in double quotes in the Mermaid diagram: `["xxxx (xx)"]`
-- Ensure all documentation headers and titles have a header notation at the start of the line, example: `# Title header`
-- Ensure all documentation subheaders and subtitles have a subheader notation at the start of the line, example: `## sub-Title header`
+- Ensure all documentation section titles have level-1, level-2, or level 3 headings. example: # Title
 
 Notes
 - This repository does not run the injection itself. Ensure your docs pipeline (e.g., pre-publish script) performs the replacement of the marker comment with the JSON contents wrapped as a Mermaid init block.

@@ -12,44 +12,73 @@ Covered functions
   - NoGoSurfaces list: [SPAWNER.DATA.CONFIG.NoGoSurfaces](../../dev/SPAWNER.lua:108)
   - Polygon toggle: [SPAWNER.DATA.CONFIG.UseRestrictedZonePolys](../../dev/SPAWNER.lua:101)
 
-1. NOGO decision flow
+# 1. NOGO decision flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  S[start checkIsInNOGO] --> S1[vec2AtNoGoSurface]
-  S1 --> C0{on NOGO surface}
-  C0 -- yes --> RT1[return true]
-  C0 -- no --> P0{UseRestrictedZonePolys enabled and restrictedZones is table}
-  P0 -- no --> RT0[return false]
-  P0 -- yes --> L0[for each zone in restrictedZones]
-  L0 --> N1[normalize point and extract polygon vertices]
-  N1 --> AABB[aabb prefilter minx maxx miny maxy]
-  AABB --> C1{point inside aabb}
-  C1 -- no --> NEXT[next zone]
-  C1 -- yes --> PIP[POLY.pointInPolygon]
-  PIP --> C2{inside polygon}
-  C2 -- yes --> RT2[return true]
-  C2 -- no --> NEXT
-  NEXT --> L0
-  RT2 --> END[is NOGO true]
-  RT1 --> END
-  RT0 --> END
+  subgraph "Entry"
+    direction TB
+    S[start checkIsInNOGO] --> S1[vec2AtNoGoSurface]
+  end
+
+  subgraph "Surface path"
+    direction TB
+    S1 --> C0{on NOGO surface}
+    C0 -- "yes" --> RT1[return true]
+    C0 -- "no" --> P0{UseRestrictedZonePolys enabled and restrictedZones is table}
+  end
+
+  subgraph "Polygon path"
+    direction TB
+    P0 -- "no" --> RT0[return false]
+    P0 -- "yes" --> L0[for each zone in restrictedZones]
+    L0 --> N1[normalize point and extract polygon vertices]
+    N1 --> AABB[aabb prefilter minx maxx miny maxy]
+    AABB --> C1{point inside aabb}
+    C1 -- "no" --> NEXT[next zone]
+    C1 -- "yes" --> PIP[POLY.pointInPolygon]
+    PIP --> C2{inside polygon}
+    C2 -- "yes" --> RT2[return true]
+    C2 -- "no" --> NEXT
+    NEXT --> L0
+  end
+
+  subgraph "Exit"
+    direction TB
+    RT2 --> END[is NOGO true]
+    RT1 --> END
+    RT0 --> END
+  end
+
+  class S class_io;
+  class S1,N1,AABB,L0,NEXT class_step;
+  class C0,C1,C2,P0 class_decision;
+  class RT1,RT0,RT2,END class_result;
 ```
 
-2. Surface classification path
+# 2. Surface classification path
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  V[vec2] --> Q[land.getSurfaceType]
-  Q --> M[compare against CONFIG.NoGoSurfaces]
-  M --> C{match found}
-  C -- yes --> T[true]
-  C -- no --> F[false]
+  subgraph "Surface test"
+    direction LR
+    V[vec2] --> Q[land.getSurfaceType]
+    Q --> M[compare against CONFIG.NoGoSurfaces]
+    M --> C{match found}
+  end
+  C -- "yes" --> T[true]
+  C -- "no" --> F[false]
+  class V,Q,M,T,F class_step;
+  class C class_decision;
+  class T,F class_result;
 ```
 
-3. Integration in placement loops
+# 3. Integration in placement loops
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant Centers as generateVec2GroupCenters
   participant Units as generateVec2UnitPos
@@ -69,7 +98,7 @@ sequenceDiagram
   end
 ```
 
-4. Notes and guardrails
+# 4. Notes and guardrails
 
 - Surface checks are always enforced via [AETHR.SPAWNER:vec2AtNoGoSurface](../../dev/SPAWNER.lua:2128) using DCS land.getSurfaceType and the configured [NoGoSurfaces](../../dev/SPAWNER.lua:108).
 - Polygon checks are optional, controlled by [UseRestrictedZonePolys](../../dev/SPAWNER.lua:101). When enabled, an axis aligned bounding box prefilter is applied before [POLY.pointInPolygon](../../dev/POLY.lua:66).
