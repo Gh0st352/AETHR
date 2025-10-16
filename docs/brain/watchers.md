@@ -1,19 +1,18 @@
 # AETHR BRAIN watchers
 
-Entry anchor
+## Entry anchor
 - [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:242)
 
-Purpose
+## Purpose
 BRAIN provides a lightweight table proxy that intercepts writes to a specific key across a collection, invoking a watcher callback with optional extra arguments. This is used to react to ownership changes and other state transitions.
 
-Flow: buildWatcher
+# Flow: buildWatcher
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart
   %% buildWatcher: create proxies and intercept writes
-  subgraph BUILD [buildWatcher flow]
-    style BUILD fill:#d5e8d4,stroke:#6b9f73,stroke-width:2px
+  subgraph BUILD ["buildWatcher flow"]
     W1[iterate pairs on target table]
     W2[create proxy per entry with __actualValue]
     W3[set metatable with __index passthrough]
@@ -29,38 +28,36 @@ flowchart
     W8 --> W9
   end
 
-  classDef watcher fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class W1,W2,W3,W4,W5,W6,W7,W8,W9 watcher
+  class W1,W2,W3,W4,W5,W6,W7,W8,W9 class_step;
+  class BUILD class_compute;
 ```
 
-Sequence: wiring watchers to WORLD
+# Sequence: wiring watchers to WORLD
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
-  %% Background rect improves readability on dark docs
-  rect rgba(255,255,255,0.75)
-    participant ZM as ZONE_MANAGER
-    participant BR as BRAIN
-    participant WL as WORLD
-    ZM->>BR: buildWatcher target table and key with handler
-    BR-->>BR: proxy entries and intercept writes
-    alt watched key changes
-      BR-->>WL: invoke handler with provided context
-    end
+  %% Background overlay removed (use theme seqBackdrop) to avoid inline colors
+  participant ZM as ZONE_MANAGER
+  participant BR as BRAIN
+  participant WL as WORLD
+  ZM->>BR: buildWatcher target table and key with handler
+  BR-->>BR: proxy entries and intercept writes
+  alt watched key changes
+    BR-->>WL: invoke handler with provided context
   end
 ```
 
-Behavior notes mapped to code
+# Behavior notes mapped to code
 - Proxy stores original value under __actualValue and forwards reads via __index [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:250)
 - __newindex checks for the watched field and invokes the callback before assigning [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:255)
 - Extra args are captured once and passed to each callback invocation [AETHR.BRAIN:buildWatcher()](../../dev/BRAIN.lua:243)
 
-Typical usage
+# Typical usage
 - Airbase coalition change watcher in ZONE_MANAGER: [docs/zone_manager/watchers.md](docs/zone_manager/watchers.md)
 - Zone ownership change watcher in ZONE_MANAGER: [docs/zone_manager/watchers.md](docs/zone_manager/watchers.md)
 
-Cross links
+# Cross links
 - Module index: [docs/brain/README.md](docs/brain/README.md)
 - Scheduler: [docs/brain/scheduler.md](docs/brain/scheduler.md)
 - Coroutines: [docs/brain/coroutines.md](docs/brain/coroutines.md)

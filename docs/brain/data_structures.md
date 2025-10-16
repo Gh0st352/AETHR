@@ -1,15 +1,15 @@
 # AETHR BRAIN data structures
 
-Entry anchors
+## Entry anchors
 - [AETHR.ScheduledTask](../../dev/BRAIN.lua:22)
 - [AETHR.CoroutineDescriptor](../../dev/BRAIN.lua:37)
 - [AETHR.BRAIN.DATA](../../dev/BRAIN.lua:52)
 - [BackgroundLoopInterval](../../dev/BRAIN.lua:149)
 
-Class model
+# Class model
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables":{"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 classDiagram
   %% Simplified property types to avoid parser issues with punctuation/generics
   class BRAIN_DATA {
@@ -44,13 +44,13 @@ classDiagram
   BRAIN_DATA o-- ScheduledTask
   BRAIN_DATA o-- CoroutineDescriptor
 
-  classDef data fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px
-  class BRAIN_DATA data
-  class ScheduledTask data
-  class CoroutineDescriptor data
+  %% Use shared class buckets (no inline colors)
+  class BRAIN_DATA class_data
+  class ScheduledTask class_data
+  class CoroutineDescriptor class_data
 ```
 
-Default coroutine descriptors
+# Default coroutine descriptors
 - saveGroundUnits: interval 10, phase 9, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:58)
 - updateZoneOwnership: interval 10, phase 2, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:67)
 - updateAirfieldOwnership: interval 10, phase 0, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:76)
@@ -62,13 +62,12 @@ Default coroutine descriptors
 - spawnerGenerationQueue: interval 10, phase 12, yield 10 [dev/BRAIN.lua](../../dev/BRAIN.lua:130)
 - processFSMQueue: interval 10, phase 5, yield 10 [dev/BRAIN.lua](../../dev/BRAIN.lua:139)
 
-Flow: New instance
+# Flow: New instance
 
 ```mermaid
-%%{init: {"theme":"base"}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
-  subgraph NEW [BRAIN New instance flow]
-    style NEW fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
+  subgraph NEW ["BRAIN New instance flow"]
     N1[call BRAIN New]
     N2[create instance with parent AETHR and _cache]
     N3[set metatable with __index self]
@@ -76,11 +75,11 @@ flowchart TB
     N1 --> N2 --> N3 --> N4
   end
 
-  classDef node fill:#f5f5f5,stroke:#bfbfbf
-  class N1,N2,N3,N4 node
+  class N1,N2,N3,N4 class_step;
+  class NEW class_compute;
 ```
 
-Cross links
+# Cross links
 - Module index: [docs/brain/README.md](docs/brain/README.md)
 - Scheduler: [docs/brain/scheduler.md](docs/brain/scheduler.md)
 - Coroutines: [docs/brain/coroutines.md](docs/brain/coroutines.md)
