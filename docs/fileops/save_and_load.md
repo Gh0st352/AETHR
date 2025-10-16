@@ -2,14 +2,14 @@
 
 High-level persistence helpers for writing and reading data files via IO, with defensive guards and directory creation.
 
-Primary anchors
+# Primary anchors
 
 - save: [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
 - load: [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
 - ensure dir: [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
 - join paths: [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
 
-Callers
+# Callers
 
 - CONFIG persistence
   - Write: [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404) -> [FILEOPS:saveData](../../dev/FILEOPS_.lua:155)
@@ -18,46 +18,46 @@ Callers
   - Part write: [splitAndSaveData](../../dev/FILEOPS_.lua:246) -> [saveData](../../dev/FILEOPS_.lua:155)
   - Part read: [loadandJoinData](../../dev/FILEOPS_.lua:329) -> [loadData](../../dev/FILEOPS_.lua:173)
 
-Save flow
+# Save flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph Prepare[Prepare path]
+  subgraph Prepare["Prepare path"]
     D[data table] --> ED[ensureDirectory]
     ED --> JP[joinPaths directory filename]
   end
 
-  subgraph Persist[Persist to disk]
+  subgraph Persist["Persist to disk"]
     JP --> STORE[IO store path data]
   end
 
   STORE --> RES[return true or false]
 
-  class ED,JP,Prepare,Persist class-step;
-  class STORE class-io;
-  class D class-data;
-  class RES class-result;
+  class ED,JP,Prepare,Persist class_step;
+  class STORE class_io;
+  class D class_data;
+  class RES class_result;
 ```
 
-Load flow
+# Load flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph ResolvePath[Resolve path]
+  subgraph ResolvePath["Resolve path"]
     JP2[joinPaths directory filename]
   end
 
   JP2 --> LOAD[IO load path]
   LOAD --> T[table or nil]
 
-  class JP2,ResolvePath class-step;
-  class LOAD class-io;
-  class T class-data;
+  class JP2,ResolvePath class_step;
+  class LOAD class_io;
+  class T class_data;
 ```
 
-Save sequence
+# Save sequence
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -70,7 +70,7 @@ sequenceDiagram
   F-->>F: return true or false
 ```
 
-Load sequence
+# Load sequence
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -83,19 +83,19 @@ sequenceDiagram
   F-->>F: return data or nil
 ```
 
-Behavior and errors
+# Behavior and errors
 
 - Directory creation is required for save and uses ensureDirectory best effort
 - IO calls are wrapped in pcall for robustness
 - On save failure prints message and returns false
 - On load failure prints message and returns nil
 
-Data format
+# Data format
 
 - Uses IO module functions in [dev/IO.lua](../../dev/IO.lua) to serialize and parse tables
 - Encoding specifics are determined by the implementation in [dev/IO.lua](../../dev/IO.lua)
 
-Validation checklist
+# Validation checklist
 
 - Save entry: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:155)
 - Load entry: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:173)
@@ -104,7 +104,7 @@ Validation checklist
 - CONFIG save: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:404)
 - CONFIG load: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:380)
 
-Related breakouts
+# Related breakouts
 
 - Paths and ensure: [paths_and_ensure.md](./paths_and_ensure.md)
 - Chunking and tracker: [chunking.md](./chunking.md)

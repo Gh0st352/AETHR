@@ -1,6 +1,6 @@
 # AETHR FILEOPS diagrams and flows
 
-Primary anchors
+# Primary anchors
 - [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
 - [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
 - [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
@@ -11,23 +11,23 @@ Primary anchors
 - [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
 - [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
 
-Documents and indices
+# Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
 - AETHR overview: [docs/aethr/README.md](../aethr/README.md)
 
-Breakout documents
+# Breakout documents
 - Paths and ensure: [paths_and_ensure.md](./paths_and_ensure.md)
 - Save and load: [save_and_load.md](./save_and_load.md)
 - Chunking and tracker: [chunking.md](./chunking.md)
 - Deep copy helper: [deepcopy.md](./deepcopy.md)
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart
+flowchart LR
 
-  subgraph API[Core FILEOPS API]
+  subgraph API["Core FILEOPS API"]
     JP[joinPaths]
     ED[ensureDirectory]
     EF[ensureFile]
@@ -37,7 +37,7 @@ flowchart
     DC[deepcopy]
   end
 
-  subgraph Chunking[Chunking and tracker]
+  subgraph Chunking["Chunking and tracker"]
     SPT[splitAndSaveData tracker]
     LAD[loadandJoinData]
   end
@@ -50,14 +50,14 @@ flowchart
   SD --> SPT
   SPT --> LAD
   LD --> LAD
-  FE -.-> IO[IO read write]
+  FE -.-> IO[IO read / write]
   DC -.-> LAD
 
-  class JP,ED,EF,FE,SD,LD,DC,SPT,LAD class-step;
-  class IO class-io;
+  class JP,ED,EF,FE,SD,LD,DC,SPT,LAD class_step;
+  class IO class_io;
 ```
 
-Save and load sequence
+# Save and load sequence
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -72,56 +72,60 @@ sequenceDiagram
   IO-->>F: table or nil
 ```
 
-Directory creation flow
+# Directory creation flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart
-  subgraph Normalize[Normalize path]
+flowchart TD
+  subgraph Normalize["Normalize path"]
     P[path input] --> N[normalize separators]
   end
   N --> S[split path into parts]
 
-  subgraph Iterate[Iterate and mkdir as needed]
+  subgraph Iterate["Iterate and mkdir as needed"]
     S --> L[loop parts]
-    L --> Q{existsDir check}
-    Q -- "exists" --> C[continue]
-    Q -- "missing" --> M[mkdir part]
-    M --> E{error check}
-    E -- "ok" --> C
-    E -- "fail" --> X[stop and return false]
+    subgraph PartLoop["Per-part mkdir loop"]
+      L --> Q{existsDir check}
+      Q -- "exists" --> C[continue]
+      Q -- "missing" --> M[mkdir part]
+      M --> E{error check}
+      E -- "ok" --> C
+      E -- "fail" --> X[stop and return false]
+    end
   end
 
   C --> D[done return true]
 
-  class Q,E class-decision;
-  class N,S,L,M,C,Normalize,Iterate class-step;
-  class D class-result;
+  class Q,E class_decision;
+  class N,S,L,M,C,Normalize,Iterate,PartLoop class_step;
+  class D class_result;
 ```
 
-Chunked persistence flow
+# Chunked persistence flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart
-  subgraph SortChunk[Sort and chunk]
+flowchart LR
+  subgraph SortChunk["Sort and chunk"]
     S1[count records] --> S2[resolve chunk size]
     S2 --> S3[sort keys deterministic]
     S3 --> S4[fill chunk map]
   end
 
-  subgraph PersistMeta[Persist and metadata]
+  subgraph PersistMeta["Persist and metadata"]
     S4 --> S5[flushChunk write part file]
-    S5 --> S6[repeat until done]
-    S6 --> S7[write tracker file]
+    subgraph FlushAndTrack["Flush and track"]
+      S5 --> S6[repeat until done]
+      S6 --> S7[write tracker file]
+    end
     S7 --> OUT[return metadata]
   end
 
-  class S1,S2,S3,S4,S5,S6,S7 class-step;
-  class OUT class-result;
+  class S1,S2,S3,S4,S5,S6,S7 class_step;
+  class OUT class_result;
 ```
 
-Chunked load sequence
+# Chunked load sequence
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -141,7 +145,7 @@ sequenceDiagram
   end
 ```
 
-Source anchors
+# Source anchors
 - [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
 - [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
 - [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
@@ -152,6 +156,6 @@ Source anchors
 - [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
 - [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
 
-Notes
+# Notes
 - Diagrams reference a shared theme snippet for generation: [docs/_mermaid/theme.json](../_mermaid/theme.json)
 - Sequence diagrams omit inline color; generation pipeline should inject styles from the shared theme.
