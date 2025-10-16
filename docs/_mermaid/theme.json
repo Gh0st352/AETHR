@@ -21,8 +21,10 @@
     "decisionStroke": "#d79b00",
     "resultFill": "#d5e8d4",
     "resultStroke": "#82b366",
+    "resultStrokeWidth": "2px",
     "stepFill": "#fff2cc",
     "stepStroke": "#d6b656",
+    "stepStrokeWidth": "2px",
 
     "subgraphFill": "#f5f5f5",
     "subgraphStroke": "#999999",
@@ -44,5 +46,5 @@
     "seqTrackerFill": "#e1d5e7",
     "seqDatasetFill": "#d5e8d4"
   },
-  "themeCSS": ".class-io > rect, .class-io > path { fill: #dae8fc; stroke: #6c8ebf; stroke-width: 2px; }\n.class-compute > rect, .class-compute > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n.class-data > rect, .class-data > path { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }\n.class-tracker > rect, .class-tracker > path { fill: #e1d5e7; stroke: #9673a6; stroke-width: 2px; }\n.class-decision > rect, .class-decision > path { fill: #ffe6cc; stroke: #d79b00; stroke-width: 2px; }\n.class-result > rect, .class-result > path { fill: #d5e8d4; stroke: #82b366; stroke-width: 2px; }\n.class-step > rect, .class-step > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n\ng.cluster > rect { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }"
+  "themeCSS": ".class_io > rect, .class_io > path { fill: #dae8fc; stroke: #6c8ebf; stroke-width: 2px; }\n.class_compute > rect, .class_compute > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n.class_data > rect, .class_data > path { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }\n.class_tracker > rect, .class_tracker > path { fill: #e1d5e7; stroke: #9673a6; stroke-width: 2px; }\n.class_decision > rect, .class_decision > path { fill: #ffe6cc; stroke: #d79b00; stroke-width: 2px; }\n.class_result > rect, .class_result > path { fill: #d5e8d4; stroke: #82b366; stroke-width: 2px; }\n.class_step > rect, .class_step > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n\ng.cluster > rect { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }"
 }

@@ -25,7 +25,10 @@ Breakout pages
 - Startup and watchers: [startup_and_watchers.md](./startup_and_watchers.md)
 - Background processes: [background_processes.md](./background_processes.md)
 - User storage: [user_storage.md](./user_storage.md)
-Instance creation and wiring
+
+
+# Instance creation and wiring
+
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -49,47 +52,58 @@ flowchart LR
   N --> C --> ID --> SD --> PC --> AM --> BR --> RT
 
   %% Class assignments (house buckets)
-  class N,RT class-result;
-  class C,ID,SD,PC,AM,BR class-step;
+  class N,RT class_result;
+  class C,ID,SD,PC,AM,BR class_step;
 ```
 
-Init orchestration
+# Init orchestration
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart TB
+flowchart 
   %% Main container
-  subgraph INIT ["Initialization"]
-    I["Init"]
-    subgraph STORAGE ["Storage prep"]
-      P1["Ensure storage folders"]
+  subgraph INIT [Initialization]
+    I[Init]
+    subgraph STORAGE [Storage prep]
+      P1[Ensure storage folders]
     end
-    subgraph MODS ["Modules"]
-      L1["CONFIG initConfig"]
-      Z1["ZONE_MANAGER initMizZoneData"]
-      W1["WORLD initWorldDivisions"]
-      W2["WORLD initActiveDivisions"]
-      W3["WORLD initMizFileCache"]
+    subgraph MODS [Modules]
+      L1[CONFIG initConfig]
+      Z1[ZONE_MANAGER initMizZoneData]
+      W1[WORLD initWorldDivisions]
+      W2[WORLD initActiveDivisions]
+      W3[WORLD initMizFileCache]
     end
-    subgraph ZONES ["Zone drawing and pairing"]
-      ZB["ZONE_MANAGER game bounds and arrows"]
-      T1["WORLD initTowns and ZONE_MANAGER pairTowns"]
+    subgraph ZONES [Zone drawing and pairing]
+      ZB[ZONE_MANAGER game bounds and arrows]
+      T1[WORLD initTowns and ZONE_MANAGER pairTowns]
     end
-    subgraph PERSIST ["Persistence"]
-      US["Load and save USERSTORAGE"]
-      CS["saveConfig"]
+    subgraph PERSIST [Persistence]
+      US[Load and save USERSTORAGE]
+      CS[saveConfig]
     end
 
     %% Flow
-    I --> P1 --> L1 --> Z1 --> W1 --> W2 --> W3 --> ZB --> T1 --> US --> CS
+    I --> P1
+    P1 --> L1
+    L1 --> Z1
+    Z1 --> W1
+    W1 --> W2
+    W2 --> W3
+    W3 --> ZB
+    ZB --> T1
+    T1 --> US
+    US --> CS
   end
 
   %% Class assignments (house buckets)
-  class I,CS class-result;
-  class P1,L1,Z1,W1,W2,W3,ZB,T1,US class-step;
+  classDef result fill:resultFill,stroke:resultStroke,stroke-width:resultStrokeWidth;
+  classDef step fill:stepFill,stroke:stepStroke,stroke-width:stepStrokeWidth;
+  class I,CS class_result;
+  class P1,L1,Z1,W1,W2,W3,ZB,T1,US class_step;
 ```
 
-Runtime sequence during Init
+# Runtime sequence during Init
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -121,7 +135,7 @@ sequenceDiagram
   A->>C: saveConfig
 ```
 
-Background processes loop
+# Background processes loop
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%

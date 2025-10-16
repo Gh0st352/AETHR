@@ -8,19 +8,26 @@ Theme source
 - Shared theme definition: [docs/_mermaid/theme.json](./theme.json)
 
 How diagrams reference the shared theme
-- Each diagram in FILEOPS docs contains a placeholder comment:
+- Each diagram in docs contains a placeholder comment:
   - %% shared theme: docs/_mermaid/theme.json %%
 - This is a build-time marker. GitHub does not automatically include the external JSON. Your doc build step must replace this line with a full Mermaid init block.
 
 Required build step (injection)
 - Replace the theme marker line with the contents of the JSON file inside a Mermaid init fence.
+- Ensure all diagram titles have a header notation `#`
 - Example injection target (before):
+
+# DIAGRAM HEADER
   - ```mermaid
     %% shared theme: docs/_mermaid/theme.json %%
     flowchart
     ...
     ```
+
+
 - Example injection result (after):
+
+# DIAGRAM HEADER
   - ```mermaid
     %%{init: {"theme":"base","themeVariables": { ... }, "themeCSS": "..." }}%%
     flowchart
@@ -28,14 +35,14 @@ Required build step (injection)
     ```
 
 Class buckets used in diagrams
-- Node/style classes referenced across FILEOPS:
-  - class-io
-  - class-compute
-  - class-data
-  - class-tracker
-  - class-decision
-  - class-result
-  - class-step
+- Node/style classes referenced across documents:
+  - class_io
+  - class_compute
+  - class_data
+  - class_tracker
+  - class_decision
+  - class_result
+  - class_step
 - These classes are mapped to colors and strokes by themeVariables and themeCSS in [docs/_mermaid/theme.json](./theme.json).
 
 Customization policy
@@ -54,11 +61,12 @@ Validation checklist
     - “rect #...”
 - All diagrams include the shared theme marker line
 - Diagrams use class assignments only, e.g.:
-  - class NODE_A,NODE_B class-io;
-  - class NODE_C class-compute;
+  - class NODE_A,NODE_B class_io;
+  - class NODE_C class_compute;
 
 Notes
 - This repository does not run the injection itself. Ensure your docs pipeline (e.g., pre-publish script) performs the replacement of the marker comment with the JSON contents wrapped as a Mermaid init block.
 - If adding new diagram classes, update both:
   - themeVariables and themeCSS in [docs/_mermaid/theme.json](./theme.json)
   - Class usage guidelines in this README
+  - Example Syntax for different Mermaid diagram types found in [docs/_mermaid/_syntax/](./_syntax)

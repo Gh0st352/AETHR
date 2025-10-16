@@ -22,7 +22,7 @@ Loop flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart TB
+flowchart 
   subgraph LOOP [Background loop]
     subgraph WORLD [WORLD]
       R1[Airbase ownership]
@@ -50,8 +50,8 @@ flowchart TB
     N --> R1 --> R2 --> R3 --> R4 --> R5 --> R6 --> R7 --> R8 --> R9 --> RS --> NX[Return next time]
   end
 
-  class BP,NX class-result;
-  class N,R1,R2,R3,R4,R5,R6,R7,R8,R9,RS class-step;
+  class BP,NX class_result;
+  class N,R1,R2,R3,R4,R5,R6,R7,R8,R9,RS class_step;
 ```
 
 Coroutine scheduling timeline
