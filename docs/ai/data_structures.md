@@ -2,15 +2,15 @@
 
 Overview of classes and fields backing the DBSCAN logic in [dev/_AI.lua](../../dev/_AI.lua).
 
-Key anchors
+## Key anchors
 - [AETHR.AI](../../dev/_AI.lua:34)
 - [AETHR.AI.DBSCANNER](../../dev/_AI.lua:90)
 - [AETHR.AI.DATA.DBSCANNER](../../dev/_AI.lua:71)
 
-Class diagram
+# Class diagram
 
 ```mermaid
-%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f5f5f5"}}}%%
+%% shared theme: docs/_mermaid/theme.json %%
 classDiagram
   %% Use safe identifiers (underscores) for class IDs. Legend below maps IDs to dotted names.
   %% Legend:
@@ -75,22 +75,18 @@ classDiagram
   AETHR_AI_DBSCANNER ..> AETHR_UTILS : normalizePoint
   AETHR_AI_DBSCANNER ..> AETHR : default params from DATA
 
-  %% Styling for readability
-  classDef aiClass fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
-  classDef scanner fill:#fff2cc,stroke:#d4b86f,stroke-width:2px
-  classDef dataClass fill:#f5f5f5,stroke:#bfbfbf,stroke-width:2px
-
-  class AETHR_AI aiClass
-  class AETHR_AI_DBSCANNER scanner
-  class AETHR_AI_DATA_DBSCANNER dataClass
+  %% Styling note: styling is provided by docs/_mermaid/theme.json. Use class buckets only.
+  class AETHR_AI class_io
+  class AETHR_AI_DBSCANNER class_compute
+  class AETHR_AI_DATA_DBSCANNER class_data
 ```
 
-Field sources
+## Field sources
 - DBSCANNER constructor and fields: [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
 - DATA defaults: [AETHR.AI.DATA](../../dev/_AI.lua:70)
 - Parameterization: [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
 
-Method anchors
+## Method anchors
 - Facade: [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
 - Scan: [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
 - Core: [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
@@ -98,6 +94,6 @@ Method anchors
 - Expansion: [expand_cluster](../../dev/_AI.lua:424)
 - Post process: [post_process_clusters](../../dev/_AI.lua:466)
 
-Notes
+## Notes
 - Types in this diagram are descriptive and align with Lua usage in source.
 - Diagrams use GitHub Mermaid fenced blocks.
