@@ -2,11 +2,11 @@
 
 Human readable string conversion for Lua tables and values. Documents [AETHR.IO.dump()](../../dev/IO.lua:35) behavior, including key quoting and recursive formatting.
 
-Primary anchor
+# Primary anchor
 
 - Dump: [AETHR.IO.dump()](../../dev/IO.lua:35)
 
-Overview
+# Overview
 
 - Produces a string form for a value or table
 - For tables:
@@ -14,7 +14,7 @@ Overview
   - Non numeric keys are quoted as strings
   - Values are recursively formatted via dump
 
-Example
+# Example
 
 ```
 local t = { a = 1, b = { c = 2 } }
@@ -23,39 +23,46 @@ local s = AETHR.IO.dump(t)
 -- { ["a"] = 1,["b"] = { ["c"] = 2,}, }
 ```
 
-Flow
+# Flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IN[input o] --> TYP{type is table}
-  TYP -->|no| STR[tostring o]
-  TYP -->|yes| OPEN[start with brace]
-  OPEN --> LOOP[for each k v in pairs]
-  LOOP --> KEY{key is number}
-  KEY -->|no| QK[quote key string]
-  KEY -->|yes| NK[keep numeric key]
-  QK --> REC[recurse dump on v]
-  NK --> REC
-  REC --> APP[end with brace]
+  subgraph "table branch"
+    TYP -->|no| STR[tostring o]
+    TYP -->|yes| OPEN[start with brace]
+    OPEN --> LOOP[for each k v in pairs]
+    LOOP --> KEY{key is number}
+    KEY -->|no| QK[quote key string]
+    KEY -->|yes| NK[keep numeric key]
+    QK --> REC[recurse dump on v]
+    NK --> REC
+    REC --> APP[end with brace]
+  end
+  class TYP,KEY class_decision;
+  class IN,STR,OPEN,LOOP,QK,NK class_step;
+  class REC class_compute;
+  class APP class_result;
 ```
 
-Notes
+# Notes
 
 - Intended for readability and quick inspection, not round trip serialization
 - For robust persistence prefer [AETHR.IO.store()](../../dev/IO.lua:63) and friends
 
-Validation checklist
+# Validation checklist
 
 - Entry: [dev/IO.lua](../../dev/IO.lua:35)
 
-Related breakouts
+# Related breakouts
 
 - Store and variants: [store_and_variants.md](./store_and_variants.md)
 - Load and deSerialize: [load_and_deserialize.md](./load_and_deserialize.md)
 - Writers and refcount internals: [writers_and_refcount.md](./writers_and_refcount.md)
 - Serialize NoFunc: [serialize_nofunc.md](./serialize_nofunc.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside bracket text

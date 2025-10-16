@@ -10,51 +10,79 @@ Primary anchors
 - Writer dispatch: [write](../../dev/IO.lua:337), [writeNoFunc](../../dev/IO.lua:349), [writeIndent](../../dev/IO.lua:377)
 - Writers: [writers](../../dev/IO.lua:422), [writersNoFunc](../../dev/IO.lua:488)
 
-High level flow
+# High level flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  IN[values ...] --> CNT[count refs with refCount]
-  CNT --> MREF[assign ids in objRefNames]
-  MREF --> HDR[write header and multiRefObjects]
-  HDR --> FILL[fill multiref tables]
-  FILL --> REST[emit remaining objects local objN = ...]
-  REST --> RET[return list of objects]
-  RET --> DONE[close file]
+  subgraph "High level store flow"
+    IN[values ...] --> CNT[count refs with refCount]
+    CNT --> MREF[assign ids in objRefNames]
+    MREF --> HDR[write header and multiRefObjects]
+    HDR --> FILL[fill multiref tables]
+    FILL --> REST[emit remaining objects local objN = ...]
+    REST --> RET[return list of objects]
+    RET --> DONE[close file]
+  end
+
+  class IN class_data;
+  class CNT class_tracker;
+  class MREF,HDR,FILL,REST class_step;
+  class RET class_result;
+  class DONE class_io;
 ```
 
-Multiref construction logic
+# Multiref construction logic
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  V[each input value] --> RC[refCount traverse]
-  RC --> MAP[objRefCount]
-  MAP --> SEL{count > 1}
-  SEL -->|yes| IDX[assign id in objRefNames]
-  SEL -->|no| NEXT[next]
-  IDX --> NEXT
-  NEXT --> OUT[multiRefObjects header]
+  subgraph "Multiref construction"
+    V[each input value] --> RC[refCount traverse]
+    RC --> MAP[objRefCount]
+    MAP --> SEL{count > 1}
+    SEL -->|yes| IDX[assign id in objRefNames]
+    SEL -->|no| NEXT[next]
+    IDX --> NEXT
+    NEXT --> OUT[multiRefObjects header]
+  end
+
+  class V class_data;
+  class RC class_tracker;
+  class MAP class_step;
+  class SEL class_decision;
+  class IDX,NEXT class_step;
+  class OUT class_io;
 ```
 
 - [refCount](../../dev/IO.lua:401) traverses tables recursively and counts references
 - Tables with count greater than 1 receive an index in objRefNames and an empty table slot in multiRefObjects
 
-Writer selection
+# Writer selection
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  IT[item by type] --> DISP[writers type]
-  DISP --> EMIT[file write]
-  NOTE[no func variant] --> NDISP[writersNoFunc type]
+  subgraph "Writer selection"
+    IT[item by type] --> DISP[writers type]
+    DISP --> EMIT[file write]
+    NOTE[no func variant] --> NDISP[writersNoFunc type]
+  end
+
+  class IT class_data;
+  class DISP class_step;
+  class EMIT class_io;
+  class NOTE,NDISP class_step;
 ```
 
 - [write](../../dev/IO.lua:337) selects from [writers](../../dev/IO.lua:422) by Lua type
 - [writeNoFunc](../../dev/IO.lua:349) selects from [writersNoFunc](../../dev/IO.lua:488) that replaces function values with placeholders
 - Functions with upvalues or non Lua are emitted as nil markers in writers
 
-Store sequence
+# Store sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant U as caller
   participant IO as IO.store
@@ -67,24 +95,24 @@ sequenceDiagram
   IO-->>U: return or error on open
 ```
 
-StoreNoFunc differences
+# StoreNoFunc differences
 
 - Uses [writeNoFunc](../../dev/IO.lua:349) to avoid serializing functions
 - Places explicit INTENDEDSKIP markers in the serialized output via [writersNoFunc function handler](../../dev/IO.lua:528)
 
-Edge cases and errors
+# Edge cases and errors
 
 - File open failure yields error via return error(e) inside [store](../../dev/IO.lua:63) and [storeNoFunc](../../dev/IO.lua:134)
 - Circular references are handled by multiref encoding and refCount traversal
 
-Validation checklist
+# Validation checklist
 
 - Store: [dev/IO.lua](../../dev/IO.lua:63)
 - StoreNoFunc: [dev/IO.lua](../../dev/IO.lua:134)
 - Reference counter: [dev/IO.lua](../../dev/IO.lua:401)
 - Writers: [dev/IO.lua](../../dev/IO.lua:422), [dev/IO.lua](../../dev/IO.lua:488)
 
-Related breakouts
+# Related breakouts
 
 - Load and deSerialize: [load_and_deserialize.md](./load_and_deserialize.md)
 - Writers and refcount: [writers_and_refcount.md](./writers_and_refcount.md)
