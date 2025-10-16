@@ -2,7 +2,7 @@
 
 Finite state machine for AETHR modules with async transitions and a queued manager for background progression.
 
-Source anchors
+### Source anchors
 - [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
 - [AETHR.FSM:New()](../../dev/FSM.lua:366)
 - [AETHR.FSM:can()](../../dev/FSM.lua:407)
@@ -12,31 +12,40 @@ Source anchors
 - [AETHR.FSM:processQueue()](../../dev/FSM.lua:515)
 - [AETHR.FSM:todot()](../../dev/FSM.lua:427)
 
-Transition lifecycle flow
+# Transition lifecycle flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  E[fire event] --> C{can fire}
-  C -->|no| R[reject]
-  C -->|yes| B[onBefore event]
-  B --> L[onLeave from]
-  L --> AL{async leave}
-  AL -->|yes| WL[waiting leave] --> EN[onEnter to]
-  AL -->|no| EN[onEnter to]
-  EN --> AE{async enter}
-  AE -->|yes| WE[waiting enter] --> A[onAfter event]
-  AE -->|no| A[onAfter event]
-  A --> SC[onStateChange] --> D[done]
+  subgraph "Transition lifecycle"
+    E[fire event] --> C{can fire}
+    C -->|no| R[reject]
+    C -->|yes| B[onBefore event]
+    B --> L[onLeave from]
+    L --> AL{async leave}
+    AL -->|yes| WL[waiting leave] --> EN[onEnter to]
+    AL -->|no| EN[onEnter to]
+    EN --> AE{async enter}
+    AE -->|yes| WE[waiting enter] --> A[onAfter event]
+    AE -->|no| A[onAfter event]
+    A --> SC[onStateChange] --> D[done]
+  end
+  class E class_io;
+  class C class_decision;
+  class B,L,AL,EN,AE,OA class_compute;
+  class WL,WE class_tracker;
+  class R,SC,D class_result;
 ```
 
-Async semantics
+## Async semantics
 - Return ASYNC from onLeave or onEnter to pause progression
 - Resume by calling [AETHR.FSM:transition()](../../dev/FSM.lua:451) with the same event name
 - Current async marker values are WaitingOnLeave and WaitingOnEnter inside [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
 
-Queue processor and integration
+# Queue processor and integration
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant Brain
   participant FSM
@@ -50,16 +59,16 @@ sequenceDiagram
   FSM-->>Brain: done
 ```
 
-Manager overview
+# Manager overview
 - Enqueue items via [AETHR.FSM:enqueue()](../../dev/FSM.lua:501)
 - Background progression in [AETHR.FSM:processQueue()](../../dev/FSM.lua:515)
 - Used by BRAIN background loop through [AETHR.BRAIN:doRoutine()](../../dev/BRAIN.lua:176) and scheduled in [AETHR:BackgroundProcesses()](../../dev/AETHR.lua:267)
 
-Notes
+### Notes
 - Guards and mapping of events are built in [AETHR.FSM:New()](../../dev/FSM.lua:366) and [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
 - Graph export available through [AETHR.FSM:todot()](../../dev/FSM.lua:427)
 
-## Breakout documents
+# Breakout documents
 
 Detailed FSM analysis pages with Mermaid diagrams and sequence charts.
 
