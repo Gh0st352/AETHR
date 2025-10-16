@@ -32,9 +32,9 @@ flowchart LR
     end
   end
 
-  class L_load,RT_return class-result;
-  class IO_CALL,AS_assign,SK_skip class-step;
-  class CK_data class-decision;
+  class L_load,RT_return class-result
+  class IO_CALL,AS_assign,SK_skip class-step
+  class CK_data class-decision
 ```
 
 Sequence timeline
@@ -67,8 +67,8 @@ flowchart TB
     end
   end
 
-  class S_save,RT_save class-result;
-  class IO_SAVE class-step;
+  class S_save,RT_save class-result
+  class IO_SAVE class-step
 ```
 
 Sequence timeline for save

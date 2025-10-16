@@ -40,10 +40,10 @@ flowchart
   end
 
   %% Classes only; styling via shared theme
-  class FLUSH,READ class-io;
-  class CHUNK,MERGE class-compute;
-  class DB,master,parts,OUT class-data;
-  class TRACK class-tracker;
+  class FLUSH,READ class-io
+  class CHUNK,MERGE class-compute
+  class DB,master,parts,OUT class-data
+  class TRACK class-tracker
 ```
 
 Split writer details

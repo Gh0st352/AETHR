@@ -50,8 +50,8 @@ flowchart LR
   N --> I --> SC --> ID --> WD --> JP --> TH --> ML --> P1 --> P2 --> RT
 
   %% House class buckets
-  class N,RT class-result;
-  class I,SC,ID,WD,JP,TH,ML,P1,P2 class-step;
+  class N,RT class-result
+  class I,SC,ID,WD,JP,TH,ML,P1,P2 class-step
 ```
 
 Sequence details

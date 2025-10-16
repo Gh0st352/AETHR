@@ -48,8 +48,8 @@ flowchart LR
   MT -.-> MK
   ZM -.-> MK
 
-  class EN,LT,MT class-data;
-  class ZM,MK class-compute;
+  class EN,LT,MT class-data
+  class ZM,MK class-compute
 ```
 
 Drawing sequences

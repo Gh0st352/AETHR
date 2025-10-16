@@ -52,10 +52,10 @@ flowchart LR
   B --> ZM
 
   %% House class buckets (styling via shared theme)
-  class F,IO class-io;
-  class A,B,W,ZM,SP,AI class-compute;
-  class C,EN,TYP,MATH class-data;
-  class M,P,U,FSM,AS class-step;
+  class F,IO class-io
+  class A,B,W,ZM,SP,AI class-compute
+  class C,EN,TYP,MATH class-data
+  class M,P,U,FSM,AS class-step
 ```
 
 Module documentation index

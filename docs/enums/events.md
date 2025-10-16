@@ -34,9 +34,9 @@ flowchart LR
   EH -.-> ZM
   EH -.-> SP
 
-  class EN,EV class-data;
-  class EH class-tracker;
-  class W,ZM,SP class-compute;
+  class EN,EV class-data
+  class EH class-tracker
+  class W,ZM,SP class-compute
 ```
 
 Typical usage pattern

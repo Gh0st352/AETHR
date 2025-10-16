@@ -34,8 +34,8 @@ flowchart LR
 
   S --> U --> SCH --> W --> RT
 
-  class S,RT class-result;
-  class U,SCH,W class-step;
+  class S,RT class-result
+  class U,SCH,W class-step
 ```
 
 Sequence timeline
@@ -69,8 +69,8 @@ flowchart TB
   SW --> Z1
   SW --> Z2
 
-  class SW class-result;
-  class Z1,Z2 class-step;
+  class SW class-result
+  class Z1,Z2 class-step
 ```
 
 Notes

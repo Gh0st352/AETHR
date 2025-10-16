@@ -49,8 +49,8 @@ flowchart LR
   N --> C --> ID --> SD --> PC --> AM --> BR --> RT
 
   %% Class assignments (house buckets)
-  class N,RT class-result;
-  class C,ID,SD,PC,AM,BR class-step;
+  class N,RT class-result
+  class C,ID,SD,PC,AM,BR class-step
 ```
 
 Init orchestration
@@ -85,8 +85,8 @@ flowchart TB
   end
 
   %% Class assignments (house buckets)
-  class I,CS class-result;
-  class P1,L1,Z1,W1,W2,W3,ZB,T1,US class-step;
+  class I,CS class-result
+  class P1,L1,Z1,W1,W2,W3,ZB,T1,US class-step
 ```
 
 Runtime sequence during Init

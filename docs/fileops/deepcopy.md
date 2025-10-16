@@ -50,9 +50,9 @@ flowchart TD
   end
 
   %% Assign classes; styling via shared theme
-  class T,V,MT class-decision;
-  class DK,DV,SET,DMT,SMT,NC,MAP,LOOP class-compute;
-  class S,R,RV,OUT class-data;
+  class T,V,MT class-decision
+  class DK,DV,SET,DMT,SMT,NC,MAP,LOOP class-compute
+  class S,R,RV,OUT class-data
 ```
 
 Sequence illustration

@@ -55,8 +55,8 @@ flowchart TB
     I[Init] --> S --> SF --> ED --> PC --> C --> Z --> W1 --> W2 --> W3 --> LWO --> ZP --> US --> CS
   end
 
-  class I,CS class-result;
-  class S,SF,ED,PC,C,Z,W1,W2,W3,LWO,ZP,US class-step;
+  class I,CS class-result
+  class S,SF,ED,PC,C,Z,W1,W2,W3,LWO,ZP,US class-step
 ```
 
 Sequence timeline

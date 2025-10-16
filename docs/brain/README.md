@@ -41,8 +41,8 @@ flowchart LR
     ZM -.-> WT
   end
 
-  class BR,SC,CO,WT class-compute;
-  class ST,WL,SP,ZM class-step;
+  class BR,SC,CO,WT class-compute
+  class ST,WL,SP,ZM class-step
 ```
 
 Runtime sequence overview

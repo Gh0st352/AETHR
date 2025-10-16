@@ -59,7 +59,7 @@ flowchart LR
   GQ --> SD
   ODB -.-> SPAWNER
 
-  class I,D,A,MIZ,AB,OWN,C,AR,GQ,SD,SPAWNER,ODB class-step;
+  class I,D,A,MIZ,AB,OWN,C,AR,GQ,SD,SPAWNER,ODB class-step
 ```
 
 Module interactions during runtime

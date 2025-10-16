@@ -54,8 +54,8 @@ Validation checklist
     - “rect #...”
 - All diagrams include the shared theme marker line
 - Diagrams use class assignments only, e.g.:
-  - class NODE_A,NODE_B class-io;
-  - class NODE_C class-compute;
+  - class NODE_A,NODE_B class-io
+  - class NODE_C class-compute
 
 Notes
 - This repository does not run the injection itself. Ensure your docs pipeline (e.g., pre-publish script) performs the replacement of the marker comment with the JSON contents wrapped as a Mermaid init block.

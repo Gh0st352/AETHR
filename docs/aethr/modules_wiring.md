@@ -35,8 +35,8 @@ flowchart LR
 
   M --> L --> P1GRP --> P1 --> P2GRP --> P2 --> D
 
-  class M,D class-result;
-  class L,P1,P2 class-step;
+  class M,D class-result
+  class L,P1,P2 class-step
 ```
 
 Phase 1 construction

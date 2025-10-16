@@ -53,8 +53,8 @@ flowchart
   FE -.-> IO[IO read write]
   DC -.-> LAD
 
-  class JP,ED,EF,FE,SD,LD,DC,SPT,LAD class-step;
-  class IO class-io;
+  class JP,ED,EF,FE,SD,LD,DC,SPT,LAD class-step
+  class IO class-io
 ```
 
 Save and load sequence
@@ -94,9 +94,9 @@ flowchart
 
   C --> D[done return true]
 
-  class Q,E class-decision;
-  class N,S,L,M,C,Normalize,Iterate class-step;
-  class D class-result;
+  class Q,E class-decision
+  class N,S,L,M,C,Normalize,Iterate class-step
+  class D class-result
 ```
 
 Chunked persistence flow
@@ -117,8 +117,8 @@ flowchart
     S7 --> OUT[return metadata]
   end
 
-  class S1,S2,S3,S4,S5,S6,S7 class-step;
-  class OUT class-result;
+  class S1,S2,S3,S4,S5,S6,S7 class-step
+  class OUT class-result
 ```
 
 Chunked load sequence

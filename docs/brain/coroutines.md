@@ -31,8 +31,8 @@ flowchart TB
     DR13 -- "yes" --> DR14[clear thread]
     DR13 -- "no" --> DR0
   end
-  class DR1,DR2,DR3,DR0,DR4,DR5,DR6,DR7,DR8,DR9,DR10,DR11,DR12,DR13,DR14 class-step;
-  class DO class-compute;
+  class DR1,DR2,DR3,DR0,DR4,DR5,DR6,DR7,DR8,DR9,DR10,DR11,DR12,DR13,DR14 class-step
+  class DO class-compute
 ```
 
 Sequence: background usage
@@ -77,7 +77,7 @@ flowchart LR
     D9[spawnerGenerationQueue int 10 phase 12 yield 10]
     D10[processFSMQueue int 10 phase 5 yield 10]
   end
-  class D1,D2,D3,D4,D5,D6,D7,D8,D9,D10 class-step;
+  class D1,D2,D3,D4,D5,D6,D7,D8,D9,D10 class-step
 ```
 
 Cross links

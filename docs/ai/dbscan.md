@@ -32,8 +32,8 @@ flowchart LR
     PP --> OUT[return Clusters]
   end
 
-  class CP,NW,GP,PR,SC,DB,EX class-compute;
-  class NS,OUT class-result;
+  class CP,NW,GP,PR,SC,DB,EX class-compute
+  class NS,OUT class-result
 ```
 
 Facade [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
@@ -49,7 +49,7 @@ flowchart LR
     F4[return scanner Clusters]
     F0 --> F1 --> F2 --> F3 --> F4
   end
-  class F0,F1,F2,F3,F4 class-step;
+  class F0,F1,F2,F3,F4 class-step
 ```
 
 Constructor [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
@@ -67,7 +67,7 @@ flowchart TD
     N6[return generateDBSCANparams]
     N0 --> N1 --> N2 --> N3 --> N4 --> N5 --> N6
   end
-  class N0,N1,N2,N3,N4,N5,N6 class-step;
+  class N0,N1,N2,N3,N4,N5,N6 class-step
 ```
 
 Parameterization [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
@@ -84,7 +84,7 @@ flowchart TD
     G5[return self]
     G0 --> G1 --> G2 --> G3 --> G4 --> G5
   end
-  class G0,G1,G2,G3,G4,G5 class-step;
+  class G0,G1,G2,G3,G4,G5 class-step
 ```
 
 Pre normalize and index [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224)
@@ -104,7 +104,7 @@ flowchart TB
     P1 -->|n <= 0 or eps <= 0| P2
     P1 -->|ok| P3 --> P4 --> P5 --> P6
   end
-  class P0,P1,P2,P3,P4,P5,P6 class-step;
+  class P0,P1,P2,P3,P4,P5,P6 class-step
 ```
 
 Scan wrapper [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
@@ -117,7 +117,7 @@ flowchart LR
     S1 --> S2[call post process clusters]
     S2 --> S3[return self]
   end
-  class S0,S1,S2,S3 class-compute;
+  class S0,S1,S2,S3 class-compute
 ```
 
 Core clustering [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
@@ -138,7 +138,7 @@ flowchart TB
     D3 -->|cnt < min_samples| D4
     D3 -->|cnt >= min_samples| D5 --> D6 --> D7 --> D2
   end
-  class D0,D1,D2,D3,D4,D5,D6,D7 class-compute;
+  class D0,D1,D2,D3,D4,D5,D6,D7 class-compute
 ```
 
 Neighbor count [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275)
@@ -159,7 +159,7 @@ flowchart LR
     RC1 -->|valid| RC3 --> RC4 --> RC5 --> RC1
     RC5 -->|count >= target| RC6
   end
-  class RC0,RC1,RC2,RC3,RC4,RC5,RC6 class-step;
+  class RC0,RC1,RC2,RC3,RC4,RC5,RC6 class-step
 ```
 
 Neighbor query [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
@@ -179,7 +179,7 @@ flowchart LR
     RQ1 -->|invalid| RQ2
     RQ1 -->|valid| RQ3 --> RQ4 --> RQ5 --> RQ6
   end
-  class RQ0,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6 class-step;
+  class RQ0,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6 class-step
 ```
 
 Cluster expansion [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
@@ -202,7 +202,7 @@ flowchart TB
     E4 -->|not core| E6 --> E2
     E2 --> E7
   end
-  class E0,E1,E2,E3,E4,E5,E6,E7 class-step;
+  class E0,E1,E2,E3,E4,E5,E6,E7 class-step
 ```
 
 Post processing [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466)
@@ -219,7 +219,7 @@ flowchart TB
     PP5[assign to self Clusters]
     PP0 --> PP1 --> PP2 --> PP3 --> PP4 --> PP5
   end
-  class PP0,PP1,PP2,PP3,PP4,PP5 class-step;
+  class PP0,PP1,PP2,PP3,PP4,PP5 class-step
 ```
 
 Sequence overview

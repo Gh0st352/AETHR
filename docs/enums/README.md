@@ -84,8 +84,8 @@ flowchart LR
   SK -.-> SPN
 
   %% Class bucket assignments
-  class E,LT,MT,CO,ST,EV,CT,SK,SP,SPQ,DST,FSM,RTT class-data;
-  class W,ZM,SPN,MK class-compute;
+  class E,LT,MT,CO,ST,EV,CT,SK,SP,SPQ,DST,FSM,RTT class-data
+  class W,ZM,SPN,MK class-compute
 ```
 
 Lookup and usage sequence
@@ -166,6 +166,6 @@ flowchart LR
   SPQ -.-> SPNR
   DST -.-> SPNR
 
-  class EN,CO,TS,LT,MT,ST,SP,SPQ,DST class-data;
-  class W,ZM,SPNR,MK class-compute;
+  class EN,CO,TS,LT,MT,ST,SP,SPQ,DST class-data
+  class W,ZM,SPNR,MK class-compute
 ```

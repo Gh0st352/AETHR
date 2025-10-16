@@ -50,8 +50,8 @@ flowchart TB
     N --> R1 --> R2 --> R3 --> R4 --> R5 --> R6 --> R7 --> R8 --> R9 --> RS --> NX[Return next time]
   end
 
-  class BP,NX class-result;
-  class N,R1,R2,R3,R4,R5,R6,R7,R8,R9,RS class-step;
+  class BP,NX class-result
+  class N,R1,R2,R3,R4,R5,R6,R7,R8,R9,RS class-step
 ```
 
 Coroutine scheduling timeline

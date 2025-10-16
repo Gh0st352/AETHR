@@ -61,8 +61,8 @@ flowchart LR
   FO -.-> WORLD
   MK -.-> MARKERS
 
-  class Z,BIF,L2,AB,WD,G,DS,SZ,SS,STC,C,FO,MK class-data;
-  class WORLD,MARKERS class-compute;
+  class Z,BIF,L2,AB,WD,G,DS,SZ,SS,STC,C,FO,MK class-data
+  class WORLD,MARKERS class-compute
 ```
 
 Spawner data flow at a glance
@@ -109,7 +109,7 @@ flowchart TD
 
   ZC --> BORDERS
 
-  class ZC,Lines,Towns,Divs,ABs,BORDERS,BI,ZLine,NLine,Arrow class-data;
+  class ZC,Lines,Towns,Divs,ABs,BORDERS,BI,ZLine,NLine,Arrow class-data
 ```
 
 Airbase descriptor fields
@@ -125,7 +125,7 @@ flowchart LR
   AB --> RW[runways longestRunway maxRunwayLength]
   AB --> ZN[zoneName zoneObject]
 
-  class AB,ID,POS,DESC,N,COA,RW,ZN class-data;
+  class AB,ID,POS,DESC,N,COA,RW,ZN class-data
 ```
 
 Grid and world division
@@ -141,7 +141,7 @@ flowchart TD
   G2 --> STEP[dx dz invDx invDz]
   G2 --> COR[corners]
 
-  class WD,ID2,CNR,HT,G2,ORG,STEP,COR class-data;
+  class WD,ID2,CNR,HT,G2,ORG,STEP,COR class-data
 ```
 
 Marker structure
@@ -155,7 +155,7 @@ flowchart LR
   MK --> style[lineType lineColor fillColor coalition]
   MK --> verts[freeFormVec2Table]
 
-  class MK,id,str,pos,style,verts class-data;
+  class MK,id,str,pos,style,verts class-data
 ```
 
 Found object container
@@ -170,7 +170,7 @@ flowchart TD
   FO --> state[isActive isAlive isDead etc]
   FO --> nest[AETHR.spawned divisionID groundUnitID]
 
-  class FO,meta,geo,group,ids,state,nest class-data;
+  class FO,meta,geo,group,ids,state,nest class-data
 ```
 
 Key anchors by area

@@ -27,8 +27,8 @@ flowchart TB
     P --> RET
   end
 
-  class I,T,R,P class-step;
-  class RET class-result;
+  class I,T,R,P class-step
+  class RET class-result
 ```
 
 Storage guards and calls
@@ -115,6 +115,6 @@ flowchart TB
     Load -- "nil" --> Save[saveConfig defaults]
   end
 
-  class New,Paths,Init,Zones,World,Config,Load class-step;
-  class Use,Save class-result;
+  class New,Paths,Init,Zones,World,Config,Load class-step
+  class Use,Save class-result
 ```

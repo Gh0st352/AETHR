@@ -34,7 +34,7 @@ flowchart TB
     PATHS_CACHED --> ENSURE[ensureDirectory per path]
   end
 
-  class S,R,C,CFG_PATH,MISSION,SUBS,PATHS_CACHED,ENSURE class-step;
+  class S,R,C,CFG_PATH,MISSION,SUBS,PATHS_CACHED,ENSURE class-step
 ```
 
 Sequence across construction and init
@@ -105,7 +105,7 @@ flowchart TB
     SUBS --> M5[PATHS.USER_FOLDER]
   end
 
-  class WD,RF,CFGN,CFGP,MID,SUBS,M1,M2,M3,M4,M5 class-step;
+  class WD,RF,CFGN,CFGP,MID,SUBS,M1,M2,M3,M4,M5 class-step
 ```
 
 Edge cases and guards

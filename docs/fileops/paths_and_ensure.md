@@ -26,8 +26,8 @@ flowchart LR
     Concat --> Out[joined path]
   end
 
-  class Seg,Sep,Concat class-step;
-  class Out class-data;
+  class Seg,Sep,Concat class-step
+  class Out class-data
 ```
 
 Directory ensure flow
@@ -53,9 +53,9 @@ flowchart TD
 
   C --> D[done return true]
 
-  class Q,E class-decision;
-  class N,S,L,M,C,Normalize,Iterate class-step;
-  class D class-result;
+  class Q,E class-decision
+  class N,S,L,M,C,Normalize,Iterate class-step
+  class D class-result
 ```
 
 File ensure sequence

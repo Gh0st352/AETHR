@@ -21,7 +21,7 @@ flowchart LR
     ST6 --> ST7[return SchedulerID]
   end
 
-  class ST1,ST2,ST3,ST4,ST5,ST6,ST7 class-step;
+  class ST1,ST2,ST3,ST4,ST5,ST6,ST7 class-step
 ```
 
 Flow: runScheduledTasks
@@ -52,7 +52,7 @@ flowchart TB
     RS16 -- "no" --> RS2
   end
 
-  class RS0,RS1,RS2,RS3,RS4,RS5,RS6,RS7,RS8,RS9,RS10,RS11,RS12,RS13,RS14,RS15,RS16,RS17 class-step;
+  class RS0,RS1,RS2,RS3,RS4,RS5,RS6,RS7,RS8,RS9,RS10,RS11,RS12,RS13,RS14,RS15,RS16,RS17 class-step
 ```
 
 Sequence: typical scheduling usage

@@ -44,8 +44,8 @@ flowchart LR
   end
 
   %% House class buckets
-  class CP,NW,GP,PR,SC,DB,EX class-compute;
-  class NS,OUT class-result;
+  class CP,NW,GP,PR,SC,DB,EX class-compute
+  class NS,OUT class-result
 ```
 
 Runtime sequence overview

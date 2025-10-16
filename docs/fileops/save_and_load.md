@@ -34,10 +34,10 @@ flowchart LR
 
   STORE --> RES[return true or false]
 
-  class ED,JP,Prepare,Persist class-step;
-  class STORE class-io;
-  class D class-data;
-  class RES class-result;
+  class ED,JP,Prepare,Persist class-step
+  class STORE class-io
+  class D class-data
+  class RES class-result
 ```
 
 Load flow
@@ -52,9 +52,9 @@ flowchart LR
   JP2 --> LOAD[IO load path]
   LOAD --> T[table or nil]
 
-  class JP2,ResolvePath class-step;
-  class LOAD class-io;
-  class T class-data;
+  class JP2,ResolvePath class-step
+  class LOAD class-io
+  class T class-data
 ```
 
 Save sequence
