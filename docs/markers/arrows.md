@@ -2,21 +2,27 @@
 
 Arrow drawing wrapper and core function. Documents [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139) and [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176), including varargs normalization, color packing, and trigger calls.
 
-Primary anchors
+# Primary anchors
 
 - Wrapper arrow: [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139)
 - Draw arrow core: [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
 
-Overview flow
+# Overview flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  MA[markArrow] --> DA[drawArrow]
+  subgraph "Wrapper and Draw"
+    MA[markArrow] --> DA[drawArrow]
+    MA --> ST[optional store marker]
+  end
   DA --> TA[trigger action markupToAll]
-  MA --> ST[optional store marker]
+  class MA,ST class_step;
+  class DA class_compute;
+  class TA class_io;
 ```
 
-markArrow behavior
+# markArrow behavior
 
 - Guards on _Marker table
 - Defaults
@@ -27,37 +33,50 @@ markArrow behavior
   - freeFormVec2Table used as two point list
 - Calls [drawArrow](../../dev/MARKERS.lua:176) then optionally stores _Marker by markID
 
-Varargs normalization
+# Varargs normalization
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  VAR[varargs] --> ONE{single table arg}
-  ONE -->|yes and not vec2| ASLIST[corners = varargs 1]
-  ONE -->|no| ASVAR[corners = varargs]
-  ASLIST --> OUT[corners]
-  ASVAR --> OUT
+  subgraph "Varargs Normalization"
+    VAR[varargs] --> ONE{single table arg}
+    ONE -->|yes and not vec2| ASLIST[corners = varargs 1]
+    ONE -->|no| ASVAR[corners = varargs]
+    ASLIST --> OUT[corners]
+    ASVAR --> OUT
+  end
+  class VAR,OUT class_io;
+  class ONE class_decision;
+  class ASLIST,ASVAR class_compute;
 ```
 
 - Accepts either a single array like table of vec2 or two vec2 arguments
 - Requires exactly 2 points; returns early otherwise
 
-Argument packing
+# Argument packing
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  PTS[corners 2 points] --> VEC3[push vec3 x z from vec2 x y]
-  VEC3 --> COLORS[pack border then fill color]
-  COLORS --> TYPE[lineType append]
-  TYPE --> CALL[markupToAll]
+  subgraph "Argument Packing"
+    PTS[corners 2 points] --> VEC3[push vec3 x z from vec2 x y]
+    VEC3 --> COLORS[pack border then fill color]
+    COLORS --> TYPE[lineType append]
+    TYPE --> CALL[markupToAll]
+  end
+  class PTS,VEC3 class_data;
+  class COLORS class_compute;
+  class CALL class_io;
 ```
 
 - Arrow uses MarkerTypes Arrow as shape identifier
   - shapeTypeID = [AETHR.ENUMS.MarkerTypes.Arrow](../../dev/ENUMS.lua:465)
 - Note: Unlike polygon, arrow points are inserted in forward order (no reverse)
 
-Sequence
+# Sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MARKERS
   participant E as ENUMS
@@ -71,19 +90,19 @@ sequenceDiagram
   end
 ```
 
-Validation checklist
+# Validation checklist
 
 - Wrapper: [dev/MARKERS.lua](../../dev/MARKERS.lua:139)
 - Draw core: [dev/MARKERS.lua](../../dev/MARKERS.lua:176)
 - Packing and call: [dev/MARKERS.lua](../../dev/MARKERS.lua:213)
 
-Related breakouts
+# Related breakouts
 
 - Polygons and freeform: [polygons.md](./polygons.md)
 - Circles and generic circle: [circles.md](./circles.md)
 - Removal helpers: [removal.md](./removal.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside bracket text

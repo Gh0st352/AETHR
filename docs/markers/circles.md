@@ -2,23 +2,30 @@
 
 Circle marker wrapper, core draw API, and generic neutral helper. Documents [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229), [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269), and [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299).
 
-Primary anchors
+# Primary anchors
 
 - Wrapper circle: [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229)
 - Draw circle core: [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269)
 - Generic neutral: [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299)
 
-Overview flow
+# Overview flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  MC[markCircle] --> DC[drawCircle]
-  DC --> TA[trigger action circleToAll]
-  MC --> ST[optional store marker]
+  subgraph "Wrapper and Draw"
+    MC[markCircle] --> DC[drawCircle]
+    DC --> TA[trigger action circleToAll]
+    MC --> ST[optional store marker]
+  end
   GC[drawGenericCircle] --> MC
+  class MC,ST class_step;
+  class DC class_compute;
+  class TA class_io;
+  class GC class_compute;
 ```
 
-markCircle behavior
+# markCircle behavior
 
 - Guards on _Marker table
 - Defaults
@@ -30,15 +37,24 @@ markCircle behavior
   - radius defaults to 1000 if not in _Marker
 - Calls [drawCircle](../../dev/MARKERS.lua:269) then optionally stores _Marker by markID into storageLocation
 
-drawCircle argument packing
+# drawCircle argument packing
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[coal fill border type id vec2 radius] --> ARGS[build args]
-  ARGS --> VEC3[vec3 from vec2 x y to x 0 z]
-  VEC3 --> PACK[pack radius and colors border then fill]
-  PACK --> TYPE[lineType]
-  TYPE --> CALL[trigger.action.circleToAll]
+  subgraph "Argument Packing"
+    IN[coal fill border type id vec2 radius] --> ARGS[build args]
+    ARGS --> VEC3[vec3 from vec2 x y to x 0 z]
+    VEC3 --> PACK[pack radius and colors border then fill]
+    PACK --> TYPE[lineType]
+    TYPE --> CALL[trigger.action.circleToAll]
+  end
+  class IN class_io;
+  class ARGS class_compute;
+  class VEC3 class_data;
+  class PACK class_compute;
+  class TYPE class_step;
+  class CALL class_io;
 ```
 
 - Note that drawCircle builds margs without an explicit shape type id
@@ -52,9 +68,10 @@ flowchart TD
   - true
 - See call site: [AETHR.MARKERS:drawCircle](../../dev/MARKERS.lua:269) and final call at [circleToAll](../../dev/MARKERS.lua:286)
 
-Generic neutral circle
+# Generic neutral circle
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MARKERS
   participant C as CONFIG
@@ -70,9 +87,10 @@ sequenceDiagram
   - Circle colors: [CONFIG.MAIN.Zone.paintColors.CircleColors](../../dev/CONFIG_.lua:312)
 - Marker id sourced from [CONFIG.MAIN.COUNTERS.MARKERS](../../dev/CONFIG_.lua:192) and incremented each call
 
-Circle sequence
+# Circle sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MARKERS
   participant T as trigger action
@@ -80,7 +98,7 @@ sequenceDiagram
   M->>T: circleToAll coal id {x vec2.x y 0 z vec2.y} radius border fill type true
 ```
 
-Validation checklist
+# Validation checklist
 
 - markCircle wrapper: [dev/MARKERS.lua](../../dev/MARKERS.lua:229)
 - drawCircle core: [dev/MARKERS.lua](../../dev/MARKERS.lua:269)
@@ -88,13 +106,13 @@ Validation checklist
 - drawGenericCircle helper: [dev/MARKERS.lua](../../dev/MARKERS.lua:299)
 - CONFIG references for colors and counters: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:192), [dev/CONFIG_.lua](../../dev/CONFIG_.lua:312), [dev/CONFIG_.lua](../../dev/CONFIG_.lua:317)
 
-Related breakouts
+# Related breakouts
 
 - Polygons and freeform: [polygons.md](./polygons.md)
 - Arrows: [arrows.md](./arrows.md)
 - Removal helpers: [removal.md](./removal.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside bracket text

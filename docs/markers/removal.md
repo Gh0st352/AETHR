@@ -6,7 +6,7 @@ Primary anchor
 
 - Remove marks: [AETHR.MARKERS:removeMarksByID()](../../dev/MARKERS.lua:318)
 
-Overview
+# Overview
 
 - Accepts either:
   - a single marker id number
@@ -16,24 +16,34 @@ Overview
   - If markID is a table and empty, returns self
 - Calls trigger.action.removeMark(id) for each id
 
-Flow
+# Flow
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[markID] --> NIL{nil}
-  NIL -->|yes| RET[return self]
-  NIL -->|no| ISTBL{type is table}
-  ISTBL -->|yes| SUM{table has entries}
-  SUM -->|no| RET
-  SUM -->|yes| LOOP[for each id in table]
-  LOOP --> RM[trigger action removeMark id]
+  subgraph "Entry and guards"
+    IN[markID] --> NIL{nil}
+    NIL -->|yes| RET[return self]
+    NIL -->|no| ISTBL{type is table}
+  end
+  subgraph "Table handling"
+    ISTBL -->|yes| SUM{table has entries}
+    SUM -->|no| RET
+    SUM -->|yes| LOOP[for each id in table]
+    LOOP --> RM[trigger action removeMark id]
+  end
   ISTBL -->|no| ONE[remove single id]
   ONE --> RM2[trigger action removeMark markID]
+  class IN,RM2 class_io;
+  class NIL,ISTBL,SUM class_decision;
+  class LOOP,RM class_compute;
+  class RET,ONE class_step;
 ```
 
-Sequence
+# Sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant M as MARKERS
   participant T as trigger action
@@ -46,24 +56,24 @@ sequenceDiagram
   end
 ```
 
-Usage notes
+# Usage notes
 
 - Works with both key sets and array lists
 - No error is raised on missing ids; DCS handles silently
 
-Validation checklist
+# Validation checklist
 
 - Entry point: [dev/MARKERS.lua](../../dev/MARKERS.lua:318)
 - Table guard and loop: [dev/MARKERS.lua](../../dev/MARKERS.lua:322)
 - Single id path: [dev/MARKERS.lua](../../dev/MARKERS.lua:329)
 
-Related breakouts
+# Related breakouts
 
 - Polygons and freeform: [polygons.md](./polygons.md)
 - Arrows: [arrows.md](./arrows.md)
 - Circles and generic circle: [circles.md](./circles.md)
 
-Conventions
+# Conventions
 
 - Mermaid fenced blocks with GitHub parser
 - Labels avoid double quotes and parentheses inside bracket text

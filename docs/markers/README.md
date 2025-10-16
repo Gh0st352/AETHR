@@ -19,54 +19,83 @@ Documents and indices
 - ZONE_MANAGER: [docs/zone_manager/README.md](../zone_manager/README.md)
 - WORLD: [docs/world/README.md](../world/README.md)
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  MF[markFreeform] --> DP[drawPolygon]
-  MA[markArrow] --> DA[drawArrow]
-  MC[markCircle] --> DC[drawCircle]
-  GC[drawGenericCircle] --> DC
-  DP -.-> TRIG[trigger.action.markupToAll]
-  DA -.-> TRIG
-  DC -.-> CIRC[trigger.action.circleToAll]
-  RM[removeMarksByID] -.-> DEL[trigger.action.removeMark]
+  subgraph "Freeform Polygon"
+    MF[markFreeform] --> DP[drawPolygon]
+    DP -.-> TRIG[trigger.action.markupToAll]
+  end
+  subgraph "Arrow"
+    MA[markArrow] --> DA[drawArrow]
+    DA -.-> TRIG
+  end
+  subgraph "Circle"
+    MC[markCircle] --> DC[drawCircle]
+    GC[drawGenericCircle] --> MC
+    DC -.-> CIRC[trigger.action.circleToAll]
+  end
+  subgraph "Removal"
+    RM[removeMarksByID] -.-> DEL[trigger.action.removeMark]
+  end
+  class MF,MA,MC,RM class_step;
+  class DP,DA,DC,GC class_compute;
+  class TRIG,CIRC,DEL class_io;
 ```
 
-Freeform polygon flow
+# Freeform polygon flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[_Marker with verts] --> NORM[normalize vertices]
-  NORM --> ARGS[build arguments list]
-  ARGS --> CALL[trigger.action.markupToAll]
+  subgraph "Normalize and Pack"
+    IN[_Marker with verts] --> NORM[normalize vertices]
+    NORM --> ARGS[build arguments list]
+    ARGS --> CALL[trigger.action.markupToAll]
+  end
   CALL --> STORE[optional store marker]
+  class IN class_data;
+  class NORM,ARGS class_compute;
+  class CALL class_io;
+  class STORE class_step;
 ```
 
-Arrow flow
+# Arrow flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN2[_Marker with 2 points] --> NORM2[normalize points]
-  NORM2 --> ARGS2[build arguments list]
-  ARGS2 --> CALL2[trigger.action.markupToAll]
+  subgraph "Normalize and Pack"
+    IN2[_Marker with 2 points] --> NORM2[normalize points]
+    NORM2 --> ARGS2[build arguments list]
+    ARGS2 --> CALL2[trigger.action.markupToAll]
+  end
   CALL2 --> STORE2[optional store marker]
+  class IN2 class_data;
+  class NORM2,ARGS2 class_compute;
+  class CALL2 class_io;
+  class STORE2 class_step;
 ```
 
-Circle flow
+# Circle flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  IN3[_Marker vec2Origin radius] --> ARGS3[build arguments list]
-  ARGS3 --> CALL3[trigger.action.circleToAll]
+  subgraph "Pack Circle Args"
+    IN3[_Marker vec2Origin radius] --> ARGS3[build arguments list]
+    ARGS3 --> CALL3[trigger.action.circleToAll]
+  end
   CALL3 --> STORE3[optional store marker]
+  class IN3 class_data;
+  class ARGS3 class_compute;
+  class CALL3 class_io;
+  class STORE3 class_step;
 ```
 
-Runtime sequence for drawing polygon
+# Runtime sequence for drawing polygon
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -83,7 +112,7 @@ sequenceDiagram
   end
 ```
 
-Remove marks sequence
+# Remove marks sequence
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -97,13 +126,13 @@ sequenceDiagram
   end
 ```
 
-Key anchors
+# Key anchors
 - Freeform: [AETHR.MARKERS:markFreeform()](../../dev/MARKERS.lua:43), [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85)
 - Arrow: [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139), [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
 - Circle: [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229), [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269), [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299)
 - Removal: [AETHR.MARKERS:removeMarksByID()](../../dev/MARKERS.lua:318)
 
-Notes
+# Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
 
