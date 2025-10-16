@@ -1,6 +1,6 @@
 # AETHR background processes loop
 
-Primary anchors
+## Primary anchors
 - [AETHR:BackgroundProcesses()](../../dev/AETHR.lua:267)
 - [now capture](../../dev/AETHR.lua:269)
 - [updateAirbaseOwnership routine](../../dev/AETHR.lua:275)
@@ -15,10 +15,10 @@ Primary anchors
 - [runScheduledTasks tick](../../dev/AETHR.lua:327)
 - [next invocation return](../../dev/AETHR.lua:328)
 
-Overview
+## Overview
 [AETHR:BackgroundProcesses()](../../dev/AETHR.lua:267) is the timer scheduled loop that advances world state, spawner pipelines, and FSM transitions on a steady cadence. It uses BRAIN.doRoutine to rate limit individual jobs and returns the absolute mission time for the next invocation.
 
-Loop flow
+# Loop flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -54,7 +54,7 @@ flowchart
   class N,R1,R2,R3,R4,R5,R6,R7,R8,R9,RS class_step;
 ```
 
-Coroutine scheduling timeline
+# Coroutine scheduling timeline
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -78,16 +78,16 @@ sequenceDiagram
   A-->>A: return now plus interval
 ```
 
-Cadence and re-scheduling
+# Cadence and re-scheduling
 - The function must return the next absolute time, calculated as [now plus interval](../../dev/AETHR.lua:328)
 - The interval is read from [self.BRAIN.DATA.BackgroundLoopInterval](../../dev/AETHR.lua:328) with a fallback to 0.5 when missing
 
-Notes
+# Notes
 - Each doRoutine call wraps a unit of work with BRAIN controls for pacing and error isolation
 - FSM processing is invoked after world and spawner jobs to progress pending transitions
 - The tick parameter for [runScheduledTasks](../../dev/AETHR.lua:327) is 2, establishing the per loop task budget
 
-Source anchors
+## Source anchors
 - [BackgroundProcesses entry](../../dev/AETHR.lua:267)
 - [doRoutine airbase](../../dev/AETHR.lua:275)
 - [doRoutine zone](../../dev/AETHR.lua:281)

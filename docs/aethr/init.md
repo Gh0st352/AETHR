@@ -1,6 +1,6 @@
 # AETHR initialization orchestration
 
-Primary anchors
+## Primary anchors
 - [AETHR:Init()](../../dev/AETHR.lua:199)
 - [Iterate SUB_FOLDERS and ensureDirectory](../../dev/AETHR.lua:208)
 - [PATHS cache assignment](../../dev/AETHR.lua:214)
@@ -15,10 +15,10 @@ Primary anchors
 - [saveUSERSTORAGE](../../dev/AETHR.lua:242)
 - [CONFIG saveConfig](../../dev/AETHR.lua:243)
 
-Overview
+## Overview
 The initializer [AETHR:Init()](../../dev/AETHR.lua:199) prepares storage directories, caches resolved paths, initializes configuration and world data, optionally performs world object learning, performs zone drawing and pairing when zones are present, and persists both user storage and config.
 
-Flowchart
+# Flowchart
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -55,11 +55,11 @@ flowchart TB
     I[Init] --> S --> SF --> ED --> PC --> C --> Z --> W1 --> W2 --> W3 --> LWO --> ZP --> US --> CS
   end
 
-  class I,CS class-result;
-  class S,SF,ED,PC,C,Z,W1,W2,W3,LWO,ZP,US class-step;
+  class I,CS class_result;
+  class S,SF,ED,PC,C,Z,W1,W2,W3,LWO,ZP,US class_step;
 ```
 
-Sequence timeline
+# Sequence timeline
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -105,11 +105,11 @@ sequenceDiagram
   A->>C: saveConfig
 ```
 
-Key branches
+# Key branches
 - Object learning controlled by [self.CONFIG.MAIN.FLAGS.LEARN_WORLD_OBJECTS](../../dev/AETHR.lua:225) to avoid heavy scans unless requested.
 - Zone drawing and pairing guarded by [sumTable of MIZ_ZONES](../../dev/AETHR.lua:230) to skip work when no zones.
 
-Source anchors
+# Source anchors
 - [AETHR:Init()](../../dev/AETHR.lua:199)
 - [subFolders iteration](../../dev/AETHR.lua:208)
 - [PATHS cache write](../../dev/AETHR.lua:214)

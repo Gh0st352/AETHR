@@ -1,6 +1,6 @@
 # AETHR startup and watchers
 
-Primary anchors
+## Primary anchors
 - [AETHR:Start()](../../dev/AETHR.lua:252)
 - [WORLD updateAirbaseOwnership call site](../../dev/AETHR.lua:254)
 - [timer.scheduleFunction for BackgroundProcesses](../../dev/AETHR.lua:255)
@@ -9,10 +9,11 @@ Primary anchors
 - [initWatcher_AirbaseOwnership](../../dev/AETHR.lua:335)
 - [initWatcher_ZoneOwnership](../../dev/AETHR.lua:336)
 
-Overview
+# Overview
+
 [AETHR:Start()](../../dev/AETHR.lua:252) performs an immediate ownership update, schedules the recurring background loop, and registers event watchers via [AETHR:setupWatchers()](../../dev/AETHR.lua:334).
 
-Flowchart
+# Flowchart
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -34,11 +35,11 @@ flowchart LR
 
   S --> U --> SCH --> W --> RT
 
-  class S,RT class-result;
-  class U,SCH,W class-step;
+  class S,RT class_result;
+  class U,SCH,W class_step;
 ```
 
-Sequence timeline
+# Sequence timeline
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -53,7 +54,7 @@ sequenceDiagram
   A-->>A: return self
 ```
 
-Watchers registered
+# Watchers registered
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -69,16 +70,16 @@ flowchart TB
   SW --> Z1
   SW --> Z2
 
-  class SW class-result;
-  class Z1,Z2 class-step;
+  class SW class_result;
+  class Z1,Z2 class_step;
 ```
 
-Notes
+# Notes
 - The immediate ownership update at [call site](../../dev/AETHR.lua:254) ensures initial world state is consistent before the first background loop.
 - Scheduling uses [timer.scheduleFunction](../../dev/AETHR.lua:255) to run [AETHR:BackgroundProcesses()](../../dev/AETHR.lua:267) on cadence managed by [AETHR.BRAIN.DATA.BackgroundLoopInterval](../../dev/AETHR.lua:255).
 - For watcher details and event lifecycles see [ZONE_MANAGER Watchers](../zone_manager/watchers.md).
 
-Source anchors
+# Source anchors
 - [AETHR:Start()](../../dev/AETHR.lua:252)
 - [WORLD ownership update call](../../dev/AETHR.lua:254)
 - [scheduleFunction](../../dev/AETHR.lua:255)

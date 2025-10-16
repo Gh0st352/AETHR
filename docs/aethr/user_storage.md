@@ -1,6 +1,6 @@
 # AETHR user storage lifecycle
 
-Primary anchors
+## Primary anchors
 - [AETHR:loadUSERSTORAGE()](../../dev/AETHR.lua:344)
 - [AETHR:saveUSERSTORAGE()](../../dev/AETHR.lua:361)
 - [FILEOPS loadData call site](../../dev/AETHR.lua:347)
@@ -9,18 +9,18 @@ Primary anchors
 - [USER_STORAGE_FILE name reference](../../dev/AETHR.lua:349)
 - [USERSTORAGE assignment](../../dev/AETHR.lua:352)
 
-Overview
+# Overview
 User specific data is persisted to and loaded from a configured folder and filename using FILEOPS helpers. On init the framework loads data into memory and immediately saves back to ensure structures exist and paths are created.
 
-Flowchart
+# Flowchart
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart LR
+flowchart 
   subgraph LOAD [User storage load]
     L_load[loadUSERSTORAGE] --> IO_CALL[FILEOPS loadData]
 
-    subgraph FILEOPS [FILEOPS (IO)]
+    subgraph FILEOPS ["FILEOPS (IO)"]
       IO_CALL --> CK_data{Data present?}
     end
 
@@ -32,12 +32,14 @@ flowchart LR
     end
   end
 
-  class L_load,RT_return class-result;
-  class IO_CALL,AS_assign,SK_skip class-step;
-  class CK_data class-decision;
+  class L_load,RT_return class_result;
+  class IO_CALL,AS_assign,SK_skip class_step;
+  class CK_data class_decision;
 ```
 
-Sequence timeline
+
+# Sequence timeline
+
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -55,23 +57,23 @@ sequenceDiagram
   A-->>A: return self
 ```
 
-Save flow
+# Save flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart TB
   subgraph SAVE [User storage save]
     S_save[saveUSERSTORAGE] --> IO_SAVE[FILEOPS saveData]
-    subgraph FILEOPS_SAVE [FILEOPS (IO)]
+    subgraph FILEOPS_SAVE ["FILEOPS (IO)"]
       IO_SAVE --> RT_save[Return self]
     end
   end
 
-  class S_save,RT_save class-result;
-  class IO_SAVE class-step;
+  class S_save,RT_save class_result;
+  class IO_SAVE class_step;
 ```
 
-Sequence timeline for save
+# Sequence timeline for save
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -83,17 +85,17 @@ sequenceDiagram
   A-->>A: return self
 ```
 
-Paths and filenames
+# Paths and filenames
 - Folder path from [self.CONFIG.MAIN.STORAGE.PATHS.USER_FOLDER](../../dev/AETHR.lua:348)
 - Filename from [self.CONFIG.MAIN.STORAGE.FILENAMES.USER_STORAGE_FILE](../../dev/AETHR.lua:349)
 - Data table is [self.USERSTORAGE](../../dev/AETHR.lua:56) assigned on load at [assignment site](../../dev/AETHR.lua:352)
 
-Notes
+# Notes
 - Calls are safe to invoke even when files do not exist; load will return nil and save will create files as needed
 - Ensure upstream init created user folder PATHS entry during [AETHR:Init() paths caching](./init.md)
 - FILEOPS implementation details and error handling are documented in [docs/fileops/README.md](../fileops/README.md)
 
-Source anchors
+# Source anchors
 - [loadUSERSTORAGE entry](../../dev/AETHR.lua:344)
 - [FILEOPS loadData](../../dev/AETHR.lua:347)
 - [USER_FOLDER path read](../../dev/AETHR.lua:348)

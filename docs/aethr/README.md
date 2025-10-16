@@ -1,6 +1,6 @@
 # AETHR overview and diagrams
 
-Primary entry points
+## Primary entry points
 - [AETHR:New()](../../dev/AETHR.lua:65)
 - [AETHR:Init()](../../dev/AETHR.lua:199)
 - [AETHR:Start()](../../dev/AETHR.lua:252)
@@ -10,7 +10,7 @@ Primary entry points
 - [AETHR:saveUSERSTORAGE()](../../dev/AETHR.lua:361)
 - [AETHR.MODULES](../../dev/AETHR.lua:40)
 
-Documents
+## Documents
 - Module indices: [docs/README.md](../README.md)
 - WORLD module: [docs/world/README.md](../world/README.md)
 - ZONE_MANAGER module: [docs/zone_manager/README.md](../zone_manager/README.md)
@@ -18,7 +18,7 @@ Documents
 - BRAIN module: [docs/brain/README.md](../brain/README.md)
 - AI module: [docs/ai/README.md](../ai/README.md)
 
-Breakout pages
+## Breakout pages
 - Instance creation: [instance_creation.md](./instance_creation.md)
 - Modules wiring: [modules_wiring.md](./modules_wiring.md)
 - Init orchestration: [init.md](./init.md)
@@ -34,18 +34,18 @@ Breakout pages
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   %% Groupings
-  subgraph INSTANCE ["Instance creation"]
-    N["New instance"]
-    C["Clone CONFIG defaults"]
-    ID["Apply mission id"]
-    SD["Resolve savegame dir"]
-    PC["Compute CONFIG paths"]
+  subgraph INSTANCE [Instance creation]
+    N[New instance]
+    C[Clone CONFIG defaults]
+    ID[Apply mission id]
+    SD[Resolve savegame dir]
+    PC[Compute CONFIG paths]
   end
 
-  subgraph MODULES ["Modules wiring"]
-    AM["Attach modules from AETHR MODULES"]
-    BR["Wire backrefs and siblings"]
-    RT["Return instance"]
+  subgraph MODULES [Modules wiring]
+    AM[Attach modules from AETHR MODULES]
+    BR[Wire backrefs and siblings]
+    RT[Return instance]
   end
 
   %% Flow
@@ -60,7 +60,7 @@ flowchart LR
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
-flowchart 
+flowchart
   %% Main container
   subgraph INIT [Initialization]
     I[Init]
@@ -97,8 +97,6 @@ flowchart
   end
 
   %% Class assignments (house buckets)
-  classDef result fill:resultFill,stroke:resultStroke,stroke-width:resultStrokeWidth;
-  classDef step fill:stepFill,stroke:stepStroke,stroke-width:stepStrokeWidth;
   class I,CS class_result;
   class P1,L1,Z1,W1,W2,W3,ZB,T1,US class_step;
 ```
@@ -147,20 +145,26 @@ sequenceDiagram
 
   A->>B: schedule BackgroundProcesses
   loop background loop
-    B->>W: updateAirbaseOwnership
-    B->>W: updateZoneOwnership
-    B->>W: updateZoneColors
-    B->>W: updateZoneArrows
-    B->>W: updateGroundUnitsDB
-    B->>W: spawnGroundGroups
-    B->>W: despawnGroundGroups
-    B->>A: FSM queue process
-    B->>W: spawnerGenerationQueue
+    opt World updates
+      B->>W: updateAirbaseOwnership
+      B->>W: updateZoneOwnership
+      B->>W: updateZoneColors
+      B->>W: updateZoneArrows
+      B->>W: updateGroundUnitsDB
+    end
+    opt Spawner jobs
+      B->>W: spawnGroundGroups
+      B->>W: despawnGroundGroups
+      B->>W: spawnerGenerationQueue
+    end
+    opt FSM processing
+      B->>A: FSM queue process
+    end
     B->>B: runScheduledTasks
   end
 ```
 
-Key anchors
+# Key anchors
 - Construction and wiring
   - [AETHR:New()](../../dev/AETHR.lua:65), [AETHR.MODULES](../../dev/AETHR.lua:40)
 - Initialization flow
@@ -172,12 +176,12 @@ Key anchors
 - User storage
   - [AETHR:loadUSERSTORAGE()](../../dev/AETHR.lua:344), [AETHR:saveUSERSTORAGE()](../../dev/AETHR.lua:361)
 
-Source references
+# Source references
 - CONFIG interactions: [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364), [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
 - WORLD ownership updates: [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501), [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633), [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683), [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - WORLD divisions: [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
 - ZONE manager arrows and bounds: [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025), [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931)
 
-Notes
+# Notes
 - Mermaid labels avoid double quotes and parentheses to satisfy renderer constraints.
 - All diagrams use GitHub Mermaid fenced blocks.

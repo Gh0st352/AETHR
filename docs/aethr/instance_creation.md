@@ -1,6 +1,6 @@
 # AETHR instance creation and configuration
 
-Primary anchors
+## Primary anchors
 - [AETHR:New()](../../dev/AETHR.lua:65)
 - [local function shallow_copy](../../dev/AETHR.lua:73)
 - [local id assignment](../../dev/AETHR.lua:80)
@@ -11,10 +11,10 @@ Primary anchors
 - [Phase 1 module construction](../../dev/AETHR.lua:155)
 - [Phase 2 backrefs and siblings](../../dev/AETHR.lua:172)
 
-Overview
+## Overview
 The constructor [AETHR:New()](../../dev/AETHR.lua:65) creates an instance table with metatable inheritance, clones mutable config subtables, applies mission id, resolves a writable directory, computes config paths, optionally captures current theater, and wires modules for the instance.
 
-Instance creation flow
+# Instance creation flow
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -50,11 +50,11 @@ flowchart LR
   N --> I --> SC --> ID --> WD --> JP --> TH --> ML --> P1 --> P2 --> RT
 
   %% House class buckets
-  class N,RT class-result;
-  class I,SC,ID,WD,JP,TH,ML,P1,P2 class-step;
+  class N,RT class_result;
+  class I,SC,ID,WD,JP,TH,ML,P1,P2 class_step;
 ```
 
-Sequence details
+# Sequence details
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -91,12 +91,12 @@ sequenceDiagram
   A-->>A: return instance
 ```
 
-Notes and edge cases
+# Notes and edge cases
 - If [self.CONFIG](../../dev/AETHR.lua:86) is not a table, a minimal structure is created to avoid nil indexing.
 - When [FILEOPS joinPaths](../../dev/AETHR.lua:121) is not available, a separator from [package.config](../../dev/AETHR.lua:132) is used for a safe fallback.
 - Module wiring is two-pass to allow submodules to reference siblings without order constraints; see [Phase 1](../../dev/AETHR.lua:155) and [Phase 2](../../dev/AETHR.lua:172).
 
-Source anchors
+## Source anchors
 - [AETHR:New()](../../dev/AETHR.lua:65)
 - [shallow_copy](../../dev/AETHR.lua:73)
 - [mission id select](../../dev/AETHR.lua:80)

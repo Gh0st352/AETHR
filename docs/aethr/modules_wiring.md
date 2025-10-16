@@ -1,6 +1,6 @@
 # AETHR modules wiring and auto registration
 
-Primary anchors
+## Primary anchors
 - [AETHR.MODULES](../../dev/AETHR.lua:40)
 - [Build modulesList](../../dev/AETHR.lua:148)
 - [Phase 1 construct submodules](../../dev/AETHR.lua:155)
@@ -9,10 +9,10 @@ Primary anchors
 - [Ensure sub AETHR ref](../../dev/AETHR.lua:178)
 - [Inject sibling refs](../../dev/AETHR.lua:181)
 
-Overview
+# Overview
 AETHR uses a simple registry [AETHR.MODULES](../../dev/AETHR.lua:40) to determine which prototype tables to attach to each instance. Modules are constructed in two phases to avoid ordering constraints and to ensure sibling access within submodules.
 
-Flow of module wiring
+# Flow of module wiring
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -23,23 +23,23 @@ flowchart LR
   end
 
   subgraph CON [Construction]
-    P1GRP[Phase 1 (construct)]
+    P1GRP["Phase 1 (construct)"]
     P1[Phase 1 construct submodules]
   end
 
   subgraph WIR [Wiring]
-    P2GRP[Phase 2 (wire)]
+    P2GRP["Phase 2 (wire)"]
     P2[Phase 2 inject backrefs and siblings]
     D[Instance modules wired]
   end
 
   M --> L --> P1GRP --> P1 --> P2GRP --> P2 --> D
-
-  class M,D class-result;
-  class L,P1,P2 class-step;
+  
+  class M,D class_result;
+  class L,P1,P2 class_step;
 ```
 
-Phase 1 construction
+# Phase 1 construction
 - Iterate list from [modulesList](../../dev/AETHR.lua:148)
 - If prototype field is a table and instance slot is empty, try `:New(instance)` via protected call
 - On success with table result, assign returned submodule
@@ -61,7 +61,7 @@ sequenceDiagram
   end
 ```
 
-Phase 2 backrefs and sibling injection
+# Phase 2 backrefs and sibling injection
 - Ensure each submodule has `AETHR` pointer to parent
 - For each submodule, shallow inject references to all other submodules for direct calls
 
@@ -79,16 +79,16 @@ sequenceDiagram
   end
 ```
 
-Edge cases and notes
+# Edge cases and notes
 - If a module table does not expose `New`, the prototype table is used as the instance submodule
 - If `New` throws or returns non table, fallback assigns the prototype table to keep system operable
 - The two pass strategy avoids initialization order coupling between sibling modules
 
-Related pages
+## Related pages
 - [AETHR instance creation](./instance_creation.md)
 - [AETHR overview](./README.md)
 
-Source anchors
+## Source anchors
 - [modules list build](../../dev/AETHR.lua:148)
 - [Phase 1 loop](../../dev/AETHR.lua:155)
 - [pcall to New](../../dev/AETHR.lua:160)
