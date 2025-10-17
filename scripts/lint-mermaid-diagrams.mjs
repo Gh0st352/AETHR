@@ -19,6 +19,9 @@
  * Marker required in source:
  *   %% shared theme: docs/_mermaid/theme.json %%
  *
+ * Allowlist:
+ * - docs/_mermaid/README.md is an educational page containing example init directives and inline styling; it is exempt from lint checks.
+ *
  * Exit code:
  * - 0 when no violations
  * - 1 when any violations found
@@ -33,6 +36,11 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Files under docs/ to fully skip (educational content or examples)
+const LINT_ALLOWLIST = new Set([
+  'docs/_mermaid/README.md',
+]);
 
 function parseArgs(argv) {
   const args = { inDir: 'docs', verbose: false };
@@ -179,10 +187,19 @@ async function main() {
       if (path.extname(full).toLowerCase() !== '.md') return;
       const relFromDocs = path.relative(rootDocs, full);
       if (isExcludedSyntax(relFromDocs)) return;
+
+      const relDocPath = path.join('docs', relFromDocs).replace(/\\+/g, '/');
+      if (LINT_ALLOWLIST.has(relDocPath)) {
+        if (args.verbose) {
+          console.log(`Allowlisted (skipped): ${relDocPath}`);
+        }
+        return;
+      }
+
       const content = await fs.readFile(full, 'utf8');
-      const fileViolations = lintFileContent(path.join('docs', relFromDocs), content);
+      const fileViolations = lintFileContent(relDocPath, content);
       if (fileViolations.length > 0 && args.verbose) {
-        console.log(`Scanned: ${path.join('docs', relFromDocs)} - violations: ${fileViolations.length}`);
+        console.log(`Scanned: ${relDocPath} - violations: ${fileViolations.length}`);
       }
       violations.push(...fileViolations);
     });
