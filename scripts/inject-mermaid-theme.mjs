@@ -319,7 +319,7 @@ async function writeIndexHtml(outDir) {
       }
 
       function parseHash() {
-        const raw = window.location.hash.slice(1);
+        const raw = (window.location.hash || '').slice(1).trim();
         if (!raw) return { path: 'docs/README.md', anchor: '' };
         const idx = raw.indexOf('#');
         const path = idx === -1 ? raw : raw.slice(0, idx);
@@ -336,10 +336,7 @@ async function writeIndexHtml(outDir) {
       }
 
       window.addEventListener('hashchange', route);
-      window.addEventListener('DOMContentLoaded', function () {
-        // Ensure header link uses router
-        var headerDocs = document.querySelector('header a[href="./docs/"]');
-        if (headerDocs) headerDocs.setAttribute('href', '#docs/README.md');
+      window.addEventListener('load', function () {
         route();
       });
     })();
