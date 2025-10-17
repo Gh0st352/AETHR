@@ -215,6 +215,78 @@ async function mirrorAndInject(inDir, outDir, initDirective, verbose) {
   return { filesTouched, fencesTouched };
 }
 
+async function writeIndexHtml(outDir) {
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AETHR Docs</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5; }
+    header { padding: 1rem; border-bottom: 1px solid #ddd; }
+    header a { color: inherit; text-decoration: none; }
+    main { max-width: 1080px; margin: 0 auto; padding: 1rem; }
+    pre { overflow: auto; background: rgba(0,0,0,0.05); padding: 0.75rem; border-radius: 6px; }
+    .sr-only { position: absolute; left: -10000px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+</head>
+<body>
+  <header>
+    <a href="./"><strong>AETHR</strong> Docs</a>
+    &nbsp;·&nbsp;<a href="./docs/">Browse docs/</a>
+  </header>
+  <main>
+    <h1>Documentation</h1>
+    <div id="app">Loading docs/README.md…</div>
+    <noscript>
+      <p>JavaScript is required to render Markdown and Mermaid diagrams on this static site.</p>
+      <p>You can browse raw Markdown at <a href="./docs/">docs/</a>.</p>
+    </noscript>
+  </main>
+  <script>
+    async function load() {
+      // Fetch the repository README for docs as the landing page
+      const resp = await fetch('./docs/README.md', { cache: 'no-store' });
+      if (!resp.ok) {
+        document.getElementById('app').innerHTML = '<p>Could not load docs/README.md. Browse <a href="./docs/">docs/</a>.</p>';
+        return;
+      }
+      const md = await resp.text();
+      const html = marked.parse(md);
+      const app = document.getElementById('app');
+      app.innerHTML = html;
+
+      // Convert fenced code blocks marked as mermaid into .mermaid containers
+      document.querySelectorAll('pre code.language-mermaid').forEach(code => {
+        const pre = code.closest('pre');
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = code.textContent;
+        pre.replaceWith(div);
+      });
+
+      // Initialize Mermaid; per-diagram %%{init: ...}%% (injected during build) will be respected
+      if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: false });
+        try {
+          await window.mermaid.run({ querySelector: '.mermaid' });
+        } catch (e) {
+          console.error('Mermaid render error:', e);
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', load);
+  </script>
+</body>
+</html>`;
+  await ensureDir(outDir);
+  await fs.writeFile(path.join(outDir, 'index.html'), html, 'utf8');
+}
+
 async function main() {
   try {
     const args = parseArgs(process.argv);
@@ -233,7 +305,8 @@ async function main() {
     }
 
     const stats = await mirrorAndInject(inDir, outDir, initDirective, args.verbose);
-    console.log(`Injection complete. Files modified: ${stats.filesTouched}. Fences injected: ${stats.fencesTouched}.`);
+    await writeIndexHtml(outDir);
+    console.log(`Injection complete. Files modified: ${stats.filesTouched}. Fences injected: ${stats.fencesTouched}. Index written: ${path.join(outDir, 'index.html')}`);
     process.exit(0);
   } catch (err) {
     console.error('Injector error:', err?.message || err);
