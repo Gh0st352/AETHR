@@ -34,7 +34,7 @@ flowchart LR
 
   subgraph OWN ["Ownership"]
     AB[getAirbases]
-    OWN[Ownership updates]
+    OWNU[Ownership updates]
     C[Zone colors]
     AR[Zone arrows]
   end
@@ -52,14 +52,14 @@ flowchart LR
   I --> D --> A
   I --> MIZ
   D --> AB
-  AB --> OWN
-  OWN --> C
-  OWN --> AR
+  AB --> OWNU
+  OWNU --> C
+  OWNU --> AR
   SPAWNER -.-> GQ
   GQ --> SD
   ODB -.-> SPAWNER
 
-  class I,D,A,MIZ,AB,OWN,C,AR,GQ,SD,SPAWNER,ODB class_step;
+  class I,D,A,MIZ,AB,OWNU,C,AR,GQ,SD,SPAWNER,ODB class_step;
 ```
 
 # Module interactions during runtime

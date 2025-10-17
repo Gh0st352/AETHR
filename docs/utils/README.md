@@ -161,14 +161,14 @@ sequenceDiagram
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-subgraph "Shuffle"
-  Shuffle --> OUT1["shuffled shallow copy"]
+subgraph SHUFFLE_SG ["Shuffle"]
+  SHUFFLE_FN[Shuffle] --> OUT1["shuffled shallow copy"]
 end
 subgraph "Select random key"
   pickRandomKeyFromTable --> SHUF[Shuffle keys] --> PICK[random index]
 end
 
-class Shuffle,pickRandomKeyFromTable class_compute;
+class SHUFFLE_FN,pickRandomKeyFromTable class_compute;
 class SHUF class_step;
 class OUT1,PICK class_result;
 ```
