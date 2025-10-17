@@ -2,13 +2,13 @@
 
 Master index for all Mermaid diagrams and flow descriptions across AETHR.
 
-Conventions
+### Conventions
 - All diagrams use GitHub Mermaid fenced blocks: ```mermaid
 - Avoid double quotes and parentheses in Mermaid labels inside brackets.
 - Flow types: flowchart LR for pipelines; sequenceDiagram for inter-module handoffs.
 - Source anchors link to code using relative paths and stable line anchors.
 
-Cross-module overview
+# Cross-module overview
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -16,24 +16,43 @@ flowchart LR
   %% Groupings to clarify domains
   subgraph CORE ["Core orchestration"]
     A[AETHR]
-    C[CONFIG]
-    F[FILEOPS]
-    IO[IO]
-    U[UTILS]
-    EN[ENUMS]
-    P[POLY]
-    FSM[FSM]
-    TYP[TYPES]
-    MATH[MATH]
-    AS[AUTOSAVE]
+
+    subgraph CONFIO ["Config & IO"]
+      C[CONFIG]
+      F[FILEOPS]
+      IO[IO]
+    end
+
+    subgraph DATATYPES ["Data and Types"]
+      EN[ENUMS]
+      TYP[TYPES]
+      MATH[MATH]
+    end
+
+    subgraph UTILS_FSM ["Utilities and FSM"]
+      U[UTILS]
+      FSM[FSM]
+      AS[AUTOSAVE]
+    end
+
+    subgraph GEOM_MARKUP ["Geometry and Markup"]
+      P[POLY]
+      M[MARKERS]
+    end
   end
 
   subgraph RUNTIME ["Runtime systems"]
-    W[WORLD]
-    ZM[ZONE_MANAGER]
-    SP[SPAWNER]
-    B[BRAIN]
-    AI[AI]
+    subgraph WORLD_ZONES ["World & Zones"]
+      W[WORLD]
+      ZM[ZONE_MANAGER]
+    end
+    subgraph SPAWN_AI ["Spawning & AI"]
+      SP[SPAWNER]
+      AI[AI]
+    end
+    subgraph CONTROLLER ["Controller"]
+      B[BRAIN]
+    end
   end
 
   %% Edges
@@ -42,7 +61,7 @@ flowchart LR
   C --> IO
   A --> W
   W --> ZM
-  ZM --> M[MARKERS]
+  ZM --> M
   ZM --> P
   ZM --> U
   W <--> SP
@@ -52,15 +71,15 @@ flowchart LR
   B --> ZM
 
   %% House class buckets (styling via shared theme)
-  class F,IO class-io;
-  class A,B,W,ZM,SP,AI class-compute;
-  class C,EN,TYP,MATH class-data;
-  class M,P,U,FSM,AS class-step;
+  class F,IO class_io;
+  class A,B,W,ZM,SP,AI class_compute;
+  class C,EN,TYP,MATH class_data;
+  class M,P,U,FSM,AS class_step;
 ```
 
-Module documentation index
+# Module documentation index
 
-Core orchestration
+## Core orchestration
 - [AETHR overview](aethr/README.md)
 - [CONFIG](config/README.md)
 - [FILEOPS](fileops/README.md)
@@ -74,14 +93,14 @@ Core orchestration
 - [TYPES](types/README.md)
 - [FSM](fsm/README.md)
 
-Runtime systems
+## Runtime systems
 - [WORLD](world/README.md)
 - [SPAWNER](spawner/README.md)
 - [ZONE_MANAGER](zone_manager/README.md)
 - [BRAIN](brain/README.md)
 - [AI](ai/README.md)
 
-Source anchors examples
+## Source anchors examples
 - [AETHR.CONFIG:initConfig()](../dev/CONFIG_.lua:364), [AETHR.CONFIG:loadConfig()](../dev/CONFIG_.lua:380), [AETHR.CONFIG:saveConfig()](../dev/CONFIG_.lua:404)
 - [AETHR.WORLD:generateWorldDivisions()](../dev/WORLD.lua:1156), [AETHR.WORLD:initMizFileCache()](../dev/WORLD.lua:90)
 - [AETHR.SPAWNER:generateDynamicSpawner()](../dev/SPAWNER.lua:563)
@@ -90,14 +109,15 @@ Source anchors examples
 - [AETHR.AI.DBSCANNER:Scan()](../dev/_AI.lua:319)
 - [AETHR.FSM:processQueue()](../dev/FSM.lua:515)
 
-Notes
+### Notes
 - Existing module pages will be standardized in subsequent steps; links above point to top-level READMEs where applicable.
 - Use consistent orientation and section headings so anchors can be indexed reliably.
+
 ## Diagrams index (all modules)
 
 Quick links to pages containing Mermaid flowcharts and sequence diagrams.
 
-Core orchestration
+### Core orchestration
 - [AETHR](aethr/README.md)
 - [CONFIG](config/README.md)
 - [FILEOPS](fileops/README.md)
@@ -111,7 +131,7 @@ Core orchestration
 - [TYPES](types/README.md)
 - [FSM](fsm/README.md)
 
-AETHR
+### AETHR
 - [Overview](aethr/README.md)
 - [Instance creation](aethr/instance_creation.md)
 - [Modules wiring](aethr/modules_wiring.md)
@@ -119,7 +139,7 @@ AETHR
 - [Startup and watchers](aethr/startup_and_watchers.md)
 - [Background processes](aethr/background_processes.md)
 - [User storage](aethr/user_storage.md)
-WORLD
+### WORLD
 - [Overview and init](world/README.md)
 - [Initialization timeline](world/initialization.md)
 - [Divisions and grid](world/divisions.md)
@@ -129,7 +149,7 @@ WORLD
 - [Towns clustering](world/towns.md)
 - [Spawner integration](world/spawner_integration.md)
 
-SPAWNER
+### SPAWNER
 - [Overview](spawner/README.md)
 - [Pipeline overview](spawner/pipeline.md)
 - [Zones and divisions pairing](spawner/zones_and_divisions.md)
@@ -140,7 +160,7 @@ SPAWNER
 - [Async job runner](spawner/async.md)
 - [Spawn and despawn flows](spawner/spawn_despawn.md)
 
-ZONE_MANAGER
+### ZONE_MANAGER
 - [Overview](zone_manager/README.md)
 - [Zone data lifecycle](zone_manager/zone_data.md)
 - [Borders and master polygon](zone_manager/borders_and_master.md)
@@ -149,18 +169,19 @@ ZONE_MANAGER
 - [Watchers](zone_manager/watchers.md)
 - [Airbases](zone_manager/airbases.md)
 
-BRAIN
+### BRAIN
 - [Overview](brain/README.md)
 - [Scheduler](brain/scheduler.md)
 - [Coroutines](brain/coroutines.md)
 - [Data structures](brain/data_structures.md)
 - [Watchers](brain/watchers.md)
 
-AI
+### AI
 - [Overview](ai/README.md)
 - [DBSCAN flow](ai/dbscan.md)
 - [Data structures](ai/data_structures.md)
-## IO
+
+# IO
 
 - Overview: [docs/io/README.md](io/README.md)
 - Store and variants: [docs/io/store_and_variants.md](io/store_and_variants.md)
@@ -168,14 +189,16 @@ AI
 - Writers and refCount internals: [docs/io/writers_and_refcount.md](io/writers_and_refcount.md)
 - Serialize NoFunc: [docs/io/serialize_nofunc.md](io/serialize_nofunc.md)
 - Dump helper: [docs/io/dump.md](io/dump.md)
-## FILEOPS
+
+# FILEOPS
 
 - Overview: [docs/fileops/README.md](fileops/README.md)
 - Paths and ensure: [docs/fileops/paths_and_ensure.md](fileops/paths_and_ensure.md)
 - Save and load: [docs/fileops/save_and_load.md](fileops/save_and_load.md)
 - Chunking and tracker: [docs/fileops/chunking.md](fileops/chunking.md)
 - Deep copy helper: [docs/fileops/deepcopy.md](fileops/deepcopy.md)
-## CONFIG
+
+# CONFIG
 
 - Overview: [docs/config/README.md](config/README.md)
 - Init and persistence: [docs/config/init_and_persistence.md](config/init_and_persistence.md)
@@ -186,7 +209,8 @@ AI
 - World bounds and divisions: [docs/config/world_bounds_and_divisions.md](config/world_bounds_and_divisions.md)
 - OutText settings: [docs/config/out_text.md](config/out_text.md)
 - Save chunks: [docs/config/save_chunks.md](config/save_chunks.md)
-## ENUMS
+
+# ENUMS
 
 - Overview: [docs/enums/README.md](enums/README.md)
 - Categories: [docs/enums/categories.md](enums/categories.md)
@@ -196,15 +220,16 @@ AI
 - Spawn types and priority: [docs/enums/spawn_types.md](enums/spawn_types.md)
 - Events: [docs/enums/events.md](enums/events.md)
 - Countries and skill: [docs/enums/countries_and_skill.md](enums/countries_and_skill.md)
-## MARKERS
+
+# MARKERS
 
 - Overview: [docs/markers/README.md](markers/README.md)
 - Polygons and freeform: [docs/markers/polygons.md](markers/polygons.md)
 - Arrows: [docs/markers/arrows.md](markers/arrows.md)
 - Circles and generic circle: [docs/markers/circles.md](markers/circles.md)
 - Removal helpers: [docs/markers/removal.md](markers/removal.md)
-## FSM
-## UTILS
+
+# UTILS
 
 - Overview: [docs/utils/README.md](utils/README.md)
 - Overview and constructor: [docs/utils/overview_and_constructor.md](utils/overview_and_constructor.md)
@@ -215,13 +240,16 @@ AI
 - Randomization and RNG: [docs/utils/randomization_and_rng.md](utils/randomization_and_rng.md)
 - Collections and membership: [docs/utils/collections_and_membership.md](utils/collections_and_membership.md)
 
+# FSM
+
 - Overview: [docs/fsm/README.md](fsm/README.md)
 - Transition lifecycle and async: [docs/fsm/transition_lifecycle.md](fsm/transition_lifecycle.md)
 - Creation and callbacks: [docs/fsm/creation_and_callbacks.md](fsm/creation_and_callbacks.md)
 - Events and queries: [docs/fsm/events_and_queries.md](fsm/events_and_queries.md)
 - Manager and queue: [docs/fsm/manager.md](fsm/manager.md)
 - Export and tooling: [docs/fsm/export_and_tooling.md](fsm/export_and_tooling.md)
-## MATH
+
+# MATH
 
 - Overview: [docs/math/README.md](math/README.md)
 - Orientation: [docs/math/orientation.md](math/orientation.md)
@@ -229,7 +257,8 @@ AI
 - Equality and centroid: [docs/math/equality_and_centroid.md](math/equality_and_centroid.md)
 - Randomization helpers: [docs/math/randomization.md](math/randomization.md)
 - Degree and turn angle notes: [docs/math/angles.md](math/angles.md)
-## POLY
+
+# POLY
 
 - Overview: [docs/poly/README.md](poly/README.md)
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](poly/intersections_and_orientation.md)
@@ -241,7 +270,8 @@ AI
 - Hulls densify and gaps: [docs/poly/hulls_densify_and_gaps.md](poly/hulls_densify_and_gaps.md)
 - Rays, midpoints, and slopes: [docs/poly/rays_midpoints_and_slopes.md](poly/rays_midpoints_and_slopes.md)
 - Reorder and centroids: [docs/poly/reorder_and_centroids.md](poly/reorder_and_centroids.md)
-## TYPES
+
+# TYPES
 
 - Overview: [docs/types/README.md](types/README.md)
 - Constructors and vectors: [docs/types/constructors_and_vectors.md](types/constructors_and_vectors.md)
