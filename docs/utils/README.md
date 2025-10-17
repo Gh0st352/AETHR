@@ -20,46 +20,82 @@ Documents and indices
 - AETHR overview: [docs/aethr/README.md](../aethr/README.md)
 - MARKERS: [docs/markers/README.md](../markers/README.md)
 
-Overview relationships
+# Overview relationships
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
+
+subgraph "Debugging"
   D[isDebug] --> DI[debugInfo]
   D --> DIR[debugInfoRate]
   GT[getTime] -.-> DIR
+end
+
+subgraph "Geometry"
   NP[normalizePoint] --> PIP[POLY helpers]
+end
+
+subgraph "Lookups/Markup"
   SLook[safe_lookup] --> GV[global access]
   UMC[updateMarkupColors] --> TRIG[trigger.action color calls]
+end
+
+subgraph "Randomization"
   RNG[withSeed] --> DET[deterministic block]
   Shuffle --> RandOps
   pickRandomKeyFromTable --> RandOps
+end
+
+class D class_decision;
+class GT class_data;
+class DI,DIR,NP,RNG,Shuffle,pickRandomKeyFromTable class_compute;
+class PIP,GV,TRIG,DET,RandOps class_result;
 ```
 
-Debug gating and rate limiting
+# Debug gating and rate limiting
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  IN[message, data] --> CHECK[isDebug?]
-  CHECK -->|false| RETURN1[return]
-  CHECK -->|true| EMIT[env.info or BASE:E]
+subgraph "Debug gate"
+  IN[message, data] --> CHECK{isDebug?}
+  CHECK -- "false" --> RETURN1[return]
+  CHECK -- "true" --> EMIT[env.info or BASE.E]
   EMIT --> DONE1[done]
+end
+
+class IN class_io;
+class CHECK class_decision;
+class EMIT class_compute;
+class RETURN1,DONE1 class_result;
 ```
 
-Rate-limited debug logger
+# Rate-limited debug logger
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
+subgraph "Rate-limit check"
   K[key, interval] --> NOW[getTime or os.time]
   NOW --> LAST[read last emission from cache]
-  LAST --> GAP[now - last >= interval?]
-  GAP -->|no| RETURN2[return]
-  GAP -->|yes| UPDATE[update cache timestamp]
-  UPDATE --> LOG[debugInfo(key, data)]
+  LAST --> GAP{now - last >= interval?}
+  GAP -- "no" --> RETURN2[return]
+  GAP -- "yes" --> UPDATE[update cache timestamp]
+  UPDATE --> LOG["debugInfo(key, data)"]
+end
+
+class K class_io;
+class NOW,LAST class_data;
+class GAP class_decision;
+class UPDATE,LOG class_compute;
+class RETURN2 class_result;
 ```
 
-Deterministic RNG scope
+# Deterministic RNG scope
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant U as UTILS
   participant FN as Callback
@@ -72,30 +108,47 @@ sequenceDiagram
   U-->>U: return fn results or rethrow
 ```
 
-Point normalization and helpers
+# Point normalization and helpers
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
+subgraph "Normalization"
   GY[getPointY] --> NP[normalizePoint]
-  NP --> P2[table {x,y}]
+  NP --> P2["table { x, y }"]
   P2 --> CONSUMERS[POLY and WORLD]
+end
+
+class GY,NP class_compute;
+class P2 class_data;
+class CONSUMERS class_result;
 ```
 
-Safe lookup guard
+# Safe lookup guard
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
+subgraph "Traversal"
   PATH[dotted path string] --> CUR[start at _G]
   CUR --> STEP[next part]
-  STEP --> EXISTS[cur[part] exists?]
-  EXISTS -->|no| FALLBACK[return fallback]
-  EXISTS -->|yes| CUR
-  CUR -->|end| OUT[return value]
+  STEP --> EXISTS{"cur[part] exists?"}
+  EXISTS -- "no" --> FALLBACK[return fallback]
+  EXISTS -- "yes" --> CUR
+  STEP -- "end" --> OUT[return value]
+end
+
+class PATH class_io;
+class CUR class_data;
+class STEP class_step;
+class EXISTS class_decision;
+class FALLBACK,OUT class_result;
 ```
 
-Update markup colors
+# Update markup colors
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant U as UTILS
   participant T as trigger.action
@@ -103,15 +156,24 @@ sequenceDiagram
   U->>T: setMarkupColorFill(markupID, fillColor)
 ```
 
-Randomization helpers
+# Randomization helpers
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  Shuffle --> OUT1[shuffled shallow copy]
+subgraph "Shuffle"
+  Shuffle --> OUT1["shuffled shallow copy"]
+end
+subgraph "Select random key"
   pickRandomKeyFromTable --> SHUF[Shuffle keys] --> PICK[random index]
+end
+
+class Shuffle,pickRandomKeyFromTable class_compute;
+class SHUF class_step;
+class OUT1,PICK class_result;
 ```
 
-Key anchors
+# Key anchors
 - Debug: [isDebug](../../dev/UTILS.lua:70), [debugInfo](../../dev/UTILS.lua:79), [debugInfoRate](../../dev/UTILS.lua:101)
 - Time: [getTime](../../dev/UTILS.lua:56)
 - Geometry helpers: [getPointY](../../dev/UTILS.lua:129), [normalizePoint](../../dev/UTILS.lua:137)
@@ -121,6 +183,7 @@ Key anchors
 Notes
 - Mermaid labels avoid double quotes and parentheses.
 - All diagrams use GitHub Mermaid fenced blocks.
+
 ## Breakout documents
 
 - Overview and constructor: [docs/utils/overview_and_constructor.md](overview_and_constructor.md)
@@ -130,3 +193,5 @@ Notes
 - Lookups and markup: [docs/utils/lookups_and_markup.md](lookups_and_markup.md)
 - Randomization and RNG: [docs/utils/randomization_and_rng.md](randomization_and_rng.md)
 - Collections and membership: [docs/utils/collections_and_membership.md](collections_and_membership.md)
+
+Last updated: 2025-10-16

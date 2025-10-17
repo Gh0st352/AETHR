@@ -8,20 +8,34 @@ Overview
 - getTime uses DCS engine timers to return elapsed mission time seconds: timer.getAbsTime minus timer.getTime0.
 - debugInfoRate picks the best available clock: AETHR.UTILS.getTime, or instance getTime, or os.time, else 0.
 
-Time source flow
+# Time source flow
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  TRY1[Use AETHR.UTILS.getTime] --> OK1[if function available]
-  TRY1 -->|no| TRY2[Use self.getTime]
-  TRY2 -->|no| TRY3[Use os.time]
-  TRY3 -->|no| FALLBACK[0]
-  OK1 --> NOW[now number]
-  TRY2 --> NOW
-  TRY3 --> NOW
+subgraph "Source selection"
+  START[request time] --> C1{AETHR.UTILS.getTime available?}
+  C1 -- "yes" --> GT[AETHR.UTILS.getTime]
+  C1 -- "no" --> C2{self.getTime available?}
+  C2 -- "yes" --> SG[self.getTime]
+  C2 -- "no" --> C3{os.time available?}
+  C3 -- "yes" --> OS[os.time]
+  C3 -- "no" --> FALLBACK[0]
+  GT --> NOW[now number]
+  SG --> NOW
+  OS --> NOW
+  FALLBACK --> NOW
+end
+
+class START class_io;
+class C1,C2,C3 class_decision;
+class GT,SG,OS class_compute;
+class FALLBACK class_result;
+class NOW class_data;
 ```
 
-Elapsed mission time
+# Elapsed mission time
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant T as timer
   participant U as UTILS
@@ -30,10 +44,12 @@ sequenceDiagram
   U-->>U: return abs minus start
 ```
 
-Usage notes
+# Usage notes
 - Prefer engine elapsed time for consistent sim relative timestamps used by rate limited logging.
 - When running outside the sim, os.time fallback still provides reasonable debouncing.
 
-Source anchors
+# Source anchors
 - [AETHR.UTILS.getTime()](../../dev/UTILS.lua:56)
 - [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101)
+
+Last updated: 2025-10-16

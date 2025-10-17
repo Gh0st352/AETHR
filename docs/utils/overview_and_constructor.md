@@ -9,21 +9,46 @@ Overview
 - DATA holds shared structures such as _cache and _rateLog defaults.
 - UTILS interacts with CONFIG, FILEOPS, POLY, AUTOSAVE, WORLD, ZONE_MANAGER.
 
-Module relationships
+# Module relationships
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
+
+subgraph "Modules"
   A[AETHR] --> U[UTILS]
-  U --> C[CONFIG]
-  U --> FO[FILEOPS]
-  U --> P[POLY]
-  U --> AS[AUTOSAVE]
-  U --> W[WORLD]
-  U --> ZM[ZONE_MANAGER]
-  U -.-> DATA[_cache and _rateLog]
+end
+
+subgraph "UTILS dependencies"
+  C[CONFIG]
+  FO[FILEOPS]
+  P[POLY]
+  AS[AUTOSAVE]
+  W[WORLD]
+  ZM[ZONE_MANAGER]
+end
+
+U --> C
+U --> FO
+U --> P
+U --> AS
+U --> W
+U --> ZM
+
+subgraph "Shared data"
+  DATA[_cache and _rateLog]
+end
+
+U -.-> DATA
+
+class A class_data;
+class U class_compute;
+class C,FO,P,AS,W,ZM class_data;
+class DATA class_data;
 ```
 
-Construction sequence
+# Construction sequence
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant A as AETHR
   participant U as UTILS
@@ -39,3 +64,5 @@ Instance fields
 Source anchors
 - [AETHR.UTILS:New()](../../dev/UTILS.lua:27)
 - [AETHR.UTILS.DATA](../../dev/UTILS.lua:14)
+
+Last updated: 2025-10-16
