@@ -1,6 +1,6 @@
 # AETHR WORLD diagrams index
 
-Primary flows
+### Primary flows
 - Initialization chain: [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176) -> [AETHR.WORLD:initActiveDivisions()](../../dev/WORLD.lua:1083) -> [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90) -> [AETHR.WORLD:getAirbases()](../../dev/WORLD.lua:428)
 - Ownership propagation: [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501) -> [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633) -> [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683) -> [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
 - Division activation: [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156) -> [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206) -> [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328) -> [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
@@ -8,7 +8,7 @@ Primary flows
 - Spawner integration: [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801) -> [AETHR.WORLD:spawnGroundGroups()](../../dev/WORLD.lua:538) -> [AETHR.WORLD:despawnGroundGroups()](../../dev/WORLD.lua:590)
 - Town clustering: [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460) -> [AETHR.WORLD:initTowns()](../../dev/WORLD.lua:1513)
 
-Documents
+### Documents
 - Initialization: [initialization.md](./initialization.md)
 - Divisions: [divisions.md](./divisions.md)
 - MIZ cache: [miz_cache.md](./miz_cache.md)
@@ -17,35 +17,35 @@ Documents
 - Spawner integration: [spawner_integration.md](./spawner_integration.md)
 - Towns: [towns.md](./towns.md)
 
-End to end relationship
+# End to end relationship
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  subgraph INIT [Init & Caches]
+  subgraph INIT ["Init & Caches"]
     I[Init divisions and caches]
     MIZ[MIZ cache]
   end
 
-  subgraph DIVS [Divisions]
+  subgraph DIVS ["Divisions"]
     D[World divisions]
     A[Active divisions]
   end
 
-  subgraph OWN [Ownership]
+  subgraph OWN ["Ownership"]
     AB[getAirbases]
     OWN[Ownership updates]
     C[Zone colors]
     AR[Zone arrows]
   end
 
-  subgraph SPAWN [Spawner]
+  subgraph SPAWN ["Spawner"]
     SPAWNER[Spawner jobs]
     GQ[WORLD spawnerGenerationQueue]
     SD[Spawn/Despawn]
   end
 
-  subgraph DB [Data]
+  subgraph DB ["Data"]
     ODB[Objects & Ground DB]
   end
 
@@ -59,10 +59,10 @@ flowchart LR
   GQ --> SD
   ODB -.-> SPAWNER
 
-  class I,D,A,MIZ,AB,OWN,C,AR,GQ,SD,SPAWNER,ODB class-step;
+  class I,D,A,MIZ,AB,OWN,C,AR,GQ,SD,SPAWNER,ODB class_step;
 ```
 
-Module interactions during runtime
+# Module interactions during runtime
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -83,7 +83,7 @@ sequenceDiagram
   S->>W: spawnGroundGroups / despawnGroundGroups
 ```
 
-Key anchors
+# Key anchors
 - Divisions and activation
   - [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156), [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206), [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328), [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
   - [AETHR.WORLD:initGrid()](../../dev/WORLD.lua:1236), [AETHR.WORLD:buildZoneCellIndex()](../../dev/WORLD.lua:1268), [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:284)
@@ -99,6 +99,6 @@ Key anchors
 - Town clustering
   - [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460), [AETHR.WORLD:initTowns()](../../dev/WORLD.lua:1513), [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1528), [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541)
 
-Cross-module indexes
+# Cross-module indexes
 - SPAWNER: [../spawner/README.md](../spawner/README.md)
 - ZONE_MANAGER: [../zone_manager/README.md](../zone_manager/README.md)

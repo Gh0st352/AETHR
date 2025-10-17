@@ -15,21 +15,29 @@ Related modules and config
 - Enums and filters: [dev/ENUMS.lua](../../dev/ENUMS.lua)
 - Config paths/files and save chunking: [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
 
-## Overview
+# Overview
 
 The town clustering flow aggregates building object positions from cached per-division scenery and base objects, filters by allowed building types, estimates map area over active divisions, and runs an AI-assisted clustering to produce a towns database.
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   IT[[initTowns]] --> LD[loadTowns]
-  LD --> HAS{data present}
-  HAS -->|yes| ASSIGN[assign townClusterDB to data] --> RET[return self]
-  HAS -->|no| DET[determineTowns]
-  DET --> SV[saveTowns]
-  SV --> RET
+  subgraph "Load or Build"
+    LD --> HAS{data present}
+    HAS -- "yes" --> ASSIGN[assign townClusterDB to data] --> RET([return self])
+    HAS -- "no" --> DET[determineTowns]
+    DET --> SV[saveTowns]
+    SV --> RET
+  end
+
+  class HAS class_decision;
+  class RET class_result;
+  class IT,LD,DET,SV class_step;
+  class ASSIGN class_data;
 ```
 
-## determineTowns
+# determineTowns
 
 - Extract points (x,z) from:
   - `DATA.divisionSceneryObjects[div][object]`
@@ -39,46 +47,63 @@ flowchart TD
 - Cluster: `AI:clusterPoints(buildingPoints, area)`; store in `DATA.townClusterDB`.
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   DT[[determineTowns]] --> BP[buildingPoints list]
-  BP --> SCN[scan divisionSceneryObjects]
-  SCN --> FIL1[filter buildings and not restricted types]
-  FIL1 --> PUSH1[push point x and z]
-  PUSH1 --> BAS[scan divisionBaseObjects]
-  BAS --> FIL2[same filter]
-  FIL2 --> PUSH2[push point x and z]
+  subgraph "Point collection"
+    BP --> SCN[scan divisionSceneryObjects]
+    SCN --> FIL1[filter buildings and not restricted types]
+    FIL1 --> PUSH1[push point x and z]
+    PUSH1 --> BAS[scan divisionBaseObjects]
+    BAS --> FIL2[same filter]
+    FIL2 --> PUSH2[push point x and z]
+  end
   PUSH2 --> AREA[compute total area of active divisions]
   AREA --> CLUS[cluster points with AI using area]
   CLUS --> SAVE[set townClusterDB to clusters]
-  SAVE --> RET[return self]
+  SAVE --> RET([return self])
+
+  class RET class_result;
+  class DT,BP,SCN,FIL1,PUSH1,BAS,FIL2,PUSH2,AREA,CLUS,SAVE class_step;
+  class SAVE class_data;
 ```
 
-Notes
+### Notes
 - Uses `DATA.divisionSceneryObjects` and `DATA.divisionBaseObjects` produced by the per-division initialization flows described in [docs/world/objects_and_db.md](docs/world/objects_and_db.md).
 - Area normalization helps the clustering algorithm pick reasonable cluster sizes for the map scale.
 
-## Storage
+# Storage
 
 - loadTowns reads a possibly chunked dataset (joined) from `CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER` using filename `CONFIG.MAIN.STORAGE.FILENAMES.TOWN_CLUSTERS_FILE`.
 - saveTowns writes with chunking via `FILEOPS:splitAndSaveData` using `CONFIG.MAIN.saveChunks.townDB`.
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   LT[[loadTowns]] --> L0[FILEOPS loadandJoinData with filename and folder]
   L0 --> C{data present}
-  C -->|yes| RT[return data]
-  C -->|no| RTN[return nil]
+  C -- "yes" --> RT([return data])
+  C -- "no" --> RTN([return nil])
+
+  class C class_decision;
+  class RT,RTN class_result;
+  class LT,L0 class_step;
 ```
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   ST[[saveTowns]] --> W[FILEOPS splitAndSaveData with townClusterDB filename folder chunks]
-  W --> RET[return nil]
+  W --> RET([return nil])
+
+  class RET class_result;
+  class ST,W class_step;
 ```
 
-## Sequence overview
+# Sequence overview
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant W as WORLD
   participant F as FILEOPS
@@ -100,7 +125,7 @@ sequenceDiagram
   end
 ```
 
-## Anchor index
+# Anchor index
 
 - Core
   - [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460)

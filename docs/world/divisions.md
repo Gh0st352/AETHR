@@ -10,93 +10,126 @@ Primary anchors
 - Grid helpers: [AETHR.WORLD:initGrid()](../../dev/WORLD.lua:1236), [AETHR.WORLD:buildZoneCellIndex()](../../dev/WORLD.lua:1268)
 - Debug map paint: [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:284)
 
-## Initialization flows
+# Initialization flows
 
-initWorldDivisions
+## initWorldDivisions
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   I0[[initWorldDivisions]] --> LWD{loadWorldDivisions exists?}
-  LWD -- yes --> SDivs[assign DATA.worldDivisions]
-  LWD -- no --> GWD[generateWorldDivisions] --> SWD[saveWorldDivisions]
+  LWD -- "yes" --> SDivs[assign DATA.worldDivisions]
+  LWD -- "no" --> GWD[generateWorldDivisions] --> SWD[saveWorldDivisions]
   SDivs --> LAA{loadWorldDivisionsAABB exists?}
-  LAA -- yes --> SAABB[assign DATA.worldDivAABB]
-  LAA -- no --> BAABB[buildWorldDivAABBCache] --> SAABBF[saveWorldDivisionsAABB]
+  LAA -- "yes" --> SAABB[assign DATA.worldDivAABB]
+  LAA -- "no" --> BAABB[buildWorldDivAABBCache] --> SAABBF[saveWorldDivisionsAABB]
   SAABB --> IRET([return self])
   SAABBF --> IRET
+
+  class LWD class_decision;
+  class IRET class_result;
+  class I0,GWD,SWD,BAABB,SAABBF class_step;
+  class SDivs,SAABB class_data;
 ```
 
-initActiveDivisions
+## initActiveDivisions
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   A0[[initActiveDivisions]] --> LAD{loadActiveDivisions exists?}
-  LAD -- yes --> ASAVE[assign DATA.saveDivisions]
-  LAD -- no --> GAD[generateActiveDivisions] --> SAD[saveActiveDivisions]
+  LAD -- "yes" --> ASAVE[assign DATA.saveDivisions]
+  LAD -- "no" --> GAD[generateActiveDivisions] --> SAD[saveActiveDivisions]
   ASAVE --> ARET([return self])
   SAD --> ARET
+
+  class LAD class_decision;
+  class ARET class_result;
+  class A0,GAD,SAD class_step;
+  class ASAVE class_data;
 ```
 
-## Active division determination
+# Active division determination
 
-checkDivisionsInZones performs a cell-accelerated overlap test between each division and nearby zones. It builds a grid from the first division’s corners and indexes zones into grid cell buckets to limit polygon tests to local candidates.
+## checkDivisionsInZones performs a cell-accelerated overlap test between each division and nearby zones. It builds a grid from the first division’s corners and indexes zones into grid cell buckets to limit polygon tests to local candidates.
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   C0[[checkDivisionsInZones]] --> G0[initGrid from Divisions]
   G0 --> ZI[buildZoneCellIndex from Zones using grid]
   ZI --> L1[for each division]
-  L1 --> CEN[centroid cx,cz]
-  CEN --> IDX[col,row from grid]
-  IDX --> BBOX[build division bbox and div polygon]
-  BBOX --> CANDS[get candidate zone entries at col,row]
-  CANDS --> OVL{any bbox overlap?}
-  OVL -- no --> NEXT[div.active=false; next div]
-  OVL -- yes --> POLY[polygon overlap test]
-  POLY -- true --> ACT[div.active=true]
-  POLY -- false --> NEXT
-  ACT --> NEXT
+  subgraph "Per-division loop"
+    L1 --> CEN[centroid cx,cz]
+    CEN --> IDX[col,row from grid]
+    IDX --> BBOX[build division bbox and div polygon]
+    BBOX --> CANDS["\1"]
+    CANDS --> OVL{any bbox overlap?}
+    OVL -- "no" --> NEXT["\1"]
+    OVL -- "yes" --> POLY[polygon overlap test]
+    POLY -- "true" --> ACT["\1"]
+    POLY -- "false" --> NEXT
+    ACT --> NEXT
+  end
   NEXT --> DONE([return Divisions])
+
+  class OVL class_decision;
+  class DONE class_result;
+  class C0,G0,ZI,L1,CEN,IDX,BBOX,CANDS,POLY,ACT,NEXT class_step;
 ```
 
-Grid helpers
+## Grid helpers
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   IG[[initGrid]] --> M[minX and minZ from corner 1]
   M --> DX[dx from corner 2 minus corner 1]
   M --> DZ[dz from corner 4 minus corner 1]
   DX --> GRT[_Grid New with inverses]
   DZ --> GRT
+
+  class IG,M,DX,DZ,GRT class_step;
 ```
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   BZ[[buildZoneCellIndex]] --> B0[for each zone compute bbox]
   B0 --> P0[collect polygon x and y from vertices]
   P0 --> C0[map bbox min and max to grid column and row bounds]
   C0 --> A0[assign entry into each covered cell list]
+
+  class BZ,B0,P0,C0,A0 class_step;
 ```
 
-## Activation pipeline and optional markup
+# Activation pipeline and optional markup
 
-generateActiveDivisions computes active flags via intersection and fills `DATA.saveDivisions`. markWorldDivisions can be used to visualize active divisions.
+## generateActiveDivisions computes active flags via intersection and fills `DATA.saveDivisions`. markWorldDivisions can be used to visualize active divisions.
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   GAD[[generateActiveDivisions]] --> CDZ[checkDivisionsInZones for Divisions and Zones]
-  CDZ --> LOOP[for each division if active then set saveDivisions ID to div]
+  CDZ --> LOOP["for each division: if active then set saveDivisions[id] = div"]
   LOOP --> GADRET([return self])
+
+  class GAD,CDZ,LOOP class_step;
+  class GADRET class_result;
 ```
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   MWD[[markWorldDivisions]] --> LUP[loop saveDivisions]
   LUP --> VEC[build Vec3 from div corners]
   VEC --> MC[compute colors, border, alpha]
   MC --> TA[trigger markupToAll polygon]
-  TA --> INC[shapeID++ and counters++]
+  TA --> INC["\1"]
   INC --> MWDRET([return self])
+
+  class MWD,LUP,VEC,MC,TA,INC class_step;
+  class MWDRET class_result;
 ```
 
 ## Anchor index
