@@ -237,49 +237,112 @@ async function writeIndexHtml(outDir) {
 <body>
   <header>
     <a href="./"><strong>AETHR</strong> Docs</a>
-    &nbsp;·&nbsp;<a href="./docs/">Browse docs/</a>
+    &nbsp;·&nbsp;<a href="#docs/README.md">Browse docs/</a>
   </header>
   <main>
     <h1>Documentation</h1>
     <div id="app">Loading docs/README.md…</div>
     <noscript>
       <p>JavaScript is required to render Markdown and Mermaid diagrams on this static site.</p>
-      <p>You can browse raw Markdown at <a href="./docs/">docs/</a>.</p>
+      <p>You can browse raw Markdown at <a href="#docs/README.md">docs/</a>.</p>
     </noscript>
   </main>
   <script>
-    async function load() {
-      // Fetch the repository README for docs as the landing page
-      const resp = await fetch('./docs/README.md', { cache: 'no-store' });
-      if (!resp.ok) {
-        document.getElementById('app').innerHTML = '<p>Could not load docs/README.md. Browse <a href="./docs/">docs/</a>.</p>';
-        return;
-      }
-      const md = await resp.text();
-      const html = marked.parse(md);
+    (function () {
+      let currentPath = '';
       const app = document.getElementById('app');
-      app.innerHTML = html;
 
-      // Convert fenced code blocks marked as mermaid into .mermaid containers
-      document.querySelectorAll('pre code.language-mermaid').forEach(code => {
-        const pre = code.closest('pre');
-        const div = document.createElement('div');
-        div.className = 'mermaid';
-        div.textContent = code.textContent;
-        pre.replaceWith(div);
-      });
+      function isMdLink(href) {
+        return /\.md($|#)/i.test(href);
+      }
 
-      // Initialize Mermaid; per-diagram %%{init: ...}%% (injected during build) will be respected
-      if (window.mermaid) {
-        window.mermaid.initialize({ startOnLoad: false });
+      function resolveMd(href, base) {
+        // Base is the current docs path, e.g. "docs/a/b/README.md"
+        const baseUrl = new URL('./' + base, window.location.origin + '/');
+        const url = new URL(href, baseUrl);
+        const path = url.pathname.replace(/^\/+/, '');
+        const hash = url.hash ? url.hash : '';
+        return { path, hash };
+      }
+
+      async function render(mdPath, anchor) {
         try {
-          await window.mermaid.run({ querySelector: '.mermaid' });
-        } catch (e) {
-          console.error('Mermaid render error:', e);
+          const resp = await fetch('./' + mdPath, { cache: 'no-store' });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const md = await resp.text();
+          const html = marked.parse(md);
+          app.innerHTML = html;
+
+          // Intercept in-content links to other Markdown pages
+          app.querySelectorAll('a[href]').forEach(function (a) {
+            const href = a.getAttribute('href');
+            if (!href) return;
+
+            // Only intercept .md links (relative or under docs/)
+            if (isMdLink(href) || href.startsWith('docs/')) {
+              a.addEventListener('click', function (e) {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
+                const next = resolveMd(href, currentPath);
+                // Route via hash to keep SPA navigation
+                window.location.hash = '#' + next.path + (next.hash || '');
+              });
+            }
+          });
+
+          // Convert fenced code blocks marked as mermaid into live containers
+          document.querySelectorAll('pre code.language-mermaid').forEach(function (code) {
+            const pre = code.closest('pre');
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            pre.replaceWith(div);
+          });
+
+          if (window.mermaid) {
+            window.mermaid.initialize({ startOnLoad: false });
+            try {
+              await window.mermaid.run({ querySelector: '.mermaid' });
+            } catch (e) {
+              console.error('Mermaid render error:', e);
+            }
+          }
+
+          // Scroll to in-document anchor if provided
+          if (anchor) {
+            const el = document.getElementById(anchor);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        } catch (err) {
+          app.innerHTML = '<p>Could not load ' + mdPath + '. Browse <a href="#docs/README.md">docs/</a>.</p>';
         }
       }
-    }
-    window.addEventListener('DOMContentLoaded', load);
+
+      function parseHash() {
+        const raw = window.location.hash.slice(1);
+        if (!raw) return { path: 'docs/README.md', anchor: '' };
+        const idx = raw.indexOf('#');
+        const path = idx === -1 ? raw : raw.slice(0, idx);
+        const anchor = idx === -1 ? '' : raw.slice(idx + 1);
+        return { path: path, anchor: anchor };
+      }
+
+      async function route() {
+        const next = parseHash();
+        if (next.path !== currentPath) {
+          currentPath = next.path;
+        }
+        await render(next.path, next.anchor);
+      }
+
+      window.addEventListener('hashchange', route);
+      window.addEventListener('DOMContentLoaded', function () {
+        // Ensure header link uses router
+        var headerDocs = document.querySelector('header a[href="./docs/"]');
+        if (headerDocs) headerDocs.setAttribute('href', '#docs/README.md');
+        route();
+      });
+    })();
   </script>
 </body>
 </html>`;
