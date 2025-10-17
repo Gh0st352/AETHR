@@ -11,52 +11,71 @@ Related configuration:
 - [AETHR.CONFIG.MAIN.DefaultBlueCountry](../../dev/CONFIG_.lua:178)
 
 
-## Spawning for a single zone
+# Spawning for a single zone
 
-Entry: [AETHR.ZONE_MANAGER:spawnAirbasesZone()](../../dev/ZONE_MANAGER.lua:1125)
+### Entry: [AETHR.ZONE_MANAGER:spawnAirbasesZone()](../../dev/ZONE_MANAGER.lua:1125)
 
-Behavior:
+### Behavior:
 - Resolve zone by name from DATA.MIZ_ZONES
 - Choose dynamic spawner if not provided
 - For each airbase in the zone, enqueue a generate and spawn job via SPAWNER
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   SZ1[spawnAirbasesZone] --> SZ2[resolve zone from DATA MIZ_ZONES by name]
-  SZ2 --> SZ3{zone exists}
-  SZ3 -->|no| SZ4[return self]
-  SZ3 -->|yes| SZ5[resolve spawner or pick a default]
-  SZ5 --> SZ6[for each airbase in zone Airbases]
-  SZ6 --> SZ7[SPAWNER spawnAirbaseFill]
+  subgraph "Resolve and select"
+    SZ2 --> SZ3{zone exists}
+    SZ3 -->|no| SZ4[return self]
+    SZ3 -->|yes| SZ5[resolve spawner or pick a default]
+  end
+  subgraph "Per-airbase spawn"
+    SZ5 --> SZ6[for each airbase in zone Airbases]
+    SZ6 --> SZ7[SPAWNER spawnAirbaseFill]
+  end
   SZ7 --> SZ8[return self]
+  class SZ2,SZ5 class_compute;
+  class SZ3 class_decision;
+  class SZ4,SZ8 class_result;
+  class SZ7 class_io;
+  class SZ1,SZ6 class_step;
 ```
 
-Notes:
+### Notes:
 - When dynamicSpawner is nil, a spawner is chosen from SPAWNER.DATA.dynamicSpawners.Airbase using a utilities helper; see [dev/UTILS.lua](../../dev/UTILS.lua)
 - The SPAWNER call builds and enqueues generation for the airbase area: [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
 
 
-## Spawning across starter zones
+# Spawning across starter zones
 
-Entry: [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145)
+### Entry: [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145)
 
-Behavior:
+### Behavior:
 - Iterate configured red starter zones and blue starter zones
 - For each zone name call spawnAirbasesZone with coalition specific default country IDs
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   SA1[spawnAirbasesAllZones] --> SA2[read REDSTART and BLUESTART from CONFIG MAIN MIZ_ZONES]
-  SA2 --> SA3[read DefaultRedCountry and DefaultBlueCountry]
-  SA3 --> SA4[for each red start zone call spawnAirbasesZone]
-  SA3 --> SA5[for each blue start zone call spawnAirbasesZone]
+  subgraph "Config"
+    SA2 --> SA3[read DefaultRedCountry and DefaultBlueCountry]
+  end
+  subgraph "Iterate zones"
+    SA3 --> SA4[for each red start zone call spawnAirbasesZone]
+    SA3 --> SA5[for each blue start zone call spawnAirbasesZone]
+  end
   SA4 --> SA6[return self]
   SA5 --> SA6
+  class SA2,SA3 class_io;
+  class SA4,SA5 class_step;
+  class SA6 class_result;
 ```
 
-## Runtime sequence
+# Runtime sequence
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant ZM as ZONE_MANAGER
   participant SP as SPAWNER
@@ -67,11 +86,11 @@ sequenceDiagram
   SP-->>SP: enqueueGenerateDynamicSpawner and auto spawn
 ```
 
-## Naming note
+# Naming note
 
 The code documents a label for a function as spawnStarterAirbasesAllZones, but the exported function is named [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145). This documentation follows the exported function name.
 
-## Anchor index
+# Anchor index
 
 - [AETHR.ZONE_MANAGER:spawnAirbasesZone()](../../dev/ZONE_MANAGER.lua:1125)
 - [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145)

@@ -1,11 +1,11 @@
 # Game bounds: master polygon, out of bounds, and gaps
 
-This document details the computation of:
+### This document details the computation of:
 - Master in bounds polygon from zone edges
 - Out of bounds hull quads with optional densification
 - Center cutout polygon and in–out gap polygons
 
-Primary anchors:
+### Primary anchors:
 - [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
 - [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
 - [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
@@ -14,28 +14,36 @@ Primary anchors:
 - [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:565)
 - [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
 
-Related dependencies:
+### Related dependencies:
 - [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
 - [dev/POLY.lua](../../dev/POLY.lua)
 
 
-## End to end pipeline
+# End to end pipeline
 
 Entry point: [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   P1[generateGameBoundData] --> P2[getMasterZonePolygon]
-  P2 --> P3[getOutOfBounds no sample]
-  P3 --> P4[centerPoly from getPolygonCutout on HullPolysNoSample]
-  P4 --> P5[getOutOfBounds with config samples and snap]
-  P5 --> P6[find overlaid polygon gaps]
-  P6 --> P7[ensure convex gaps]
-  P7 --> P8[reverse vertex order to concave]
-  P8 --> P9[store results in DATA GAME_BOUNDS]
+  subgraph "First pass"
+    P2 --> P3[getOutOfBounds no sample]
+    P3 --> P4[centerPoly from getPolygonCutout on HullPolysNoSample]
+  end
+  subgraph "Sampling and gaps"
+    P4 --> P5[getOutOfBounds with config samples and snap]
+    P5 --> P6[find overlaid polygon gaps]
+    P6 --> P7[ensure convex gaps]
+    P7 --> P8[reverse vertex order to concave]
+    P8 --> P9[store results in DATA GAME_BOUNDS]
+  end
+  class P1,P2,P3,P4,P5,P6,P7,P8 class_step;
+  class P9 class_result;
+  class P2,P3,P5 class_compute;
 ```
 
-Outputs stored in:
+### Outputs stored in:
 - DATA.GAME_BOUNDS.outOfBounds.HullPolysNoSample
 - DATA.GAME_BOUNDS.outOfBounds.HullPolysWithSample
 - DATA.GAME_BOUNDS.outOfBounds.centerPoly
@@ -43,11 +51,11 @@ Outputs stored in:
 - DATA.GAME_BOUNDS.inOutBoundsGaps.overlaid, .convex, .concave
 
 
-## Computing out of bounds hull tiles
+# Computing out of bounds hull tiles
 
-Entry point: [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
+### Entry point: [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
 
-Behavior summary:
+### Behavior summary:
 - Resolve world bounds from configuration
 - Build exclude set of shared border vertices
 - Collect zone polygons after excluding border vertices
@@ -56,11 +64,14 @@ Behavior summary:
 - Process hull loop into outward quads and store
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   O1[getOutOfBounds] --> O2[resolve worldBounds by theater]
-  O2 --> O3[zonesTable equals DATA MIZ_ZONES]
-  O3 --> O4[build exclude set of shared border vertices]
-  O4 --> O5[collect polygons from zones excluding keys]
+  subgraph "Preprocessing"
+    O2 --> O3[zonesTable equals DATA MIZ_ZONES]
+    O3 --> O4[build exclude set of shared border vertices]
+    O4 --> O5[collect polygons from zones excluding keys]
+  end
   O5 --> O6{any valid polygons}
   O6 -->|no| O7[flat collect all zone vertices as one polygon]
   O6 -->|yes| O8[continue]
@@ -69,12 +80,19 @@ flowchart TD
   O10 --> O11{enough points}
   O11 -->|no| O12[fallback to bounds polygon or return self]
   O11 -->|yes| O13[compute hull concave then convex fallback]
-  O13 --> O14[process hull loop into outward quads]
-  O14 --> O15[store into HullPolysWithSample or NoSample]
+  subgraph "Hull processing"
+    O13 --> O14[process hull loop into outward quads]
+    O14 --> O15[store into HullPolysWithSample or NoSample]
+  end
   O15 --> O16[return self]
+  class O1,O2,O3,O4,O5,O7,O8,O9,O10,O13,O14,O15 class_step;
+  class O2 class_io;
+  class O6,O11 class_decision;
+  class O12,O16 class_result;
+  class O13,O14 class_compute;
 ```
 
-Key helpers:
+### Key helpers:
 - Exclude set: [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
 - Collect polygons: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
 - Unique points: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
@@ -82,42 +100,51 @@ Key helpers:
 - Geometry hulls and bounds conversion: [dev/POLY.lua](../../dev/POLY.lua)
 
 
-## Excluding shared border vertices
+# Excluding shared border vertices
 
-Entry point: [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
+### Entry point: [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   X1[_buildBorderExclude] --> X2[iterate zones with BorderingZones]
-  X2 --> X3[for each border append ZoneLine endpoints]
-  X2 --> X4[for each border append NeighborLine endpoints]
+  subgraph "Append endpoints"
+    X2 --> X3[for each border append ZoneLine endpoints]
+    X2 --> X4[for each border append NeighborLine endpoints]
+  end
   X3 --> X5[build key x y with precision]
   X4 --> X5
   X5 --> X6[return exclude map]
+  class X1,X2,X3,X4,X5 class_step;
+  class X6 class_result;
 ```
 
-Purpose:
+### Purpose:
 - Prevents shared edges from contributing to the master perimeter hull by removing their endpoints from candidate polygons
 
 
-## Collecting polygons after exclude
+# Collecting polygons after exclude
 
-Entry point: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
+### Entry point: [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
   C1[_collectPolygonsFromZones] --> C2[for each zone take vertices]
   C2 --> C3[skip vertex keys present in exclude]
   C3 --> C4[accumulate poly if at least 3 vertices]
   C4 --> C5[return list of polygons]
+  class C1,C2,C3,C4 class_step;
+  class C5 class_result;
 ```
 
 
-## Flattening to unique points
+# Flattening to unique points
 
-Entry point: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
+### Entry point: [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   U1[_flattenUniquePoints] --> U2[insert unique points by x y]
   U2 --> U3{count less than 3}
@@ -125,14 +152,17 @@ flowchart TD
   U3 -->|no| U5[proceed]
   U4 --> U6[return allPoints]
   U5 --> U6[return allPoints]
+  class U1,U2,U4,U5 class_step;
+  class U3 class_decision;
+  class U6 class_result;
 ```
 
 
-## Hull loop to outward quads
+# Hull loop to outward quads
 
-Entry point: [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
+### Entry point: [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
 
-Behavior summary:
+### Behavior summary:
 - Optional densification of hull edges using samples and snapping
 - Compute centroid of the hull
 - For each hull vertex, cast outward ray to world bounds and capture intersection
@@ -140,26 +170,32 @@ Behavior summary:
 - Store the resulting list depending on whether sampling was enabled
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   H1[_processHullLoop] --> H2[optional densify hull edges]
   H2 --> H3[compute centroid]
-  H3 --> H4[for each vertex compute outward direction]
-  H4 --> H5[intersect ray with world bounds or clamp]
-  H5 --> H6[assemble outward intersection list]
+  subgraph "Outward rays"
+    H3 --> H4[for each vertex compute outward direction]
+    H4 --> H5[intersect ray with world bounds or clamp]
+    H5 --> H6[assemble outward intersection list]
+  end
   H6 --> H7[for each consecutive pair build quad]
   H7 --> H8[store in HullPolysWithSample or NoSample]
   H8 --> H9[return self]
+  class H1,H2,H3,H4,H5,H6,H7,H8 class_step;
+  class H2,H3,H4,H5,H6 class_compute;
+  class H9 class_result;
 ```
 
-Geometry dependencies:
+### Geometry dependencies:
 - Densify edges, centroid, bounds intersection: [dev/POLY.lua](../../dev/POLY.lua)
 
 
-## Center cutout polygon
+# Center cutout polygon
 
-Entry point: [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:565)
+### Entry point: [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:565)
 
-Behavior summary:
+### Behavior summary:
 - Normalize input polygons to a canonical point form
 - Build undirected edge counts
 - Boundary edges are those seen once
@@ -168,6 +204,7 @@ Behavior summary:
 - Return the largest hole loop or fallback to second largest
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
   K1[getPolygonCutout] --> K2[normalize polygons]
   K2 --> K3[build undirected edge counts and points map]
@@ -178,10 +215,13 @@ flowchart TD
   K7 --> K8[collect hole candidates by centroid inside outer]
   K8 --> K9[choose largest hole or fallback]
   K9 --> K10[return hole points or nil]
+  class K1,K2,K3,K4,K5,K6,K7,K8,K9 class_step;
+  class K10 class_result;
+  class K2,K3,K5,K6,K8,K9 class_compute;
 ```
 
 
-## Configuration inputs
+# Configuration inputs
 
 - Theater bounds used by out of bounds:
   - [AETHR.CONFIG.MAIN.worldBounds](../../dev/CONFIG_.lua:245)
@@ -197,7 +237,7 @@ flowchart TD
   - [AETHR.CONFIG.MAIN.Zone.gameBounds.lineType](../../dev/CONFIG_.lua:326)
 
 
-## Anchor index
+# Anchor index
 
 - [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
 - [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)

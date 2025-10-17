@@ -1,11 +1,11 @@
 # AETHR ZONE_MANAGER diagrams index
 
-Primary module entries
+### Primary module entries
 - Init data: [AETHR.ZONE_MANAGER:initMizZoneData()](../../dev/ZONE_MANAGER.lua:122), [AETHR.ZONE_MANAGER:initGameZoneBoundaries()](../../dev/ZONE_MANAGER.lua:860)
 - Generate: [AETHR.ZONE_MANAGER:generateMizZoneData()](../../dev/ZONE_MANAGER.lua:205), [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
 - Draw: [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980), [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931), [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025)
 
-Documents
+### Documents
 - Zone data: [docs/zone_manager/zone_data.md](docs/zone_manager/zone_data.md)
 - Borders and master: [docs/zone_manager/borders_and_master.md](docs/zone_manager/borders_and_master.md)
 - Game bounds: [docs/zone_manager/game_bounds.md](docs/zone_manager/game_bounds.md)
@@ -13,18 +13,22 @@ Documents
 - Watchers: [docs/zone_manager/watchers.md](docs/zone_manager/watchers.md)
 - Airbases: [docs/zone_manager/airbases.md](docs/zone_manager/airbases.md)
 
-End to end relationship
+# End to end relationship
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 flowchart LR
-  ZD[Zone data] --> BM[Borders and master]
-  BM --> GB[Game bounds]
-  GB --> MA[Markers and arrows]
-  ZD --> W[Watchers]
-  ZD --> AB[Airbases]
+  subgraph "Docs Overview"
+    ZD[Zone data] --> BM[Borders and master]
+    BM --> GB[Game bounds]
+    GB --> MA[Markers and arrows]
+    ZD --> W[Watchers]
+    ZD --> AB[Airbases]
+  end
+  class ZD,BM,GB,MA,W,AB class_step;
 ```
 
-Key anchors
+### Key anchors
 - Normalization and storage
   - [AETHR.ZONE_MANAGER:_normalizeMizZones()](../../dev/ZONE_MANAGER.lua:53)
   - [AETHR.ZONE_MANAGER:getStoredMizZoneData()](../../dev/ZONE_MANAGER.lua:141), [AETHR.ZONE_MANAGER:saveMizZoneData()](../../dev/ZONE_MANAGER.lua:152)
@@ -48,7 +52,7 @@ Key anchors
   - [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103)
   - [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
 
-Cross-module anchors
+### Cross-module anchors
 - Geometry
   - [AETHR.POLY:convertPolygonToLines()](../../dev/POLY.lua:737), [AETHR.POLY:convertLinesToPolygon()](../../dev/POLY.lua:582)
   - [AETHR.POLY:pointInPolygon()](../../dev/POLY.lua:66), [AETHR.POLY:isWithinOffset()](../../dev/POLY.lua:1106)
@@ -66,9 +70,10 @@ Cross-module anchors
 - Spawner
   - [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
 
-Module interactions during runtime
+# Module interactions during runtime
 
 ```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
 sequenceDiagram
   participant A as AETHR
   participant Z as ZONE_MANAGER
@@ -79,7 +84,7 @@ sequenceDiagram
   A->>Z: initMizZoneData
   alt stored data present
     Z-->>Z: load and normalize
-  else
+  else not present
     Z->>Z: generateMizZoneData
     Z->>W: getAirbases
     Z->>Z: saveMizZoneData
@@ -90,3 +95,4 @@ sequenceDiagram
   Z->>M: drawMissionZones and drawGameBounds
   Z->>Z: initZoneArrows
   W->>U: update markup colors for arrows
+```
