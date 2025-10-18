@@ -260,7 +260,7 @@ async function writeIndexHtml(outDir) {
         // Base is the current docs path, e.g. "docs/a/b/README.md"
         const baseUrl = new URL('./' + base, window.location.origin + '/');
         const url = new URL(href, baseUrl);
-        const path = url.pathname.replace(/^\/+/, '');
+        const path = url.pathname.replace(new RegExp('^/+'), '');
         const hash = url.hash ? url.hash : '';
         return { path, hash };
       }
