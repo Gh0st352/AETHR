@@ -330,7 +330,8 @@ async function writeIndexHtml(outDir) {
         const frag = document.createDocumentFragment();
 
         function isReadme(p) {
-          return /(^|\/)README\.md$/i.test(p);
+          const lc = p.toLowerCase();
+          return lc === 'readme.md' || lc.endsWith('/readme.md');
         }
 
         for (const key of binKeys) {
