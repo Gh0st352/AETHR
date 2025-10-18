@@ -1,9 +1,9 @@
 # AETHR BRAIN coroutines
 
 ## Entry anchors
-- [AETHR.BRAIN:doRoutine()](../../dev/BRAIN.lua:176)
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:56) coroutines table
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:149) BackgroundLoopInterval
+- [AETHR.BRAIN:doRoutine()](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L176)
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L56) coroutines table
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L149) BackgroundLoopInterval
 
 ## Purpose
 The coroutine runner executes periodic routines based on interval and phase with safe creation resume and cleanup. BackgroundLoopInterval controls tick cadence.
@@ -62,16 +62,16 @@ sequenceDiagram
 ```
 
 # Configured descriptors
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:58) saveGroundUnits interval 10 phase 9 yield 5
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:67) updateZoneOwnership interval 10 phase 2 yield 5
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:76) updateAirfieldOwnership interval 10 phase 0 yield 5
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:85) updateZoneColors interval 10 phase 4 yield 5
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:94) updateZoneArrows interval 10 phase 6 yield 10
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:103) updateGroundUnitsDB interval 30 phase 8 yield 10
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:112) spawnGroundGroups interval 10 phase 3 yield 3
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:121) despawnGroundGroups interval 10 phase 1 yield 3
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:130) spawnerGenerationQueue interval 10 phase 12 yield 10
-- [dev/BRAIN.lua](../../dev/BRAIN.lua:139) processFSMQueue interval 10 phase 5 yield 10
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L58) saveGroundUnits interval 10 phase 9 yield 5
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L67) updateZoneOwnership interval 10 phase 2 yield 5
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L76) updateAirfieldOwnership interval 10 phase 0 yield 5
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L85) updateZoneColors interval 10 phase 4 yield 5
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L94) updateZoneArrows interval 10 phase 6 yield 10
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L103) updateGroundUnitsDB interval 30 phase 8 yield 10
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L112) spawnGroundGroups interval 10 phase 3 yield 3
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L121) despawnGroundGroups interval 10 phase 1 yield 3
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L130) spawnerGenerationQueue interval 10 phase 12 yield 10
+- [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L139) processFSMQueue interval 10 phase 5 yield 10
 
 # Descriptors subgraph
 

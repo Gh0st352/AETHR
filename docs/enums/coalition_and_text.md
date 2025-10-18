@@ -4,28 +4,28 @@ Coalition constants, phonetic alphabet and common user-facing strings used acros
 
 # Primary sources
 
-- Coalition class doc: [AETHR.ENUMS.Coalition](../../dev/ENUMS.lua:102)
-- Coalition mapping: [AETHR.ENUMS.Coalition = { ... }](../../dev/ENUMS.lua:417)
-- Text strings class doc: [AETHR.ENUMS.TextStrings](../../dev/ENUMS.lua:156)
-- Text strings mapping: [AETHR.ENUMS.TextStrings = { ... }](../../dev/ENUMS.lua:471)
-- Phonetic class doc: [AETHR.ENUMS.Phonetic](../../dev/ENUMS.lua:109)
-- Phonetic mapping: [AETHR.ENUMS.Phonetic = { ... }](../../dev/ENUMS.lua:424)
-- Root table init: [AETHR.ENUMS](../../dev/ENUMS.lua:337)
+- Coalition class doc: [AETHR.ENUMS.Coalition](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L102)
+- Coalition mapping: [AETHR.ENUMS.Coalition = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L417)
+- Text strings class doc: [AETHR.ENUMS.TextStrings](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L156)
+- Text strings mapping: [AETHR.ENUMS.TextStrings = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L471)
+- Phonetic class doc: [AETHR.ENUMS.Phonetic](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L109)
+- Phonetic mapping: [AETHR.ENUMS.Phonetic = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L424)
+- Root table init: [AETHR.ENUMS](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L337)
 
 # Consumers and anchors
 
 - WORLD ownership and text output
-  - Airbase change handler: [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
-    - Message composition using [TextStrings](../../dev/ENUMS.lua:471) at [dev/WORLD.lua](../../dev/WORLD.lua:989) to [dev/WORLD.lua](../../dev/WORLD.lua:996)
-  - Zone change handler: [AETHR.WORLD:zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
-    - Message composition at [dev/WORLD.lua](../../dev/WORLD.lua:1025) to [dev/WORLD.lua](../../dev/WORLD.lua:1036)
+  - Airbase change handler: [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970)
+    - Message composition using [TextStrings](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L471) at [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L989) to [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L996)
+  - Zone change handler: [AETHR.WORLD:zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
+    - Message composition at [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1025) to [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1036)
 
 - ZONE_MANAGER visuals using coalition indexing
-  - Draw mission zones: [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980) picks paint colors by zone.ownedBy (Coalition)
-  - Draw arrows per coalition: [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025) creates per-coalition arrows indexed 0..2
+  - Draw mission zones: [AETHR.ZONE_MANAGER:drawMissionZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L980) picks paint colors by zone.ownedBy (Coalition)
+  - Draw arrows per coalition: [AETHR.ZONE_MANAGER:drawZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1025) creates per-coalition arrows indexed 0..2
 
 - WORLD arrows and colors
-  - Update zone arrows: [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730) toggles visibility based on ownership differences; ArrowColors indexed by coalition
+  - Update zone arrows: [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730) toggles visibility based on ownership differences; ArrowColors indexed by coalition
 
 # Ownership to text flow
 
@@ -98,16 +98,16 @@ sequenceDiagram
 
 # Phonetic alphabet usage
 
-- Phonetic codes [AETHR.ENUMS.Phonetic](../../dev/ENUMS.lua:424) provide stable strings for radio-like identifiers
+- Phonetic codes [AETHR.ENUMS.Phonetic](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L424) provide stable strings for radio-like identifiers
 - While not directly referenced in the listed consumers, the mapping is intended for UI and reporting utilities that need NATO spelling
 
 # Validation checklist
 
-- Coalition mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:417)
-- TextStrings mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:471)
-- Phonetic mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:424)
-- WORLD handlers use TextStrings at [dev/WORLD.lua](../../dev/WORLD.lua:989) to [dev/WORLD.lua](../../dev/WORLD.lua:1036)
-- ZONE_MANAGER rendering reads coalition-indexed colors at [dev/ZONE_MANAGER.lua](../../dev/ZONE_MANAGER.lua:980) and creates per-coalition arrows at [dev/ZONE_MANAGER.lua](../../dev/ZONE_MANAGER.lua:1025)
+- Coalition mapping present at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L417)
+- TextStrings mapping present at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L471)
+- Phonetic mapping present at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L424)
+- WORLD handlers use TextStrings at [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L989) to [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1036)
+- ZONE_MANAGER rendering reads coalition-indexed colors at [dev/ZONE_MANAGER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L980) and creates per-coalition arrows at [dev/ZONE_MANAGER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1025)
 
 # Related breakouts
 

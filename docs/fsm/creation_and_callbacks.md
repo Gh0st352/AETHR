@@ -1,14 +1,14 @@
 # FSM creation and callbacks
 
-Constructing a state machine from options and wiring lifecycle callbacks. Covers options schema, event mapping, and callback name resolution implemented by [AETHR.FSM:New()](../../dev/FSM.lua:366), [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200), and [AETHR.FSM:call_handler()](../../dev/FSM.lua:88).
+Constructing a state machine from options and wiring lifecycle callbacks. Covers options schema, event mapping, and callback name resolution implemented by [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366), [AETHR.FSM:add_to_map()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200), and [AETHR.FSM:call_handler()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88).
 
 Primary anchors
 
-- Options class: [AETHR.FSM.DATA.Options](../../dev/FSM.lua:44)
-- Builder: [AETHR.FSM:New()](../../dev/FSM.lua:366)
-- Event map fill: [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
-- Handler wrapper: [AETHR.FSM:call_handler()](../../dev/FSM.lua:88)
-- Async and none sentinels: [AETHR.FSM.ASYNC](../../dev/FSM.lua:23), [AETHR.FSM.NONE](../../dev/FSM.lua:22)
+- Options class: [AETHR.FSM.DATA.Options](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L44)
+- Builder: [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366)
+- Event map fill: [AETHR.FSM:add_to_map()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
+- Handler wrapper: [AETHR.FSM:call_handler()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88)
+- Async and none sentinels: [AETHR.FSM.ASYNC](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L23), [AETHR.FSM.NONE](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L22)
 
 Options overview
 
@@ -69,10 +69,10 @@ flowchart TD
 
 # Callback resolution during transitions
 
-- Order inside [AETHR.FSM:create_transition()](../../dev/FSM.lua:104):
+- Order inside [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104):
   - onBefore<event> then onLeave<from>
   - onEnter<to> or on<to> then onAfter<event> or on<event> then onStateChange
-- All invoked via [AETHR.FSM:call_handler()](../../dev/FSM.lua:88) to safely ignore non functions
+- All invoked via [AETHR.FSM:call_handler()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88) to safely ignore non functions
 
 # Example callback naming
 
@@ -108,11 +108,11 @@ sequenceDiagram
 
 # Validation checklist
 
-- Options class doc: [AETHR.FSM.DATA.Options](../../dev/FSM.lua:44)
-- Builder: [AETHR.FSM:New()](../../dev/FSM.lua:366)
-- Map fill: [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
-- Handler wrapper: [AETHR.FSM:call_handler()](../../dev/FSM.lua:88)
-- Transition implementation context: [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
+- Options class doc: [AETHR.FSM.DATA.Options](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L44)
+- Builder: [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366)
+- Map fill: [AETHR.FSM:add_to_map()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
+- Handler wrapper: [AETHR.FSM:call_handler()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88)
+- Transition implementation context: [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
 
 # Related breakouts
 

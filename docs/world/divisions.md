@@ -3,12 +3,12 @@
 This document covers generation of world divisions, AABB caching, active division determination by zone overlap, and optional map marking.
 
 Primary anchors
-- Init orchestration: [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176), [AETHR.WORLD:initActiveDivisions()](../../dev/WORLD.lua:1083)
-- IO helpers: [AETHR.WORLD:loadWorldDivisions()](../../dev/WORLD.lua:1098), [AETHR.WORLD:saveWorldDivisions()](../../dev/WORLD.lua:1113), [AETHR.WORLD:loadWorldDivisionsAABB()](../../dev/WORLD.lua:1126), [AETHR.WORLD:saveWorldDivisionsAABB()](../../dev/WORLD.lua:1141), [AETHR.WORLD:loadActiveDivisions()](../../dev/WORLD.lua:1045), [AETHR.WORLD:saveActiveDivisions()](../../dev/WORLD.lua:1057)
-- Generation and caches: [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156), [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
-- Active selection: [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328), [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
-- Grid helpers: [AETHR.WORLD:initGrid()](../../dev/WORLD.lua:1236), [AETHR.WORLD:buildZoneCellIndex()](../../dev/WORLD.lua:1268)
-- Debug map paint: [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:284)
+- Init orchestration: [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176), [AETHR.WORLD:initActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1083)
+- IO helpers: [AETHR.WORLD:loadWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1098), [AETHR.WORLD:saveWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1113), [AETHR.WORLD:loadWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1126), [AETHR.WORLD:saveWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1141), [AETHR.WORLD:loadActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1045), [AETHR.WORLD:saveActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1057)
+- Generation and caches: [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156), [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206)
+- Active selection: [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328), [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
+- Grid helpers: [AETHR.WORLD:initGrid()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1236), [AETHR.WORLD:buildZoneCellIndex()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1268)
+- Debug map paint: [AETHR.WORLD:markWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L284)
 
 # Initialization flows
 
@@ -135,14 +135,14 @@ flowchart TD
 ## Anchor index
 
 - Orchestration
-  - [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176), [AETHR.WORLD:initActiveDivisions()](../../dev/WORLD.lua:1083)
+  - [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176), [AETHR.WORLD:initActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1083)
 - IO
-  - [AETHR.WORLD:loadWorldDivisions()](../../dev/WORLD.lua:1098), [AETHR.WORLD:saveWorldDivisions()](../../dev/WORLD.lua:1113)
-  - [AETHR.WORLD:loadWorldDivisionsAABB()](../../dev/WORLD.lua:1126), [AETHR.WORLD:saveWorldDivisionsAABB()](../../dev/WORLD.lua:1141)
-  - [AETHR.WORLD:loadActiveDivisions()](../../dev/WORLD.lua:1045), [AETHR.WORLD:saveActiveDivisions()](../../dev/WORLD.lua:1057)
+  - [AETHR.WORLD:loadWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1098), [AETHR.WORLD:saveWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1113)
+  - [AETHR.WORLD:loadWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1126), [AETHR.WORLD:saveWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1141)
+  - [AETHR.WORLD:loadActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1045), [AETHR.WORLD:saveActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1057)
 - Logic
-  - [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156), [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
-  - [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328), [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
-  - [AETHR.WORLD:initGrid()](../../dev/WORLD.lua:1236), [AETHR.WORLD:buildZoneCellIndex()](../../dev/WORLD.lua:1268)
+  - [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156), [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206)
+  - [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328), [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
+  - [AETHR.WORLD:initGrid()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1236), [AETHR.WORLD:buildZoneCellIndex()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1268)
 - Markup
-  - [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:284)
+  - [AETHR.WORLD:markWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L284)

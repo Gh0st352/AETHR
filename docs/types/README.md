@@ -2,28 +2,28 @@
 
 ### Primary constructors and anchors
 - Basic geometry and containers
-  - [AETHR._vec3:New()](../../dev/customTypes.lua:114)
-  - [AETHR._vec2:New()](../../dev/customTypes.lua:522)
-  - [AETHR._vec2xz:New()](../../dev/customTypes.lua:542)
-  - [AETHR._ColorRGBA:New()](../../dev/customTypes.lua:27)
-  - [AETHR._BBox:New()](../../dev/customTypes.lua:136)
-  - [AETHR._ZoneCellEntry:New()](../../dev/customTypes.lua:178)
-  - [AETHR._WorldBoundsAxis:New()](../../dev/customTypes.lua:51), [AETHR._WorldBounds:New()](../../dev/customTypes.lua:68)
+  - [AETHR._vec3:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L114)
+  - [AETHR._vec2:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L522)
+  - [AETHR._vec2xz:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L542)
+  - [AETHR._ColorRGBA:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L27)
+  - [AETHR._BBox:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L136)
+  - [AETHR._ZoneCellEntry:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L178)
+  - [AETHR._WorldBoundsAxis:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L51), [AETHR._WorldBounds:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L68)
 - Mission and world descriptors
-  - [AETHR._MIZ_ZONE:New()](../../dev/customTypes.lua:283)
-  - [AETHR._WorldDivision:New()](../../dev/customTypes.lua:159)
-  - [AETHR._Grid:New()](../../dev/customTypes.lua:330)
-  - [AETHR._BorderInfo:New()](../../dev/customTypes.lua:232)
-  - [AETHR._airbase:New()](../../dev/customTypes.lua:432)
-  - [AETHR._FoundObject:New()](../../dev/customTypes.lua:198), [AETHR._foundObject:New()](../../dev/customTypes.lua:578)
+  - [AETHR._MIZ_ZONE:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L283)
+  - [AETHR._WorldDivision:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L159)
+  - [AETHR._Grid:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L330)
+  - [AETHR._BorderInfo:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L232)
+  - [AETHR._airbase:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L432)
+  - [AETHR._FoundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L198), [AETHR._foundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L578)
 - Markers and drawing
-  - [AETHR._Marker:New()](../../dev/customTypes.lua:375)
+  - [AETHR._Marker:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L375)
 - Spawner ecosystem
-  - [AETHR._dynamicSpawner:New()](../../dev/customTypes.lua:868)
-  - [AETHR._spawnerZone:New()](../../dev/customTypes.lua:1177)
-  - [AETHR._spawnSettings:New()](../../dev/customTypes.lua:1401)
-  - [AETHR._spawnerTypeConfig:New()](../../dev/customTypes.lua:1444)
-  - [AETHR._circle:New()](../../dev/customTypes.lua:1471)
+  - [AETHR._dynamicSpawner:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L868)
+  - [AETHR._spawnerZone:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1177)
+  - [AETHR._spawnSettings:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1401)
+  - [AETHR._spawnerTypeConfig:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1444)
+  - [AETHR._circle:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1471)
 
 ### Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -175,13 +175,13 @@ flowchart TD
 
 # Key anchors by area
 - Zones and borders
-  - [AETHR._MIZ_ZONE:New()](../../dev/customTypes.lua:283), [AETHR._BorderInfo:New()](../../dev/customTypes.lua:232)
+  - [AETHR._MIZ_ZONE:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L283), [AETHR._BorderInfo:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L232)
 - World and grid
-  - [AETHR._WorldDivision:New()](../../dev/customTypes.lua:159), [AETHR._Grid:New()](../../dev/customTypes.lua:330), [AETHR._ZoneCellEntry:New()](../../dev/customTypes.lua:178)
+  - [AETHR._WorldDivision:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L159), [AETHR._Grid:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L330), [AETHR._ZoneCellEntry:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L178)
 - Spawner ecosystem
-  - [AETHR._dynamicSpawner:New()](../../dev/customTypes.lua:868), [AETHR._spawnerZone:New()](../../dev/customTypes.lua:1177), [AETHR._spawnSettings:New()](../../dev/customTypes.lua:1401), [AETHR._spawnerTypeConfig:New()](../../dev/customTypes.lua:1444), [AETHR._circle:New()](../../dev/customTypes.lua:1471)
+  - [AETHR._dynamicSpawner:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L868), [AETHR._spawnerZone:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1177), [AETHR._spawnSettings:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1401), [AETHR._spawnerTypeConfig:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1444), [AETHR._circle:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1471)
 - Markers and IO-facing
-  - [AETHR._Marker:New()](../../dev/customTypes.lua:375), [AETHR._FoundObject:New()](../../dev/customTypes.lua:198), [AETHR._airbase:New()](../../dev/customTypes.lua:432)
+  - [AETHR._Marker:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L375), [AETHR._FoundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L198), [AETHR._airbase:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L432)
 
 ### Notes
 - Mermaid labels avoid double quotes and parentheses.

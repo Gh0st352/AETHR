@@ -1,8 +1,8 @@
 # UTILS points and normalization
 
 Anchors
-- [AETHR.UTILS:getPointY()](../../dev/UTILS.lua:129)
-- [AETHR.UTILS:normalizePoint()](../../dev/UTILS.lua:137)
+- [AETHR.UTILS:getPointY()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L129)
+- [AETHR.UTILS:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L137)
 
 Overview
 - getPointY extracts the vertical component from a point like table, supporting y or z fields.
@@ -49,7 +49,7 @@ sequenceDiagram
   - y uses pt.y when present, else falls back to pt.z, else 0.
 
 # Source anchors
-- [AETHR.UTILS:getPointY()](../../dev/UTILS.lua:129)
-- [AETHR.UTILS:normalizePoint()](../../dev/UTILS.lua:137)
+- [AETHR.UTILS:getPointY()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L129)
+- [AETHR.UTILS:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L137)
 
 Last updated: 2025-10-16

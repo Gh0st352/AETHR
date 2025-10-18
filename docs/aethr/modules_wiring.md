@@ -1,16 +1,16 @@
 # AETHR modules wiring and auto registration
 
 ## Primary anchors
-- [AETHR.MODULES](../../dev/AETHR.lua:40)
-- [Build modulesList](../../dev/AETHR.lua:148)
-- [Phase 1 construct submodules](../../dev/AETHR.lua:155)
-- [pcall mod New and fallback](../../dev/AETHR.lua:160)
-- [Phase 2 wire backrefs](../../dev/AETHR.lua:172)
-- [Ensure sub AETHR ref](../../dev/AETHR.lua:178)
-- [Inject sibling refs](../../dev/AETHR.lua:181)
+- [AETHR.MODULES](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L40)
+- [Build modulesList](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L148)
+- [Phase 1 construct submodules](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L155)
+- [pcall mod New and fallback](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L160)
+- [Phase 2 wire backrefs](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L172)
+- [Ensure sub AETHR ref](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L178)
+- [Inject sibling refs](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L181)
 
 # Overview
-AETHR uses a simple registry [AETHR.MODULES](../../dev/AETHR.lua:40) to determine which prototype tables to attach to each instance. Modules are constructed in two phases to avoid ordering constraints and to ensure sibling access within submodules.
+AETHR uses a simple registry [AETHR.MODULES](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L40) to determine which prototype tables to attach to each instance. Modules are constructed in two phases to avoid ordering constraints and to ensure sibling access within submodules.
 
 # Flow of module wiring
 
@@ -40,7 +40,7 @@ flowchart LR
 ```
 
 # Phase 1 construction
-- Iterate list from [modulesList](../../dev/AETHR.lua:148)
+- Iterate list from [modulesList](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L148)
 - If prototype field is a table and instance slot is empty, try `:New(instance)` via protected call
 - On success with table result, assign returned submodule
 - On failure or non table return, assign the prototype table directly
@@ -89,9 +89,9 @@ sequenceDiagram
 - [AETHR overview](./README.md)
 
 ## Source anchors
-- [modules list build](../../dev/AETHR.lua:148)
-- [Phase 1 loop](../../dev/AETHR.lua:155)
-- [pcall to New](../../dev/AETHR.lua:160)
-- [Phase 2 loop](../../dev/AETHR.lua:172)
-- [assign AETHR ref](../../dev/AETHR.lua:178)
-- [inject sibling refs](../../dev/AETHR.lua:181)
+- [modules list build](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L148)
+- [Phase 1 loop](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L155)
+- [pcall to New](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L160)
+- [Phase 2 loop](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L172)
+- [assign AETHR ref](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L178)
+- [inject sibling refs](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L181)

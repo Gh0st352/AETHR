@@ -1,11 +1,11 @@
 # MARKERS arrows
 
-Arrow drawing wrapper and core function. Documents [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139) and [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176), including varargs normalization, color packing, and trigger calls.
+Arrow drawing wrapper and core function. Documents [AETHR.MARKERS:markArrow()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L139) and [AETHR.MARKERS:drawArrow()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L176), including varargs normalization, color packing, and trigger calls.
 
 # Primary anchors
 
-- Wrapper arrow: [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:139)
-- Draw arrow core: [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
+- Wrapper arrow: [AETHR.MARKERS:markArrow()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L139)
+- Draw arrow core: [AETHR.MARKERS:drawArrow()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L176)
 
 # Overview flow
 
@@ -31,7 +31,7 @@ flowchart LR
   - lineType 0
   - markID 0
   - freeFormVec2Table used as two point list
-- Calls [drawArrow](../../dev/MARKERS.lua:176) then optionally stores _Marker by markID
+- Calls [drawArrow](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L176) then optionally stores _Marker by markID
 
 # Varargs normalization
 
@@ -70,7 +70,7 @@ flowchart TD
 ```
 
 - Arrow uses MarkerTypes Arrow as shape identifier
-  - shapeTypeID = [AETHR.ENUMS.MarkerTypes.Arrow](../../dev/ENUMS.lua:465)
+  - shapeTypeID = [AETHR.ENUMS.MarkerTypes.Arrow](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L465)
 - Note: Unlike polygon, arrow points are inserted in forward order (no reverse)
 
 # Sequence
@@ -92,9 +92,9 @@ sequenceDiagram
 
 # Validation checklist
 
-- Wrapper: [dev/MARKERS.lua](../../dev/MARKERS.lua:139)
-- Draw core: [dev/MARKERS.lua](../../dev/MARKERS.lua:176)
-- Packing and call: [dev/MARKERS.lua](../../dev/MARKERS.lua:213)
+- Wrapper: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L139)
+- Draw core: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L176)
+- Packing and call: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L213)
 
 # Related breakouts
 

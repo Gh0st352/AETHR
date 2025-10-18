@@ -4,7 +4,7 @@ Cycle safe deep copy for arbitrary Lua tables, preserving nested structure and m
 
 # Primary anchor
 
-- [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
+- [AETHR.FILEOPS:deepcopy()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L206)
 
 # Overview
 
@@ -99,7 +99,7 @@ sequenceDiagram
 
 # Validation checklist
 
-- Entry point: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:206)
+- Entry point: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L206)
 
 # Related breakouts
 

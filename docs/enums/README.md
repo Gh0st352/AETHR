@@ -1,19 +1,19 @@
 # AETHR ENUMS overview and usage diagrams
 
 Primary anchors
-- Root table initialization: [AETHR.ENUMS](../../dev/ENUMS.lua:337)
-- Line styles: [AETHR.ENUMS.LineTypes](../../dev/ENUMS.lua:452)
-- Marker shapes: [AETHR.ENUMS.MarkerTypes](../../dev/ENUMS.lua:461)
-- Coalition constants: [AETHR.ENUMS.Coalition](../../dev/ENUMS.lua:418)
-- Surface types: [AETHR.ENUMS.SurfaceType](../../dev/ENUMS.lua:365)
-- DCS events: [AETHR.ENUMS.Events](../../dev/ENUMS.lua:374)
-- Countries map: [AETHR.ENUMS.Countries](../../dev/ENUMS.lua:481)
-- AI skill levels: [AETHR.ENUMS.Skill](../../dev/ENUMS.lua:483)
-- Spawner categories: [AETHR.ENUMS.spawnTypes](../../dev/ENUMS.lua:490)
-- Spawner category priority: [AETHR.ENUMS.spawnTypesPrio](../../dev/ENUMS.lua:562)
-- Dynamic spawner types: [AETHR.ENUMS.dynamicSpawnerTypes](../../dev/ENUMS.lua:632)
-- FSM sentinels: [AETHR.ENUMS.FSM](../../dev/ENUMS.lua:638)
-- Restricted town types: [AETHR.ENUMS.restrictedTownTypes](../../dev/ENUMS.lua:650)
+- Root table initialization: [AETHR.ENUMS](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L337)
+- Line styles: [AETHR.ENUMS.LineTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L452)
+- Marker shapes: [AETHR.ENUMS.MarkerTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L461)
+- Coalition constants: [AETHR.ENUMS.Coalition](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L418)
+- Surface types: [AETHR.ENUMS.SurfaceType](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L365)
+- DCS events: [AETHR.ENUMS.Events](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L374)
+- Countries map: [AETHR.ENUMS.Countries](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L481)
+- AI skill levels: [AETHR.ENUMS.Skill](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L483)
+- Spawner categories: [AETHR.ENUMS.spawnTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L490)
+- Spawner category priority: [AETHR.ENUMS.spawnTypesPrio](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L562)
+- Dynamic spawner types: [AETHR.ENUMS.dynamicSpawnerTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L632)
+- FSM sentinels: [AETHR.ENUMS.FSM](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L638)
+- Restricted town types: [AETHR.ENUMS.restrictedTownTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L650)
 
 Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -106,10 +106,10 @@ sequenceDiagram
 ```
 
 # Anchors in consuming modules
-- MARKERS uses shapes and lines: [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85), [AETHR.MARKERS:drawArrow()](../../dev/MARKERS.lua:176)
-- ZONE_MANAGER ownership integration: [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103), [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
-- WORLD ownership texts and updates: [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
-- SPAWNER types and priorities: [AETHR.SPAWNER:seedTypes()](../../dev/SPAWNER.lua:1804), [AETHR.SPAWNER:generateGroupTypes()](../../dev/SPAWNER.lua:1600)
+- MARKERS uses shapes and lines: [AETHR.MARKERS:drawPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L85), [AETHR.MARKERS:drawArrow()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L176)
+- ZONE_MANAGER ownership integration: [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1103), [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1113)
+- WORLD ownership texts and updates: [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
+- SPAWNER types and priorities: [AETHR.SPAWNER:seedTypes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1804), [AETHR.SPAWNER:generateGroupTypes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1600)
 
 ### Notes
 - ENUMS provides engine constant pass-throughs; when running outside DCS, ensure the environment provides required globals or inject stubs.

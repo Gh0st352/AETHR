@@ -5,15 +5,15 @@ Visualization settings for zones and world bounds. Explains how paint colors, al
 # Source anchors
 
 - Schema
-  - [AETHR.CONFIG.ZoneSettings](../../dev/CONFIG_.lua:124)
-  - [AETHR.CONFIG.PaintColors](../../dev/CONFIG_.lua:107)
-  - [AETHR.CONFIG.GameBoundsSettings](../../dev/CONFIG_.lua:116)
+  - [AETHR.CONFIG.ZoneSettings](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L124)
+  - [AETHR.CONFIG.PaintColors](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L107)
+  - [AETHR.CONFIG.GameBoundsSettings](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L116)
 - Defaults block
-  - Zone defaults table start: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:295)
+  - Zone defaults table start: [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L295)
 - Runtime consumers
-  - [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
-  - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
-  - [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+  - [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683)
+  - [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
+  - [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
 
 # Overview
 
@@ -54,7 +54,7 @@ flowchart TB
   class OWN,LC,FC,LRGBA,FRGBA,APPLY class_step;
 ```
 
-- Implemented in [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
+- Implemented in [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683)
 - Fallback to index 0 when no specific coalition index is found
 
 # Sequence for zone color updates
@@ -96,7 +96,7 @@ sequenceDiagram
   end
 ```
 
-- Implemented in [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
+- Implemented in [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
 - Arrow colors sourced from Zone.paintColors.ArrowColors using coalition index, with alpha from color table or default 1
 
 # Game bounds rendering
@@ -130,16 +130,16 @@ flowchart TB
 - BorderOffsetThreshold: distance threshold for bordering detection
 - ArrowLength: default arrow length in meters
 - lineType values come from enums set in CONFIG defaults
-  - See [dev/CONFIG_.lua](../../dev/CONFIG_.lua:319) and [dev/CONFIG_.lua](../../dev/CONFIG_.lua:326)
+  - See [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L319) and [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L326)
 
 # Validation checklist
 
-- Paint colors present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:296)
-- Arrow colors present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:307)
-- Game bounds present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:321)
-- WORLD color updates at [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
-- WORLD arrow updates at [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
-- UTILS color setter at [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+- Paint colors present at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L296)
+- Arrow colors present at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L307)
+- Game bounds present at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L321)
+- WORLD color updates at [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683)
+- WORLD arrow updates at [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
+- UTILS color setter at [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
 
 # Related breakouts
 

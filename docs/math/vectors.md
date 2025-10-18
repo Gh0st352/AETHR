@@ -3,9 +3,9 @@
 Distance, dot product, and turn angle helpers used by geometry flows.
 
 Source anchors
-- [AETHR.MATH:distanceSquared()](../../dev/MATH_.lua:58)
-- [AETHR.MATH:dot()](../../dev/MATH_.lua:75)
-- [AETHR.MATH:turnAngle()](../../dev/MATH_.lua:142)
+- [AETHR.MATH:distanceSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L58)
+- [AETHR.MATH:dot()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L75)
+- [AETHR.MATH:turnAngle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L142)
 
 Overview
 
@@ -120,9 +120,9 @@ sequenceDiagram
 
 # Validation checklist
 
-- distanceSquared: [dev/MATH_.lua](../../dev/MATH_.lua:58)
-- dot: [dev/MATH_.lua](../../dev/MATH_.lua:75)
-- turnAngle: [dev/MATH_.lua](../../dev/MATH_.lua:142)
+- distanceSquared: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L58)
+- dot: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L75)
+- turnAngle: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L142)
 
 # Related docs
 
@@ -137,7 +137,7 @@ sequenceDiagram
 ## Ratio helper computeRatio
 
 Anchor
-- [AETHR.MATH:computeRatio()](../../dev/MATH_.lua:43)
+- [AETHR.MATH:computeRatio()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L43)
 
 Purpose
 - Returns a normalized ratio in 0..1 between two magnitudes, guarding zero
@@ -174,5 +174,5 @@ sequenceDiagram
 ```
 
 # Validation checklist
-- computeRatio: [dev/MATH_.lua](../../dev/MATH_.lua:43)
-- isWithinOffset usage: [dev/POLY.lua](../../dev/POLY.lua:1109)
+- computeRatio: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L43)
+- isWithinOffset usage: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1109)

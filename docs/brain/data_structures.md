@@ -1,10 +1,10 @@
 # AETHR BRAIN data structures
 
 ## Entry anchors
-- [AETHR.ScheduledTask](../../dev/BRAIN.lua:22)
-- [AETHR.CoroutineDescriptor](../../dev/BRAIN.lua:37)
-- [AETHR.BRAIN.DATA](../../dev/BRAIN.lua:52)
-- [BackgroundLoopInterval](../../dev/BRAIN.lua:149)
+- [AETHR.ScheduledTask](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L22)
+- [AETHR.CoroutineDescriptor](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L37)
+- [AETHR.BRAIN.DATA](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L52)
+- [BackgroundLoopInterval](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L149)
 
 # Class model
 
@@ -51,16 +51,16 @@ classDiagram
 ```
 
 # Default coroutine descriptors
-- saveGroundUnits: interval 10, phase 9, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:58)
-- updateZoneOwnership: interval 10, phase 2, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:67)
-- updateAirfieldOwnership: interval 10, phase 0, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:76)
-- updateZoneColors: interval 10, phase 4, yield 5 [dev/BRAIN.lua](../../dev/BRAIN.lua:85)
-- updateZoneArrows: interval 10, phase 6, yield 10 [dev/BRAIN.lua](../../dev/BRAIN.lua:94)
-- updateGroundUnitsDB: interval 30, phase 8, yield 10 [dev/BRAIN.lua](../../dev/BRAIN.lua:103)
-- spawnGroundGroups: interval 10, phase 3, yield 3 [dev/BRAIN.lua](../../dev/BRAIN.lua:112)
-- despawnGroundGroups: interval 10, phase 1, yield 3 [dev/BRAIN.lua](../../dev/BRAIN.lua:121)
-- spawnerGenerationQueue: interval 10, phase 12, yield 10 [dev/BRAIN.lua](../../dev/BRAIN.lua:130)
-- processFSMQueue: interval 10, phase 5, yield 10 [dev/BRAIN.lua](../../dev/BRAIN.lua:139)
+- saveGroundUnits: interval 10, phase 9, yield 5 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L58)
+- updateZoneOwnership: interval 10, phase 2, yield 5 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L67)
+- updateAirfieldOwnership: interval 10, phase 0, yield 5 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L76)
+- updateZoneColors: interval 10, phase 4, yield 5 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L85)
+- updateZoneArrows: interval 10, phase 6, yield 10 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L94)
+- updateGroundUnitsDB: interval 30, phase 8, yield 10 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L103)
+- spawnGroundGroups: interval 10, phase 3, yield 3 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L112)
+- despawnGroundGroups: interval 10, phase 1, yield 3 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L121)
+- spawnerGenerationQueue: interval 10, phase 12, yield 10 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L130)
+- processFSMQueue: interval 10, phase 5, yield 10 [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L139)
 
 # Flow: New instance
 

@@ -3,8 +3,8 @@
 Cross product and orientation helpers used by geometry and intersection logic.
 
 Source anchors
-- [AETHR.MATH:crossProduct()](../../dev/MATH_.lua:29)
-- [AETHR.MATH:direction()](../../dev/MATH_.lua:96)
+- [AETHR.MATH:crossProduct()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L29)
+- [AETHR.MATH:direction()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L96)
 
 # Overview
 
@@ -134,8 +134,8 @@ flowchart TD
 
 # Validation checklist
 
-- cross product anchor: [dev/MATH_.lua](../../dev/MATH_.lua:29)
-- direction anchor: [dev/MATH_.lua](../../dev/MATH_.lua:96)
+- cross product anchor: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L29)
+- direction anchor: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L96)
 
 # Related docs
 

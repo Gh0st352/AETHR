@@ -1,12 +1,12 @@
 # FSM export and tooling
 
-Graph export and external visualization for state machines created with [AETHR.FSM:New()](../../dev/FSM.lua:366). Documents the DOT exporter [AETHR.FSM:todot()](../../dev/FSM.lua:427) and shows how to integrate the output with Graphviz tooling.
+Graph export and external visualization for state machines created with [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366). Documents the DOT exporter [AETHR.FSM:todot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427) and shows how to integrate the output with Graphviz tooling.
 
 # Primary anchors
 
-- Export to DOT: [AETHR.FSM:todot()](../../dev/FSM.lua:427)
-- Event descriptors used for edges: [AETHR.FSM.Event](../../dev/FSM.lua:26)
-- Source of transitions: [AETHR.FSM:New()](../../dev/FSM.lua:366) and [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
+- Export to DOT: [AETHR.FSM:todot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427)
+- Event descriptors used for edges: [AETHR.FSM.Event](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L26)
+- Source of transitions: [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366) and [AETHR.FSM:add_to_map()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
 
 # Export flow
 
@@ -31,8 +31,8 @@ flowchart LR
 
 # Usage
 
-- Create an FSM instance via [AETHR.FSM:New()](../../dev/FSM.lua:366) with your events map
-- Call [AETHR.FSM:todot](../../dev/FSM.lua:427) with a filesystem path ending in .dot
+- Create an FSM instance via [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366) with your events map
+- Call [AETHR.FSM:todot](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427) with a filesystem path ending in .dot
 - Use Graphviz to render the DOT file into SVG or PNG
 
 # Example DOT snippet
@@ -51,16 +51,16 @@ B -> A [label=back];
 
 # Notes
 
-- Labels avoid quotes in Mermaid diagrams; DOT labels are emitted using raw event names by the exporter at [AETHR.FSM:todot()](../../dev/FSM.lua:427)
+- Labels avoid quotes in Mermaid diagrams; DOT labels are emitted using raw event names by the exporter at [AETHR.FSM:todot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427)
 - Writes one directed edge per from to to mapping; arrays in from produce multiple edges
 - Ensure the destination directory exists before calling todot or use FILEOPS to create it
 
 # Validation checklist
 
-- Exporter: [dev/FSM.lua](../../dev/FSM.lua:427)
-- Event iteration source: [dev/FSM.lua](../../dev/FSM.lua:435)
-- Array from handling: [dev/FSM.lua](../../dev/FSM.lua:436)
-- Single from handling: [dev/FSM.lua](../../dev/FSM.lua:441)
+- Exporter: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427)
+- Event iteration source: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L435)
+- Array from handling: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L436)
+- Single from handling: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L441)
 
 # Related breakouts
 

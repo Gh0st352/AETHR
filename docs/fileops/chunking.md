@@ -4,17 +4,17 @@ Deterministic split and merge for large datasets using part files and a tracker.
 
 # Primary anchors
 
-- Split writer: [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
-- Merge reader: [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
+- Split writer: [AETHR.FILEOPS:splitAndSaveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246)
+- Merge reader: [AETHR.FILEOPS:loadandJoinData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L328)
 
 # Consumers
 
 - WORLD per-division object caches
-  - Join on read: [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395) calls [FILEOPS:loadandJoinData](../../dev/WORLD.lua:1406)
-  - Split on write: [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1415) calls [FILEOPS:splitAndSaveData](../../dev/WORLD.lua:1415)
+  - Join on read: [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395) calls [FILEOPS:loadandJoinData](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1406)
+  - Split on write: [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1415) calls [FILEOPS:splitAndSaveData](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1415)
 - WORLD town clusters
-  - Load: [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1529)
-  - Save split: [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541)
+  - Load: [AETHR.WORLD:loadTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1529)
+  - Save split: [AETHR.WORLD:saveTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1541)
 
 # High-level flow
 
@@ -53,17 +53,17 @@ flowchart LR
 - Input db table is split deterministically by sorted keys
   - Numeric keys sorted ascending; other keys sorted by tostring
 - Chunk size divParam coerced to integer, default 500
-- For each chunk, writes part file named baseName.partNNNN via [saveData](../../dev/FILEOPS_.lua:155)
+- For each chunk, writes part file named baseName.partNNNN via [saveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
 - After parts, writes tracker file baseName containing an array (preferred) or map of part filenames
-- Anchor: [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
+- Anchor: [AETHR.FILEOPS:splitAndSaveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246)
 
 # Merge reader details
 
-- Loads master via [loadData](../../dev/FILEOPS_.lua:173)
+- Loads master via [loadData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 - If master is not a tracker (not a table of strings), returns it directly
 - If tracker is array-like, preserves order; if map-like, orders numeric keys ascending then the rest by string compare
 - Loads parts sequentially and merges with later parts overriding earlier keys
-- Anchor: [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
+- Anchor: [AETHR.FILEOPS:loadandJoinData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L328)
 
 # Write sequence
 
@@ -109,26 +109,26 @@ sequenceDiagram
 
 # Error paths and logging
 
-- All file IO is wrapped in pcall via [saveData](../../dev/FILEOPS_.lua:155) and [loadData](../../dev/FILEOPS_.lua:173)
+- All file IO is wrapped in pcall via [saveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155) and [loadData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 - Missing parts during merge are logged when DEBUG is enabled
-  - See [loadandJoinData](../../dev/FILEOPS_.lua:395)
+  - See [loadandJoinData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L395)
 - Tracker save failure is logged under DEBUG
-  - See [splitAndSaveData](../../dev/FILEOPS_.lua:309)
+  - See [splitAndSaveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L309)
 - Part save failure per-chunk logged under DEBUG
-  - See [splitAndSaveData](../../dev/FILEOPS_.lua:287)
+  - See [splitAndSaveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L287)
 
 # Configuration knobs
 
 - Chunk size is supplied by callers; see CONFIG defaults for:
-  - Per-division object chunks: [CONFIG.MAIN.saveChunks.divObjects](../../dev/CONFIG_.lua:241)
-  - Town DB chunks: [CONFIG.MAIN.saveChunks.townDB](../../dev/CONFIG_.lua:242)
+  - Per-division object chunks: [CONFIG.MAIN.saveChunks.divObjects](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L241)
+  - Town DB chunks: [CONFIG.MAIN.saveChunks.townDB](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L242)
 
 # Validation checklist
 
-- Writer entry: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:246)
-- Reader entry: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:328)
-- WORLD per-division integration: [dev/WORLD.lua](../../dev/WORLD.lua:1395), [dev/WORLD.lua](../../dev/WORLD.lua:1404), [dev/WORLD.lua](../../dev/WORLD.lua:1415)
-- WORLD towns integration: [dev/WORLD.lua](../../dev/WORLD.lua:1529), [dev/WORLD.lua](../../dev/WORLD.lua:1541)
+- Writer entry: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246)
+- Reader entry: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L328)
+- WORLD per-division integration: [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395), [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1404), [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1415)
+- WORLD towns integration: [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1529), [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1541)
 
 # Related breakouts
 

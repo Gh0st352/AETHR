@@ -3,8 +3,8 @@
 Degree to radian conversion and relation to turn angle normalization.
 
 Source anchors
-- [AETHR.MATH:degreeToRadian()](../../dev/MATH_.lua:252)
-- Reference for wrap logic: [AETHR.MATH:turnAngle()](../../dev/MATH_.lua:142)
+- [AETHR.MATH:degreeToRadian()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L252)
+- Reference for wrap logic: [AETHR.MATH:turnAngle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L142)
 
 Overview
 
@@ -86,8 +86,8 @@ sequenceDiagram
 
 # Validation checklist
 
-- degreeToRadian: [dev/MATH_.lua](../../dev/MATH_.lua:252)
-- turnAngle reference: [dev/MATH_.lua](../../dev/MATH_.lua:142)
+- degreeToRadian: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L252)
+- turnAngle reference: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L142)
 
 # Related docs
 

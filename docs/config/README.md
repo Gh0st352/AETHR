@@ -1,14 +1,14 @@
 # AETHR CONFIG diagrams and flows
 
 # Primary anchors
-- [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
-- [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
-- [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
+- [AETHR.CONFIG:initConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364)
+- [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380)
+- [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
 
 # Related code anchors
-- AETHR paths at creation: [AETHR:New()](../../dev/AETHR.lua:65), [dev/AETHR.lua](../../dev/AETHR.lua:125)
-- FILE I/O: [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173), [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
-- Debug logging: [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
+- AETHR paths at creation: [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65), [dev/AETHR.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L125)
+- FILE I/O: [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173), [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- Debug logging: [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79)
 
 # Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -73,14 +73,14 @@ flowchart TB
 ```
 
 # Source anchors
-- [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
-- [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
-- [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
-- [AETHR:New()](../../dev/AETHR.lua:65)
-- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
-- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
-- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
+- [AETHR.CONFIG:initConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364)
+- [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380)
+- [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
+- [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65)
+- [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
+- [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79)
 
 # Notes
 - Mermaid labels avoid double quotes and parentheses.

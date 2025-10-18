@@ -1,12 +1,12 @@
 # IO serialize NoFunc
 
-Produce an executable Lua chunk string without attempting to serialize functions. Documents [AETHR.IO.serializeNoFunc()](../../dev/IO.lua:199) and the supporting string writer table [writersSerialString](../../dev/IO.lua:546), with flow and sequence diagrams.
+Produce an executable Lua chunk string without attempting to serialize functions. Documents [AETHR.IO.serializeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L199) and the supporting string writer table [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546), with flow and sequence diagrams.
 
 Primary anchors
 
-- Serialize to string: [AETHR.IO.serializeNoFunc()](../../dev/IO.lua:199)
-- String writers dispatch: [writeSerialString](../../dev/IO.lua:361), [writersSerialString](../../dev/IO.lua:546)
-- Helpers: [writeIndentSerial](../../dev/IO.lua:383), [refCount](../../dev/IO.lua:401)
+- Serialize to string: [AETHR.IO.serializeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L199)
+- String writers dispatch: [writeSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361), [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
+- Helpers: [writeIndentSerial](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L383), [refCount](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L401)
 
 # High level flow
 
@@ -48,7 +48,7 @@ flowchart TD
   class TYPE,SW,SER class_step;
 ```
 
-- [writeSerialString](../../dev/IO.lua:361) routes values to [writersSerialString](../../dev/IO.lua:546)
+- [writeSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361) routes values to [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
 - Functions are intentionally emitted as nil placeholders to keep output executable
 
 # Sequence
@@ -80,10 +80,10 @@ sequenceDiagram
 
 # Validation checklist
 
-- Entry: [dev/IO.lua](../../dev/IO.lua:199)
-- String writer dispatch: [dev/IO.lua](../../dev/IO.lua:361), [dev/IO.lua](../../dev/IO.lua:546)
-- Indentation helper: [dev/IO.lua](../../dev/IO.lua:383)
-- refCount: [dev/IO.lua](../../dev/IO.lua:401)
+- Entry: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L199)
+- String writer dispatch: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361), [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
+- Indentation helper: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L383)
+- refCount: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L401)
 
 # Related breakouts
 

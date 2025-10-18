@@ -1,8 +1,8 @@
 # UTILS time and timestamps
 
 Anchors
-- [AETHR.UTILS.getTime()](../../dev/UTILS.lua:56)
-- [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101) time source selection
+- [AETHR.UTILS.getTime()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L56)
+- [AETHR.UTILS:debugInfoRate()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L101) time source selection
 
 Overview
 - getTime uses DCS engine timers to return elapsed mission time seconds: timer.getAbsTime minus timer.getTime0.
@@ -49,7 +49,7 @@ sequenceDiagram
 - When running outside the sim, os.time fallback still provides reasonable debouncing.
 
 # Source anchors
-- [AETHR.UTILS.getTime()](../../dev/UTILS.lua:56)
-- [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101)
+- [AETHR.UTILS.getTime()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L56)
+- [AETHR.UTILS:debugInfoRate()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L101)
 
 Last updated: 2025-10-16

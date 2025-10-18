@@ -2,16 +2,16 @@
 
 ### Primary anchors
 - Search volumes:
-  - [AETHR.WORLD:searchObjectsBox()](../../dev/WORLD.lua:334)
-  - [AETHR.WORLD:searchObjectsSphere()](../../dev/WORLD.lua:384)
+  - [AETHR.WORLD:searchObjectsBox()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L334)
+  - [AETHR.WORLD:searchObjectsSphere()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L384)
 - Division retrieval and per-division caches:
-  - [AETHR.WORLD:objectsInDivision()](../../dev/WORLD.lua:1382)
-  - [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395)
-  - [AETHR.WORLD:initSceneryInDivisions()](../../dev/WORLD.lua:1433)
-  - [AETHR.WORLD:initBaseInDivisions()](../../dev/WORLD.lua:1442)
-  - [AETHR.WORLD:initStaticInDivisions()](../../dev/WORLD.lua:1451)
+  - [AETHR.WORLD:objectsInDivision()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1382)
+  - [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395)
+  - [AETHR.WORLD:initSceneryInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1433)
+  - [AETHR.WORLD:initBaseInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1442)
+  - [AETHR.WORLD:initStaticInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1451)
 - Ground DB rebuild:
-  - [AETHR.WORLD:updateGroundUnitsDB()](../../dev/WORLD.lua:860)
+  - [AETHR.WORLD:updateGroundUnitsDB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L860)
 
 ### Related helpers
 - Geometries: [dev/POLY.lua](../../dev/POLY.lua)
@@ -97,9 +97,9 @@ flowchart TD
 ```
 
 ### Specializations
-- Scenery: [AETHR.WORLD:initSceneryInDivisions()](../../dev/WORLD.lua:1433)
-- Base: [AETHR.WORLD:initBaseInDivisions()](../../dev/WORLD.lua:1442)
-- Static: [AETHR.WORLD:initStaticInDivisions()](../../dev/WORLD.lua:1451)
+- Scenery: [AETHR.WORLD:initSceneryInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1433)
+- Base: [AETHR.WORLD:initBaseInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1442)
+- Static: [AETHR.WORLD:initStaticInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1451)
 
 ## Ground DB rebuild (incremental, coroutine-friendly)
 
@@ -154,13 +154,13 @@ sequenceDiagram
 ## Anchor index
 
 - Search
-  - [AETHR.WORLD:searchObjectsBox()](../../dev/WORLD.lua:334)
-  - [AETHR.WORLD:searchObjectsSphere()](../../dev/WORLD.lua:384)
+  - [AETHR.WORLD:searchObjectsBox()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L334)
+  - [AETHR.WORLD:searchObjectsSphere()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L384)
 - Division helpers
-  - [AETHR.WORLD:objectsInDivision()](../../dev/WORLD.lua:1382)
-  - [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395)
-  - [AETHR.WORLD:initSceneryInDivisions()](../../dev/WORLD.lua:1433)
-  - [AETHR.WORLD:initBaseInDivisions()](../../dev/WORLD.lua:1442)
-  - [AETHR.WORLD:initStaticInDivisions()](../../dev/WORLD.lua:1451)
+  - [AETHR.WORLD:objectsInDivision()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1382)
+  - [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395)
+  - [AETHR.WORLD:initSceneryInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1433)
+  - [AETHR.WORLD:initBaseInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1442)
+  - [AETHR.WORLD:initStaticInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1451)
 - Ground DB
-  - [AETHR.WORLD:updateGroundUnitsDB()](../../dev/WORLD.lua:860)
+  - [AETHR.WORLD:updateGroundUnitsDB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L860)

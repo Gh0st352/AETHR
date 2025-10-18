@@ -3,11 +3,11 @@
 Squared distance to segment, dot based projection, interior sampling along segments, and approximate line offset checks.
 
 Source anchors
-- [AETHR.POLY:lineLength()](../../dev/POLY.lua:1056)
-- [AETHR.POLY:getEquallySpacedPoints()](../../dev/POLY.lua:1074)
-- [AETHR.POLY:isWithinOffset()](../../dev/POLY.lua:1106)
-- [AETHR.POLY:pointToSegmentSquared()](../../dev/POLY.lua:1148)
-- Related MATH: [AETHR.MATH:distanceSquared()](../../dev/MATH_.lua:58), [AETHR.MATH:dot()](../../dev/MATH_.lua:75), [AETHR.MATH:computeRatio()](../../dev/MATH_.lua:43)
+- [AETHR.POLY:lineLength()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1056)
+- [AETHR.POLY:getEquallySpacedPoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1074)
+- [AETHR.POLY:isWithinOffset()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1106)
+- [AETHR.POLY:pointToSegmentSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1148)
+- Related MATH: [AETHR.MATH:distanceSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L58), [AETHR.MATH:dot()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L75), [AETHR.MATH:computeRatio()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L43)
 
 # Overview
 - lineLength returns Euclidean length of a segment
@@ -129,10 +129,10 @@ sequenceDiagram
 - lineLength is only used to compute the ratio driver for confirmation threshold in isWithinOffset
 
 # Validation checklist
-- lineLength: [dev/POLY.lua](../../dev/POLY.lua:1056)
-- getEquallySpacedPoints: [dev/POLY.lua](../../dev/POLY.lua:1074)
-- isWithinOffset: [dev/POLY.lua](../../dev/POLY.lua:1106)
-- pointToSegmentSquared: [dev/POLY.lua](../../dev/POLY.lua:1148)
+- lineLength: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1056)
+- getEquallySpacedPoints: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1074)
+- isWithinOffset: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1106)
+- pointToSegmentSquared: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1148)
 
 # Related docs
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](./intersections_and_orientation.md)

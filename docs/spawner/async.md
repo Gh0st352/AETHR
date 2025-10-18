@@ -2,13 +2,13 @@
 
 Covered functions
 - Enqueue and status
-  - [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
-  - [AETHR.SPAWNER:getGenerationJobStatus()](../../dev/SPAWNER.lua:550)
+  - [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
+  - [AETHR.SPAWNER:getGenerationJobStatus()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L550)
 - Async-friendly yield hook
-  - [AETHR.SPAWNER:_maybeYield()](../../dev/SPAWNER.lua:255)
+  - [AETHR.SPAWNER:_maybeYield()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L255)
 - Generation invoked by runner
-  - [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563)
-  - Optional auto-spawn after generation: [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438)
+  - [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
+  - Optional auto-spawn after generation: [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)
 - Runner context
   - Cooperates with BRAIN queue: [dev/BRAIN.lua](../../dev/BRAIN.lua)
 
@@ -44,7 +44,7 @@ flowchart TB
 
 # 2) Runner and cooperative yielding
 
-Jobs are processed by a coroutine-owned runner in BRAIN (see [dev/BRAIN.lua](../../dev/BRAIN.lua)). Hot inner loops call [_maybeYield()](../../dev/SPAWNER.lua:255) to avoid long blocking frames.
+Jobs are processed by a coroutine-owned runner in BRAIN (see [dev/BRAIN.lua](../../dev/BRAIN.lua)). Hot inner loops call [_maybeYield()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L255) to avoid long blocking frames.
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -73,7 +73,7 @@ sequenceDiagram
   BRAIN-->>BRAIN: mark job status completed
 ```
 
-Yield logic in [_maybeYield()](../../dev/SPAWNER.lua:255)
+Yield logic in [_maybeYield()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L255)
 - Increments a per-coroutine yieldCounter by the provided inc (often 1 in hot loops).
 - When yieldCounter reaches yieldThreshold (stored on BRAIN.DATA.coroutines.spawnerGenerationQueue), resets counter and yields.
 - Emits debugInfo when present via [dev/UTILS.lua](../../dev/UTILS.lua).
@@ -91,12 +91,12 @@ stateDiagram-v2
 ```
 
 Status accessor
-- [AETHR.SPAWNER:getGenerationJobStatus()](../../dev/SPAWNER.lua:550) returns the job record for a given id from DATA.GenerationJobs.
+- [AETHR.SPAWNER:getGenerationJobStatus()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L550) returns the job record for a given id from DATA.GenerationJobs.
 
 
 # 4) Deterministic execution interaction
 
-- The outer generation entry [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563) may run inside [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:242) when either SPAWNER.DATA.CONFIG.Deterministic.Enab[...]
+- The outer generation entry [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563) may run inside [AETHR.UTILS:withSeed()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L242) when either SPAWNER.DATA.CONFIG.Deterministic.Enab[...]
 - Determinism scope covers type selection, counts, and placement randomness executed within the pipeline; yielding does not affect RNG behavior but controls scheduling across frames.
 
 
@@ -104,7 +104,7 @@ Status accessor
 
 - FIFO fairness: DATA.GenerationQueue is first-in-first-out; long jobs periodically yield to maintain frame responsiveness.
 - Operation budgets: placement loops respect SPAWNER.DATA.CONFIG.operationLimit; yielding cadence is independent but complementary.
-- Auto spawn: When autoSpawn is true, runner triggers [spawnDynamicSpawner()](../../dev/SPAWNER.lua:438) after build, which sets _engineAddTime and enqueues group names into SPAWNER.DATA.spawnQueue for WORL[...]
+- Auto spawn: When autoSpawn is true, runner triggers [spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438) after build, which sets _engineAddTime and enqueues group names into SPAWNER.DATA.spawnQueue for WORL[...]
 - Status and metrics: Consider extending job record with startedAt, finishedAt, and error fields in the runner for observability (current enqueue sets enqueuedAt).
 # Flowchart: Async spawner generation pipeline
 
@@ -127,8 +127,8 @@ flowchart LR
 ```
 
 # Source anchors
-- [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
-- [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801)
-- [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563)
-- [AETHR.SPAWNER:buildSpawnGroups()](../../dev/SPAWNER.lua:684)
-- [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438)
+- [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
+- [AETHR.WORLD:spawnerGenerationQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L801)
+- [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
+- [AETHR.SPAWNER:buildSpawnGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L684)
+- [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)

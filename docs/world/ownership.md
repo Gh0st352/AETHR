@@ -2,19 +2,19 @@
 
 ### Primary anchors
 - Airbase/zone ownership updates:
-  - [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501)
-  - [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633)
+  - [AETHR.WORLD:updateAirbaseOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L501)
+  - [AETHR.WORLD:updateZoneOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L633)
 - Visual updates:
-  - [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
-  - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
+  - [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683)
+  - [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
 - Notifications:
-  - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
-  - [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
+  - [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970)
+  - [AETHR.WORLD.zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
 
 ### Related modules and config
 - Colors and alphas: [dev/CONFIG_.lua](../../dev/CONFIG_.lua)
 - Text strings and enums: [dev/ENUMS.lua](../../dev/ENUMS.lua)
-- Marker color updates: [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+- Marker color updates: [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
 
 ## Airbase ownership refresh
 
@@ -190,11 +190,11 @@ sequenceDiagram
 ## Anchor index
 
 - Ownership updates
-  - [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501)
-  - [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633)
+  - [AETHR.WORLD:updateAirbaseOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L501)
+  - [AETHR.WORLD:updateZoneOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L633)
 - Visual updates
-  - [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683)
-  - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
+  - [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683)
+  - [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
 - Notifications
-  - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
-  - [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
+  - [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970)
+  - [AETHR.WORLD.zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)

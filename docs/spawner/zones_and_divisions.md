@@ -1,12 +1,12 @@
 # AETHR SPAWNER zones and divisions
 
 ### Covered functions
-- [AETHR.SPAWNER:generateSpawnerZones()](../../dev/SPAWNER.lua:2012)
-- [AETHR.SPAWNER:weightZones()](../../dev/SPAWNER.lua:2148)
-- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
-- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
-- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
-- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
+- [AETHR.SPAWNER:generateSpawnerZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2012)
+- [AETHR.SPAWNER:weightZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2148)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L723)
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L760)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L857)
 
 # 1. Zone generation and weighting
 The spawner constructs a main zone and subzones, then assigns weights to each. Generation avoids restricted zones when provided to POLY utilities. See [dev/POLY.lua](../../dev/POLY.lua).
@@ -61,7 +61,7 @@ flowchart TD
 ```
 
 # 3. Object collection per sub zone
-For each sub zone and its divisions, objects are collected into zoneDivSceneryObjects, zoneDivStaticObjects, and zoneDivBaseObjects using AABB prefilter and optional full include optimization. Config switches: [UseDivisionAABBReject](../../dev/SPAWNER.lua:96), [UseDivisionAABBFullInclude](../../dev/SPAWNER.lua:97). Cooperative yielding: [AETHR.SPAWNER:_maybeYield()](../../dev/SPAWNER.lua:255).
+For each sub zone and its divisions, objects are collected into zoneDivSceneryObjects, zoneDivStaticObjects, and zoneDivBaseObjects using AABB prefilter and optional full include optimization. Config switches: [UseDivisionAABBReject](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L96), [UseDivisionAABBFullInclude](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L97). Cooperative yielding: [AETHR.SPAWNER:_maybeYield()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L255).
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -125,11 +125,11 @@ flowchart LR
 ```
 
 Source anchors
-- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
-- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
-- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
-- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
-- [AETHR.POLY:circleOverlapPoly()](../../dev/POLY.lua:115)
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L760)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L723)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L857)
+- [AETHR.POLY:circleOverlapPoly()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L115)
 
 ## Sequence: Pair and collect divisions and objects
 
@@ -174,8 +174,8 @@ sequenceDiagram
 ```
 
 # Source anchors
-- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
-- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
-- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
-- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
-- [AETHR.POLY:circleOverlapPoly()](../../dev/POLY.lua:115)
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L760)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L723)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L857)
+- [AETHR.POLY:circleOverlapPoly()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L115)

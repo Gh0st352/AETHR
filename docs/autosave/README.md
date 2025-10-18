@@ -1,12 +1,12 @@
 # AETHR AUTOSAVE diagrams and flows
 
 ### Primary anchors
-- [AETHR.AUTOSAVE:New()](../../dev/autosave.lua:19)
+- [AETHR.AUTOSAVE:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/autosave.lua#L19)
 
 ### Related anchors
-- Module injection during instance creation: [AETHR:New() Phase 1 construct submodules](../../dev/AETHR.lua:155)
-- Module backrefs wiring: [AETHR:New() Phase 2 wire back references](../../dev/AETHR.lua:172)
-- File persistence helpers used across modules: [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155), [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- Module injection during instance creation: [AETHR:New() Phase 1 construct submodules](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L155)
+- Module backrefs wiring: [AETHR:New() Phase 2 wire back references](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L172)
+- File persistence helpers used across modules: [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155), [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 
 ### Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -44,9 +44,9 @@ flowchart LR
 ```
 
 ### Where in code
-- [AETHR:New() construct loop](../../dev/AETHR.lua:155)
-- [AETHR:New() wire loop](../../dev/AETHR.lua:172)
-- [AETHR.AUTOSAVE:New()](../../dev/autosave.lua:19)
+- [AETHR:New() construct loop](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L155)
+- [AETHR:New() wire loop](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L172)
+- [AETHR.AUTOSAVE:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/autosave.lua#L19)
 
 # Runtime interactions (planned)
 

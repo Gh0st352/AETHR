@@ -1,9 +1,9 @@
 # UTILS collections and membership
 
 Anchors
-- [AETHR.UTILS.sumTable()](../../dev/UTILS.lua:42)
-- [AETHR.UTILS:hasValue()](../../dev/UTILS.lua:147)
-- [AETHR.UTILS:table_hasValue()](../../dev/UTILS.lua:162)
+- [AETHR.UTILS.sumTable()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L42)
+- [AETHR.UTILS:hasValue()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L147)
+- [AETHR.UTILS:table_hasValue()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L162)
 
 Overview
 - sumTable counts keys in a table using pairs iteration; useful for sparse maps.
@@ -53,8 +53,8 @@ sequenceDiagram
 - table_hasValue exists for legacy callers and should not be extended differently from hasValue.
 
 # Source anchors
-- [AETHR.UTILS.sumTable()](../../dev/UTILS.lua:42)
-- [AETHR.UTILS:hasValue()](../../dev/UTILS.lua:147)
-- [AETHR.UTILS:table_hasValue()](../../dev/UTILS.lua:162)
+- [AETHR.UTILS.sumTable()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L42)
+- [AETHR.UTILS:hasValue()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L147)
+- [AETHR.UTILS:table_hasValue()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L162)
 
 Last updated: 2025-10-16

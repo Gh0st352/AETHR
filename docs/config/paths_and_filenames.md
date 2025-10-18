@@ -4,19 +4,19 @@ How writable paths and filenames are computed and used during initialization and
 
 # Source anchors
 
-- [AETHR:New()](../../dev/AETHR.lua:65)
-- [Path join in AETHR:New](../../dev/AETHR.lua:125)
-- [AETHR:Init()](../../dev/AETHR.lua:199)
-- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
-- [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
-- [AETHR.CONFIG.MAIN STORAGE defaults in dev/CONFIG_.lua](../../dev/CONFIG_.lua:200)
+- [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65)
+- [Path join in AETHR:New](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L125)
+- [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199)
+- [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- [AETHR.FILEOPS:ensureFile()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L120)
+- [AETHR.CONFIG.MAIN STORAGE defaults in dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L200)
 
 # Context
 
-- SAVEGAME_DIR is resolved at instance construction in [AETHR:New()](../../dev/AETHR.lua:65)
-- CONFIG_FOLDER path is assembled via [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- Subfolder paths are constructed during [AETHR:Init()](../../dev/AETHR.lua:199) and ensured via [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
+- SAVEGAME_DIR is resolved at instance construction in [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65)
+- CONFIG_FOLDER path is assembled via [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- Subfolder paths are constructed during [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199) and ensured via [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
 - CONFIG persistence reads and writes use PATHS.CONFIG_FOLDER and FILENAMES.AETHER_CONFIG_FILE
 
 # Path assembly overview
@@ -116,9 +116,9 @@ flowchart TB
 
 # Validation checklist
 
-- [AETHR:New()](../../dev/AETHR.lua:65) constructs CONFIG.PATHS.CONFIG_FOLDER using [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37) at [path join in AETHR:New](../../dev/AETHR.lua:125)
-- [AETHR:Init()](../../dev/AETHR.lua:199) iterates SUB_FOLDERS and calls [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46) after join
-- CONFIG persistence uses PATHS.CONFIG_FOLDER and [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380) and [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
+- [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65) constructs CONFIG.PATHS.CONFIG_FOLDER using [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37) at [path join in AETHR:New](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L125)
+- [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199) iterates SUB_FOLDERS and calls [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46) after join
+- CONFIG persistence uses PATHS.CONFIG_FOLDER and [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380) and [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
 
 # Related breakouts
 

@@ -3,11 +3,11 @@
 Core line intersection routines and orientation helpers used across polygon processing.
 
 # Source anchors
-- [AETHR.POLY:segmentsIntersect()](../../dev/POLY.lua:44)
-- [AETHR.POLY:orientation()](../../dev/POLY.lua:180)
-- [AETHR.POLY:isIntersect()](../../dev/POLY.lua:1249)
-- [AETHR.POLY:onLine()](../../dev/POLY.lua:1286)
-- Reference orientation test: [AETHR.MATH:direction()](../../dev/MATH_.lua:96)
+- [AETHR.POLY:segmentsIntersect()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L44)
+- [AETHR.POLY:orientation()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L180)
+- [AETHR.POLY:isIntersect()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1249)
+- [AETHR.POLY:onLine()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1286)
+- Reference orientation test: [AETHR.MATH:direction()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L96)
 
 # Overview
 - orientation returns the signed area determinant for three points
@@ -160,15 +160,15 @@ sequenceDiagram
 ```
 
 # Implementation notes
-- segmentsIntersect uses [AETHR.POLY:orientation()](../../dev/POLY.lua:180) and [AETHR.POLY:onSegment()](../../dev/POLY.lua:1286)
-- isIntersect uses [AETHR.MATH:direction()](../../dev/MATH_.lua:96) and [AETHR.POLY:onLine()](../../dev/POLY.lua:1286)
-- orientation normalizes points to {x,y} via [AETHR.POLY:normalizePoint()](../../dev/POLY.lua:236)
+- segmentsIntersect uses [AETHR.POLY:orientation()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L180) and [AETHR.POLY:onSegment()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1286)
+- isIntersect uses [AETHR.MATH:direction()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L96) and [AETHR.POLY:onLine()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1286)
+- orientation normalizes points to {x,y} via [AETHR.POLY:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L236)
 
 # Validation checklist
-- segmentsIntersect: [dev/POLY.lua](../../dev/POLY.lua:44)
-- orientation: [dev/POLY.lua](../../dev/POLY.lua:180)
-- isIntersect: [dev/POLY.lua](../../dev/POLY.lua:1249)
-- onLine: [dev/POLY.lua](../../dev/POLY.lua:1286)
+- segmentsIntersect: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L44)
+- orientation: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L180)
+- isIntersect: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1249)
+- onLine: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1286)
 
 # Related docs
 - Distance and projections: [docs/poly/distance_projection_and_offset.md](./distance_projection_and_offset.md)

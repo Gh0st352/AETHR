@@ -2,11 +2,11 @@
 
 Primary anchors
 - Init and storage orchestration:
-  - [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90)
-  - [AETHR.WORLD:getStoredMizFileCache()](../../dev/WORLD.lua:109)
-  - [AETHR.WORLD:saveMizFileCache()](../../dev/WORLD.lua:145)
+  - [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90)
+  - [AETHR.WORLD:getStoredMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L109)
+  - [AETHR.WORLD:saveMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L145)
 - Generation logic:
-  - [AETHR.WORLD:generateMizFileCache()](../../dev/WORLD.lua:187)
+  - [AETHR.WORLD:generateMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L187)
 
 ## Overview
 
@@ -71,7 +71,7 @@ flowchart TD
 - Group metadata attached (per group):
   - `AETHR.coalition, AETHR.countryID, AETHR.countryName, AETHR.typeKey`
 - Template selection:
-  - Uses [AETHR.CONFIG.MAIN.spawnTemplateSearchString](../../dev/WORLD.lua:217) to filter group names into `spawnerTemplateDB`.
+  - Uses [AETHR.CONFIG.MAIN.spawnTemplateSearchString](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L217) to filter group names into `spawnerTemplateDB`.
 - Unit descriptor caching:
   - `spawnerUnitInfoCache[typeName] = descUnit` once per typeName.
 - Attribute maps:
@@ -133,11 +133,11 @@ sequenceDiagram
 ## Anchor index
 
 - Orchestration
-  - [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90)
-  - [AETHR.WORLD:getStoredMizFileCache()](../../dev/WORLD.lua:109)
-  - [AETHR.WORLD:saveMizFileCache()](../../dev/WORLD.lua:145)
+  - [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90)
+  - [AETHR.WORLD:getStoredMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L109)
+  - [AETHR.WORLD:saveMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L145)
 - Generation
-  - [AETHR.WORLD:generateMizFileCache()](../../dev/WORLD.lua:187)
-  - Search string usage: [AETHR.WORLD:generateMizFileCache()](../../dev/WORLD.lua:217)
+  - [AETHR.WORLD:generateMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L187)
+  - Search string usage: [AETHR.WORLD:generateMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L217)
 - Related enums and text
-  - Spawn attribute priorities: [AETHR.WORLD:generateMizFileCache()](../../dev/WORLD.lua:255)
+  - Spawn attribute priorities: [AETHR.WORLD:generateMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L255)

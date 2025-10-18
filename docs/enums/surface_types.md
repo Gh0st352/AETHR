@@ -4,12 +4,12 @@ Surface type enumeration and how SPAWNER enforces NOGO surfaces and optional res
 
 # Primary sources
 
-- Surface types class doc: [AETHR.ENUMS.SurfaceType](../../dev/ENUMS.lua:50)
-- Surface types mapping: [AETHR.ENUMS.SurfaceType = { ... }](../../dev/ENUMS.lua:365)
-- SPAWNER config defaults referencing surface types: [AETHR.SPAWNER.DATA.CONFIG.NoGoSurfaces](../../dev/SPAWNER.lua:108)
+- Surface types class doc: [AETHR.ENUMS.SurfaceType](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L50)
+- Surface types mapping: [AETHR.ENUMS.SurfaceType = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L365)
+- SPAWNER config defaults referencing surface types: [AETHR.SPAWNER.DATA.CONFIG.NoGoSurfaces](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L108)
 - NOGO checks:
-  - Polygon plus surfaces: [AETHR.SPAWNER:checkIsInNOGO()](../../dev/SPAWNER.lua:2085)
-  - Surface-only: [AETHR.SPAWNER:vec2AtNoGoSurface()](../../dev/SPAWNER.lua:2128)
+  - Polygon plus surfaces: [AETHR.SPAWNER:checkIsInNOGO()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2085)
+  - Surface-only: [AETHR.SPAWNER:vec2AtNoGoSurface()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2128)
 
 # Overview relationships
 
@@ -60,26 +60,26 @@ sequenceDiagram
 
 # Configuration knobs
 
-- SPAWNER.DATA.CONFIG.NoGoSurfaces defaults: [RUNWAY, WATER, SHALLOW_WATER] at [dev/SPAWNER.lua](../../dev/SPAWNER.lua:108)
-- SPAWNER.DATA.CONFIG.UseRestrictedZonePolys enables polygon checks in [checkIsInNOGO](../../dev/SPAWNER.lua:2085)
+- SPAWNER.DATA.CONFIG.NoGoSurfaces defaults: [RUNWAY, WATER, SHALLOW_WATER] at [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L108)
+- SPAWNER.DATA.CONFIG.UseRestrictedZonePolys enables polygon checks in [checkIsInNOGO](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2085)
 
 # Where checks apply
 
-- Group center placement: [AETHR.SPAWNER:generateVec2GroupCenters()](../../dev/SPAWNER.lua:1067)
-  - Invokes [checkIsInNOGO](../../dev/SPAWNER.lua:2085) after cheap grid rejections
-- Unit position placement: [AETHR.SPAWNER:generateVec2UnitPos()](../../dev/SPAWNER.lua:1299)
-  - Invokes [checkIsInNOGO](../../dev/SPAWNER.lua:2085) after proximity checks
+- Group center placement: [AETHR.SPAWNER:generateVec2GroupCenters()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1067)
+  - Invokes [checkIsInNOGO](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2085) after cheap grid rejections
+- Unit position placement: [AETHR.SPAWNER:generateVec2UnitPos()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1299)
+  - Invokes [checkIsInNOGO](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2085) after proximity checks
 
 # Surface-only quick check
 
-- [AETHR.SPAWNER:vec2AtNoGoSurface()](../../dev/SPAWNER.lua:2128) queries land.getSurfaceType and compares against CONFIG NoGoSurfaces
+- [AETHR.SPAWNER:vec2AtNoGoSurface()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2128) queries land.getSurfaceType and compares against CONFIG NoGoSurfaces
 
 # Validation checklist
 
-- SurfaceType mapping is set at [dev/ENUMS.lua](../../dev/ENUMS.lua:365)
-- NoGoSurfaces default defined at [dev/SPAWNER.lua](../../dev/SPAWNER.lua:108)
-- NOGO functions present at [checkIsInNOGO](../../dev/SPAWNER.lua:2085) and [vec2AtNoGoSurface](../../dev/SPAWNER.lua:2128)
-- Placement generators call NOGO logic at [dev/SPAWNER.lua](../../dev/SPAWNER.lua:1227) and [dev/SPAWNER.lua](../../dev/SPAWNER.lua:1505)
+- SurfaceType mapping is set at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L365)
+- NoGoSurfaces default defined at [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L108)
+- NOGO functions present at [checkIsInNOGO](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2085) and [vec2AtNoGoSurface](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2128)
+- Placement generators call NOGO logic at [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1227) and [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1505)
 
 # Related breakouts
 

@@ -5,15 +5,15 @@ Chunked persistence strategy for large datasets using FILEOPS split and tracker 
 # Source anchors
 
 - Config schema and defaults
-  - [AETHR.CONFIG.MAIN.saveChunks](../../dev/CONFIG_.lua:240)
-  - [AETHR.CONFIG.MAIN.saveChunks class doc](../../dev/CONFIG_.lua:159)
+  - [AETHR.CONFIG.MAIN.saveChunks](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L240)
+  - [AETHR.CONFIG.MAIN.saveChunks class doc](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L159)
 - FILEOPS implementations
-  - [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
-  - [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:329)
+  - [AETHR.FILEOPS:splitAndSaveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246)
+  - [AETHR.FILEOPS:loadandJoinData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L329)
 - WORLD usage sites
-  - Division objects init helper: [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395)
-  - Towns persistence: [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541)
-  - Towns load: [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1529)
+  - Division objects init helper: [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395)
+  - Towns persistence: [AETHR.WORLD:saveTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1541)
+  - Towns load: [AETHR.WORLD:loadTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1529)
 
 # Overview
 
@@ -64,13 +64,13 @@ sequenceDiagram
 # WORLD integrations
 
 - Division objects per active division
-  - Helper: [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395)
-  - Uses [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:329) to read existing parts
-  - Falls back to computing found objects and persists via [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246) with chunk size from CONFIG.MAIN.saveChunks.divObjects
+  - Helper: [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395)
+  - Uses [AETHR.FILEOPS:loadandJoinData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L329) to read existing parts
+  - Falls back to computing found objects and persists via [AETHR.FILEOPS:splitAndSaveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246) with chunk size from CONFIG.MAIN.saveChunks.divObjects
 
 - Town cluster database
-  - Save: [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541) uses splitAndSaveData with CONFIG.MAIN.saveChunks.townDB
-  - Load: [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1529) uses loadandJoinData
+  - Save: [AETHR.WORLD:saveTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1541) uses splitAndSaveData with CONFIG.MAIN.saveChunks.townDB
+  - Load: [AETHR.WORLD:loadTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1529) uses loadandJoinData
 
 # Parameter resolution
 
@@ -105,10 +105,10 @@ flowchart TB
 
 # Validation checklist
 
-- saveChunks defaults present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:240)
-- Division objects save path uses CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER per division at [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395)
-- Towns save path uses CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER at [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1543)
-- FILEOPS chunked write and read functions implemented at [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:246) and [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:329)
+- saveChunks defaults present at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L240)
+- Division objects save path uses CONFIG.MAIN.STORAGE.PATHS.OBJECTS_FOLDER per division at [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395)
+- Towns save path uses CONFIG.MAIN.STORAGE.PATHS.LEARNING_FOLDER at [AETHR.WORLD:saveTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1543)
+- FILEOPS chunked write and read functions implemented at [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246) and [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L329)
 
 # Conventions
 

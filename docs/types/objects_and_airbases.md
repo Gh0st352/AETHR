@@ -1,9 +1,9 @@
 # TYPES objects and airbases
 
 Anchors
-- [AETHR._FoundObject:New()](../../dev/customTypes.lua:198)
-- [AETHR._foundObject:New()](../../dev/customTypes.lua:578)
-- [AETHR._airbase:New()](../../dev/customTypes.lua:432)
+- [AETHR._FoundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L198)
+- [AETHR._foundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L578)
+- [AETHR._airbase:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L432)
 
 Overview
 - _FoundObject is a lightweight container for engine object id, desc, and position.
@@ -105,8 +105,8 @@ flowchart TD
 # Usage notes
 - _foundObject safely degrades when engine APIs are missing or throw; all lookups are pcalled.
 - Group metadata collection is conditional and robust to absent group or unit functions.
-- Airbase zoneName and zoneObject connect to [_MIZ_ZONE](../../dev/customTypes.lua:283) when available.
+- Airbase zoneName and zoneObject connect to [_MIZ_ZONE](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L283) when available.
 
 # Source anchors
-- [AETHR._foundObject:New()](../../dev/customTypes.lua:578), [AETHR._FoundObject:New()](../../dev/customTypes.lua:198)
-- [AETHR._airbase:New()](../../dev/customTypes.lua:432)
+- [AETHR._foundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L578), [AETHR._FoundObject:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L198)
+- [AETHR._airbase:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L432)

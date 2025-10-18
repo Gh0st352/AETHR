@@ -3,10 +3,10 @@
 Converting axis aligned bounds to a polygon, dividing a quadrilateral into a grid, and computing polygon area.
 
 Source anchors
-- [AETHR.POLY:convertBoundsToPolygon()](../../dev/POLY.lua:1039)
-- [AETHR.POLY:dividePolygon()](../../dev/POLY.lua:753)
-- [AETHR.POLY:polygonArea()](../../dev/POLY.lua:826)
-- Related: [AETHR.POLY:ensureConvex()](../../dev/POLY.lua:846)
+- [AETHR.POLY:convertBoundsToPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1039)
+- [AETHR.POLY:dividePolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L753)
+- [AETHR.POLY:polygonArea()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L826)
+- Related: [AETHR.POLY:ensureConvex()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L846)
 
 Overview
 - convertBoundsToPolygon builds a 4 corner polygon [minX,minZ] [maxX,minZ] [maxX,maxZ] [minX,maxZ] and enforces convexity
@@ -106,9 +106,9 @@ sequenceDiagram
   - Normalizes each input vertex to {x,y} allowing inputs that carry y or z
 
 # Validation checklist
-- convertBoundsToPolygon: [dev/POLY.lua](../../dev/POLY.lua:1039)
-- dividePolygon: [dev/POLY.lua](../../dev/POLY.lua:753)
-- polygonArea: [dev/POLY.lua](../../dev/POLY.lua:826)
+- convertBoundsToPolygon: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1039)
+- dividePolygon: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L753)
+- polygonArea: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L826)
 
 # Related docs
 - Convert and order: [docs/poly/convert_and_order.md](./convert_and_order.md)

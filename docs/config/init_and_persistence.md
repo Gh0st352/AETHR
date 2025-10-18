@@ -4,12 +4,12 @@ Deep-dive breakout for initialization, load and save logic in CONFIG. Targets st
 
 ## Source anchors
 
-- [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
-- [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
-- [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
-- [AETHR:Init()](../../dev/AETHR.lua:199)
-- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173), [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
-- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
+- [AETHR.CONFIG:initConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364)
+- [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380)
+- [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
+- [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199)
+- [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173), [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79)
 
 ## Overview
 
@@ -63,28 +63,28 @@ sequenceDiagram
 
 # Data resolved at AETHR construction
 
-- [AETHR:New()](../../dev/AETHR.lua:65) resolves SAVEGAME_DIR and computes CONFIG_FOLDER path using [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- [AETHR:Init()](../../dev/AETHR.lua:199) ensures subfolder directories exist via [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46) and caches PATHS
+- [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65) resolves SAVEGAME_DIR and computes CONFIG_FOLDER path using [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199) ensures subfolder directories exist via [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46) and caches PATHS
 
 # Detailed logic per function
 
-[AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
+[AETHR.CONFIG:initConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364)
 - Calls loadConfig in protected mode
 - On table result, replaces self.MAIN with persisted data
 - Otherwise attempts to persist current defaults
 - Returns self for chaining
 
-[AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
+[AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380)
 - Guards against missing self.MAIN.STORAGE.PATHS
 - Resolves mapPath and filename from PATHS.CONFIG_FOLDER and FILENAMES.AETHER_CONFIG_FILE
-- Delegates to [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- Delegates to [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 - Returns table on success or nil on failure
 
-[AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
+[AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
 - Guards against missing self.MAIN.STORAGE.PATHS
 - Resolves mapPath and filename as above
-- Delegates to [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155) inside pcall
-- On error, logs via [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79) when available
+- Delegates to [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155) inside pcall
+- On error, logs via [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79) when available
 - Returns true on success, false on error
 
 # Error handling matrix
@@ -114,7 +114,7 @@ flowchart TB
 
 - Treat missing config as first run and seed disk with stable defaults
 - Prefer minimal deps inside CONFIG; all file logic is in FILEOPS
-- Use shallow instance copies to avoid prototype mutation during [AETHR:New()](../../dev/AETHR.lua:65)
+- Use shallow instance copies to avoid prototype mutation during [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L65)
 
 # Related breakouts
 
@@ -125,10 +125,10 @@ flowchart TB
 # Validation checklist
 
 - Code anchors verified against current HEAD
-  - [AETHR.CONFIG:initConfig()](../../dev/CONFIG_.lua:364)
-  - [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380)
-  - [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404)
-  - [AETHR:Init()](../../dev/AETHR.lua:199)
+  - [AETHR.CONFIG:initConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364)
+  - [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380)
+  - [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
+  - [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199)
 
 # Conventions
 

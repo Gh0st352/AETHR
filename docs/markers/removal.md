@@ -1,10 +1,10 @@
 # MARKERS removal
 
-Remove one or multiple map marks by id. Documents [AETHR.MARKERS:removeMarksByID()](../../dev/MARKERS.lua:318) behavior for single numeric id and table of ids, with guard conditions.
+Remove one or multiple map marks by id. Documents [AETHR.MARKERS:removeMarksByID()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L318) behavior for single numeric id and table of ids, with guard conditions.
 
 Primary anchor
 
-- Remove marks: [AETHR.MARKERS:removeMarksByID()](../../dev/MARKERS.lua:318)
+- Remove marks: [AETHR.MARKERS:removeMarksByID()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L318)
 
 # Overview
 
@@ -63,9 +63,9 @@ sequenceDiagram
 
 # Validation checklist
 
-- Entry point: [dev/MARKERS.lua](../../dev/MARKERS.lua:318)
-- Table guard and loop: [dev/MARKERS.lua](../../dev/MARKERS.lua:322)
-- Single id path: [dev/MARKERS.lua](../../dev/MARKERS.lua:329)
+- Entry point: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L318)
+- Table guard and loop: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L322)
+- Single id path: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L329)
 
 # Related breakouts
 

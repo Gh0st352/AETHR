@@ -1,14 +1,14 @@
 # FSM events and queries
 
-Guards and state queries used to decide if an event can fire and to inspect current state. Documents [AETHR.FSM:is()](../../dev/FSM.lua:401), [AETHR.FSM:can()](../../dev/FSM.lua:407), and [AETHR.FSM:cannot()](../../dev/FSM.lua:421), and shows how the event map is used.
+Guards and state queries used to decide if an event can fire and to inspect current state. Documents [AETHR.FSM:is()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L401), [AETHR.FSM:can()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407), and [AETHR.FSM:cannot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L421), and shows how the event map is used.
 
 # Primary anchors
 
-- Is current state: [AETHR.FSM:is()](../../dev/FSM.lua:401)
-- Guard and target: [AETHR.FSM:can()](../../dev/FSM.lua:407)
-- Inverse guard: [AETHR.FSM:cannot()](../../dev/FSM.lua:421)
-- Event map fill: [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
-- Transition builder context: [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
+- Is current state: [AETHR.FSM:is()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L401)
+- Guard and target: [AETHR.FSM:can()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407)
+- Inverse guard: [AETHR.FSM:cannot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L421)
+- Event map fill: [AETHR.FSM:add_to_map()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
+- Transition builder context: [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
 
 # Event map and guard logic
 
@@ -29,10 +29,10 @@ flowchart TD
   class CAN,CANT class_result;
 ```
 
-- Each event has a map of from state to target state created during [AETHR.FSM:New()](../../dev/FSM.lua:366) via [add_to_map](../../dev/FSM.lua:200)
+- Each event has a map of from state to target state created during [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366) via [add_to_map](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
 - Wildcard mapping * is supported and checked if an exact from is not found
-- [can](../../dev/FSM.lua:407) returns two values: boolean can and the target to when can is true
-- [cannot](../../dev/FSM.lua:421) simply negates can
+- [can](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407) returns two values: boolean can and the target to when can is true
+- [cannot](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L421) simply negates can
 
 # Usage inside transitions
 
@@ -51,21 +51,21 @@ sequenceDiagram
 
 # Query helpers
 
-- [is](../../dev/FSM.lua:401) returns true when fsm.DATA.current equals the provided state string
+- [is](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L401) returns true when fsm.DATA.current equals the provided state string
 - Useful for conditional logic outside transitions or to check completion
 
 # Examples
 
 - Defining events with multiple from states
-  - [add_to_map](../../dev/FSM.lua:200) accepts a from string or an array of strings
+  - [add_to_map](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200) accepts a from string or an array of strings
 - Wildcard
   - Provide from equal to * to allow the event to fire from any state not otherwise mapped
 
 # Validation checklist
 
-- Query helpers: [is](../../dev/FSM.lua:401), [can](../../dev/FSM.lua:407), [cannot](../../dev/FSM.lua:421)
-- Map construction: [add_to_map](../../dev/FSM.lua:200)
-- Transition use of guard: [create_transition](../../dev/FSM.lua:104)
+- Query helpers: [is](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L401), [can](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407), [cannot](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L421)
+- Map construction: [add_to_map](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
+- Transition use of guard: [create_transition](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
 
 # Related breakouts
 

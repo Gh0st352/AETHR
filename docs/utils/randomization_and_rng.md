@@ -1,9 +1,9 @@
 # UTILS randomization and RNG
 
 Anchors
-- [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:243)
-- [AETHR.UTILS:Shuffle()](../../dev/UTILS.lua:218)
-- [AETHR.UTILS:pickRandomKeyFromTable()](../../dev/UTILS.lua:201)
+- [AETHR.UTILS:withSeed()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L243)
+- [AETHR.UTILS:Shuffle()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L218)
+- [AETHR.UTILS:pickRandomKeyFromTable()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L201)
 
 Overview
 - withSeed executes a callback under a deterministic RNG seed with optional warmup and reseedAfter scramble.
@@ -77,8 +77,8 @@ class KEY class_result;
 - pickRandomKeyFromTable is O(n) to collect keys plus shuffle; for very large maps consider alternative streaming sampling.
 
 # Source anchors
-- [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:243)
-- [AETHR.UTILS:Shuffle()](../../dev/UTILS.lua:218)
-- [AETHR.UTILS:pickRandomKeyFromTable()](../../dev/UTILS.lua:201)
+- [AETHR.UTILS:withSeed()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L243)
+- [AETHR.UTILS:Shuffle()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L218)
+- [AETHR.UTILS:pickRandomKeyFromTable()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L201)
 
 Last updated: 2025-10-16

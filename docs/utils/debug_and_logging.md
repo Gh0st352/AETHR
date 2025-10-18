@@ -1,9 +1,9 @@
 # UTILS debug and logging
 
 Anchors
-- [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
-- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
-- [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101)
+- [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70)
+- [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79)
+- [AETHR.UTILS:debugInfoRate()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L101)
 
 Overview
 - isDebug checks CONFIG.MAIN.DEBUG_ENABLED with minimal overhead.
@@ -72,8 +72,8 @@ sequenceDiagram
 - Structured data logging to BASE.E is attempted only when provided and available.
 
 # Source anchors
-- [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
-- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
-- [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101)
+- [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70)
+- [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79)
+- [AETHR.UTILS:debugInfoRate()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L101)
 
 Last updated: 2025-10-16

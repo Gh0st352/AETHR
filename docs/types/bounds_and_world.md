@@ -1,11 +1,11 @@
 # TYPES bounds and world structures
 
 Anchors
-- [AETHR._WorldBoundsAxis:New()](../../dev/customTypes.lua:51)
-- [AETHR._WorldBounds:New()](../../dev/customTypes.lua:68)
-- [AETHR._WorldDivision:New()](../../dev/customTypes.lua:159)
-- [AETHR._ZoneCellEntry:New()](../../dev/customTypes.lua:178)
-- [_GameBounds structure](../../dev/customTypes.lua:795)
+- [AETHR._WorldBoundsAxis:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L51)
+- [AETHR._WorldBounds:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L68)
+- [AETHR._WorldDivision:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L159)
+- [AETHR._ZoneCellEntry:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L178)
+- [_GameBounds structure](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L795)
 
 Overview
 - [_WorldBoundsAxis](../../dev/customTypes.lua) encapsulates min and max along one axis with safe defaults.
@@ -69,7 +69,7 @@ flowchart TD
 
 # World bounds to polygon rendering
 - World bounds polygons are derived for visualization and clipping using POLY helpers:
-  - [AETHR.POLY:convertBoundsToPolygon()](../../dev/POLY.lua:1039)
+  - [AETHR.POLY:convertBoundsToPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1039)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -114,12 +114,12 @@ flowchart LR
 ```
 
 # Key constructors and defaults
-- Axis: [AETHR._WorldBoundsAxis:New()](../../dev/customTypes.lua:51) initializes min and max to 0 when nil.
-- Bounds: [AETHR._WorldBounds:New()](../../dev/customTypes.lua:68) defaults each axis via axis constructor.
-- Division: [AETHR._WorldDivision:New()](../../dev/customTypes.lua:159) defaults ID 0, active false, empty corners.
-- Zone cell entry: [AETHR._ZoneCellEntry:New()](../../dev/customTypes.lua:178) defaults bbox to [AETHR._BBox:New()](../../dev/customTypes.lua:136) and empty polygon.
+- Axis: [AETHR._WorldBoundsAxis:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L51) initializes min and max to 0 when nil.
+- Bounds: [AETHR._WorldBounds:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L68) defaults each axis via axis constructor.
+- Division: [AETHR._WorldDivision:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L159) defaults ID 0, active false, empty corners.
+- Zone cell entry: [AETHR._ZoneCellEntry:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L178) defaults bbox to [AETHR._BBox:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L136) and empty polygon.
 
 # Related anchors
-- [AETHR._BBox:New()](../../dev/customTypes.lua:136)
-- [AETHR._vec2xz:New()](../../dev/customTypes.lua:542), [AETHR._vec2:New()](../../dev/customTypes.lua:522)
-- [_GameBounds fields](../../dev/customTypes.lua:795)
+- [AETHR._BBox:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L136)
+- [AETHR._vec2xz:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L542), [AETHR._vec2:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L522)
+- [_GameBounds fields](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L795)

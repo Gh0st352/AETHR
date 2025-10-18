@@ -5,25 +5,25 @@ Structure and relationships for AETHR.CONFIG.MAIN and its nested types.
 # Source anchors
 
 - Types and schema definitions
-  - [AETHR.CONFIG.Color](../../dev/CONFIG_.lua:33)
-  - [AETHR.CONFIG.SubFolders](../../dev/CONFIG_.lua:39)
-  - [AETHR.CONFIG.Paths](../../dev/CONFIG_.lua:46)
-  - [AETHR.CONFIG.Filenames](../../dev/CONFIG_.lua:54)
-  - [AETHR.CONFIG.Storage](../../dev/CONFIG_.lua:71)
-  - [AETHR.CONFIG.AxisRange](../../dev/CONFIG_.lua:79)
-  - [AETHR.CONFIG.BoundsCoord](../../dev/CONFIG_.lua:83)
-  - [AETHR.CONFIG.MizZones](../../dev/CONFIG_.lua:87)
-  - [AETHR.CONFIG.Flags](../../dev/CONFIG_.lua:92)
-  - [AETHR.CONFIG.Counters](../../dev/CONFIG_.lua:98)
-  - [AETHR.CONFIG.PaintColors](../../dev/CONFIG_.lua:107)
-  - [AETHR.CONFIG.GameBoundsSettings](../../dev/CONFIG_.lua:116)
-  - [AETHR.CONFIG.ZoneSettings](../../dev/CONFIG_.lua:124)
-  - [AETHR.CONFIG.OutTextSection](../../dev/CONFIG_.lua:130)
-  - [AETHR.CONFIG.OutTextSettings](../../dev/CONFIG_.lua:134)
-  - [AETHR.CONFIG.MAIN class doc](../../dev/CONFIG_.lua:138)
-  - [AETHR.CONFIG.MAIN.saveChunks](../../dev/CONFIG_.lua:159)
+  - [AETHR.CONFIG.Color](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L33)
+  - [AETHR.CONFIG.SubFolders](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L39)
+  - [AETHR.CONFIG.Paths](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L46)
+  - [AETHR.CONFIG.Filenames](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L54)
+  - [AETHR.CONFIG.Storage](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L71)
+  - [AETHR.CONFIG.AxisRange](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L79)
+  - [AETHR.CONFIG.BoundsCoord](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L83)
+  - [AETHR.CONFIG.MizZones](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L87)
+  - [AETHR.CONFIG.Flags](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L92)
+  - [AETHR.CONFIG.Counters](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L98)
+  - [AETHR.CONFIG.PaintColors](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L107)
+  - [AETHR.CONFIG.GameBoundsSettings](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L116)
+  - [AETHR.CONFIG.ZoneSettings](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L124)
+  - [AETHR.CONFIG.OutTextSection](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L130)
+  - [AETHR.CONFIG.OutTextSettings](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L134)
+  - [AETHR.CONFIG.MAIN class doc](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L138)
+  - [AETHR.CONFIG.MAIN.saveChunks](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L159)
 - MAIN defaults table
-  - [AETHR.CONFIG.MAIN = { ... }](../../dev/CONFIG_.lua:164)
+  - [AETHR.CONFIG.MAIN = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L164)
 
 # Overview
 
@@ -275,14 +275,14 @@ flowchart LR
 Key usage links
 
 - WORLD uses bounds and division sizing
-  - [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
-  - [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176)
+  - [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156)
+  - [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176)
 - ZONE_MANAGER uses paint and arrow settings
   - See zone pages: [markers_and_arrows.md](../zone_manager/markers_and_arrows.md), [game_bounds.md](../zone_manager/game_bounds.md)
 - FILEOPS and AETHR wiring compute paths and ensure directories
-  - [AETHR:New() path join](../../dev/AETHR.lua:125)
-  - [AETHR:Init() path ensure](../../dev/AETHR.lua:199)
-  - [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37), [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
+  - [AETHR:New() path join](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L125)
+  - [AETHR:Init() path ensure](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199)
+  - [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37), [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
 
 Notes
 

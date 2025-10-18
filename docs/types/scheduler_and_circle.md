@@ -1,9 +1,9 @@
 # TYPES scheduler and circle
 
 Anchors
-- [AETHR._task:New()](../../dev/customTypes.lua:483)
-- [AETHR._circle:New()](../../dev/customTypes.lua:1471)
-- [_dbCluster structure](../../dev/customTypes.lua:1482)
+- [AETHR._task:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L483)
+- [AETHR._circle:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1471)
+- [_dbCluster structure](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1482)
 
 Overview
 - _task encapsulates scheduling metadata used by the BRAIN scheduler, including time windows, iteration caps, and repeat logic.
@@ -103,7 +103,7 @@ flowchart TD
 ```
 
 # Source anchors
-- Task: [AETHR._task:New()](../../dev/customTypes.lua:483)
-- Circle: [AETHR._circle:New()](../../dev/customTypes.lua:1471)
-- Cluster: [_dbCluster](../../dev/customTypes.lua:1482)
+- Task: [AETHR._task:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L483)
+- Circle: [AETHR._circle:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1471)
+- Cluster: [_dbCluster](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1482)
 - Related scheduler pages: [docs/brain/scheduler.md](../brain/scheduler.md)

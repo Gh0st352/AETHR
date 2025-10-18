@@ -1,19 +1,19 @@
 # AETHR MATH diagrams and flows
 
 ## Primary anchors
-- [AETHR.MATH:crossProduct()](../../dev/MATH_.lua:29)
-- [AETHR.MATH:computeRatio()](../../dev/MATH_.lua:43)
-- [AETHR.MATH:distanceSquared()](../../dev/MATH_.lua:58)
-- [AETHR.MATH:dot()](../../dev/MATH_.lua:75)
-- [AETHR.MATH:direction()](../../dev/MATH_.lua:96)
-- [AETHR.MATH:almostEqual()](../../dev/MATH_.lua:118)
-- [AETHR.MATH:pointsEqual()](../../dev/MATH_.lua:129)
-- [AETHR.MATH:turnAngle()](../../dev/MATH_.lua:142)
-- [AETHR.MATH:centroid()](../../dev/MATH_.lua:157)
-- [AETHR.MATH:generateNominal()](../../dev/MATH_.lua:181)
-- [AETHR.MATH:randomDecimalBetween()](../../dev/MATH_.lua:215)
-- [AETHR.MATH:generateNudge()](../../dev/MATH_.lua:233)
-- [AETHR.MATH:degreeToRadian()](../../dev/MATH_.lua:252)
+- [AETHR.MATH:crossProduct()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L29)
+- [AETHR.MATH:computeRatio()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L43)
+- [AETHR.MATH:distanceSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L58)
+- [AETHR.MATH:dot()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L75)
+- [AETHR.MATH:direction()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L96)
+- [AETHR.MATH:almostEqual()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L118)
+- [AETHR.MATH:pointsEqual()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L129)
+- [AETHR.MATH:turnAngle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L142)
+- [AETHR.MATH:centroid()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L157)
+- [AETHR.MATH:generateNominal()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L181)
+- [AETHR.MATH:randomDecimalBetween()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L215)
+- [AETHR.MATH:generateNudge()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L233)
+- [AETHR.MATH:degreeToRadian()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L252)
 
 ## Breakout documents
 - Orientation: [docs/math/orientation.md](orientation.md)
@@ -103,7 +103,7 @@ flowchart LR
 ```
 
 # Key anchors in consumers
-- POLY: [pointToSegmentSquared](../../dev/POLY.lua:1149), [getEquallySpacedPoints](../../dev/POLY.lua:1074), [isWithinOffset](../../dev/POLY.lua:1106), [concaveHull](../../dev/POLY.lua:1309), [convexHull](../../dev/POLY.lua:1461)
+- POLY: [pointToSegmentSquared](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1149), [getEquallySpacedPoints](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1074), [isWithinOffset](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1106), [concaveHull](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1309), [convexHull](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1461)
 - SPAWNER types and counts: see [docs/spawner/types_and_counts.md](../spawner/types_and_counts.md) and [docs/spawner/pipeline.md](../spawner/pipeline.md)
 
 # Notes

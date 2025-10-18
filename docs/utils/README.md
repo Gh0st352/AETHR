@@ -1,19 +1,19 @@
 # AETHR UTILS diagrams and flows
 
 Primary anchors
-- [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
-- [AETHR.UTILS:debugInfo()](../../dev/UTILS.lua:79)
-- [AETHR.UTILS:debugInfoRate()](../../dev/UTILS.lua:101)
-- [AETHR.UTILS.getTime()](../../dev/UTILS.lua:56)
-- [AETHR.UTILS:getPointY()](../../dev/UTILS.lua:129)
-- [AETHR.UTILS:normalizePoint()](../../dev/UTILS.lua:137)
-- [AETHR.UTILS:hasValue()](../../dev/UTILS.lua:147)
-- [AETHR.UTILS:table_hasValue()](../../dev/UTILS.lua:162)
-- [AETHR.UTILS.safe_lookup()](../../dev/UTILS.lua:170)
-- [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
-- [AETHR.UTILS:pickRandomKeyFromTable()](../../dev/UTILS.lua:201)
-- [AETHR.UTILS:Shuffle()](../../dev/UTILS.lua:218)
-- [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:243)
+- [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70)
+- [AETHR.UTILS:debugInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79)
+- [AETHR.UTILS:debugInfoRate()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L101)
+- [AETHR.UTILS.getTime()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L56)
+- [AETHR.UTILS:getPointY()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L129)
+- [AETHR.UTILS:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L137)
+- [AETHR.UTILS:hasValue()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L147)
+- [AETHR.UTILS:table_hasValue()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L162)
+- [AETHR.UTILS.safe_lookup()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L170)
+- [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
+- [AETHR.UTILS:pickRandomKeyFromTable()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L201)
+- [AETHR.UTILS:Shuffle()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L218)
+- [AETHR.UTILS:withSeed()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L243)
 
 Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -174,11 +174,11 @@ class OUT1,PICK class_result;
 ```
 
 # Key anchors
-- Debug: [isDebug](../../dev/UTILS.lua:70), [debugInfo](../../dev/UTILS.lua:79), [debugInfoRate](../../dev/UTILS.lua:101)
-- Time: [getTime](../../dev/UTILS.lua:56)
-- Geometry helpers: [getPointY](../../dev/UTILS.lua:129), [normalizePoint](../../dev/UTILS.lua:137)
-- Lookups and colors: [safe_lookup](../../dev/UTILS.lua:170), [updateMarkupColors](../../dev/UTILS.lua:188)
-- RNG and collections: [withSeed](../../dev/UTILS.lua:243), [Shuffle](../../dev/UTILS.lua:218), [pickRandomKeyFromTable](../../dev/UTILS.lua:201)
+- Debug: [isDebug](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70), [debugInfo](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L79), [debugInfoRate](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L101)
+- Time: [getTime](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L56)
+- Geometry helpers: [getPointY](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L129), [normalizePoint](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L137)
+- Lookups and colors: [safe_lookup](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L170), [updateMarkupColors](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
+- RNG and collections: [withSeed](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L243), [Shuffle](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L218), [pickRandomKeyFromTable](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L201)
 
 Notes
 - Mermaid labels avoid double quotes and parentheses.

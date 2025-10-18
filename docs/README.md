@@ -101,13 +101,13 @@ flowchart LR
 - [AI](ai/README.md)
 
 ## Source anchors examples
-- [AETHR.CONFIG:initConfig()](../dev/CONFIG_.lua:364), [AETHR.CONFIG:loadConfig()](../dev/CONFIG_.lua:380), [AETHR.CONFIG:saveConfig()](../dev/CONFIG_.lua:404)
-- [AETHR.WORLD:generateWorldDivisions()](../dev/WORLD.lua:1156), [AETHR.WORLD:initMizFileCache()](../dev/WORLD.lua:90)
-- [AETHR.SPAWNER:generateDynamicSpawner()](../dev/SPAWNER.lua:563)
-- [AETHR.ZONE_MANAGER:drawGameBounds()](../dev/ZONE_MANAGER.lua:931)
-- [AETHR.BRAIN:scheduleTask()](../dev/BRAIN.lua:277)
-- [AETHR.AI.DBSCANNER:Scan()](../dev/_AI.lua:319)
-- [AETHR.FSM:processQueue()](../dev/FSM.lua:515)
+- [AETHR.CONFIG:initConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364), [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380), [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
+- [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156), [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90)
+- [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
+- [AETHR.ZONE_MANAGER:drawGameBounds()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L931)
+- [AETHR.BRAIN:scheduleTask()](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L277)
+- [AETHR.AI.DBSCANNER:Scan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L319)
+- [AETHR.FSM:processQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515)
 
 ### Notes
 - Existing module pages will be standardized in subsequent steps; links above point to top-level READMEs where applicable.

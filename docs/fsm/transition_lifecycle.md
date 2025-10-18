@@ -1,15 +1,15 @@
 # FSM transition lifecycle and async semantics
 
-Detailed walkthrough of event firing, lifecycle callbacks, and async progression logic implemented by [AETHR.FSM:create_transition()](../../dev/FSM.lua:104). Includes resume and cancel semantics via [AETHR.FSM:transition()](../../dev/FSM.lua:451) and [AETHR.FSM:cancelTransition()](../../dev/FSM.lua:461).
+Detailed walkthrough of event firing, lifecycle callbacks, and async progression logic implemented by [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104). Includes resume and cancel semantics via [AETHR.FSM:transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451) and [AETHR.FSM:cancelTransition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L461).
 
 # Primary anchors
 
-- Transition builder: [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
-- Resume progression: [AETHR.FSM:transition()](../../dev/FSM.lua:451)
-- Cancel in flight: [AETHR.FSM:cancelTransition()](../../dev/FSM.lua:461)
-- Call wrapper for lifecycle hooks: [AETHR.FSM:call_handler()](../../dev/FSM.lua:88)
-- State query and guards: [AETHR.FSM:can()](../../dev/FSM.lua:407)
-- Async sentinels: [AETHR.FSM.ASYNC](../../dev/FSM.lua:23), [AETHR.FSM.NONE](../../dev/FSM.lua:22)
+- Transition builder: [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
+- Resume progression: [AETHR.FSM:transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451)
+- Cancel in flight: [AETHR.FSM:cancelTransition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L461)
+- Call wrapper for lifecycle hooks: [AETHR.FSM:call_handler()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88)
+- State query and guards: [AETHR.FSM:can()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407)
+- Async sentinels: [AETHR.FSM.ASYNC](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L23), [AETHR.FSM.NONE](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L22)
 
 # Lifecycle order and branching
 
@@ -65,22 +65,22 @@ sequenceDiagram
 # Key implementation notes
 
 - Waiting markers
-  - [AETHR.FSM:create_transition()](../../dev/FSM.lua:104) constructs
+  - [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104) constructs
     - waitingLeave = name .. FSM.WaitingOnLeave
     - waitingEnter = name .. FSM.WaitingOnEnter
   - These suffix constants are defined in [AETHR.ENUMS.FSM](../../dev/ENUMS.lua) and are concatenated to the event name.
 - Async and none sentinels
-  - [AETHR.FSM.ASYNC](../../dev/FSM.lua:23) and [AETHR.FSM.NONE](../../dev/FSM.lua:22) fall back to string defaults when ENUMS is unavailable.
+  - [AETHR.FSM.ASYNC](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L23) and [AETHR.FSM.NONE](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L22) fall back to string defaults when ENUMS is unavailable.
 - Callback invocation
-  - All lifecycle callbacks are invoked through [AETHR.FSM:call_handler()](../../dev/FSM.lua:88) which safely no-ops for non functions.
+  - All lifecycle callbacks are invoked through [AETHR.FSM:call_handler()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88) which safely no-ops for non functions.
   - Order inside the NONE stage: onBefore<event> then onLeave<from> then possibly pause.
   - In waitingLeave stage, current is switched to target state and onEnter<to> or on<to> is invoked.
   - In waitingEnter stage, onAfter<event> or on<event> followed by onStateChange are invoked.
 - Guards and target resolution
-  - [AETHR.FSM:can()](../../dev/FSM.lua:407) returns can, to using current state and the per event from map.
+  - [AETHR.FSM:can()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407) returns can, to using current state and the per event from map.
 - Return semantics
   - Returning false from onBefore or onLeave cancels transition and returns false.
-  - Returning ASYNC from onLeave or onEnter pauses and returns true. Caller must later call [AETHR.FSM:transition()](../../dev/FSM.lua:451) with the same event.
+  - Returning ASYNC from onLeave or onEnter pauses and returns true. Caller must later call [AETHR.FSM:transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451) with the same event.
   - Completed transitions return true.
 
 # Stray state recovery
@@ -106,17 +106,17 @@ flowchart TD
 
 # Cancellation
 
-- [AETHR.FSM:cancelTransition()](../../dev/FSM.lua:461)
+- [AETHR.FSM:cancelTransition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L461)
   - If the active event matches the provided name, clears asyncState to NONE and currentTransitioningEvent to nil.
-  - Subsequent calls to [AETHR.FSM:transition()](../../dev/FSM.lua:451) for that event will be ignored until a new event is fired.
+  - Subsequent calls to [AETHR.FSM:transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451) for that event will be ignored until a new event is fired.
 
 # Validation checklist
 
-- Builder and core: [create_transition](../../dev/FSM.lua:104)
-- Resume and cancel: [transition](../../dev/FSM.lua:451), [cancelTransition](../../dev/FSM.lua:461)
-- Handler wrapper: [call_handler](../../dev/FSM.lua:88)
-- Sentinel constants: [FSM.NONE](../../dev/FSM.lua:22), [FSM.ASYNC](../../dev/FSM.lua:23)
-- Guard and target: [can](../../dev/FSM.lua:407)
+- Builder and core: [create_transition](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
+- Resume and cancel: [transition](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451), [cancelTransition](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L461)
+- Handler wrapper: [call_handler](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L88)
+- Sentinel constants: [FSM.NONE](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L22), [FSM.ASYNC](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L23)
+- Guard and target: [can](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407)
 
 # Related breakouts
 

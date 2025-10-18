@@ -1,12 +1,12 @@
 # AETHR WORLD diagrams index
 
 ### Primary flows
-- Initialization chain: [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176) -> [AETHR.WORLD:initActiveDivisions()](../../dev/WORLD.lua:1083) -> [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90) -> [AETHR.WORLD:getAirbases()](../../dev/WORLD.lua:428)
-- Ownership propagation: [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501) -> [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633) -> [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683) -> [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
-- Division activation: [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156) -> [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206) -> [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328) -> [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
-- Object DB: [AETHR.WORLD:updateGroundUnitsDB()](../../dev/WORLD.lua:860) and per-division caches via [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395)
-- Spawner integration: [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801) -> [AETHR.WORLD:spawnGroundGroups()](../../dev/WORLD.lua:538) -> [AETHR.WORLD:despawnGroundGroups()](../../dev/WORLD.lua:590)
-- Town clustering: [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460) -> [AETHR.WORLD:initTowns()](../../dev/WORLD.lua:1513)
+- Initialization chain: [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176) -> [AETHR.WORLD:initActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1083) -> [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90) -> [AETHR.WORLD:getAirbases()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L428)
+- Ownership propagation: [AETHR.WORLD:updateAirbaseOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L501) -> [AETHR.WORLD:updateZoneOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L633) -> [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683) -> [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
+- Division activation: [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156) -> [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206) -> [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328) -> [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
+- Object DB: [AETHR.WORLD:updateGroundUnitsDB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L860) and per-division caches via [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395)
+- Spawner integration: [AETHR.WORLD:spawnerGenerationQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L801) -> [AETHR.WORLD:spawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L538) -> [AETHR.WORLD:despawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L590)
+- Town clustering: [AETHR.WORLD:determineTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1460) -> [AETHR.WORLD:initTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1513)
 
 ### Documents
 - Initialization: [initialization.md](./initialization.md)
@@ -85,19 +85,19 @@ sequenceDiagram
 
 # Key anchors
 - Divisions and activation
-  - [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156), [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206), [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328), [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
-  - [AETHR.WORLD:initGrid()](../../dev/WORLD.lua:1236), [AETHR.WORLD:buildZoneCellIndex()](../../dev/WORLD.lua:1268), [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:284)
+  - [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156), [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206), [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328), [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
+  - [AETHR.WORLD:initGrid()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1236), [AETHR.WORLD:buildZoneCellIndex()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1268), [AETHR.WORLD:markWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L284)
 - MIZ cache
-  - [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90), [AETHR.WORLD:getStoredMizFileCache()](../../dev/WORLD.lua:109), [AETHR.WORLD:generateMizFileCache()](../../dev/WORLD.lua:187), [AETHR.WORLD:saveMizFileCache()](../../dev/WORLD.lua:145)
+  - [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90), [AETHR.WORLD:getStoredMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L109), [AETHR.WORLD:generateMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L187), [AETHR.WORLD:saveMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L145)
 - Ownership
-  - [AETHR.WORLD:updateAirbaseOwnership()](../../dev/WORLD.lua:501), [AETHR.WORLD:updateZoneOwnership()](../../dev/WORLD.lua:633), [AETHR.WORLD:updateZoneColors()](../../dev/WORLD.lua:683), [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
-  - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970), [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
+  - [AETHR.WORLD:updateAirbaseOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L501), [AETHR.WORLD:updateZoneOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L633), [AETHR.WORLD:updateZoneColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L683), [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
+  - [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970), [AETHR.WORLD.zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
 - Objects and DB
-  - [AETHR.WORLD:searchObjectsBox()](../../dev/WORLD.lua:334), [AETHR.WORLD:searchObjectsSphere()](../../dev/WORLD.lua:384), [AETHR.WORLD:_initObjectsInDivisions()](../../dev/WORLD.lua:1395), [AETHR.WORLD:updateGroundUnitsDB()](../../dev/WORLD.lua:860)
+  - [AETHR.WORLD:searchObjectsBox()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L334), [AETHR.WORLD:searchObjectsSphere()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L384), [AETHR.WORLD:_initObjectsInDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1395), [AETHR.WORLD:updateGroundUnitsDB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L860)
 - Spawner integration
-  - [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801), [AETHR.WORLD:spawnGroundGroups()](../../dev/WORLD.lua:538), [AETHR.WORLD:despawnGroundGroups()](../../dev/WORLD.lua:590)
+  - [AETHR.WORLD:spawnerGenerationQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L801), [AETHR.WORLD:spawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L538), [AETHR.WORLD:despawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L590)
 - Town clustering
-  - [AETHR.WORLD:determineTowns()](../../dev/WORLD.lua:1460), [AETHR.WORLD:initTowns()](../../dev/WORLD.lua:1513), [AETHR.WORLD:loadTowns()](../../dev/WORLD.lua:1528), [AETHR.WORLD:saveTowns()](../../dev/WORLD.lua:1541)
+  - [AETHR.WORLD:determineTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1460), [AETHR.WORLD:initTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1513), [AETHR.WORLD:loadTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1528), [AETHR.WORLD:saveTowns()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1541)
 
 # Cross-module indexes
 - SPAWNER: [../spawner/README.md](../spawner/README.md)

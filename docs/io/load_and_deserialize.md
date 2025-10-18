@@ -1,11 +1,11 @@
 # IO load and deSerialize
 
-Loading and executing persisted Lua chunks from files or serialized strings. Covers [AETHR.IO.deSerialize()](../../dev/IO.lua:281) and [AETHR.IO.load()](../../dev/IO.lua:310), including error paths, file vs stream sources, and result semantics.
+Loading and executing persisted Lua chunks from files or serialized strings. Covers [AETHR.IO.deSerialize()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281) and [AETHR.IO.load()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310), including error paths, file vs stream sources, and result semantics.
 
 Primary anchors
 
-- DeSerialize from string: [AETHR.IO.deSerialize()](../../dev/IO.lua:281)
-- Load from path or stream: [AETHR.IO.load()](../../dev/IO.lua:310)
+- DeSerialize from string: [AETHR.IO.deSerialize()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281)
+- Load from path or stream: [AETHR.IO.load()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310)
 
 # Overview flows
 
@@ -75,17 +75,17 @@ sequenceDiagram
 
 # Behavior and errors
 
-- [AETHR.IO.deSerialize()](../../dev/IO.lua:281)
+- [AETHR.IO.deSerialize()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281)
   - Uses loadstring then executes the compiled chunk
   - Returns results of execution on success, or nil and error message on failure
-- [AETHR.IO.load()](../../dev/IO.lua:310)
+- [AETHR.IO.load()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310)
   - When given a string path uses loadfile; otherwise expects a stream supporting read '*a'
   - Returns results of execution on success, or nil and error message on failure
 
 ## Integration notes
 
-- These functions pair with serialization output produced by [AETHR.IO.store()](../../dev/IO.lua:63), [AETHR.IO.storeNoFunc()](../../dev/IO.lua:134), and [AETHR.IO.serializeNoFunc()](../../dev/IO.lua:199)
-- FILEOPS uses them under the hood in [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155) and [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- These functions pair with serialization output produced by [AETHR.IO.store()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L63), [AETHR.IO.storeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L134), and [AETHR.IO.serializeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L199)
+- FILEOPS uses them under the hood in [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155) and [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 
 # Guard and result patterns
 
@@ -104,15 +104,15 @@ flowchart TD
 # Usage examples
 
 - DeSerialize a string chunk
-  - local data = [AETHR.IO.deSerialize()](../../dev/IO.lua:281)(serializedString)
+  - local data = [AETHR.IO.deSerialize()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281)(serializedString)
 - Load from disk
-  - local data = [AETHR.IO.load()](../../dev/IO.lua:310)(path)
+  - local data = [AETHR.IO.load()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310)(path)
 
 # Validation checklist
 
-- deSerialize entry: [dev/IO.lua](../../dev/IO.lua:281)
-- load entry: [dev/IO.lua](../../dev/IO.lua:310)
-- FILEOPS callers: [dev/FILEOPS_.lua saveData](../../dev/FILEOPS_.lua:155), [dev/FILEOPS_.lua loadData](../../dev/FILEOPS_.lua:173)
+- deSerialize entry: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281)
+- load entry: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310)
+- FILEOPS callers: [dev/FILEOPS_.lua saveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155), [dev/FILEOPS_.lua loadData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 
 # Related breakouts
 

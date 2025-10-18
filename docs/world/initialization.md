@@ -1,10 +1,10 @@
 # WORLD initialization flows
 
 Primary anchors
-- [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176)
-- [AETHR.WORLD:initActiveDivisions()](../../dev/WORLD.lua:1083)
-- [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90)
-- [AETHR.WORLD:getAirbases()](../../dev/WORLD.lua:428)
+- [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176)
+- [AETHR.WORLD:initActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1083)
+- [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90)
+- [AETHR.WORLD:getAirbases()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L428)
 
 # End-to-end initialization chain
 
@@ -41,11 +41,11 @@ flowchart TD
 ```
 
 ### Anchors
-- [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
-- [AETHR.WORLD:saveWorldDivisions()](../../dev/WORLD.lua:1113)
-- [AETHR.WORLD:loadWorldDivisionsAABB()](../../dev/WORLD.lua:1126)
-- [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
-- [AETHR.WORLD:saveWorldDivisionsAABB()](../../dev/WORLD.lua:1141)
+- [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156)
+- [AETHR.WORLD:saveWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1113)
+- [AETHR.WORLD:loadWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1126)
+- [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206)
+- [AETHR.WORLD:saveWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1141)
 
 See also: [docs/world/divisions.md](docs/world/divisions.md)
 
@@ -69,9 +69,9 @@ flowchart TD
 ```
 
 ### Anchors
-- [AETHR.WORLD:loadActiveDivisions()](../../dev/WORLD.lua:1045)
-- [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
-- [AETHR.WORLD:saveActiveDivisions()](../../dev/WORLD.lua:1057)
+- [AETHR.WORLD:loadActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1045)
+- [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
+- [AETHR.WORLD:saveActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1057)
 
 See also: [docs/world/divisions.md](docs/world/divisions.md)
 
@@ -94,9 +94,9 @@ flowchart TD
 ```
 
 ### Anchors
-- [AETHR.WORLD:getStoredMizFileCache()](../../dev/WORLD.lua:109)
-- [AETHR.WORLD:generateMizFileCache()](../../dev/WORLD.lua:187)
-- [AETHR.WORLD:saveMizFileCache()](../../dev/WORLD.lua:145)
+- [AETHR.WORLD:getStoredMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L109)
+- [AETHR.WORLD:generateMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L187)
+- [AETHR.WORLD:saveMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L145)
 
 See also: [docs/world/miz_cache.md](docs/world/miz_cache.md)
 
@@ -135,7 +135,7 @@ flowchart TD
 - Airbase object stored under `DATA.AIRBASES[displayName]`
 
 ### Anchor
-- [AETHR.WORLD:getAirbases()](../../dev/WORLD.lua:428)
+- [AETHR.WORLD:getAirbases()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L428)
 
 ## Initialization sequence with modules
 
@@ -167,7 +167,7 @@ sequenceDiagram
 
 ## Anchor index
 
-- [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176)
-- [AETHR.WORLD:initActiveDivisions()](../../dev/WORLD.lua:1083)
-- [AETHR.WORLD:initMizFileCache()](../../dev/WORLD.lua:90)
-- [AETHR.WORLD:getAirbases()](../../dev/WORLD.lua:428)
+- [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176)
+- [AETHR.WORLD:initActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1083)
+- [AETHR.WORLD:initMizFileCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L90)
+- [AETHR.WORLD:getAirbases()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L428)

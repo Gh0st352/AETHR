@@ -4,10 +4,10 @@ Join and normalize paths, create missing directories recursively, and ensure fil
 
 # Primary anchors
 
-- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
-- [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
-- [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
+- [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- [AETHR.FILEOPS:ensureFile()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L120)
+- [AETHR.FILEOPS:fileExists()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L189)
 
 # Overview
 
@@ -86,9 +86,9 @@ sequenceDiagram
 
 # Consumers and call chain
 
-- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155) ensures directory before storing.
-- [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404) persists MAIN via FILEOPS saveData.
-- [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380) loads persisted config via FILEOPS loadData.
+- [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155) ensures directory before storing.
+- [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404) persists MAIN via FILEOPS saveData.
+- [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380) loads persisted config via FILEOPS loadData.
 
 # Notes
 
@@ -97,10 +97,10 @@ sequenceDiagram
 
 # Validation checklist
 
-- Join: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:37)
-- Ensure dir: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:46)
-- Ensure file: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:120)
-- Exists: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:189)
+- Join: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- Ensure dir: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- Ensure file: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L120)
+- Exists: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L189)
 
 Related breakouts
 

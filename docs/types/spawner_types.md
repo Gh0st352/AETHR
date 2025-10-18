@@ -1,29 +1,29 @@
 # TYPES spawner ecosystem
 
 ### Anchors
-- [AETHR._dynamicSpawner:New()](../../dev/customTypes.lua:868)
+- [AETHR._dynamicSpawner:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L868)
 - Setters:
-  - [setNumSpawnZones](../../dev/customTypes.lua:928)
-  - [setSpawnAmount](../../dev/customTypes.lua:946)
-  - [setNamePrefix](../../dev/customTypes.lua:963)
-  - [setSpawnTypeAmount](../../dev/customTypes.lua:969)
-  - [setGroupSizes](../../dev/customTypes.lua:977)
-  - [addExtraTypeToGroups](../../dev/customTypes.lua:983)
+  - [setNumSpawnZones](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L928)
+  - [setSpawnAmount](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L946)
+  - [setNamePrefix](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L963)
+  - [setSpawnTypeAmount](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L969)
+  - [setGroupSizes](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L977)
+  - [addExtraTypeToGroups](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L983)
 - Internals:
-  - [_seedRollUpdates](../../dev/customTypes.lua:992)
-  - [_introduceRandomness](../../dev/customTypes.lua:1006)
-  - [_distributeDifference](../../dev/customTypes.lua:1036)
-  - [_assignAndUpdateSubZones](../../dev/customTypes.lua:1059)
-  - [_thresholdClamp](../../dev/customTypes.lua:1082)
-  - [_confirmTotals](../../dev/customTypes.lua:1115)
+  - [_seedRollUpdates](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L992)
+  - [_introduceRandomness](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1006)
+  - [_distributeDifference](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1036)
+  - [_assignAndUpdateSubZones](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1059)
+  - [_thresholdClamp](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1082)
+  - [_confirmTotals](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1115)
 - Zones and settings:
-  - [AETHR._spawnerZone:New()](../../dev/customTypes.lua:1177)
-  - [setGroupSpacing](../../dev/customTypes.lua:1276)
-  - [setSpawnAmounts](../../dev/customTypes.lua:1303)
-  - [rollSpawnAmounts](../../dev/customTypes.lua:1330)
-  - [_UpdateGenThresholds](../../dev/customTypes.lua:1365)
-  - [AETHR._spawnSettings:New()](../../dev/customTypes.lua:1401)
-  - [AETHR._spawnerTypeConfig:New()](../../dev/customTypes.lua:1444)
+  - [AETHR._spawnerZone:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1177)
+  - [setGroupSpacing](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1276)
+  - [setSpawnAmounts](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1303)
+  - [rollSpawnAmounts](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1330)
+  - [_UpdateGenThresholds](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1365)
+  - [AETHR._spawnSettings:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1401)
+  - [AETHR._spawnerTypeConfig:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L1444)
 
 # Overview
 - _dynamicSpawner coordinates counts and type distribution across a main zone and multiple sub-zones.

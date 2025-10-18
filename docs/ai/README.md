@@ -1,16 +1,16 @@
 # AETHR AI diagrams index
 
 ## Primary module anchors
-- [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
-- [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
-- [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
-- [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224)
-- [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
-- [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
-- [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275)
-- [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
-- [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
-- [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466)
+- [AETHR.AI:clusterPoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L530)
+- [AETHR.AI.DBSCANNER:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L123)
+- [AETHR.AI.DBSCANNER:generateDBSCANparams()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L186)
+- [AETHR.AI.DBSCANNER:_prepare_points_and_index()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L224)
+- [AETHR.AI.DBSCANNER:Scan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L319)
+- [AETHR.AI.DBSCANNER:_DBScan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L333)
+- [AETHR.AI.DBSCANNER:region_count()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L275)
+- [AETHR.AI.DBSCANNER:region_query()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L370)
+- [AETHR.AI.DBSCANNER:expand_cluster()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L424)
+- [AETHR.AI.DBSCANNER:post_process_clusters()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L466)
 
 ## Documents
 - DBSCAN logic: [docs/ai/dbscan.md](docs/ai/dbscan.md)
@@ -75,19 +75,19 @@ sequenceDiagram
 
 # Key anchors
 - Construction and parameterization
-  - [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
-  - [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
-  - [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224)
+  - [AETHR.AI.DBSCANNER:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L123)
+  - [AETHR.AI.DBSCANNER:generateDBSCANparams()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L186)
+  - [AETHR.AI.DBSCANNER:_prepare_points_and_index()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L224)
 - Core scanning and outputs
-  - [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
-  - [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
-  - [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
-  - [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466)
+  - [AETHR.AI.DBSCANNER:Scan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L319)
+  - [AETHR.AI.DBSCANNER:_DBScan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L333)
+  - [AETHR.AI.DBSCANNER:expand_cluster()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L424)
+  - [AETHR.AI.DBSCANNER:post_process_clusters()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L466)
 - Neighbor queries
-  - [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275)
-  - [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
+  - [AETHR.AI.DBSCANNER:region_count()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L275)
+  - [AETHR.AI.DBSCANNER:region_query()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L370)
 - Facade entry
-  - [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
+  - [AETHR.AI:clusterPoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L530)
 
 # Cross-module indexes
 - SPAWNER: [docs/spawner/README.md](docs/spawner/README.md)

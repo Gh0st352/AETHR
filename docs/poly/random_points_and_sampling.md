@@ -3,13 +3,13 @@
 Point in circle tests, uniform sampling in a circle and polygon, and triangle utilities for area-weighted sampling.
 
 # Source anchors
-- [AETHR.POLY:pointInCircle()](../../dev/POLY.lua:248)
-- [AETHR.POLY:getRandomVec2inCircle()](../../dev/POLY.lua:276)
-- [AETHR.POLY:triSample()](../../dev/POLY.lua:308)
-- [AETHR.POLY:triAreaAbs()](../../dev/POLY.lua:320)
-- [AETHR.POLY:pointInTriangle()](../../dev/POLY.lua:329)
-- [AETHR.POLY:getRandomVec2inPolygon()](../../dev/POLY.lua:343)
-- Helpers: [AETHR.POLY:normalizePoint()](../../dev/POLY.lua:236), [AETHR.MATH:distanceSquared()](../../dev/MATH_.lua:58)
+- [AETHR.POLY:pointInCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L248)
+- [AETHR.POLY:getRandomVec2inCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L276)
+- [AETHR.POLY:triSample()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L308)
+- [AETHR.POLY:triAreaAbs()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L320)
+- [AETHR.POLY:pointInTriangle()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L329)
+- [AETHR.POLY:getRandomVec2inPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L343)
+- Helpers: [AETHR.POLY:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L236), [AETHR.MATH:distanceSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L58)
 
 # Overview
 - pointInCircle checks membership using squared distance to avoid sqrt
@@ -184,21 +184,21 @@ sequenceDiagram
 
 # Implementation notes
 - getRandomVec2inPolygon
-  - Normalizes coordinates to x y and attempts to fix ordering with [AETHR.POLY:ensureConvexN()](../../dev/POLY.lua:863)
-  - Triangulation via ear clipping uses convexity and interior point checks with [AETHR.POLY:pointInTriangle()](../../dev/POLY.lua:329)
-  - Triangle selection is proportional to area using a single random in summed area space; sampling within a triangle uses [AETHR.POLY:triSample()](../../dev/POLY.lua:308)
-  - If triangulation fails or total area is zero, uses AABB rejection or centers as fallbacks via [AETHR.POLY:getCenterPoint()](../../dev/POLY.lua:1779)
+  - Normalizes coordinates to x y and attempts to fix ordering with [AETHR.POLY:ensureConvexN()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L863)
+  - Triangulation via ear clipping uses convexity and interior point checks with [AETHR.POLY:pointInTriangle()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L329)
+  - Triangle selection is proportional to area using a single random in summed area space; sampling within a triangle uses [AETHR.POLY:triSample()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L308)
+  - If triangulation fails or total area is zero, uses AABB rejection or centers as fallbacks via [AETHR.POLY:getCenterPoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1779)
 - Stability
   - pointInTriangle uses a small epsilon to be robust to nearly colinear edges
   - Barycentric sampling triSample reflects across diagonal when u plus v greater than 1 to keep uniform
 
 # Validation checklist
-- pointInCircle: [dev/POLY.lua](../../dev/POLY.lua:248)
-- getRandomVec2inCircle: [dev/POLY.lua](../../dev/POLY.lua:276)
-- triSample: [dev/POLY.lua](../../dev/POLY.lua:308)
-- triAreaAbs: [dev/POLY.lua](../../dev/POLY.lua:320)
-- pointInTriangle: [dev/POLY.lua](../../dev/POLY.lua:329)
-- getRandomVec2inPolygon: [dev/POLY.lua](../../dev/POLY.lua:343)
+- pointInCircle: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L248)
+- getRandomVec2inCircle: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L276)
+- triSample: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L308)
+- triAreaAbs: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L320)
+- pointInTriangle: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L329)
+- getRandomVec2inPolygon: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L343)
 
 # Related docs
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](./intersections_and_orientation.md)

@@ -3,9 +3,9 @@
 Tolerance based equality for numbers and points, and centroid computation for point sets.
 
 Source anchors
-- [AETHR.MATH:almostEqual()](../../dev/MATH_.lua:118)
-- [AETHR.MATH:pointsEqual()](../../dev/MATH_.lua:129)
-- [AETHR.MATH:centroid()](../../dev/MATH_.lua:157)
+- [AETHR.MATH:almostEqual()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L118)
+- [AETHR.MATH:pointsEqual()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L129)
+- [AETHR.MATH:centroid()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L157)
 
 Overview
 
@@ -100,9 +100,9 @@ sequenceDiagram
 
 # Validation checklist
 
-- almostEqual: [dev/MATH_.lua](../../dev/MATH_.lua:118)
-- pointsEqual: [dev/MATH_.lua](../../dev/MATH_.lua:129)
-- centroid: [dev/MATH_.lua](../../dev/MATH_.lua:157)
+- almostEqual: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L118)
+- pointsEqual: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L129)
+- centroid: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L157)
 
 # Related docs
 

@@ -1,6 +1,6 @@
 # AETHR SPAWNER diagrams index
 
-Primary module entry: [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563)
+Primary module entry: [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
 
 Documents
 - Pipeline overview: [pipeline.md](./pipeline.md)
@@ -68,12 +68,12 @@ sequenceDiagram
 ```
 
 # Key anchors
-- Deterministic scope: [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:242)
-- Zone generation: [AETHR.SPAWNER:generateSpawnerZones()](../../dev/SPAWNER.lua:2012)
-- Pair to divisions: [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723), [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
-- Group type pools: [AETHR.SPAWNER:seedTypes()](../../dev/SPAWNER.lua:1804), [AETHR.SPAWNER:generateGroupTypes()](../../dev/SPAWNER.lua:1600)
-- Counts and balancing: [AETHR.SPAWNER:generateSpawnAmounts()](../../dev/SPAWNER.lua:1918), [AETHR.SPAWNER:_Jiggle()](../../dev/SPAWNER.lua:1978)
-- Placement loops: [AETHR.SPAWNER:generateVec2GroupCenters()](../../dev/SPAWNER.lua:1067), [AETHR.SPAWNER:generateVec2UnitPos()](../../dev/SPAWNER.lua:1301)
-- NOGO checks: [AETHR.SPAWNER:checkIsInNOGO()](../../dev/SPAWNER.lua:2085), [AETHR.POLY:pointInPolygon()](../../dev/POLY.lua:66)
-- Async enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
+- Deterministic scope: [AETHR.UTILS:withSeed()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L242)
+- Zone generation: [AETHR.SPAWNER:generateSpawnerZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2012)
+- Pair to divisions: [AETHR.SPAWNER:pairSpawnerWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L723), [AETHR.SPAWNER:pairSpawnerActiveZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L760)
+- Group type pools: [AETHR.SPAWNER:seedTypes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1804), [AETHR.SPAWNER:generateGroupTypes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1600)
+- Counts and balancing: [AETHR.SPAWNER:generateSpawnAmounts()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1918), [AETHR.SPAWNER:_Jiggle()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1978)
+- Placement loops: [AETHR.SPAWNER:generateVec2GroupCenters()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1067), [AETHR.SPAWNER:generateVec2UnitPos()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1301)
+- NOGO checks: [AETHR.SPAWNER:checkIsInNOGO()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2085), [AETHR.POLY:pointInPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L66)
+- Async enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
 - Auxiliary logic wrappers and utilities: [auxiliary.md](./auxiliary.md)

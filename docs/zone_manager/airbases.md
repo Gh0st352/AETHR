@@ -1,19 +1,19 @@
 # Airbase spawns orchestration
 
 Primary anchors:
-- [AETHR.ZONE_MANAGER:spawnAirbasesZone()](../../dev/ZONE_MANAGER.lua:1125)
-- [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145)
-- [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
+- [AETHR.ZONE_MANAGER:spawnAirbasesZone()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1125)
+- [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1145)
+- [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
 
 Related configuration:
-- [AETHR.CONFIG.MAIN.MIZ_ZONES](../../dev/CONFIG_.lua:180)
-- [AETHR.CONFIG.MAIN.DefaultRedCountry](../../dev/CONFIG_.lua:177)
-- [AETHR.CONFIG.MAIN.DefaultBlueCountry](../../dev/CONFIG_.lua:178)
+- [AETHR.CONFIG.MAIN.MIZ_ZONES](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L180)
+- [AETHR.CONFIG.MAIN.DefaultRedCountry](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L177)
+- [AETHR.CONFIG.MAIN.DefaultBlueCountry](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L178)
 
 
 # Spawning for a single zone
 
-### Entry: [AETHR.ZONE_MANAGER:spawnAirbasesZone()](../../dev/ZONE_MANAGER.lua:1125)
+### Entry: [AETHR.ZONE_MANAGER:spawnAirbasesZone()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1125)
 
 ### Behavior:
 - Resolve zone by name from DATA.MIZ_ZONES
@@ -43,12 +43,12 @@ flowchart TD
 
 ### Notes:
 - When dynamicSpawner is nil, a spawner is chosen from SPAWNER.DATA.dynamicSpawners.Airbase using a utilities helper; see [dev/UTILS.lua](../../dev/UTILS.lua)
-- The SPAWNER call builds and enqueues generation for the airbase area: [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
+- The SPAWNER call builds and enqueues generation for the airbase area: [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
 
 
 # Spawning across starter zones
 
-### Entry: [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145)
+### Entry: [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1145)
 
 ### Behavior:
 - Iterate configured red starter zones and blue starter zones
@@ -88,14 +88,14 @@ sequenceDiagram
 
 # Naming note
 
-The code documents a label for a function as spawnStarterAirbasesAllZones, but the exported function is named [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145). This documentation follows the exported function name.
+The code documents a label for a function as spawnStarterAirbasesAllZones, but the exported function is named [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1145). This documentation follows the exported function name.
 
 # Anchor index
 
-- [AETHR.ZONE_MANAGER:spawnAirbasesZone()](../../dev/ZONE_MANAGER.lua:1125)
-- [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](../../dev/ZONE_MANAGER.lua:1145)
-- [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
-- [AETHR.CONFIG.MAIN.MIZ_ZONES](../../dev/CONFIG_.lua:180)
-- [AETHR.CONFIG.MAIN.DefaultRedCountry](../../dev/CONFIG_.lua:177)
-- [AETHR.CONFIG.MAIN.DefaultBlueCountry](../../dev/CONFIG_.lua:178)
+- [AETHR.ZONE_MANAGER:spawnAirbasesZone()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1125)
+- [AETHR.ZONE_MANAGER:spawnAirbasesAllZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1145)
+- [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
+- [AETHR.CONFIG.MAIN.MIZ_ZONES](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L180)
+- [AETHR.CONFIG.MAIN.DefaultRedCountry](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L177)
+- [AETHR.CONFIG.MAIN.DefaultBlueCountry](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L178)
 - [dev/UTILS.lua](../../dev/UTILS.lua)

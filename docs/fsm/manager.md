@@ -1,16 +1,16 @@
 # FSM manager and background queue
 
-Queueing and progressing FSM events across background ticks. Documents internal manager data via [_ensureData](../../dev/FSM.lua:479), queueing via [enqueue](../../dev/FSM.lua:501) and [queueEvent](../../dev/FSM.lua:593), and background advancement via [processQueue](../../dev/FSM.lua:515). Includes BRAIN integration and AETHR scheduling references.
+Queueing and progressing FSM events across background ticks. Documents internal manager data via [_ensureData](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L479), queueing via [enqueue](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L501) and [queueEvent](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L593), and background advancement via [processQueue](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515). Includes BRAIN integration and AETHR scheduling references.
 
 # Primary anchors
 
-- Ensure container: [AETHR.FSM:_ensureData()](../../dev/FSM.lua:479)
-- Enqueue: [AETHR.FSM:enqueue()](../../dev/FSM.lua:501)
-- Process queue: [AETHR.FSM:processQueue()](../../dev/FSM.lua:515)
-- Convenience alias: [AETHR.FSM:queueEvent()](../../dev/FSM.lua:593)
-- BRAIN coroutine descriptor: [AETHR.BRAIN.DATA.coroutines.processFSMQueue](../../dev/BRAIN.lua:139)
-- BRAIN runner: [AETHR.BRAIN:doRoutine()](../../dev/BRAIN.lua:176)
-- AETHR scheduling: [AETHR:BackgroundProcesses()](../../dev/AETHR.lua:267)
+- Ensure container: [AETHR.FSM:_ensureData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L479)
+- Enqueue: [AETHR.FSM:enqueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L501)
+- Process queue: [AETHR.FSM:processQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515)
+- Convenience alias: [AETHR.FSM:queueEvent()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L593)
+- BRAIN coroutine descriptor: [AETHR.BRAIN.DATA.coroutines.processFSMQueue](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L139)
+- BRAIN runner: [AETHR.BRAIN:doRoutine()](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L176)
+- AETHR scheduling: [AETHR:BackgroundProcesses()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L267)
 
 # Manager data layout
 
@@ -71,11 +71,11 @@ flowchart LR
 ```
 
 - Queue draining:
-  - If FSM is already mid transition, first attempts [transition](../../dev/FSM.lua:451) with currentTransitioningEvent
+  - If FSM is already mid transition, first attempts [transition](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451) with currentTransitioningEvent
   - Else invokes fsm[event](fsm, unpack(args)) if defined
   - Errors are caught with pcall and counted in stats.errors
 - Active progression:
-  - Re-invokes [transition](../../dev/FSM.lua:451) for each active FSM
+  - Re-invokes [transition](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451) for each active FSM
   - When asyncState equals NONE, removes from active and increments finished
 
 # BRAIN integration sequence
@@ -95,7 +95,7 @@ sequenceDiagram
 
 # Tuning and batch size
 
-- [processQueue](../../dev/FSM.lua:515) derives the batch size maxBatch from [BRAIN.DATA.coroutines.processFSMQueue.yieldThreshold](../../dev/BRAIN.lua:144) or defaults to 10
+- [processQueue](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515) derives the batch size maxBatch from [BRAIN.DATA.coroutines.processFSMQueue.yieldThreshold](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L144) or defaults to 10
 - Active and queued phases each cap work by maxBatch to avoid long blocking loops
 
 # Item structure
@@ -111,12 +111,12 @@ sequenceDiagram
 
 # Validation checklist
 
-- Ensure container: [dev/FSM.lua](../../dev/FSM.lua:479)
-- Enqueue: [dev/FSM.lua](../../dev/FSM.lua:501)
-- Process queue: [dev/FSM.lua](../../dev/FSM.lua:515)
-- Alias: [dev/FSM.lua](../../dev/FSM.lua:593)
-- BRAIN runner: [dev/BRAIN.lua](../../dev/BRAIN.lua:176)
-- Scheduling hook: [dev/AETHR.lua](../../dev/AETHR.lua:267), [dev/AETHR.lua](../../dev/AETHR.lua:323)
+- Ensure container: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L479)
+- Enqueue: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L501)
+- Process queue: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515)
+- Alias: [dev/FSM.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L593)
+- BRAIN runner: [dev/BRAIN.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L176)
+- Scheduling hook: [dev/AETHR.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L267), [dev/AETHR.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L323)
 
 # Related breakouts
 

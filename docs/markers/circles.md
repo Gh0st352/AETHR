@@ -1,12 +1,12 @@
 # MARKERS circles
 
-Circle marker wrapper, core draw API, and generic neutral helper. Documents [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229), [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269), and [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299).
+Circle marker wrapper, core draw API, and generic neutral helper. Documents [AETHR.MARKERS:markCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L229), [AETHR.MARKERS:drawCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L269), and [AETHR.MARKERS:drawGenericCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L299).
 
 # Primary anchors
 
-- Wrapper circle: [AETHR.MARKERS:markCircle()](../../dev/MARKERS.lua:229)
-- Draw circle core: [AETHR.MARKERS:drawCircle()](../../dev/MARKERS.lua:269)
-- Generic neutral: [AETHR.MARKERS:drawGenericCircle()](../../dev/MARKERS.lua:299)
+- Wrapper circle: [AETHR.MARKERS:markCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L229)
+- Draw circle core: [AETHR.MARKERS:drawCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L269)
+- Generic neutral: [AETHR.MARKERS:drawGenericCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L299)
 
 # Overview flow
 
@@ -35,7 +35,7 @@ flowchart LR
   - markID 0
   - vec2Origin required center point table with x and y
   - radius defaults to 1000 if not in _Marker
-- Calls [drawCircle](../../dev/MARKERS.lua:269) then optionally stores _Marker by markID into storageLocation
+- Calls [drawCircle](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L269) then optionally stores _Marker by markID into storageLocation
 
 # drawCircle argument packing
 
@@ -66,7 +66,7 @@ flowchart TD
   - fill color array { r g b a }
   - lineType
   - true
-- See call site: [AETHR.MARKERS:drawCircle](../../dev/MARKERS.lua:269) and final call at [circleToAll](../../dev/MARKERS.lua:286)
+- See call site: [AETHR.MARKERS:drawCircle](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L269) and final call at [circleToAll](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L286)
 
 # Generic neutral circle
 
@@ -83,9 +83,9 @@ sequenceDiagram
 ```
 
 - Uses neutral paint settings from CONFIG
-  - Line type: [CONFIG.MAIN.Zone.paintColors.lineType](../../dev/CONFIG_.lua:317)
-  - Circle colors: [CONFIG.MAIN.Zone.paintColors.CircleColors](../../dev/CONFIG_.lua:312)
-- Marker id sourced from [CONFIG.MAIN.COUNTERS.MARKERS](../../dev/CONFIG_.lua:192) and incremented each call
+  - Line type: [CONFIG.MAIN.Zone.paintColors.lineType](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L317)
+  - Circle colors: [CONFIG.MAIN.Zone.paintColors.CircleColors](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L312)
+- Marker id sourced from [CONFIG.MAIN.COUNTERS.MARKERS](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L192) and incremented each call
 
 # Circle sequence
 
@@ -100,11 +100,11 @@ sequenceDiagram
 
 # Validation checklist
 
-- markCircle wrapper: [dev/MARKERS.lua](../../dev/MARKERS.lua:229)
-- drawCircle core: [dev/MARKERS.lua](../../dev/MARKERS.lua:269)
-- circleToAll call: [dev/MARKERS.lua](../../dev/MARKERS.lua:286)
-- drawGenericCircle helper: [dev/MARKERS.lua](../../dev/MARKERS.lua:299)
-- CONFIG references for colors and counters: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:192), [dev/CONFIG_.lua](../../dev/CONFIG_.lua:312), [dev/CONFIG_.lua](../../dev/CONFIG_.lua:317)
+- markCircle wrapper: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L229)
+- drawCircle core: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L269)
+- circleToAll call: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L286)
+- drawGenericCircle helper: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L299)
+- CONFIG references for colors and counters: [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L192), [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L312), [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L317)
 
 # Related breakouts
 

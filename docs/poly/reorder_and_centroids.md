@@ -3,10 +3,10 @@
 Reordering vertex lists to match a master ordering and computing center and centroid points.
 
 ### Source anchors
-- [AETHR.POLY:reorderSlaveToMaster()](../../dev/POLY.lua:1705)
-- [AETHR.POLY:getCenterPoint()](../../dev/POLY.lua:1779)
-- [AETHR.POLY:getCentroidPoint()](../../dev/POLY.lua:1830)
-- Helpers: [AETHR.POLY:normalizePoint()](../../dev/POLY.lua:236)
+- [AETHR.POLY:reorderSlaveToMaster()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1705)
+- [AETHR.POLY:getCenterPoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1779)
+- [AETHR.POLY:getCentroidPoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1830)
+- Helpers: [AETHR.POLY:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L236)
 
 ### Overview
 - reorderSlaveToMaster reorders a slave vertex array to match the order of a master by bucketing slave points using rounded x y keys and walking the master
@@ -146,9 +146,9 @@ sequenceDiagram
 - getCentroidPoint computes the true area centroid with shoelace accumulators and a degenerate fallback
 
 # Validation checklist
-- reorderSlaveToMaster: [dev/POLY.lua](../../dev/POLY.lua:1705)
-- getCenterPoint: [dev/POLY.lua](../../dev/POLY.lua:1779)
-- getCentroidPoint: [dev/POLY.lua](../../dev/POLY.lua:1830)
+- reorderSlaveToMaster: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1705)
+- getCenterPoint: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1779)
+- getCentroidPoint: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1830)
 
 # Related docs
 - Convert and order: [docs/poly/convert_and_order.md](./convert_and_order.md)

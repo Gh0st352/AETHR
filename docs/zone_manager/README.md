@@ -1,9 +1,9 @@
 # AETHR ZONE_MANAGER diagrams index
 
 ### Primary module entries
-- Init data: [AETHR.ZONE_MANAGER:initMizZoneData()](../../dev/ZONE_MANAGER.lua:122), [AETHR.ZONE_MANAGER:initGameZoneBoundaries()](../../dev/ZONE_MANAGER.lua:860)
-- Generate: [AETHR.ZONE_MANAGER:generateMizZoneData()](../../dev/ZONE_MANAGER.lua:205), [AETHR.ZONE_MANAGER:generateGameBoundData()](../../dev/ZONE_MANAGER.lua:895)
-- Draw: [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980), [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931), [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025)
+- Init data: [AETHR.ZONE_MANAGER:initMizZoneData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L122), [AETHR.ZONE_MANAGER:initGameZoneBoundaries()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L860)
+- Generate: [AETHR.ZONE_MANAGER:generateMizZoneData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L205), [AETHR.ZONE_MANAGER:generateGameBoundData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L895)
+- Draw: [AETHR.ZONE_MANAGER:drawMissionZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L980), [AETHR.ZONE_MANAGER:drawGameBounds()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L931), [AETHR.ZONE_MANAGER:drawZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1025)
 
 ### Documents
 - Zone data: [docs/zone_manager/zone_data.md](docs/zone_manager/zone_data.md)
@@ -30,45 +30,45 @@ flowchart LR
 
 ### Key anchors
 - Normalization and storage
-  - [AETHR.ZONE_MANAGER:_normalizeMizZones()](../../dev/ZONE_MANAGER.lua:53)
-  - [AETHR.ZONE_MANAGER:getStoredMizZoneData()](../../dev/ZONE_MANAGER.lua:141), [AETHR.ZONE_MANAGER:saveMizZoneData()](../../dev/ZONE_MANAGER.lua:152)
-  - [AETHR.ZONE_MANAGER:getStoredGameBoundData()](../../dev/ZONE_MANAGER.lua:874), [AETHR.ZONE_MANAGER:saveGameBoundData()](../../dev/ZONE_MANAGER.lua:885)
+  - [AETHR.ZONE_MANAGER:_normalizeMizZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L53)
+  - [AETHR.ZONE_MANAGER:getStoredMizZoneData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L141), [AETHR.ZONE_MANAGER:saveMizZoneData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L152)
+  - [AETHR.ZONE_MANAGER:getStoredGameBoundData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L874), [AETHR.ZONE_MANAGER:saveGameBoundData()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L885)
 - Border detection and master polygon
-  - [AETHR.ZONE_MANAGER:determineBorderingZones()](../../dev/ZONE_MANAGER.lua:232)
-  - [AETHR.ZONE_MANAGER:getMasterZonePolygon()](../../dev/ZONE_MANAGER.lua:520)
+  - [AETHR.ZONE_MANAGER:determineBorderingZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L232)
+  - [AETHR.ZONE_MANAGER:getMasterZonePolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L520)
 - Out of bounds, hull processing, and gaps
-  - [AETHR.ZONE_MANAGER:getOutOfBounds()](../../dev/ZONE_MANAGER.lua:799)
-  - [AETHR.ZONE_MANAGER:_buildBorderExclude()](../../dev/ZONE_MANAGER.lua:356)
-  - [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](../../dev/ZONE_MANAGER.lua:385)
-  - [AETHR.ZONE_MANAGER:_flattenUniquePoints()](../../dev/ZONE_MANAGER.lua:410)
-  - [AETHR.ZONE_MANAGER:_processHullLoop()](../../dev/ZONE_MANAGER.lua:449)
-  - [AETHR.ZONE_MANAGER:getPolygonCutout()](../../dev/ZONE_MANAGER.lua:566)
+  - [AETHR.ZONE_MANAGER:getOutOfBounds()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L799)
+  - [AETHR.ZONE_MANAGER:_buildBorderExclude()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L356)
+  - [AETHR.ZONE_MANAGER:_collectPolygonsFromZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L385)
+  - [AETHR.ZONE_MANAGER:_flattenUniquePoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L410)
+  - [AETHR.ZONE_MANAGER:_processHullLoop()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L449)
+  - [AETHR.ZONE_MANAGER:getPolygonCutout()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L566)
 - Drawing flows
-  - [AETHR.ZONE_MANAGER:drawZone()](../../dev/ZONE_MANAGER.lua:329)
-  - [AETHR.ZONE_MANAGER:drawMissionZones()](../../dev/ZONE_MANAGER.lua:980)
-  - [AETHR.ZONE_MANAGER:drawGameBounds()](../../dev/ZONE_MANAGER.lua:931)
-  - [AETHR.ZONE_MANAGER:initZoneArrows()](../../dev/ZONE_MANAGER.lua:1075), [AETHR.ZONE_MANAGER:drawZoneArrows()](../../dev/ZONE_MANAGER.lua:1025)
+  - [AETHR.ZONE_MANAGER:drawZone()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L329)
+  - [AETHR.ZONE_MANAGER:drawMissionZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L980)
+  - [AETHR.ZONE_MANAGER:drawGameBounds()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L931)
+  - [AETHR.ZONE_MANAGER:initZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1075), [AETHR.ZONE_MANAGER:drawZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1025)
 - Watchers and ownership
-  - [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](../../dev/ZONE_MANAGER.lua:1103)
-  - [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](../../dev/ZONE_MANAGER.lua:1113)
+  - [AETHR.ZONE_MANAGER:initWatcher_AirbaseOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1103)
+  - [AETHR.ZONE_MANAGER:initWatcher_ZoneOwnership()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1113)
 
 ### Cross-module anchors
 - Geometry
-  - [AETHR.POLY:convertPolygonToLines()](../../dev/POLY.lua:737), [AETHR.POLY:convertLinesToPolygon()](../../dev/POLY.lua:582)
-  - [AETHR.POLY:pointInPolygon()](../../dev/POLY.lua:66), [AETHR.POLY:isWithinOffset()](../../dev/POLY.lua:1106)
-  - [AETHR.POLY:getMidpoint()](../../dev/POLY.lua:1171), [AETHR.POLY:calculateLineSlope()](../../dev/POLY.lua:1186), [AETHR.POLY:findPerpendicularEndpoints()](../../dev/POLY.lua:1218)
-  - [AETHR.POLY:concaveHull()](../../dev/POLY.lua:1309), [AETHR.POLY:convexHull()](../../dev/POLY.lua:1461), [AETHR.POLY:intersectRayToBounds()](../../dev/POLY.lua:1491)
-  - [AETHR.POLY:densifyHullEdges()](../../dev/POLY.lua:1556), [AETHR.POLY:findOverlaidPolygonGaps()](../../dev/POLY.lua:1618), [AETHR.POLY:reverseVertOrder()](../../dev/POLY.lua:1761)
-  - [AETHR.POLY:convertBoundsToPolygon()](../../dev/POLY.lua:1039)
+  - [AETHR.POLY:convertPolygonToLines()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L737), [AETHR.POLY:convertLinesToPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L582)
+  - [AETHR.POLY:pointInPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L66), [AETHR.POLY:isWithinOffset()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1106)
+  - [AETHR.POLY:getMidpoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1171), [AETHR.POLY:calculateLineSlope()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1186), [AETHR.POLY:findPerpendicularEndpoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1218)
+  - [AETHR.POLY:concaveHull()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1309), [AETHR.POLY:convexHull()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1461), [AETHR.POLY:intersectRayToBounds()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1491)
+  - [AETHR.POLY:densifyHullEdges()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1556), [AETHR.POLY:findOverlaidPolygonGaps()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1618), [AETHR.POLY:reverseVertOrder()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1761)
+  - [AETHR.POLY:convertBoundsToPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1039)
 - World
-  - [AETHR.WORLD:getAirbases()](../../dev/WORLD.lua:428)
-  - [AETHR.WORLD:airbaseOwnershipChanged()](../../dev/WORLD.lua:970), [AETHR.WORLD:zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
-  - [AETHR.WORLD:updateZoneArrows()](../../dev/WORLD.lua:730)
+  - [AETHR.WORLD:getAirbases()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L428)
+  - [AETHR.WORLD:airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970), [AETHR.WORLD:zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
+  - [AETHR.WORLD:updateZoneArrows()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L730)
 - Markers and utils
-  - [AETHR.MARKERS:markFreeform()](../../dev/MARKERS.lua:43), [AETHR.MARKERS:markArrow()](../../dev/MARKERS.lua:138)
-  - [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+  - [AETHR.MARKERS:markFreeform()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L43), [AETHR.MARKERS:markArrow()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L138)
+  - [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
 - Spawner
-  - [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
+  - [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
 
 # Module interactions during runtime
 

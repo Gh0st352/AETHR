@@ -5,17 +5,17 @@
 ## Source anchors
 
 - Flags schema and defaults
-  - [AETHR.CONFIG.Flags](../../dev/CONFIG_.lua:92)
-  - [FLAGS defaults in MAIN](../../dev/CONFIG_.lua:185)
+  - [AETHR.CONFIG.Flags](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L92)
+  - [FLAGS defaults in MAIN](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L185)
 - Counters schema and defaults
-  - [AETHR.CONFIG.Counters](../../dev/CONFIG_.lua:98)
-  - [COUNTERS defaults in MAIN](../../dev/CONFIG_.lua:191)
+  - [AETHR.CONFIG.Counters](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L98)
+  - [COUNTERS defaults in MAIN](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L191)
 - Debug behavior
-  - [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
+  - [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70)
 - Flag usage during init
-  - [AETHR:Init() gating LEARN_WORLD_OBJECTS](../../dev/AETHR.lua:225)
+  - [AETHR:Init() gating LEARN_WORLD_OBJECTS](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L225)
 - Counter usage example
-  - [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:279)
+  - [AETHR.WORLD:markWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L279)
 
 ## Flags overview
 
@@ -24,7 +24,7 @@
 - AETHR_DEBUG_MODE
 - LEARN_WORLD_OBJECTS
 
-Note: UTILS checks debug via MAIN.DEBUG_ENABLED rather than FLAGS.AETHR_DEBUG_MODE; see [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70). Keep FLAGS.AETHR_DEBUG_MODE available for mission-level toggles while using MAIN.DEBUG_ENABLED to activate logging.
+Note: UTILS checks debug via MAIN.DEBUG_ENABLED rather than FLAGS.AETHR_DEBUG_MODE; see [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70). Keep FLAGS.AETHR_DEBUG_MODE available for mission-level toggles while using MAIN.DEBUG_ENABLED to activate logging.
 
 # Gating flows
 
@@ -45,11 +45,11 @@ sequenceDiagram
   end
 ```
 
-- Gate location: [AETHR:Init()](../../dev/AETHR.lua:225)
+- Gate location: [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L225)
 
 Debug controls
 
-- Set MAIN.DEBUG_ENABLED to true to enable UTILS debug emissions; see [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
+- Set MAIN.DEBUG_ENABLED to true to enable UTILS debug emissions; see [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70)
 - FILEOPS and WORLD guard debug log lines with MAIN.DEBUG_ENABLED checks in their code paths
 
 # Counters lifecycle
@@ -70,8 +70,8 @@ flowchart TB
 
 # Example path
 
-- Start: COUNTERS.MARKERS provided by [COUNTERS defaults](../../dev/CONFIG_.lua:191)
-- Consumed in [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:279) where polygons are emitted and the counter is incremented at the end
+- Start: COUNTERS.MARKERS provided by [COUNTERS defaults](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L191)
+- Consumed in [AETHR.WORLD:markWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L279) where polygons are emitted and the counter is incremented at the end
 
 # Ownership and visualization interactions
 
@@ -82,15 +82,15 @@ Flags and counters indirectly affect zone visuals:
 
 # Flag and counter change management
 
-- Persisted via [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404) when configuration is saved
+- Persisted via [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404) when configuration is saved
 - Safe to adjust between runs; flags are read on each Init
 - Prefer changing MAIN.DEBUG_ENABLED for logging rather than FLAGS.AETHR_DEBUG_MODE to align with current UTILS behavior
 
 # Validation checklist
 
-- LEARN_WORLD_OBJECTS gating present at [AETHR:Init()](../../dev/AETHR.lua:225)
-- Counter increment pattern present in [AETHR.WORLD:markWorldDivisions()](../../dev/WORLD.lua:279)
-- Debug checks use [AETHR.UTILS:isDebug()](../../dev/UTILS.lua:70)
+- LEARN_WORLD_OBJECTS gating present at [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L225)
+- Counter increment pattern present in [AETHR.WORLD:markWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L279)
+- Debug checks use [AETHR.UTILS:isDebug()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L70)
 
 # Related breakouts
 

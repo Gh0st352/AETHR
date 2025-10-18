@@ -1,9 +1,9 @@
 # TYPES colors, markers, and grid
 
 Anchors
-- [AETHR._ColorRGBA:New()](../../dev/customTypes.lua:27)
-- [AETHR._Marker:New()](../../dev/customTypes.lua:375)
-- [AETHR._Grid:New()](../../dev/customTypes.lua:330)
+- [AETHR._ColorRGBA:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L27)
+- [AETHR._Marker:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L375)
+- [AETHR._Grid:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L330)
 
 Overview
 - _ColorRGBA is an RGBA struct using 0..255 channels, defaulting to 0.
@@ -108,7 +108,7 @@ sequenceDiagram
 ```
 
 Source anchors
-- [AETHR._ColorRGBA:New()](../../dev/customTypes.lua:27)
-- [AETHR._Marker:New()](../../dev/customTypes.lua:375)
-- [AETHR._Grid:New()](../../dev/customTypes.lua:330)
-- Related types: [AETHR._vec2:New()](../../dev/customTypes.lua:522), [AETHR._ColorRGBA fields](../../dev/customTypes.lua:15)
+- [AETHR._ColorRGBA:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L27)
+- [AETHR._Marker:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L375)
+- [AETHR._Grid:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L330)
+- Related types: [AETHR._vec2:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L522), [AETHR._ColorRGBA fields](https://github.com/Gh0st352/AETHR/blob/main/dev/customTypes.lua#L15)

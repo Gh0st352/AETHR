@@ -1,15 +1,15 @@
 # AETHR FILEOPS diagrams and flows
 
 # Primary anchors
-- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
-- [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
-- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
-- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
-- [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
-- [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
-- [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
-- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
+- [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- [AETHR.FILEOPS:ensureFile()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L120)
+- [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
+- [AETHR.FILEOPS:fileExists()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L189)
+- [AETHR.FILEOPS:deepcopy()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L206)
+- [AETHR.FILEOPS:splitAndSaveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246)
+- [AETHR.FILEOPS:loadandJoinData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L328)
 
 # Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -146,15 +146,15 @@ sequenceDiagram
 ```
 
 # Source anchors
-- [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
-- [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
-- [AETHR.FILEOPS:ensureFile()](../../dev/FILEOPS_.lua:120)
-- [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
-- [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
-- [AETHR.FILEOPS:fileExists()](../../dev/FILEOPS_.lua:189)
-- [AETHR.FILEOPS:deepcopy()](../../dev/FILEOPS_.lua:206)
-- [AETHR.FILEOPS:splitAndSaveData()](../../dev/FILEOPS_.lua:246)
-- [AETHR.FILEOPS:loadandJoinData()](../../dev/FILEOPS_.lua:328)
+- [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- [AETHR.FILEOPS:ensureFile()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L120)
+- [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
+- [AETHR.FILEOPS:fileExists()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L189)
+- [AETHR.FILEOPS:deepcopy()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L206)
+- [AETHR.FILEOPS:splitAndSaveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246)
+- [AETHR.FILEOPS:loadandJoinData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L328)
 
 # Notes
 - Diagrams reference a shared theme snippet for generation: [docs/_mermaid/theme.json](../_mermaid/theme.json)

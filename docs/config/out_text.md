@@ -5,13 +5,13 @@ Display timings and view-clearing behavior for ownership change messages.
 ## Source anchors
 
 - Types and schema
-  - [AETHR.CONFIG.OutTextSection](../../dev/CONFIG_.lua:130)
-  - [AETHR.CONFIG.OutTextSettings](../../dev/CONFIG_.lua:134)
+  - [AETHR.CONFIG.OutTextSection](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L130)
+  - [AETHR.CONFIG.OutTextSettings](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L134)
 - Defaults block
-  - outTextSettings defaults: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:336)
+  - outTextSettings defaults: [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L336)
 - Runtime consumers
-  - [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
-  - [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
+  - [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970)
+  - [AETHR.WORLD.zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
 
 # Overview
 
@@ -52,10 +52,10 @@ sequenceDiagram
   end
 ```
 
-- Airbase flow in [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
-  - Emits capture or contested text using enums and [trigger.action.outText](../../dev/WORLD.lua:994)
-- Zone flow in [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
-  - Emits capture or contested text at [dev/WORLD.lua](../../dev/WORLD.lua:1035)
+- Airbase flow in [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970)
+  - Emits capture or contested text using enums and [trigger.action.outText](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L994)
+- Zone flow in [AETHR.WORLD.zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
+  - Emits capture or contested text at [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1035)
 
 # Message composition
 
@@ -69,11 +69,11 @@ sequenceDiagram
 
 # Validation checklist
 
-- OutTextSection defined at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:130)
-- OutTextSettings defined at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:134)
-- Defaults present at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:336)
-- Airbase handler at [AETHR.WORLD.airbaseOwnershipChanged()](../../dev/WORLD.lua:970)
-- Zone handler at [AETHR.WORLD.zoneOwnershipChanged()](../../dev/WORLD.lua:1006)
+- OutTextSection defined at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L130)
+- OutTextSettings defined at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L134)
+- Defaults present at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L336)
+- Airbase handler at [AETHR.WORLD.airbaseOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L970)
+- Zone handler at [AETHR.WORLD.zoneOwnershipChanged()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1006)
 
 # Conventions
 

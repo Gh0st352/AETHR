@@ -1,13 +1,13 @@
 # WORLD ↔ SPAWNER integration
 
 ### Primary WORLD anchors
-- Generation dispatch: [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801)
-- Activation: [AETHR.WORLD:spawnGroundGroups()](../../dev/WORLD.lua:538)
-- Deactivation: [AETHR.WORLD:despawnGroundGroups()](../../dev/WORLD.lua:590)
+- Generation dispatch: [AETHR.WORLD:spawnerGenerationQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L801)
+- Activation: [AETHR.WORLD:spawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L538)
+- Deactivation: [AETHR.WORLD:despawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L590)
 
 ### Related SPAWNER anchors
-- Enqueue job: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
-- Main generation: [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563)
+- Enqueue job: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
+- Main generation: [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
 - Placement, building, and counts: see SPAWNER index [../spawner/README.md](../spawner/README.md)
 
 ### Coroutine controls
@@ -47,8 +47,8 @@ flowchart TD
 ```
 
 ### Anchors
-- Entry: [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801)
-- SPAWNER calls: [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563)
+- Entry: [AETHR.WORLD:spawnerGenerationQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L801)
+- SPAWNER calls: [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
 
 # spawnGroundGroups
 
@@ -81,7 +81,7 @@ flowchart TD
 ```
 
 ### Anchors
-- [AETHR.WORLD:spawnGroundGroups()](../../dev/WORLD.lua:538)
+- [AETHR.WORLD:spawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L538)
 
 # despawnGroundGroups
 
@@ -112,7 +112,7 @@ flowchart TD
 ```
 
 ### Anchors
-- [AETHR.WORLD:despawnGroundGroups()](../../dev/WORLD.lua:590)
+- [AETHR.WORLD:despawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L590)
 
 # Sequence overview
 
@@ -147,11 +147,11 @@ sequenceDiagram
 # Anchor index
 
 - WORLD
-  - Generation: [AETHR.WORLD:spawnerGenerationQueue()](../../dev/WORLD.lua:801)
-  - Activation: [AETHR.WORLD:spawnGroundGroups()](../../dev/WORLD.lua:538)
-  - Deactivation: [AETHR.WORLD:despawnGroundGroups()](../../dev/WORLD.lua:590)
+  - Generation: [AETHR.WORLD:spawnerGenerationQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L801)
+  - Activation: [AETHR.WORLD:spawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L538)
+  - Deactivation: [AETHR.WORLD:despawnGroundGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L590)
 - SPAWNER
-  - Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
-  - Generate: [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563)
+  - Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
+  - Generate: [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563)
 - Related
   - SPAWNER pipeline: [../spawner/pipeline.md](../spawner/pipeline.md)

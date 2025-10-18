@@ -2,26 +2,26 @@
 
 Covered functions
 - Build prototypes:
-  - [AETHR.SPAWNER:buildSpawnGroups()](../../dev/SPAWNER.lua:684)
-  - [AETHR.SPAWNER:buildGroundUnit()](../../dev/SPAWNER.lua:282)
-  - [AETHR.SPAWNER:buildGroundGroup()](../../dev/SPAWNER.lua:321)
-  - [AETHR.SPAWNER:assembleUnitsForGroup()](../../dev/SPAWNER.lua:358)
+  - [AETHR.SPAWNER:buildSpawnGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L684)
+  - [AETHR.SPAWNER:buildGroundUnit()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L282)
+  - [AETHR.SPAWNER:buildGroundGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L321)
+  - [AETHR.SPAWNER:assembleUnitsForGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L358)
 - World actions:
-  - [AETHR.SPAWNER:spawnGroup()](../../dev/SPAWNER.lua:425)
-  - [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438)
-  - [AETHR.SPAWNER:despawnGroup()](../../dev/SPAWNER.lua:457)
-  - [AETHR.SPAWNER:updateDBGroupInfo()](../../dev/SPAWNER.lua:393)
+  - [AETHR.SPAWNER:spawnGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L425)
+  - [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)
+  - [AETHR.SPAWNER:despawnGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L457)
+  - [AETHR.SPAWNER:updateDBGroupInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L393)
 
 Context
-- Queues: [SPAWNER.DATA.spawnQueue](../../dev/SPAWNER.lua:82), [SPAWNER.DATA.despawnQueue](../../dev/SPAWNER.lua:84) are processed by WORLD.
-- Safety delay: [SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME](../../dev/SPAWNER.lua:95) defines delay before a newly added group is eligible for further processing, to prevent DCS instability.
+- Queues: [SPAWNER.DATA.spawnQueue](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L82), [SPAWNER.DATA.despawnQueue](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L84) are processed by WORLD.
+- Safety delay: [SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L95) defines delay before a newly added group is eligible for further processing, to prevent DCS instability.
 - WORLD-side handlers: spawning and despawning execution happens in WORLD routines, external to this module.
 
 
 # 1) Building prototypes from generated plans
 
 ### Input sources for build:
-- Per-subzone plans created earlier: groupSettings.generatedGroupTypes, groupSettings.generatedGroupUnitTypes, groupSettings.generatedGroupCenterVec2s, groupSettings.generatedUnitVec2s from [AETHR.SPAWNER:generateSpawnerGroups()](../../dev/SPAWNER.lua:660).
+- Per-subzone plans created earlier: groupSettings.generatedGroupTypes, groupSettings.generatedGroupUnitTypes, groupSettings.generatedGroupCenterVec2s, groupSettings.generatedUnitVec2s from [AETHR.SPAWNER:generateSpawnerGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L660).
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -51,16 +51,16 @@ flowchart TB
   class B1,B2,B3,B4,U0,U1,U2,G0,G1,G2,NEXT,ASSIGN class_step;
 ```
 
-- [AETHR.SPAWNER:buildGroundUnit()](../../dev/SPAWNER.lua:282) creates a unit prototype via AETHR._groundUnit and stores it in [SPAWNER.DATA.generatedUnits](../../dev/SPAWNER.lua:80).
-- [AETHR.SPAWNER:buildGroundGroup()](../../dev/SPAWNER.lua:321) creates a group prototype via AETHR._groundGroup and stores it in [SPAWNER.DATA.generatedGroups](../../dev/SPAWNER.lua:76).
+- [AETHR.SPAWNER:buildGroundUnit()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L282) creates a unit prototype via AETHR._groundUnit and stores it in [SPAWNER.DATA.generatedUnits](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L80).
+- [AETHR.SPAWNER:buildGroundGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L321) creates a group prototype via AETHR._groundGroup and stores it in [SPAWNER.DATA.generatedGroups](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L76).
 - No mission engine mutation occurs in the build phase; prototypes are prepared for later instantiation.
 
 
 # 2) Spawning prepared groups
 
 ## Two entry points:
-- Single group spawn: [AETHR.SPAWNER:spawnGroup()](../../dev/SPAWNER.lua:425)
-- Batch spawn for a dynamic spawner: [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438)
+- Single group spawn: [AETHR.SPAWNER:spawnGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L425)
+- Batch spawn for a dynamic spawner: [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -94,9 +94,9 @@ flowchart TD
 ```
 
 Notes
-- Country selection: explicit countryID overrides the prototype’s countryID when provided to [AETHR.SPAWNER:spawnGroup()](../../dev/SPAWNER.lua:425) and [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438).
-- After adding to the mission engine, WORLD respects [SPAWNER_WAIT_TIME](../../dev/SPAWNER.lua:95) before further actions.
-- The queue enables WORLD to throttle operations within [operationLimit](../../dev/SPAWNER.lua:98) per cycle.
+- Country selection: explicit countryID overrides the prototype’s countryID when provided to [AETHR.SPAWNER:spawnGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L425) and [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438).
+- After adding to the mission engine, WORLD respects [SPAWNER_WAIT_TIME](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L95) before further actions.
+- The queue enables WORLD to throttle operations within [operationLimit](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L98) per cycle.
 
 
 # 3) Despawning live groups
@@ -116,7 +116,7 @@ flowchart TD
   class OUT class_result;
 ```
 
-## Details of [AETHR.SPAWNER:updateDBGroupInfo()](../../dev/SPAWNER.lua:393)
+## Details of [AETHR.SPAWNER:updateDBGroupInfo()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L393)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -146,8 +146,8 @@ Actions performed within updateDBGroupInfo:
 
 # 4) Activation utilities
 
-- [AETHR.SPAWNER:activateGroup()](../../dev/SPAWNER.lua:375) calls Group.activate on a named group.
-- [AETHR.SPAWNER:deactivateGroup()](../../dev/SPAWNER.lua:383) calls trigger.action.deactivateGroup on a named group.
+- [AETHR.SPAWNER:activateGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L375) calls Group.activate on a named group.
+- [AETHR.SPAWNER:deactivateGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L383) calls trigger.action.deactivateGroup on a named group.
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -192,6 +192,6 @@ flowchart LR
 ```
 
 # Operational guardrails
-- Avoid immediate post-add mutations until after [SPAWNER_WAIT_TIME](../../dev/SPAWNER.lua:95) elapses to prevent engine instability.
-- Respect [operationLimit](../../dev/SPAWNER.lua:98) to bound per-cycle spawn and despawn work.
+- Avoid immediate post-add mutations until after [SPAWNER_WAIT_TIME](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L95) elapses to prevent engine instability.
+- Respect [operationLimit](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L98) to bound per-cycle spawn and despawn work.
 - Always snapshot before despawn to keep DB consistent for analytics and potential future reuse.

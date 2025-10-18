@@ -3,14 +3,14 @@
 Finite state machine for AETHR modules with async transitions and a queued manager for background progression.
 
 ### Source anchors
-- [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
-- [AETHR.FSM:New()](../../dev/FSM.lua:366)
-- [AETHR.FSM:can()](../../dev/FSM.lua:407)
-- [AETHR.FSM:transition()](../../dev/FSM.lua:451)
-- [AETHR.FSM:cancelTransition()](../../dev/FSM.lua:461)
-- [AETHR.FSM:enqueue()](../../dev/FSM.lua:501)
-- [AETHR.FSM:processQueue()](../../dev/FSM.lua:515)
-- [AETHR.FSM:todot()](../../dev/FSM.lua:427)
+- [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
+- [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366)
+- [AETHR.FSM:can()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L407)
+- [AETHR.FSM:transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451)
+- [AETHR.FSM:cancelTransition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L461)
+- [AETHR.FSM:enqueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L501)
+- [AETHR.FSM:processQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515)
+- [AETHR.FSM:todot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427)
 
 # Transition lifecycle flow
 
@@ -39,8 +39,8 @@ flowchart LR
 
 ## Async semantics
 - Return ASYNC from onLeave or onEnter to pause progression
-- Resume by calling [AETHR.FSM:transition()](../../dev/FSM.lua:451) with the same event name
-- Current async marker values are WaitingOnLeave and WaitingOnEnter inside [AETHR.FSM:create_transition()](../../dev/FSM.lua:104)
+- Resume by calling [AETHR.FSM:transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L451) with the same event name
+- Current async marker values are WaitingOnLeave and WaitingOnEnter inside [AETHR.FSM:create_transition()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L104)
 
 # Queue processor and integration
 
@@ -60,13 +60,13 @@ sequenceDiagram
 ```
 
 # Manager overview
-- Enqueue items via [AETHR.FSM:enqueue()](../../dev/FSM.lua:501)
-- Background progression in [AETHR.FSM:processQueue()](../../dev/FSM.lua:515)
-- Used by BRAIN background loop through [AETHR.BRAIN:doRoutine()](../../dev/BRAIN.lua:176) and scheduled in [AETHR:BackgroundProcesses()](../../dev/AETHR.lua:267)
+- Enqueue items via [AETHR.FSM:enqueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L501)
+- Background progression in [AETHR.FSM:processQueue()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L515)
+- Used by BRAIN background loop through [AETHR.BRAIN:doRoutine()](https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua#L176) and scheduled in [AETHR:BackgroundProcesses()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L267)
 
 ### Notes
-- Guards and mapping of events are built in [AETHR.FSM:New()](../../dev/FSM.lua:366) and [AETHR.FSM:add_to_map()](../../dev/FSM.lua:200)
-- Graph export available through [AETHR.FSM:todot()](../../dev/FSM.lua:427)
+- Guards and mapping of events are built in [AETHR.FSM:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L366) and [AETHR.FSM:add_to_map()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L200)
+- Graph export available through [AETHR.FSM:todot()](https://github.com/Gh0st352/AETHR/blob/main/dev/FSM.lua#L427)
 
 # Breakout documents
 

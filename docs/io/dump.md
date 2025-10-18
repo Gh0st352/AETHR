@@ -1,10 +1,10 @@
 # IO dump helper
 
-Human readable string conversion for Lua tables and values. Documents [AETHR.IO.dump()](../../dev/IO.lua:35) behavior, including key quoting and recursive formatting.
+Human readable string conversion for Lua tables and values. Documents [AETHR.IO.dump()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L35) behavior, including key quoting and recursive formatting.
 
 # Primary anchor
 
-- Dump: [AETHR.IO.dump()](../../dev/IO.lua:35)
+- Dump: [AETHR.IO.dump()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L35)
 
 # Overview
 
@@ -49,11 +49,11 @@ flowchart TD
 # Notes
 
 - Intended for readability and quick inspection, not round trip serialization
-- For robust persistence prefer [AETHR.IO.store()](../../dev/IO.lua:63) and friends
+- For robust persistence prefer [AETHR.IO.store()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L63) and friends
 
 # Validation checklist
 
-- Entry: [dev/IO.lua](../../dev/IO.lua:35)
+- Entry: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L35)
 
 # Related breakouts
 

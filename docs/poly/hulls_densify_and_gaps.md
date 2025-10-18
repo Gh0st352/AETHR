@@ -3,11 +3,11 @@
 Concave and convex hull construction, hull edge densification and snapping, segment intersection helpers, and overlay gap detection.
 
 # Source anchors
-- [AETHR.POLY:concaveHull()](../../dev/POLY.lua:1308)
-- [AETHR.POLY:convexHull()](../../dev/POLY.lua:1460)
-- [AETHR.POLY:segmentIntersectsAny()](../../dev/POLY.lua:1533)
-- [AETHR.POLY:densifyHullEdges()](../../dev/POLY.lua:1556)
-- [AETHR.POLY:findOverlaidPolygonGaps()](../../dev/POLY.lua:1618)
+- [AETHR.POLY:concaveHull()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1308)
+- [AETHR.POLY:convexHull()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1460)
+- [AETHR.POLY:segmentIntersectsAny()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1533)
+- [AETHR.POLY:densifyHullEdges()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1556)
+- [AETHR.POLY:findOverlaidPolygonGaps()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1618)
 
 # Overview
 - concaveHull builds a hull by iteratively selecting neighbors among k nearest points with angle ordering; increases k on failure and verifies all points inside
@@ -215,16 +215,16 @@ sequenceDiagram
 ```
 
 # Implementation notes
-- concaveHull uses neighbor ordering by [AETHR.MATH:turnAngle](../../dev/MATH_.lua:157) to enforce a forward sweep; verifies non crossing with segmentsIntersect
+- concaveHull uses neighbor ordering by [AETHR.MATH:turnAngle](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L157) to enforce a forward sweep; verifies non crossing with segmentsIntersect
 - densifyHullEdges prebuilds all original polygon segments once for nearest neighbor snapping using pointToSegmentSquared and projection parameter t
 - findOverlaidPolygonGaps chooses the shorter direction through matched small vertices to assemble contiguous gap sequences and reorders them to match the master polygon
 
 # Validation checklist
-- concaveHull: [dev/POLY.lua](../../dev/POLY.lua:1308)
-- convexHull: [dev/POLY.lua](../../dev/POLY.lua:1460)
-- segmentIntersectsAny: [dev/POLY.lua](../../dev/POLY.lua:1533)
-- densifyHullEdges: [dev/POLY.lua](../../dev/POLY.lua:1556)
-- findOverlaidPolygonGaps: [dev/POLY.lua](../../dev/POLY.lua:1618)
+- concaveHull: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1308)
+- convexHull: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1460)
+- segmentIntersectsAny: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1533)
+- densifyHullEdges: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1556)
+- findOverlaidPolygonGaps: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1618)
 
 # Related docs
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](./intersections_and_orientation.md)

@@ -3,11 +3,11 @@
 Conversions between polygons and line segments, convexity fixes, ordering, and vertex reversal.
 
 Source anchors
-- [AETHR.POLY:convertLinesToPolygon()](../../dev/POLY.lua:582)
-- [AETHR.POLY:convertPolygonToLines()](../../dev/POLY.lua:737)
-- [AETHR.POLY:ensureConvex()](../../dev/POLY.lua:846)
-- [AETHR.POLY:ensureConvexN()](../../dev/POLY.lua:863)
-- [AETHR.POLY:reverseVertOrder()](../../dev/POLY.lua:1761)
+- [AETHR.POLY:convertLinesToPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L582)
+- [AETHR.POLY:convertPolygonToLines()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L737)
+- [AETHR.POLY:ensureConvex()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L846)
+- [AETHR.POLY:ensureConvexN()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L863)
+- [AETHR.POLY:reverseVertOrder()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1761)
 
 # Overview
 - convertLinesToPolygon reorders unordered segments into a vertex loop using proximity within a tolerance, preserving original vertex objects and deduplicating close duplicates
@@ -164,11 +164,11 @@ sequenceDiagram
   - For four point bounds, tests cross product signs on each edge triplet and swaps the last two vertices if any sign disagrees
 
 # Validation checklist
-- convertLinesToPolygon: [dev/POLY.lua](../../dev/POLY.lua:582)
-- convertPolygonToLines: [dev/POLY.lua](../../dev/POLY.lua:737)
-- ensureConvex: [dev/POLY.lua](../../dev/POLY.lua:846)
-- ensureConvexN: [dev/POLY.lua](../../dev/POLY.lua:863)
-- reverseVertOrder: [dev/POLY.lua](../../dev/POLY.lua:1761)
+- convertLinesToPolygon: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L582)
+- convertPolygonToLines: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L737)
+- ensureConvex: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L846)
+- ensureConvexN: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L863)
+- reverseVertOrder: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1761)
 
 # Related docs
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](./intersections_and_orientation.md)

@@ -4,9 +4,9 @@ Enumeration of DCS world events exposed via AETHR.ENUMS and guidance for usage i
 
 # Primary sources
 
-- Events class doc: [AETHR.ENUMS.Events](../../dev/ENUMS.lua:58)
-- Events mapping table: [AETHR.ENUMS.Events = { ... }](../../dev/ENUMS.lua:374)
-- Root table initialization: [AETHR.ENUMS](../../dev/ENUMS.lua:337)
+- Events class doc: [AETHR.ENUMS.Events](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L58)
+- Events mapping table: [AETHR.ENUMS.Events = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L374)
+- Root table initialization: [AETHR.ENUMS](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L337)
 
 # Overview relationships
 
@@ -81,14 +81,14 @@ sequenceDiagram
 # Notes and guardrails
 
 - The mapping is a pass-through to world.event.* constants via ENUMS, allowing editor-friendly references and static analysis out of DCS
-- Some events cannot be caught during script init due to timing (see comments in [Events mapping](../../dev/ENUMS.lua:384))
+- Some events cannot be caught during script init due to timing (see comments in [Events mapping](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L384))
 - Handlers should be robust to missing fields on the event structure depending on event.id
 
 # Validation checklist
 
-- Class docs for Events at [dev/ENUMS.lua](../../dev/ENUMS.lua:58)
-- Mapping block for Events at [dev/ENUMS.lua](../../dev/ENUMS.lua:374)
-- Root ENUMS initialization at [dev/ENUMS.lua](../../dev/ENUMS.lua:337)
+- Class docs for Events at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L58)
+- Mapping block for Events at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L374)
+- Root ENUMS initialization at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L337)
 
 # Related breakouts
 

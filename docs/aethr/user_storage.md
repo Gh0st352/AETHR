@@ -1,13 +1,13 @@
 # AETHR user storage lifecycle
 
 ## Primary anchors
-- [AETHR:loadUSERSTORAGE()](../../dev/AETHR.lua:344)
-- [AETHR:saveUSERSTORAGE()](../../dev/AETHR.lua:361)
-- [FILEOPS loadData call site](../../dev/AETHR.lua:347)
-- [FILEOPS saveData call site](../../dev/AETHR.lua:362)
-- [USER_FOLDER path reference](../../dev/AETHR.lua:348)
-- [USER_STORAGE_FILE name reference](../../dev/AETHR.lua:349)
-- [USERSTORAGE assignment](../../dev/AETHR.lua:352)
+- [AETHR:loadUSERSTORAGE()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L344)
+- [AETHR:saveUSERSTORAGE()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L361)
+- [FILEOPS loadData call site](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L347)
+- [FILEOPS saveData call site](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L362)
+- [USER_FOLDER path reference](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L348)
+- [USER_STORAGE_FILE name reference](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L349)
+- [USERSTORAGE assignment](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L352)
 
 # Overview
 User specific data is persisted to and loaded from a configured folder and filename using FILEOPS helpers. On init the framework loads data into memory and immediately saves back to ensure structures exist and paths are created.
@@ -86,9 +86,9 @@ sequenceDiagram
 ```
 
 # Paths and filenames
-- Folder path from [self.CONFIG.MAIN.STORAGE.PATHS.USER_FOLDER](../../dev/AETHR.lua:348)
-- Filename from [self.CONFIG.MAIN.STORAGE.FILENAMES.USER_STORAGE_FILE](../../dev/AETHR.lua:349)
-- Data table is [self.USERSTORAGE](../../dev/AETHR.lua:56) assigned on load at [assignment site](../../dev/AETHR.lua:352)
+- Folder path from [self.CONFIG.MAIN.STORAGE.PATHS.USER_FOLDER](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L348)
+- Filename from [self.CONFIG.MAIN.STORAGE.FILENAMES.USER_STORAGE_FILE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L349)
+- Data table is [self.USERSTORAGE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L56) assigned on load at [assignment site](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L352)
 
 # Notes
 - Calls are safe to invoke even when files do not exist; load will return nil and save will create files as needed
@@ -96,10 +96,10 @@ sequenceDiagram
 - FILEOPS implementation details and error handling are documented in [docs/fileops/README.md](../fileops/README.md)
 
 # Source anchors
-- [loadUSERSTORAGE entry](../../dev/AETHR.lua:344)
-- [FILEOPS loadData](../../dev/AETHR.lua:347)
-- [USER_FOLDER path read](../../dev/AETHR.lua:348)
-- [USER_STORAGE_FILE name read](../../dev/AETHR.lua:349)
-- [assign USERSTORAGE](../../dev/AETHR.lua:352)
-- [saveUSERSTORAGE entry](../../dev/AETHR.lua:361)
-- [FILEOPS saveData](../../dev/AETHR.lua:362)
+- [loadUSERSTORAGE entry](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L344)
+- [FILEOPS loadData](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L347)
+- [USER_FOLDER path read](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L348)
+- [USER_STORAGE_FILE name read](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L349)
+- [assign USERSTORAGE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L352)
+- [saveUSERSTORAGE entry](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L361)
+- [FILEOPS saveData](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L362)

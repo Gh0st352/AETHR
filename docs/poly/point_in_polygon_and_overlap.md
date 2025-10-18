@@ -3,10 +3,10 @@
 Ray casting point-in-polygon, polygon overlap, and circle vs polygon overlap checks.
 
 # Source anchors
-- [AETHR.POLY:pointInPolygon()](../../dev/POLY.lua:66)
-- [AETHR.POLY:polygonsOverlap()](../../dev/POLY.lua:92)
-- [AETHR.POLY:circleOverlapPoly()](../../dev/POLY.lua:120)
-- Helpers referenced: [AETHR.POLY:normalizePoint()](../../dev/POLY.lua:236), [AETHR.POLY:segmentsIntersect()](../../dev/POLY.lua:44), [AETHR.POLY:pointToSegmentSquared()](../../dev/POLY.lua:1148)
+- [AETHR.POLY:pointInPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L66)
+- [AETHR.POLY:polygonsOverlap()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L92)
+- [AETHR.POLY:circleOverlapPoly()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L120)
+- Helpers referenced: [AETHR.POLY:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L236), [AETHR.POLY:segmentsIntersect()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L44), [AETHR.POLY:pointToSegmentSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1148)
 
 # Overview
 - pointInPolygon uses horizontal ray casting toggling an inside flag on each edge crossing
@@ -140,16 +140,16 @@ sequenceDiagram
 
 # Implementation notes
 - pointInPolygon supports points using y or z as vertical coordinate; y is preferred when present
-- polygonsOverlap uses [AETHR.POLY:segmentsIntersect()](../../dev/POLY.lua:44) for edge checks after vertex tests
+- polygonsOverlap uses [AETHR.POLY:segmentsIntersect()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L44) for edge checks after vertex tests
 - circleOverlapPoly
-  - Uses [AETHR.POLY:normalizePoint()](../../dev/POLY.lua:236) for consistent xy handling
-  - Distance to edges uses [AETHR.POLY:pointToSegmentSquared()](../../dev/POLY.lua:1148)
+  - Uses [AETHR.POLY:normalizePoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L236) for consistent xy handling
+  - Distance to edges uses [AETHR.POLY:pointToSegmentSquared()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1148)
   - Early returns for degenerate polygons with n equals 1 and n equals 2
 
 # Validation checklist
-- pointInPolygon: [dev/POLY.lua](../../dev/POLY.lua:66)
-- polygonsOverlap: [dev/POLY.lua](../../dev/POLY.lua:92)
-- circleOverlapPoly: [dev/POLY.lua](../../dev/POLY.lua:120)
+- pointInPolygon: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L66)
+- polygonsOverlap: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L92)
+- circleOverlapPoly: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L120)
 
 # Related docs
 - Intersections and orientation: [docs/poly/intersections_and_orientation.md](./intersections_and_orientation.md)

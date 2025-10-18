@@ -1,8 +1,8 @@
 # UTILS lookups and markup
 
 Anchors
-- [AETHR.UTILS.safe_lookup()](../../dev/UTILS.lua:170)
-- [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+- [AETHR.UTILS.safe_lookup()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L170)
+- [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
 
 Overview
 - safe_lookup resolves dotted global paths like A.B.C against _G with guards, returning a fallback if any step fails.
@@ -49,7 +49,7 @@ sequenceDiagram
 - updateMarkupColors expects AETHR.CONFIG compatible color tables and assumes trigger.action bindings are available.
 
 # Source anchors
-- [AETHR.UTILS.safe_lookup()](../../dev/UTILS.lua:170)
-- [AETHR.UTILS:updateMarkupColors()](../../dev/UTILS.lua:188)
+- [AETHR.UTILS.safe_lookup()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L170)
+- [AETHR.UTILS:updateMarkupColors()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L188)
 
 Last updated: 2025-10-16

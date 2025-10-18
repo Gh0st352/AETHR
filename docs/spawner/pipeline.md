@@ -1,13 +1,13 @@
 # AETHR SPAWNER generation pipeline
 
-Primary entry point: [AETHR.SPAWNER:generateDynamicSpawner()](../../dev/SPAWNER.lua:563). Deterministic wrapper: [AETHR.UTILS:withSeed()](../../dev/UTILS.lua:242).
+Primary entry point: [AETHR.SPAWNER:generateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563). Deterministic wrapper: [AETHR.UTILS:withSeed()](https://github.com/Gh0st352/AETHR/blob/main/dev/UTILS.lua#L242).
 
 Key sub-steps referenced in this diagram:
-- Pair zones or divisions: [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760) and [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
-- Generate zones: [AETHR.SPAWNER:generateSpawnerZones()](../../dev/SPAWNER.lua:2012) and weight via [AETHR.SPAWNER:weightZones()](../../dev/SPAWNER.lua:2148)
-- Spawn counts and group sizes: [AETHR.SPAWNER:generateSpawnAmounts()](../../dev/SPAWNER.lua:1918), [AETHR.SPAWNER:rollSpawnGroupSizes()](../../dev/SPAWNER.lua:1876)
-- Group roll and placement: [AETHR.SPAWNER:generateSpawnerGroups()](../../dev/SPAWNER.lua:660)
-- Build prototypes: [AETHR.SPAWNER:buildSpawnGroups()](../../dev/SPAWNER.lua:684)
+- Pair zones or divisions: [AETHR.SPAWNER:pairSpawnerActiveZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L760) and [AETHR.SPAWNER:pairSpawnerWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L723)
+- Generate zones: [AETHR.SPAWNER:generateSpawnerZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2012) and weight via [AETHR.SPAWNER:weightZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2148)
+- Spawn counts and group sizes: [AETHR.SPAWNER:generateSpawnAmounts()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1918), [AETHR.SPAWNER:rollSpawnGroupSizes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1876)
+- Group roll and placement: [AETHR.SPAWNER:generateSpawnerGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L660)
+- Build prototypes: [AETHR.SPAWNER:buildSpawnGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L684)
 
 # Flowchart overview
 
@@ -96,16 +96,16 @@ flowchart LR
 ```
 
 # Source anchors
-- [AETHR.SPAWNER:newDynamicSpawner()](../../dev/SPAWNER.lua:468)
-- [AETHR.SPAWNER:generateSpawnerZones()](../../dev/SPAWNER.lua:2012)
-- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](../../dev/SPAWNER.lua:723)
-- [AETHR.SPAWNER:pairSpawnerActiveZones()](../../dev/SPAWNER.lua:760)
-- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](../../dev/SPAWNER.lua:803)
-- [AETHR.SPAWNER:determineZoneDivObjects()](../../dev/SPAWNER.lua:857)
-- [AETHR.SPAWNER:weightZones()](../../dev/SPAWNER.lua:2148)
-- [AETHR.SPAWNER:generateSpawnAmounts()](../../dev/SPAWNER.lua:1918)
-- [AETHR.SPAWNER:generateSpawnerGroups()](../../dev/SPAWNER.lua:660)
-- [AETHR.SPAWNER:rollSpawnGroups()](../../dev/SPAWNER.lua:1589)
-- [AETHR.SPAWNER:rollGroupPlacement()](../../dev/SPAWNER.lua:671)
-- [AETHR.SPAWNER:buildSpawnGroups()](../../dev/SPAWNER.lua:684)
-- [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438)
+- [AETHR.SPAWNER:newDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L468)
+- [AETHR.SPAWNER:generateSpawnerZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2012)
+- [AETHR.SPAWNER:pairSpawnerWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L723)
+- [AETHR.SPAWNER:pairSpawnerActiveZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L760)
+- [AETHR.SPAWNER:pairSpawnerZoneDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L803)
+- [AETHR.SPAWNER:determineZoneDivObjects()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L857)
+- [AETHR.SPAWNER:weightZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2148)
+- [AETHR.SPAWNER:generateSpawnAmounts()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1918)
+- [AETHR.SPAWNER:generateSpawnerGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L660)
+- [AETHR.SPAWNER:rollSpawnGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1589)
+- [AETHR.SPAWNER:rollGroupPlacement()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L671)
+- [AETHR.SPAWNER:buildSpawnGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L684)
+- [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)

@@ -4,24 +4,24 @@ Detailed breakdown of AETHR.ENUMS spawnTypes and spawnTypesPrio and how SPAWNER 
 
 # Primary sources
 
-- spawnTypes class doc: [AETHR.ENUMS.spawnTypes](../../dev/ENUMS.lua:174)
-- spawnTypes mapping: [AETHR.ENUMS.spawnTypes = { ... }](../../dev/ENUMS.lua:490)
-- spawnTypesPrio class doc: [AETHR.ENUMS.spawnTypesPrio](../../dev/ENUMS.lua:245)
-- spawnTypesPrio mapping: [AETHR.ENUMS.spawnTypesPrio = { ... }](../../dev/ENUMS.lua:562)
-- dynamicSpawnerTypes class doc: [AETHR.ENUMS.dynamicSpawnerTypes](../../dev/ENUMS.lua:316)
-- dynamicSpawnerTypes mapping: [AETHR.ENUMS.dynamicSpawnerTypes = { ... }](../../dev/ENUMS.lua:632)
+- spawnTypes class doc: [AETHR.ENUMS.spawnTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L174)
+- spawnTypes mapping: [AETHR.ENUMS.spawnTypes = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L490)
+- spawnTypesPrio class doc: [AETHR.ENUMS.spawnTypesPrio](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L245)
+- spawnTypesPrio mapping: [AETHR.ENUMS.spawnTypesPrio = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L562)
+- dynamicSpawnerTypes class doc: [AETHR.ENUMS.dynamicSpawnerTypes](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L316)
+- dynamicSpawnerTypes mapping: [AETHR.ENUMS.dynamicSpawnerTypes = { ... }](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L632)
 
 # Consumers and anchors
 
 - SPAWNER type resolution and seeding
-  - Attribute resolution with fallbacks: [AETHR.SPAWNER:_resolveTypesForAttribute()](../../dev/SPAWNER.lua:1747)
-  - Seed pools and limited vs non-limited: [AETHR.SPAWNER:seedTypes()](../../dev/SPAWNER.lua:1804)
-  - Generate concrete unit type lists per group: [AETHR.SPAWNER:generateGroupTypes()](../../dev/SPAWNER.lua:1599)
-  - Pipeline composition: [AETHR.SPAWNER:generateSpawnerGroups()](../../dev/SPAWNER.lua:660)
+  - Attribute resolution with fallbacks: [AETHR.SPAWNER:_resolveTypesForAttribute()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1747)
+  - Seed pools and limited vs non-limited: [AETHR.SPAWNER:seedTypes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1804)
+  - Generate concrete unit type lists per group: [AETHR.SPAWNER:generateGroupTypes()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1599)
+  - Pipeline composition: [AETHR.SPAWNER:generateSpawnerGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L660)
 - Dynamic spawner types
-  - Containers by type: [AETHR.SPAWNER.DATA.dynamicSpawners](../../dev/SPAWNER.lua:85)
-  - new dynamic spawner creation: [AETHR.SPAWNER:newDynamicSpawner()](../../dev/SPAWNER.lua:467)
-  - spawn dynamic spawner groups: [AETHR.SPAWNER:spawnDynamicSpawner()](../../dev/SPAWNER.lua:438)
+  - Containers by type: [AETHR.SPAWNER.DATA.dynamicSpawners](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L85)
+  - new dynamic spawner creation: [AETHR.SPAWNER:newDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L467)
+  - spawn dynamic spawner groups: [AETHR.SPAWNER:spawnDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)
 
 # Resolution strategy overview
 
@@ -126,22 +126,22 @@ class SPDATA,NEW,REG,RUN class_step;
 
 # Key behaviors and guardrails
 
-- Attribute normalization: [AETHR.SPAWNER:_toSpawnAttr()](../../dev/SPAWNER.lua:1713) maps enum keys to canonical attribute strings
-- Reverse lookup of attr to enum key for priority sort: [AETHR.SPAWNER:_attrToEnumKey()](../../dev/SPAWNER.lua:1721)
+- Attribute normalization: [AETHR.SPAWNER:_toSpawnAttr()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1713) maps enum keys to canonical attribute strings
+- Reverse lookup of attr to enum key for priority sort: [AETHR.SPAWNER:_attrToEnumKey()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1721)
 - Fallback precedence in _resolveTypesForAttribute:
   1. Primary priority bucket [WORLD.DATA._spawnerAttributesDB] for target attribute
-  2. Cross-bucket scan in order of [spawnTypesPrio](../../dev/ENUMS.lua:562), selecting units that include the target attribute
+  2. Cross-bucket scan in order of [spawnTypesPrio](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L562), selecting units that include the target attribute
   3. Global attribute map [WORLD.DATA.spawnerAttributesDB[targetAttr]]
 - Extras are appended without consuming pools, based on extraTypes[min] and their typesDB when non-empty
 
 # Validation checklist
 
-- spawnTypes mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:490)
-- spawnTypesPrio mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:562)
-- dynamicSpawnerTypes mapping present at [dev/ENUMS.lua](../../dev/ENUMS.lua:632)
-- Resolution and seeding code at [dev/SPAWNER.lua](../../dev/SPAWNER.lua:1747), [dev/SPAWNER.lua](../../dev/SPAWNER.lua:1804)
-- Group types generation at [dev/SPAWNER.lua](../../dev/SPAWNER.lua:1599)
-- Dynamic spawner storage and creation at [dev/SPAWNER.lua](../../dev/SPAWNER.lua:85), [dev/SPAWNER.lua](../../dev/SPAWNER.lua:467), [dev/SPAWNER.lua](../../dev/SPAWNER.lua:438)
+- spawnTypes mapping present at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L490)
+- spawnTypesPrio mapping present at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L562)
+- dynamicSpawnerTypes mapping present at [dev/ENUMS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/ENUMS.lua#L632)
+- Resolution and seeding code at [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1747), [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1804)
+- Group types generation at [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L1599)
+- Dynamic spawner storage and creation at [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L85), [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L467), [dev/SPAWNER.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L438)
 
 # Related breakouts
 

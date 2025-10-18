@@ -1,6 +1,6 @@
 # AETHR AI DBSCAN logic
 
-Logic coverage for [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530), [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123), [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186), [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224), [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319), [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333), [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275), [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370), [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424), [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466).
+Logic coverage for [AETHR.AI:clusterPoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L530), [AETHR.AI.DBSCANNER:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L123), [AETHR.AI.DBSCANNER:generateDBSCANparams()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L186), [AETHR.AI.DBSCANNER:_prepare_points_and_index()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L224), [AETHR.AI.DBSCANNER:Scan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L319), [AETHR.AI.DBSCANNER:_DBScan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L333), [AETHR.AI.DBSCANNER:region_count()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L275), [AETHR.AI.DBSCANNER:region_query()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L370), [AETHR.AI.DBSCANNER:expand_cluster()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L424), [AETHR.AI.DBSCANNER:post_process_clusters()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L466).
 
 ## Notes:
 - Node labels in Mermaid diagrams avoid double quotes and parentheses.
@@ -36,7 +36,7 @@ flowchart LR
   class NS,OUT class_result;
 ```
 
-# Facade [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
+# Facade [AETHR.AI:clusterPoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L530)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -52,7 +52,7 @@ flowchart LR
   class F0,F1,F2,F3,F4 class_step;
 ```
 
-# Constructor [AETHR.AI.DBSCANNER:New()](../../dev/_AI.lua:123)
+# Constructor [AETHR.AI.DBSCANNER:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L123)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -70,7 +70,7 @@ flowchart TD
   class N0,N1,N2,N3,N4,N5,N6 class_step;
 ```
 
-# Parameterization [AETHR.AI.DBSCANNER:generateDBSCANparams()](../../dev/_AI.lua:186)
+# Parameterization [AETHR.AI.DBSCANNER:generateDBSCANparams()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L186)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -87,7 +87,7 @@ flowchart TD
   class G0,G1,G2,G3,G4,G5 class_step;
 ```
 
-# Pre normalize and index [AETHR.AI.DBSCANNER:_prepare_points_and_index()](../../dev/_AI.lua:224)
+# Pre normalize and index [AETHR.AI.DBSCANNER:_prepare_points_and_index()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L224)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -107,7 +107,7 @@ flowchart TB
   class P0,P1,P2,P3,P4,P5,P6 class_step;
 ```
 
-# Scan wrapper [AETHR.AI.DBSCANNER:Scan()](../../dev/_AI.lua:319)
+# Scan wrapper [AETHR.AI.DBSCANNER:Scan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L319)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -120,7 +120,7 @@ flowchart LR
   class S0,S1,S2,S3 class_compute;
 ```
 
-# Core clustering [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333)
+# Core clustering [AETHR.AI.DBSCANNER:_DBScan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L333)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -143,7 +143,7 @@ flowchart TB
   class D0,D1,D2,D3,D4,D5,D6,D7 class_compute;
 ```
 
-# Neighbor count [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275)
+# Neighbor count [AETHR.AI.DBSCANNER:region_count()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L275)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -164,7 +164,7 @@ flowchart LR
   class RC0,RC1,RC2,RC3,RC4,RC5,RC6 class_step;
 ```
 
-# Neighbor query [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
+# Neighbor query [AETHR.AI.DBSCANNER:region_query()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L370)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -184,7 +184,7 @@ flowchart LR
   class RQ0,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6 class_step;
 ```
 
-# Cluster expansion [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
+# Cluster expansion [AETHR.AI.DBSCANNER:expand_cluster()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L424)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -209,7 +209,7 @@ flowchart TB
   class E0,E1,E2,E3,E4,E5,E6,E7 class_step;
 ```
 
-# Post processing [AETHR.AI.DBSCANNER:post_process_clusters()](../../dev/_AI.lua:466)
+# Post processing [AETHR.AI.DBSCANNER:post_process_clusters()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L466)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
@@ -252,6 +252,6 @@ sequenceDiagram
 # References
 
 - Source: [dev/_AI.lua](../../dev/_AI.lua)
-- Facade: [AETHR.AI:clusterPoints()](../../dev/_AI.lua:530)
-- Core: [AETHR.AI.DBSCANNER:_DBScan()](../../dev/_AI.lua:333), [AETHR.AI.DBSCANNER:expand_cluster()](../../dev/_AI.lua:424)
-- Utilities: [AETHR.AI.DBSCANNER:region_count()](../../dev/_AI.lua:275), [AETHR.AI.DBSCANNER:region_query()](../../dev/_AI.lua:370)
+- Facade: [AETHR.AI:clusterPoints()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L530)
+- Core: [AETHR.AI.DBSCANNER:_DBScan()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L333), [AETHR.AI.DBSCANNER:expand_cluster()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L424)
+- Utilities: [AETHR.AI.DBSCANNER:region_count()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L275), [AETHR.AI.DBSCANNER:region_query()](https://github.com/Gh0st352/AETHR/blob/main/dev/_AI.lua#L370)

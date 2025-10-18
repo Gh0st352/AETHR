@@ -4,13 +4,13 @@ Details of the reference counting pass and the writer dispatch tables for serial
 
 Primary anchors
 
-- Reference counting: [refCount](../../dev/IO.lua:401)
-- Writer dispatch helpers: [write](../../dev/IO.lua:337), [writeNoFunc](../../dev/IO.lua:349), [writeSerialString](../../dev/IO.lua:361)
+- Reference counting: [refCount](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L401)
+- Writer dispatch helpers: [write](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L337), [writeNoFunc](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L349), [writeSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361)
 - Writer tables by type:
-  - File writers: [writers](../../dev/IO.lua:422)
-  - File writers no functions: [writersNoFunc](../../dev/IO.lua:488)
-  - String writers no functions: [writersSerialString](../../dev/IO.lua:546)
-- Indentation helpers: [writeIndent](../../dev/IO.lua:377), [writeIndentSerial](../../dev/IO.lua:383)
+  - File writers: [writers](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L422)
+  - File writers no functions: [writersNoFunc](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L488)
+  - String writers no functions: [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
+- Indentation helpers: [writeIndent](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L377), [writeIndentSerial](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L383)
 
 # Reference counting traversal
 
@@ -50,9 +50,9 @@ flowchart LR
   class TYPE,DISPATCH,EMIT class_step;
 ```
 
-- [write](../../dev/IO.lua:337) uses [writers](../../dev/IO.lua:422)
-- [writeNoFunc](../../dev/IO.lua:349) uses [writersNoFunc](../../dev/IO.lua:488)
-- [writeSerialString](../../dev/IO.lua:361) uses [writersSerialString](../../dev/IO.lua:546)
+- [write](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L337) uses [writers](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L422)
+- [writeNoFunc](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L349) uses [writersNoFunc](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L488)
+- [writeSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361) uses [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
 
 # Table emission logic
 
@@ -86,8 +86,8 @@ flowchart TD
 
 Indentation helpers
 
-- [writeIndent](../../dev/IO.lua:377) writes tabs to file for pretty formatting
-- [writeIndentSerial](../../dev/IO.lua:383) writes two spaces per level into the serialized string
+- [writeIndent](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L377) writes tabs to file for pretty formatting
+- [writeIndentSerial](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L383) writes two spaces per level into the serialized string
 
 # Sequence for writer dispatch
 
@@ -109,11 +109,11 @@ sequenceDiagram
 
 # Validation checklist
 
-- refCount recursion: [dev/IO.lua](../../dev/IO.lua:401)
-- File writers: [dev/IO.lua](../../dev/IO.lua:422)
-- File writers no func: [dev/IO.lua](../../dev/IO.lua:488)
-- String writers no func: [dev/IO.lua](../../dev/IO.lua:546)
-- Dispatch helpers: [dev/IO.lua](../../dev/IO.lua:337), [dev/IO.lua](../../dev/IO.lua:349), [dev/IO.lua](../../dev/IO.lua:361)
+- refCount recursion: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L401)
+- File writers: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L422)
+- File writers no func: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L488)
+- String writers no func: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
+- Dispatch helpers: [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L337), [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L349), [dev/IO.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361)
 
 # Related breakouts
 

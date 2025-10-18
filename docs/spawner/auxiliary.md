@@ -4,12 +4,12 @@ This file documents additional logic sequences defined in [dev/SPAWNER.lua](../.
 
 # Covered functions
 - Wrapper sequencing
-  - [AETHR.SPAWNER:generateSpawnerGroups()](../../dev/SPAWNER.lua:660)
-  - [AETHR.SPAWNER:rollGroupPlacement()](../../dev/SPAWNER.lua:670)
+  - [AETHR.SPAWNER:generateSpawnerGroups()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L660)
+  - [AETHR.SPAWNER:rollGroupPlacement()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L670)
 - Spawner lifecycle helpers
-  - [AETHR.SPAWNER:newDynamicSpawner()](../../dev/SPAWNER.lua:467)
-  - [AETHR.SPAWNER:assembleUnitsForGroup()](../../dev/SPAWNER.lua:358)
-  - [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
+  - [AETHR.SPAWNER:newDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L467)
+  - [AETHR.SPAWNER:assembleUnitsForGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L358)
+  - [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
 
 
 # 1) generateSpawnerGroups wrapper
@@ -78,7 +78,7 @@ flowchart TB
 ```
 
 References
-- Entry: [AETHR.SPAWNER:newDynamicSpawner()](../../dev/SPAWNER.lua:467)
+- Entry: [AETHR.SPAWNER:newDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L467)
 
 
 # 4) assembleUnitsForGroup
@@ -105,7 +105,7 @@ flowchart TB
 ```
 
 References
-- Entry: [AETHR.SPAWNER:assembleUnitsForGroup()](../../dev/SPAWNER.lua:358)
+- Entry: [AETHR.SPAWNER:assembleUnitsForGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L358)
 
 
 # 5) spawnAirbaseFill
@@ -128,8 +128,8 @@ flowchart TB
 ```
 
 # References
-- Entry: [AETHR.SPAWNER:spawnAirbaseFill()](../../dev/SPAWNER.lua:2169)
-- Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](../../dev/SPAWNER.lua:520)
+- Entry: [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
+- Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
 
 
 # Notes

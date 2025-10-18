@@ -1,18 +1,18 @@
 # AETHR IO diagrams and flows
 
 Primary anchors
-- [AETHR.IO.dump()](../../dev/IO.lua:35)
-- [AETHR.IO.store()](../../dev/IO.lua:63)
-- [AETHR.IO.storeNoFunc()](../../dev/IO.lua:134)
-- [AETHR.IO.serializeNoFunc()](../../dev/IO.lua:199)
-- [AETHR.IO.deSerialize()](../../dev/IO.lua:281)
-- [AETHR.IO.load()](../../dev/IO.lua:310)
+- [AETHR.IO.dump()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L35)
+- [AETHR.IO.store()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L63)
+- [AETHR.IO.storeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L134)
+- [AETHR.IO.serializeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L199)
+- [AETHR.IO.deSerialize()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281)
+- [AETHR.IO.load()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310)
 
 Related code anchors
-- Writers dispatch: [write()](../../dev/IO.lua:337), [writeNoFunc()](../../dev/IO.lua:349), [writeSerialString()](../../dev/IO.lua:361)
-- Writer tables: [writers](../../dev/IO.lua:422), [writersNoFunc](../../dev/IO.lua:488), [writersSerialString](../../dev/IO.lua:546)
-- Helpers: [writeIndent()](../../dev/IO.lua:377), [writeIndentSerial()](../../dev/IO.lua:383), [refCount()](../../dev/IO.lua:401)
-- FILEOPS usage: [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155), [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- Writers dispatch: [write()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L337), [writeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L349), [writeSerialString()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361)
+- Writer tables: [writers](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L422), [writersNoFunc](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L488), [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
+- Helpers: [writeIndent()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L377), [writeIndentSerial()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L383), [refCount()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L401)
+- FILEOPS usage: [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155), [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 
 Documents and indices
 - Master diagrams index: [docs/README.md](../README.md)
@@ -168,15 +168,15 @@ flowchart TD
 
 # Key anchors
 - Entry points
-  - [AETHR.IO.store()](../../dev/IO.lua:63), [AETHR.IO.storeNoFunc()](../../dev/IO.lua:134), [AETHR.IO.serializeNoFunc()](../../dev/IO.lua:199)
-  - [AETHR.IO.deSerialize()](../../dev/IO.lua:281), [AETHR.IO.load()](../../dev/IO.lua:310)
+  - [AETHR.IO.store()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L63), [AETHR.IO.storeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L134), [AETHR.IO.serializeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L199)
+  - [AETHR.IO.deSerialize()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L281), [AETHR.IO.load()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L310)
 - Writers and helpers
-  - [write()](../../dev/IO.lua:337), [writeNoFunc()](../../dev/IO.lua:349), [writeSerialString()](../../dev/IO.lua:361)
-  - [writers](../../dev/IO.lua:422), [writersNoFunc](../../dev/IO.lua:488), [writersSerialString](../../dev/IO.lua:546)
-  - [writeIndent()](../../dev/IO.lua:377), [writeIndentSerial()](../../dev/IO.lua:383), [refCount()](../../dev/IO.lua:401)
+  - [write()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L337), [writeNoFunc()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L349), [writeSerialString()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L361)
+  - [writers](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L422), [writersNoFunc](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L488), [writersSerialString](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L546)
+  - [writeIndent()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L377), [writeIndentSerial()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L383), [refCount()](https://github.com/Gh0st352/AETHR/blob/main/dev/IO.lua#L401)
 
 # Cross-module anchors
-- FILEOPS persist and retrieve: [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155), [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
+- FILEOPS persist and retrieve: [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155), [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 
 # Notes
 - Mermaid labels avoid double quotes and parentheses to satisfy renderer constraints.

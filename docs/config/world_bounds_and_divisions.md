@@ -5,19 +5,19 @@ How worldBounds and worldDivisionArea drive grid generation, AABB caching, activ
 # Source anchors
 
 - Config fields
-  - worldDivisionArea default at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:244)
-  - worldBounds theaters at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:245)
+  - worldDivisionArea default at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L244)
+  - worldBounds theaters at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L245)
 - World generation and activation
-  - [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
-  - [AETHR.WORLD:initWorldDivisions()](../../dev/WORLD.lua:1176)
-  - [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
-  - [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328)
-  - [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
+  - [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156)
+  - [AETHR.WORLD:initWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1176)
+  - [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206)
+  - [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328)
+  - [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
 - Persistence
-  - [AETHR.WORLD:loadWorldDivisions()](../../dev/WORLD.lua:1096)
-  - [AETHR.WORLD:saveWorldDivisions()](../../dev/WORLD.lua:1112)
-  - [AETHR.WORLD:loadWorldDivisionsAABB()](../../dev/WORLD.lua:1126)
-  - [AETHR.WORLD:saveWorldDivisionsAABB()](../../dev/WORLD.lua:1140)
+  - [AETHR.WORLD:loadWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1096)
+  - [AETHR.WORLD:saveWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1112)
+  - [AETHR.WORLD:loadWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1126)
+  - [AETHR.WORLD:saveWorldDivisionsAABB()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1140)
 
 # Overview
 
@@ -84,38 +84,38 @@ flowchart TB
 
 # Key logic details
 
-- [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
+- [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156)
   - Uses POLY helpers to convert config bounds to a polygon and divide it by area
   - Assigns numeric ID and sets active to false
 
-- [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
+- [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206)
   - Computes minX maxX minZ maxZ for each division corners and stores in DATA.worldDivAABB
 
-- [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328)
+- [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328)
   - Builds a zone cell index from zone polygons using grid metrics
   - Performs bounding box rejection then polygon overlap to set div.active
 
-- [AETHR.WORLD:generateActiveDivisions()](../../dev/WORLD.lua:1067)
+- [AETHR.WORLD:generateActiveDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1067)
   - Populates DATA.saveDivisions with active divisions
 
 # Persistence locations
 
-- Divisions file: [CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE](../../dev/CONFIG_.lua:222) under PATHS.CONFIG_FOLDER
-- AABB file: [CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_AABB](../../dev/CONFIG_.lua:221) under PATHS.CONFIG_FOLDER
+- Divisions file: [CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_FILE](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L222) under PATHS.CONFIG_FOLDER
+- AABB file: [CONFIG.MAIN.STORAGE.FILENAMES.WORLD_DIVISIONS_AABB](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L221) under PATHS.CONFIG_FOLDER
 
 # Theater configuration
 
-- Supported theaters are listed at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:246)
-- THEATER is set at instance creation when available in env.mission; see [AETHR:New()](../../dev/AETHR.lua:141)
+- Supported theaters are listed at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L246)
+- THEATER is set at instance creation when available in env.mission; see [AETHR:New()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L141)
 
 # Validation checklist
 
-- worldDivisionArea defined at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:244)
-- worldBounds theaters block at [dev/CONFIG_.lua](../../dev/CONFIG_.lua:246)
-- Generation function at [AETHR.WORLD:generateWorldDivisions()](../../dev/WORLD.lua:1156)
-- Activation and zone overlap at [AETHR.WORLD:checkDivisionsInZones()](../../dev/WORLD.lua:1328)
-- AABB cache at [AETHR.WORLD:buildWorldDivAABBCache()](../../dev/WORLD.lua:1206)
-- Persistence methods at [dev/WORLD.lua](../../dev/WORLD.lua:1096)
+- worldDivisionArea defined at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L244)
+- worldBounds theaters block at [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L246)
+- Generation function at [AETHR.WORLD:generateWorldDivisions()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156)
+- Activation and zone overlap at [AETHR.WORLD:checkDivisionsInZones()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1328)
+- AABB cache at [AETHR.WORLD:buildWorldDivAABBCache()](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1206)
+- Persistence methods at [dev/WORLD.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1096)
 
 # Related breakouts
 

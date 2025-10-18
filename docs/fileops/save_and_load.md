@@ -4,19 +4,19 @@ High-level persistence helpers for writing and reading data files via IO, with d
 
 # Primary anchors
 
-- save: [AETHR.FILEOPS:saveData()](../../dev/FILEOPS_.lua:155)
-- load: [AETHR.FILEOPS:loadData()](../../dev/FILEOPS_.lua:173)
-- ensure dir: [AETHR.FILEOPS:ensureDirectory()](../../dev/FILEOPS_.lua:46)
-- join paths: [AETHR.FILEOPS:joinPaths()](../../dev/FILEOPS_.lua:37)
+- save: [AETHR.FILEOPS:saveData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- load: [AETHR.FILEOPS:loadData()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
+- ensure dir: [AETHR.FILEOPS:ensureDirectory()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- join paths: [AETHR.FILEOPS:joinPaths()](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
 
 # Callers
 
 - CONFIG persistence
-  - Write: [AETHR.CONFIG:saveConfig()](../../dev/CONFIG_.lua:404) -> [FILEOPS:saveData](../../dev/FILEOPS_.lua:155)
-  - Read: [AETHR.CONFIG:loadConfig()](../../dev/CONFIG_.lua:380) -> [FILEOPS:loadData](../../dev/FILEOPS_.lua:173)
+  - Write: [AETHR.CONFIG:saveConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404) -> [FILEOPS:saveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+  - Read: [AETHR.CONFIG:loadConfig()](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380) -> [FILEOPS:loadData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 - FILEOPS chunked IO
-  - Part write: [splitAndSaveData](../../dev/FILEOPS_.lua:246) -> [saveData](../../dev/FILEOPS_.lua:155)
-  - Part read: [loadandJoinData](../../dev/FILEOPS_.lua:329) -> [loadData](../../dev/FILEOPS_.lua:173)
+  - Part write: [splitAndSaveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L246) -> [saveData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+  - Part read: [loadandJoinData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L329) -> [loadData](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
 
 # Save flow
 
@@ -97,12 +97,12 @@ sequenceDiagram
 
 # Validation checklist
 
-- Save entry: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:155)
-- Load entry: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:173)
-- Directory ensure: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:46)
-- Path join: [dev/FILEOPS_.lua](../../dev/FILEOPS_.lua:37)
-- CONFIG save: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:404)
-- CONFIG load: [dev/CONFIG_.lua](../../dev/CONFIG_.lua:380)
+- Save entry: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L155)
+- Load entry: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L173)
+- Directory ensure: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L46)
+- Path join: [dev/FILEOPS_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/FILEOPS_.lua#L37)
+- CONFIG save: [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L404)
+- CONFIG load: [dev/CONFIG_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L380)
 
 # Related breakouts
 

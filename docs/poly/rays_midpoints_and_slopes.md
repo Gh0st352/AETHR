@@ -3,9 +3,9 @@
 Ray intersection against axis aligned bounds, segment midpoints, and line slopes.
 
 # Source anchors
-- [AETHR.POLY:intersectRayToBounds()](../../dev/POLY.lua:1491)
-- [AETHR.POLY:getMidpoint()](../../dev/POLY.lua:1171)
-- [AETHR.POLY:calculateLineSlope()](../../dev/POLY.lua:1188)
+- [AETHR.POLY:intersectRayToBounds()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1491)
+- [AETHR.POLY:getMidpoint()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1171)
+- [AETHR.POLY:calculateLineSlope()](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1188)
 
 # Overview
 - intersectRayToBounds computes the nearest positive intersection between a ray pt plus t dir and AABB bounds in XZ space using epsilon guards
@@ -144,9 +144,9 @@ sequenceDiagram
 - getMidpoint is a simple arithmetic average and is used by utilities and visual features
 
 # Validation checklist
-- intersectRayToBounds: [dev/POLY.lua](../../dev/POLY.lua:1491)
-- getMidpoint: [dev/POLY.lua](../../dev/POLY.lua:1171)
-- calculateLineSlope: [dev/POLY.lua](../../dev/POLY.lua:1188)
+- intersectRayToBounds: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1491)
+- getMidpoint: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1171)
+- calculateLineSlope: [dev/POLY.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/POLY.lua#L1188)
 
 # Related docs
 - Distance and offset: [docs/poly/distance_projection_and_offset.md](./distance_projection_and_offset.md)

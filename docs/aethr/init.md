@@ -1,22 +1,22 @@
 # AETHR initialization orchestration
 
 ## Primary anchors
-- [AETHR:Init()](../../dev/AETHR.lua:199)
-- [Iterate SUB_FOLDERS and ensureDirectory](../../dev/AETHR.lua:208)
-- [PATHS cache assignment](../../dev/AETHR.lua:214)
-- [CONFIG initConfig](../../dev/AETHR.lua:219)
-- [ZONE_MANAGER initMizZoneData](../../dev/AETHR.lua:220)
-- [WORLD initWorldDivisions](../../dev/AETHR.lua:221)
-- [WORLD initActiveDivisions](../../dev/AETHR.lua:222)
-- [WORLD initMizFileCache](../../dev/AETHR.lua:223)
-- [LEARN_WORLD_OBJECTS conditional](../../dev/AETHR.lua:225)
-- [Zones present conditional and drawing](../../dev/AETHR.lua:230)
-- [loadUSERSTORAGE](../../dev/AETHR.lua:241)
-- [saveUSERSTORAGE](../../dev/AETHR.lua:242)
-- [CONFIG saveConfig](../../dev/AETHR.lua:243)
+- [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199)
+- [Iterate SUB_FOLDERS and ensureDirectory](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L208)
+- [PATHS cache assignment](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L214)
+- [CONFIG initConfig](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L219)
+- [ZONE_MANAGER initMizZoneData](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L220)
+- [WORLD initWorldDivisions](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L221)
+- [WORLD initActiveDivisions](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L222)
+- [WORLD initMizFileCache](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L223)
+- [LEARN_WORLD_OBJECTS conditional](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L225)
+- [Zones present conditional and drawing](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L230)
+- [loadUSERSTORAGE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L241)
+- [saveUSERSTORAGE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L242)
+- [CONFIG saveConfig](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L243)
 
 ## Overview
-The initializer [AETHR:Init()](../../dev/AETHR.lua:199) prepares storage directories, caches resolved paths, initializes configuration and world data, optionally performs world object learning, performs zone drawing and pairing when zones are present, and persists both user storage and config.
+The initializer [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199) prepares storage directories, caches resolved paths, initializes configuration and world data, optionally performs world object learning, performs zone drawing and pairing when zones are present, and persists both user storage and config.
 
 # Flowchart
 
@@ -106,20 +106,20 @@ sequenceDiagram
 ```
 
 # Key branches
-- Object learning controlled by [self.CONFIG.MAIN.FLAGS.LEARN_WORLD_OBJECTS](../../dev/AETHR.lua:225) to avoid heavy scans unless requested.
-- Zone drawing and pairing guarded by [sumTable of MIZ_ZONES](../../dev/AETHR.lua:230) to skip work when no zones.
+- Object learning controlled by [self.CONFIG.MAIN.FLAGS.LEARN_WORLD_OBJECTS](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L225) to avoid heavy scans unless requested.
+- Zone drawing and pairing guarded by [sumTable of MIZ_ZONES](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L230) to skip work when no zones.
 
 # Source anchors
-- [AETHR:Init()](../../dev/AETHR.lua:199)
-- [subFolders iteration](../../dev/AETHR.lua:208)
-- [PATHS cache write](../../dev/AETHR.lua:214)
-- [initConfig](../../dev/AETHR.lua:219)
-- [initMizZoneData](../../dev/AETHR.lua:220)
-- [initWorldDivisions](../../dev/AETHR.lua:221)
-- [initActiveDivisions](../../dev/AETHR.lua:222)
-- [initMizFileCache](../../dev/AETHR.lua:223)
-- [LEARN_WORLD_OBJECTS block](../../dev/AETHR.lua:225)
-- [zones present block](../../dev/AETHR.lua:230)
-- [loadUSERSTORAGE](../../dev/AETHR.lua:241)
-- [saveUSERSTORAGE](../../dev/AETHR.lua:242)
-- [saveConfig](../../dev/AETHR.lua:243)
+- [AETHR:Init()](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199)
+- [subFolders iteration](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L208)
+- [PATHS cache write](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L214)
+- [initConfig](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L219)
+- [initMizZoneData](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L220)
+- [initWorldDivisions](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L221)
+- [initActiveDivisions](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L222)
+- [initMizFileCache](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L223)
+- [LEARN_WORLD_OBJECTS block](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L225)
+- [zones present block](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L230)
+- [loadUSERSTORAGE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L241)
+- [saveUSERSTORAGE](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L242)
+- [saveConfig](https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L243)

@@ -1,11 +1,11 @@
 # MARKERS polygons and freeform
 
-Freeform polygon drawing and its convenience wrapper. Documents [AETHR.MARKERS:markFreeform()](../../dev/MARKERS.lua:43) and [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85), including varargs normalization, vertex order, color packing, and trigger calls.
+Freeform polygon drawing and its convenience wrapper. Documents [AETHR.MARKERS:markFreeform()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L43) and [AETHR.MARKERS:drawPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L85), including varargs normalization, vertex order, color packing, and trigger calls.
 
 Primary anchors
 
-- Wrapper freeform: [AETHR.MARKERS:markFreeform()](../../dev/MARKERS.lua:43)
-- Draw polygon core: [AETHR.MARKERS:drawPolygon()](../../dev/MARKERS.lua:85)
+- Wrapper freeform: [AETHR.MARKERS:markFreeform()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L43)
+- Draw polygon core: [AETHR.MARKERS:drawPolygon()](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L85)
 
 # Overview flow
 
@@ -31,7 +31,7 @@ flowchart LR
   - lineType default 0
   - markID default 0
   - freeFormVec2Table passed as verts
-- Calls [drawPolygon](../../dev/MARKERS.lua:85) then optionally stores _Marker by markID into storageLocation
+- Calls [drawPolygon](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L85) then optionally stores _Marker by markID into storageLocation
 
 # Varargs normalization
 
@@ -119,10 +119,10 @@ sequenceDiagram
 
 # Validation checklist
 
-- Wrapper: [dev/MARKERS.lua](../../dev/MARKERS.lua:43)
-- Draw core: [dev/MARKERS.lua](../../dev/MARKERS.lua:85)
-- Reverse order push loop: [dev/MARKERS.lua](../../dev/MARKERS.lua:117)
-- Color packing and final call: [dev/MARKERS.lua](../../dev/MARKERS.lua:122)
+- Wrapper: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L43)
+- Draw core: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L85)
+- Reverse order push loop: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L117)
+- Color packing and final call: [dev/MARKERS.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MARKERS.lua#L122)
 
 # Related breakouts
 

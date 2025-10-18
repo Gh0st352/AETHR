@@ -3,9 +3,9 @@
 Nominal value generation, random decimal, and nudge helpers used by SPAWNER and other systems.
 
 Source anchors
-- [AETHR.MATH:generateNominal()](../../dev/MATH_.lua:181)
-- [AETHR.MATH:randomDecimalBetween()](../../dev/MATH_.lua:215)
-- [AETHR.MATH:generateNudge()](../../dev/MATH_.lua:233)
+- [AETHR.MATH:generateNominal()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L181)
+- [AETHR.MATH:randomDecimalBetween()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L215)
+- [AETHR.MATH:generateNudge()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L233)
 
 # Overview
 
@@ -110,7 +110,7 @@ sequenceDiagram
   - For factor 1 returns the nominal value deterministically
   - For factor 0 returns either bound using a coin flip
   - Otherwise computes a half span around nominal scaled by factor and constrained to Min Max
-  - Uses [AETHR.MATH:randomDecimalBetween()](../../dev/MATH_.lua:215) to sample the range
+  - Uses [AETHR.MATH:randomDecimalBetween()](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L215) to sample the range
 - randomDecimalBetween
   - Ensures proper ordering by swapping endpoints when a greater than b
   - Returns a plus b minus a times math random which is uniform in the interval
@@ -120,9 +120,9 @@ sequenceDiagram
 
 # Validation checklist
 
-- generateNominal: [dev/MATH_.lua](../../dev/MATH_.lua:181)
-- randomDecimalBetween: [dev/MATH_.lua](../../dev/MATH_.lua:215)
-- generateNudge: [dev/MATH_.lua](../../dev/MATH_.lua:233)
+- generateNominal: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L181)
+- randomDecimalBetween: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L215)
+- generateNudge: [dev/MATH_.lua](https://github.com/Gh0st352/AETHR/blob/main/dev/MATH_.lua#L233)
 
 # Related docs
 
