@@ -1,0 +1,20 @@
+{% assign repo_nwo = site.github.repository_nwo | default: '' %}
+{% assign repo_parts = repo_nwo | split: '/' %}
+{% assign repo_owner = repo_parts[0] %}
+{% assign repo_name = repo_parts[1] %}
+{% assign repo_branch = site.github.source.branch | default: 'main' %}
+<!doctype html>
+<html lang="en" data-repo-owner="{{ repo_owner }}" data-repo-name="{{ repo_name }}" data-repo-nwo="{{ repo_nwo }}" data-repo-branch="{{ repo_branch }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title | default: site.title | default: 'AETHR Docs' }}</title>
+  </head>
+  <body>
+    <main id="content">
+      {{ content }}
+    </main>
+    <script src="{{ '/assets/js/code-link-rewriter.js' | relative_url }}"></script>
+  </body>
+</html>

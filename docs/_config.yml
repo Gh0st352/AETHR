@@ -1,0 +1,22 @@
+title: AETHR Docs
+description: "Documentation for AETHR"
+url: "https://gh0st352.github.io"
+baseurl: "/AETHR"
+
+plugins:
+  - jekyll-optional-front-matter
+  - jekyll-default-layout
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: true
+
+defaults:
+  - scope:
+      path: ""    # all files in docs
+    values:
+      layout: default
+
+optional_front_matter:
+  enabled: true

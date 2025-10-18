@@ -60,6 +60,7 @@ Validation checklist
 - Wrap the subgraph labels in double quotes in the Mermaid diagram : `["xxxx (xx)"]`
 - Ensure all documentation section titles have level-1, level-2, or level 3 headings. example: # Title
 
+
 Notes
 - This repository does not run the injection itself. Ensure your docs pipeline (e.g., pre-publish script) performs the replacement of the marker comment with the JSON contents wrapped as a Mermaid init block.
 - If adding new diagram classes, update both:
