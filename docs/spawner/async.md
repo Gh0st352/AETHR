@@ -13,6 +13,7 @@ Covered functions
   - Cooperates with BRAIN queue: [dev/BRAIN.lua](../../dev/BRAIN.lua)
 
 
+
 # 1) Job enqueue lifecycle
 
 ```mermaid
@@ -40,7 +41,6 @@ flowchart TB
 - minRadius, nominalRadius, maxRadius, nudgeFactorRadius
 - countryID
 - autoSpawn (boolean, controls optional spawn phase after successful generation)
-
 
 # 2) Runner and cooperative yielding
 
@@ -116,7 +116,7 @@ flowchart LR
     direction LR
     Q --> BG[BRAIN BackgroundProcesses tick]
     BG --> WQ[WORLD spawnerGenerationQueue]
-    WQ --> GEN[SPAWNER generateDynamicSpawner]
+    WQ --> GEN[SPAWNER <a href='https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563'>generateDynamicSpawner</a>]
     GEN --> BUILD[SPAWNER buildSpawnGroups]
   end
   WQ --> |autoSpawn true| SPAWN[SPAWNER spawnDynamicSpawner]

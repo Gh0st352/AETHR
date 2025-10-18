@@ -5,7 +5,6 @@
 #### A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.
 
 
-
 # Cross-module overview
 
 ```mermaid
@@ -73,6 +72,7 @@ flowchart LR
   class A,B,W,ZM,SP,AI class_compute;
   class C,EN,TYP,MATH class_data;
   class M,P,U,FSM,AS class_step;
+  click C "https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua" "CONFIG"
 ```
 
 # Module documentation index

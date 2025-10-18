@@ -59,6 +59,10 @@ Validation checklist
   - class NODE_C class_compute;
 - Wrap the subgraph labels in double quotes in the Mermaid diagram : `["xxxx (xx)"]`
 - Ensure all documentation section titles have level-1, level-2, or level 3 headings. example: # Title
+- Add clickables to all relevant code sections and files in all labels and classed shapes, e.g.:
+  - A subgraph has class_data `C` representing CONFIG; at the bottom of the maermaid definitions, add `click C "https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua" "CONFIG"`
+- Add href links to all relevant code sections and files in all mermaid text, e.g.:
+  - A subgraph has class_step `GEN[SPAWNER generateDynamicSpawner]`, change to be `GEN[SPAWNER <a href='https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563'>generateDynamicSpawner</a>]`
 
 
 Notes
