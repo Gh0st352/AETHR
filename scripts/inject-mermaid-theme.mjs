@@ -252,9 +252,11 @@ async function writeIndexHtml(outDir) {
     .mz-container { position: relative; margin: 0.5rem 0 1rem; border: 1px solid #e5e5e5; border-radius: 6px; background: rgba(0,0,0,0.02); }
     .mz-toolbar { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 2; }
     .mz-toolbar button { font: inherit; font-size: 12px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
+    .mz-hint { position: absolute; top: 8px; left: 8px; font-size: 12px; color: #555; background: rgba(255,255,255,0.85); padding: 2px 6px; border-radius: 4px; border: 1px solid #ddd; z-index: 2; pointer-events: none; }
     @media (prefers-color-scheme: dark) {
       .mz-toolbar button { background: #1e1e1e; color: #eee; border-color: #444; }
       .mz-container { border-color: #333; background: rgba(255,255,255,0.03); }
+      .mz-hint { color: #ccc; background: rgba(30,30,30,0.85); border-color: #444; }
     }
     .mz-viewport { position: relative; overflow: hidden; width: 100%; height: min(70vh, 800px); }
     .mz-content { transform-origin: 0 0; will-change: transform; }
@@ -354,6 +356,7 @@ async function writeIndexHtml(outDir) {
           var toolbar = document.createElement('div'); toolbar.className = 'mz-toolbar';
           var viewport = document.createElement('div'); viewport.className = 'mz-viewport';
           var content = document.createElement('div'); content.className = 'mz-content';
+          var hint = document.createElement('div'); hint.className = 'mz-hint'; hint.textContent = 'Hold CTRL and scroll to zoom. Drag to pan.';
 
           var btnMinus = document.createElement('button'); btnMinus.title = 'Zoom out'; btnMinus.textContent = '−';
           var btnPlus = document.createElement('button'); btnPlus.title = 'Zoom in'; btnPlus.textContent = '+';
@@ -364,6 +367,7 @@ async function writeIndexHtml(outDir) {
           var parent = mer.parentNode;
           parent.replaceChild(container, mer);
           container.appendChild(toolbar);
+          container.appendChild(hint);
           container.appendChild(viewport);
           content.appendChild(mer);
           viewport.appendChild(content);
@@ -404,9 +408,11 @@ async function writeIndexHtml(outDir) {
           window.addEventListener('mouseup', function(){ dragging = false; });
 
           viewport.addEventListener('wheel', function(e){
-            e.preventDefault();
-            var newScale = e.deltaY > 0 ? Math.max(minScale, scale - step) : Math.min(maxScale, scale + step);
-            scale = newScale; apply();
+            if (e.ctrlKey) {
+              e.preventDefault();
+              var newScale = e.deltaY > 0 ? Math.max(minScale, scale - step) : Math.min(maxScale, scale + step);
+              scale = newScale; apply();
+            } // else allow default page scroll
           }, { passive: false });
 
           fit();
