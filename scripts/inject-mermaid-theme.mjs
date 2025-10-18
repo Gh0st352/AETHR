@@ -306,6 +306,35 @@ async function writeIndexHtml(outDir) {
         return { path: path, anchor: anchor };
       }
 
+      // Rewrite code links like ".../path/file.ext:123" to GitHub blob URLs with "#L123"
+      function rewriteCodeLinks() {
+        const REPO_NAME = 'AETHR';
+        const GITHUB_REPO = 'https://github.com/Gh0st352/AETHR';
+        const GITHUB_BRANCH = 'main';
+        app.querySelectorAll('a[href]').forEach(function(a){
+          const rawHref = a.getAttribute('href');
+          if (!rawHref) return;
+          if (rawHref.startsWith('#')) return;
+          let url;
+          try {
+            url = new URL(rawHref, window.location.origin + window.location.pathname);
+          } catch (e) { return; }
+          const pathWithMaybeLine = url.pathname; // e.g. /AETHR/dev/SPAWNER.lua:321
+          const m = pathWithMaybeLine.match(/^(.*\.[A-Za-z0-9_]+):(\d+)$/);
+          if (!m) return;
+          let filePath = m[1].replace(/^\/+/, '');
+          if (filePath.startsWith(REPO_NAME + '/')) {
+            filePath = filePath.slice(REPO_NAME.length + 1);
+          }
+          const ext = filePath.split('.').pop().toLowerCase();
+          if (ext === 'md') return; // do not rewrite markdown links
+          const gh = GITHUB_REPO + '/blob/' + GITHUB_BRANCH + '/' + filePath + '#L' + m[2];
+          a.setAttribute('href', gh);
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        });
+      }
+
       function renderSidebar(activePath) {
         if (!manifest || !Array.isArray(manifest.paths)) return;
 
@@ -388,6 +417,7 @@ async function writeIndexHtml(outDir) {
           const md = await resp.text();
           const html = marked.parse(md);
           app.innerHTML = html;
+          rewriteCodeLinks();
 
           // Intercept in-content links to other Markdown pages
           app.querySelectorAll('a[href]').forEach(function (a) {
