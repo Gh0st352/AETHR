@@ -312,15 +312,26 @@ async function writeIndexHtml(outDir) {
         // Group by first segment as bin; root-level goes to 'docs'
         const groups = {};
         for (const p of manifest.paths) {
-          if (p.startsWith('_mermaid/_syntax/')) continue; // safety
+          // Exclude entire _mermaid folder from navigation
+          if (p.startsWith('_mermaid/')) continue;
           const segs = p.split('/');
           const binKey = segs.length > 1 ? segs[0] : 'docs';
           if (!groups[binKey]) groups[binKey] = [];
           groups[binKey].push(p);
         }
 
-        const binKeys = Object.keys(groups).sort((a,b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+        // Order bins with 'docs' first, then alpha
+        const binKeys = Object.keys(groups).sort((a, b) => {
+          if (a === 'docs' && b !== 'docs') return -1;
+          if (b === 'docs' && a !== 'docs') return 1;
+          return a.localeCompare(b, undefined, { sensitivity: 'base' });
+        });
+
         const frag = document.createDocumentFragment();
+
+        function isReadme(p) {
+          return /(^|\/)README\.md$/i.test(p);
+        }
 
         for (const key of binKeys) {
           const details = document.createElement('details');
@@ -331,7 +342,12 @@ async function writeIndexHtml(outDir) {
           details.appendChild(summary);
 
           const ul = document.createElement('ul');
-          const pages = groups[key].slice().sort((a,b) => pageTitleFromPath(a).localeCompare(pageTitleFromPath(b), undefined, { sensitivity: 'base' }));
+          const pages = groups[key].slice().sort((a, b) => {
+            const ra = isReadme(a), rb = isReadme(b);
+            if (ra && !rb) return -1;
+            if (!ra && rb) return 1;
+            return pageTitleFromPath(a).localeCompare(pageTitleFromPath(b), undefined, { sensitivity: 'base' });
+          });
           for (const p of pages) {
             const li = document.createElement('li');
             const a = document.createElement('a');
