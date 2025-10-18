@@ -248,6 +248,16 @@ async function writeIndexHtml(outDir) {
     a.nav { text-decoration: none; color: inherit; }
     a.nav.active { font-weight: 600; text-decoration: underline; }
     .sr-only { position: absolute; left: -10000px; }
+  /* Mermaid zoom/pan UI */
+    .mz-container { position: relative; margin: 0.5rem 0 1rem; border: 1px solid #e5e5e5; border-radius: 6px; background: rgba(0,0,0,0.02); }
+    .mz-toolbar { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 2; }
+    .mz-toolbar button { font: inherit; font-size: 12px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
+    @media (prefers-color-scheme: dark) {
+      .mz-toolbar button { background: #1e1e1e; color: #eee; border-color: #444; }
+      .mz-container { border-color: #333; background: rgba(255,255,255,0.03); }
+    }
+    .mz-viewport { position: relative; overflow: hidden; width: 100%; height: min(70vh, 800px); }
+    .mz-content { transform-origin: 0 0; will-change: transform; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
@@ -332,6 +342,74 @@ async function writeIndexHtml(outDir) {
           a.setAttribute('href', gh);
           a.setAttribute('target', '_blank');
           a.setAttribute('rel', 'noopener noreferrer');
+        });
+      }
+
+      function attachZoomPan() {
+        document.querySelectorAll('.mermaid').forEach(function(mer){
+          var svg = mer.querySelector('svg');
+          if (!svg) return;
+
+          var container = document.createElement('div'); container.className = 'mz-container';
+          var toolbar = document.createElement('div'); toolbar.className = 'mz-toolbar';
+          var viewport = document.createElement('div'); viewport.className = 'mz-viewport';
+          var content = document.createElement('div'); content.className = 'mz-content';
+
+          var btnMinus = document.createElement('button'); btnMinus.title = 'Zoom out'; btnMinus.textContent = '−';
+          var btnPlus = document.createElement('button'); btnPlus.title = 'Zoom in'; btnPlus.textContent = '+';
+          var btnFit = document.createElement('button'); btnFit.title = 'Fit'; btnFit.textContent = 'Fit';
+          var btnReset = document.createElement('button'); btnReset.title = 'Reset'; btnReset.textContent = 'Reset';
+          toolbar.appendChild(btnMinus); toolbar.appendChild(btnPlus); toolbar.appendChild(btnFit); toolbar.appendChild(btnReset);
+
+          var parent = mer.parentNode;
+          parent.replaceChild(container, mer);
+          container.appendChild(toolbar);
+          container.appendChild(viewport);
+          content.appendChild(mer);
+          viewport.appendChild(content);
+
+          var scale = 1, tx = 0, ty = 0;
+          var minScale = 0.5, maxScale = 4, step = 0.2;
+          function apply() { content.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + scale + ')'; }
+
+          function fit() {
+            var svgEl = mer.querySelector('svg');
+            if (!svgEl) return;
+            var vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+            var w = (svgEl.width && svgEl.width.baseVal && svgEl.width.baseVal.value) || (svgEl.getBBox ? svgEl.getBBox().width : 0);
+            var h = (svgEl.height && svgEl.height.baseVal && svgEl.height.baseVal.value) || (svgEl.getBBox ? svgEl.getBBox().height : 0);
+            if ((!w || !h) && vb) { w = vb.width; h = vb.height; }
+            var rect = viewport.getBoundingClientRect();
+            if (w && h) {
+              var s = Math.min(rect.width / w, rect.height / h);
+              scale = Math.max(minScale, Math.min(maxScale, s));
+            } else {
+              scale = 1;
+            }
+            tx = 0; ty = 0; apply();
+          }
+
+          btnMinus.onclick = function(){ scale = Math.max(minScale, scale - step); apply(); };
+          btnPlus.onclick = function(){ scale = Math.min(maxScale, scale + step); apply(); };
+          btnReset.onclick = function(){ scale = 1; tx = 0; ty = 0; apply(); };
+          btnFit.onclick = fit;
+
+          var dragging = false, lastX = 0, lastY = 0;
+          viewport.addEventListener('mousedown', function(e){ dragging = true; lastX = e.clientX; lastY = e.clientY; e.preventDefault(); });
+          window.addEventListener('mousemove', function(e){
+            if (!dragging) return;
+            var dx = e.clientX - lastX, dy = e.clientY - lastY;
+            lastX = e.clientX; lastY = e.clientY; tx += dx; ty += dy; apply();
+          });
+          window.addEventListener('mouseup', function(){ dragging = false; });
+
+          viewport.addEventListener('wheel', function(e){
+            e.preventDefault();
+            var newScale = e.deltaY > 0 ? Math.max(minScale, scale - step) : Math.min(maxScale, scale + step);
+            scale = newScale; apply();
+          }, { passive: false });
+
+          fit();
         });
       }
 
@@ -448,6 +526,8 @@ async function writeIndexHtml(outDir) {
             window.mermaid.initialize({ startOnLoad: false });
             try {
               await window.mermaid.run({ querySelector: '.mermaid' });
+              // Enable zoom/pan controls after diagrams rendered
+              attachZoomPan();
             } catch (e) {
               console.error('Mermaid render error:', e);
             }
