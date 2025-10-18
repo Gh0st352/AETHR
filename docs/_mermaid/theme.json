@@ -6,8 +6,8 @@
     "fontSize": "14px",
     "lineColor": "#666666",
     "primaryColor": "#222222",
-    "primaryTextColor": "#222222",
-    "tertiaryColor": "#f5f5f5",
+    "primaryTextColor": "#edfaf9",
+    "tertiaryColor": "#0088ff",
 
     "ioFill": "#dae8fc",
     "ioStroke": "#6c8ebf",
@@ -33,11 +33,11 @@
 
     "actorBkg": "#f5f5f5",
     "actorBorder": "#999999",
-    "signalColor": "#666666",
-    "signalTextColor": "#222222",
+    "signalColor": "#21c4ff",
+    "signalTextColor": "#087bff",
     "activationBkgColor": "#f5f5f5",
     "activationBorderColor": "#999999",
-    "altSectionBkgColor": "#f5f5f5",
+    "altSectionBkgColor": "#ffee00",
     "sequenceNumberColor": "#666666",
 
     "seqBackdrop": "rgba(255, 255, 255, 0.75)",
@@ -46,5 +46,5 @@
     "seqTrackerFill": "#e1d5e7",
     "seqDatasetFill": "#d5e8d4"
   },
-  "themeCSS": ".class_io > rect, .class_io > path { fill: #dae8fc; stroke: #6c8ebf; stroke-width: 2px; }\n.class_compute > rect, .class_compute > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n.class_data > rect, .class_data > path { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }\n.class_tracker > rect, .class_tracker > path { fill: #e1d5e7; stroke: #9673a6; stroke-width: 2px; }\n.class_decision > rect, .class_decision > path { fill: #ffe6cc; stroke: #d79b00; stroke-width: 2px; }\n.class_result > rect, .class_result > path { fill: #d5e8d4; stroke: #82b366; stroke-width: 2px; }\n.class_step > rect, .class_step > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n\ng.cluster > rect { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }"
+  "themeCSS": ".class_io > rect, .class_io > path { fill: #dae8fc; stroke: #6c8ebf; stroke-width: 2px; }\n.class_compute > rect, .class_compute > path { fill: #54000d; stroke: #d6b656; stroke-width: 2px; }\n.class_data > rect, .class_data > path { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }\n.class_tracker > rect, .class_tracker > path { fill: #e1d5e7; stroke: #9673a6; stroke-width: 2px; }\n.class_decision > rect, .class_decision > path { fill: #ffe6cc; stroke: #d79b00; stroke-width: 2px; }\n.class_result > rect, .class_result > path { fill: #d5e8d4; stroke: #82b366; stroke-width: 2px; }\n.class_step > rect, .class_step > path { fill: #fff2cc; stroke: #d6b656; stroke-width: 2px; }\n\ng.cluster > rect { fill: #f5f5f5; stroke: #999999; stroke-width: 2px; }"
 }
