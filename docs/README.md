@@ -1,12 +1,10 @@
-# AETHR Diagrams Index
+# AETHR
 
-Master index for all Mermaid diagrams and flow descriptions across AETHR.
+### Autonomous Environment for Theater Realism (AETHR)
 
-### Conventions
-- All diagrams use GitHub Mermaid fenced blocks: ```mermaid
-- Avoid double quotes and parentheses in Mermaid labels inside brackets.
-- Flow types: flowchart LR for pipelines; sequenceDiagram for inter-module handoffs.
-- Source anchors link to code using relative paths and stable line anchors.
+#### A high-fidelity simulation layer that weaves in adaptive machine learning decision-making across the whole theater.
+
+
 
 # Cross-module overview
 
