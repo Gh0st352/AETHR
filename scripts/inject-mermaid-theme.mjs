@@ -336,7 +336,7 @@ async function writeIndexHtml(outDir) {
 
         for (const key of binKeys) {
           const details = document.createElement('details');
-          details.open = true; // bins are collapsible and open by default
+          details.open = (key === 'docs'); // open only Docs by default; others collapsed
 
           const summary = document.createElement('summary');
           summary.textContent = titleCase(key);
