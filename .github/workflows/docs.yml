@@ -1,11 +1,13 @@
-name: Rewrite code links in docs
+name: Docs - update code links
 
 on:
   push:
     branches: [ main ]
     paths:
       - 'docs/**/*.md'
-      - 'scripts/rewrite-code-links.mjs'
+      - 'README.md'
+      - 'scripts/update-code-links.mjs'
+      - '.github/workflows/update-code-links.yml'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -13,35 +15,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: rewrite-docs
+  group: update-code-links-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  rewrite:
+  update-code-links:
     if: ${{ github.actor != 'github-actions[bot]' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Rewrite code links
-        run: node scripts/rewrite-code-links.mjs --src docs
-
-      - name: Commit and push changes if any
-        run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add -A
-            git commit -m "chore(docs): rewrite code links to GitHub blob anchors [skip ci] [ci skip]"
-            git push
-          else
-            echo "No changes to commit."
-          fi
+    uses: ./.github/workflows/update-code-links.yml
+    with:
+      src: docs
+      readme: README.md

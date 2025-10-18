@@ -1,0 +1,61 @@
+name: Update code links (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      src:
+        description: Path to docs root
+        required: false
+        type: string
+        default: docs
+      readme:
+        description: Path to top-level README
+        required: false
+        type: string
+        default: README.md
+    outputs:
+      changed:
+        description: Whether any files were changed
+        value: ${{ jobs.update.outputs.changed }}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-code-links-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Update code links
+        run: node scripts/update-code-links.mjs --src "${{ inputs.src }}" --readme "${{ inputs.readme }}"
+
+      - name: Commit and push changes if any
+        id: commit
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "chore(docs): update code links [skip ci] [ci skip]"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
