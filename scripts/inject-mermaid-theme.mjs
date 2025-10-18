@@ -322,7 +322,7 @@ async function writeIndexHtml(outDir) {
           const pathWithMaybeLine = url.pathname; // e.g. /AETHR/dev/SPAWNER.lua:321
           const m = pathWithMaybeLine.match(/^(.*\.[A-Za-z0-9_]+):(\d+)$/);
           if (!m) return;
-          let filePath = m[1].replace(/^\/+/, '');
+          let filePath = m[1].replace(new RegExp('^/+'), '');
           if (filePath.startsWith(REPO_NAME + '/')) {
             filePath = filePath.slice(REPO_NAME.length + 1);
           }
