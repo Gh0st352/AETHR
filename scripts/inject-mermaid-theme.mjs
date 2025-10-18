@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Mermaid shared theme injector
+ * Mermaid shared theme injector + simple SPA docs shell
  *
  * - Reads docs/_mermaid/theme.json
  * - Mirrors docs/ to site/docs/
@@ -16,6 +16,8 @@
  *   - Deduplicate any additional %%{init: ...}%% lines within the same fence.
  * - Preserve file-level EOL style (CRLF or LF)
  * - Create site/.nojekyll
+ * - Emit site/docs/_manifest.json with all docs/*.md paths (excluding _mermaid/_syntax/)
+ * - Emit site/index.html: an SPA that renders Markdown and Mermaid and provides a sidebar
  *
  * Usage:
  *   node scripts/inject-mermaid-theme.mjs --in docs --out site [--theme docs/_mermaid/theme.json] [--verbose]
@@ -64,7 +66,6 @@ function detectEOL(text) {
 }
 
 function splitLinesPreserve(text) {
-  // standardize to \n split; keep original EOL for join
   return text.split(/\r?\n/);
 }
 
@@ -75,7 +76,6 @@ function buildInitDirective(themeObj) {
 
 async function loadTheme(themePath) {
   const raw = await fs.readFile(themePath, 'utf8');
-  // Parse to validate JSON and to allow re-stringify to one line
   const obj = JSON.parse(raw);
   return obj;
 }
@@ -163,6 +163,7 @@ function processMarkdownContent(content, initDirective) {
 async function mirrorAndInject(inDir, outDir, initDirective, verbose) {
   let filesTouched = 0;
   let fencesTouched = 0;
+  const manifestPaths = []; // docs-relative POSIX paths to .md
 
   async function walk(currentSrc) {
     const entries = await fs.readdir(currentSrc, { withFileTypes: true });
@@ -186,9 +187,10 @@ async function mirrorAndInject(inDir, outDir, initDirective, verbose) {
         if (ext === '.md') {
           // load markdown and inject
           const content = await fs.readFile(srcPath, 'utf8');
-          const before = content;
-          const { text, modified } = processMarkdownContent(before, initDirective);
+          const { text, modified } = processMarkdownContent(content, initDirective);
           await fs.writeFile(outPath, text, 'utf8');
+          // add to manifest (normalize to POSIX)
+          manifestPaths.push(relFromIn.split(path.sep).join('/'));
           if (modified) {
             filesTouched++;
             // Rough estimate: count occurrences of init directive
@@ -208,11 +210,18 @@ async function mirrorAndInject(inDir, outDir, initDirective, verbose) {
 
   await walk(inDir);
 
+  // Write manifest (sorted)
+  manifestPaths.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  const manifest = { paths: manifestPaths };
+  const manifestDir = path.join(outDir, 'docs');
+  await ensureDir(manifestDir);
+  await fs.writeFile(path.join(manifestDir, '_manifest.json'), JSON.stringify(manifest, null, 2), 'utf8');
+
   // Create .nojekyll at out root
   await ensureDir(outDir);
   await fs.writeFile(path.join(outDir, '.nojekyll'), '', 'utf8');
 
-  return { filesTouched, fencesTouched };
+  return { filesTouched, fencesTouched, manifestCount: manifestPaths.length };
 }
 
 async function writeIndexHtml(outDir) {
@@ -224,11 +233,20 @@ async function writeIndexHtml(outDir) {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root { color-scheme: light dark; }
+    html, body { height: 100%; }
     body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5; }
-    header { padding: 1rem; border-bottom: 1px solid #ddd; }
+    header { padding: 0.75rem 1rem; border-bottom: 1px solid #ddd; position: sticky; top: 0; background: var(--bg, #fff); z-index: 10; }
     header a { color: inherit; text-decoration: none; }
-    main { max-width: 1080px; margin: 0 auto; padding: 1rem; }
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100% - 48px); }
+    aside { border-right: 1px solid #ddd; padding: 1rem; overflow: auto; }
+    main { padding: 1rem 1.5rem; overflow: auto; }
     pre { overflow: auto; background: rgba(0,0,0,0.05); padding: 0.75rem; border-radius: 6px; }
+    details { margin: 0.25rem 0; }
+    summary { cursor: pointer; font-weight: 600; }
+    ul { list-style: none; padding-left: 0.75rem; margin: 0.25rem 0 0.5rem 0; }
+    li { margin: 0.15rem 0; }
+    a.nav { text-decoration: none; color: inherit; }
+    a.nav.active { font-weight: 600; text-decoration: underline; }
     .sr-only { position: absolute; left: -10000px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
@@ -239,23 +257,38 @@ async function writeIndexHtml(outDir) {
     <a href="./"><strong>AETHR</strong> Docs</a>
     &nbsp;·&nbsp;<a href="#docs/README.md">Browse docs/</a>
   </header>
-  <main>
-    <h1>Documentation</h1>
-    <div id="app">Loading docs/README.md…</div>
-    <noscript>
-      <p>JavaScript is required to render Markdown and Mermaid diagrams on this static site.</p>
-      <p>You can browse raw Markdown at <a href="#docs/README.md">docs/</a>.</p>
-    </noscript>
-  </main>
+  <div class="layout">
+    <aside id="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-loading">Loading index…</div>
+    </aside>
+    <main>
+      <h1>Documentation</h1>
+      <div id="app">Loading docs/README.md…</div>
+      <noscript>
+        <p>JavaScript is required to render Markdown and Mermaid diagrams on this static site.</p>
+        <p>You can browse raw Markdown at <a href="./docs/">docs/</a>.</p>
+      </noscript>
+    </main>
+  </div>
   <script>
     (function () {
       let currentPath = '';
+      let manifest = null;
       const app = document.getElementById('app');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarLoading = document.getElementById('sidebar-loading');
 
       function isMdLink(href) {
-        return /\.md($|#)/i.test(href);
+        return /\\.md($|#)/i.test(href);
       }
-
+      function titleCase(s) {
+        return s.replace(/[-_]/g, ' ')
+                .replace(/\\b\\w/g, c => c.toUpperCase());
+      }
+      function pageTitleFromPath(p) {
+        const name = p.split('/').pop().replace(/\\.md$/i, '');
+        return titleCase(name);
+      }
       function resolveMd(href, base) {
         // Base is the current docs path, e.g. "docs/a/b/README.md"
         const baseUrl = new URL('./' + base, window.location.origin + '/');
@@ -263,6 +296,72 @@ async function writeIndexHtml(outDir) {
         const path = url.pathname.replace(new RegExp('^/+'), '');
         const hash = url.hash ? url.hash : '';
         return { path, hash };
+      }
+      function parseHash() {
+        const raw = (window.location.hash || '').slice(1).trim();
+        if (!raw) return { path: 'docs/README.md', anchor: '' };
+        const idx = raw.indexOf('#');
+        const path = idx === -1 ? raw : raw.slice(0, idx);
+        const anchor = idx === -1 ? '' : raw.slice(idx + 1);
+        return { path: path, anchor: anchor };
+      }
+
+      function renderSidebar(activePath) {
+        if (!manifest || !Array.isArray(manifest.paths)) return;
+
+        // Group by first segment as bin; root-level goes to 'docs'
+        const groups = {};
+        for (const p of manifest.paths) {
+          if (p.startsWith('_mermaid/_syntax/')) continue; // safety
+          const segs = p.split('/');
+          const binKey = segs.length > 1 ? segs[0] : 'docs';
+          if (!groups[binKey]) groups[binKey] = [];
+          groups[binKey].push(p);
+        }
+
+        const binKeys = Object.keys(groups).sort((a,b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+        const frag = document.createDocumentFragment();
+
+        for (const key of binKeys) {
+          const details = document.createElement('details');
+          details.open = true; // bins are collapsible and open by default
+
+          const summary = document.createElement('summary');
+          summary.textContent = titleCase(key);
+          details.appendChild(summary);
+
+          const ul = document.createElement('ul');
+          const pages = groups[key].slice().sort((a,b) => pageTitleFromPath(a).localeCompare(pageTitleFromPath(b), undefined, { sensitivity: 'base' }));
+          for (const p of pages) {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'nav';
+            a.textContent = pageTitleFromPath(p);
+            a.href = '#docs/' + p;
+            if (('docs/' + p) === activePath) {
+              a.classList.add('active');
+            }
+            li.appendChild(a);
+            ul.appendChild(li);
+          }
+          details.appendChild(ul);
+          frag.appendChild(details);
+        }
+
+        sidebar.innerHTML = '';
+        sidebar.appendChild(frag);
+      }
+
+      async function loadManifest() {
+        try {
+          const resp = await fetch('./docs/_manifest.json', { cache: 'no-store' });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          manifest = await resp.json();
+          if (sidebarLoading) sidebarLoading.remove();
+          renderSidebar(currentPath);
+        } catch (e) {
+          if (sidebarLoading) sidebarLoading.textContent = 'Failed to load index.';
+        }
       }
 
       async function render(mdPath, anchor) {
@@ -277,7 +376,6 @@ async function writeIndexHtml(outDir) {
           app.querySelectorAll('a[href]').forEach(function (a) {
             const href = a.getAttribute('href');
             if (!href) return;
-
             // Only intercept .md links (relative or under docs/)
             if (isMdLink(href) || href.startsWith('docs/')) {
               a.addEventListener('click', function (e) {
@@ -308,6 +406,17 @@ async function writeIndexHtml(outDir) {
             }
           }
 
+          // Highlight active in sidebar and ensure its bin is open
+          if (manifest && sidebar) {
+            sidebar.querySelectorAll('a.nav').forEach(a => {
+              a.classList.toggle('active', a.getAttribute('href') === '#' + mdPath);
+              if (a.classList.contains('active')) {
+                const det = a.closest('details');
+                if (det) det.open = true;
+              }
+            });
+          }
+
           // Scroll to in-document anchor if provided
           if (anchor) {
             const el = document.getElementById(anchor);
@@ -318,26 +427,20 @@ async function writeIndexHtml(outDir) {
         }
       }
 
-      function parseHash() {
-        const raw = (window.location.hash || '').slice(1).trim();
-        if (!raw) return { path: 'docs/README.md', anchor: '' };
-        const idx = raw.indexOf('#');
-        const path = idx === -1 ? raw : raw.slice(0, idx);
-        const anchor = idx === -1 ? '' : raw.slice(idx + 1);
-        return { path: path, anchor: anchor };
-      }
-
       async function route() {
         const next = parseHash();
         if (next.path !== currentPath) {
           currentPath = next.path;
+        }
+        if (manifest) {
+          renderSidebar(currentPath);
         }
         await render(next.path, next.anchor);
       }
 
       window.addEventListener('hashchange', route);
       window.addEventListener('load', function () {
-        route();
+        loadManifest().then(route);
       });
     })();
   </script>
@@ -366,7 +469,7 @@ async function main() {
 
     const stats = await mirrorAndInject(inDir, outDir, initDirective, args.verbose);
     await writeIndexHtml(outDir);
-    console.log(`Injection complete. Files modified: ${stats.filesTouched}. Fences injected: ${stats.fencesTouched}. Index written: ${path.join(outDir, 'index.html')}`);
+    console.log(`Injection complete. Files modified: ${stats.filesTouched}. Fences injected: ${stats.fencesTouched}. Docs indexed: ${stats.manifestCount}. Index written: ${path.join(outDir, 'index.html')}`);
     process.exit(0);
   } catch (err) {
     console.error('Injector error:', err?.message || err);
