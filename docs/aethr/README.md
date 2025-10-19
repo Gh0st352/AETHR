@@ -132,7 +132,7 @@ sequenceDiagram
   participant Z as ZONE_MANAGER
   participant W as WORLD
 
-  A->>C: [Test URL](https://www.google.com)
+  A->>C: [<a href='https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563'>generateDynamicSpawner</a>] 
   %% initConfig
   A->>Z: initMizZoneData
   A->>W: initWorldDivisions
