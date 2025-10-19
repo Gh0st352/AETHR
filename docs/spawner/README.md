@@ -9,6 +9,7 @@ Documents
 - Types and counts: [types_and_counts.md](./types_and_counts.md)
 - Build, spawn, despawn: [spawn_despawn.md](./spawn_despawn.md)
 - NOGO checks: [nogo.md](./nogo.md)
+- Determinism: [determinism.md](./determinism.md)
 - Async jobs: [async.md](./async.md)
 
 # End to end relationship

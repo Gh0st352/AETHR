@@ -10,6 +10,7 @@ This file documents additional logic sequences defined in [dev/SPAWNER.lua](../.
   - [AETHR.SPAWNER:newDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L467)
   - [AETHR.SPAWNER:assembleUnitsForGroup()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L358)
   - [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
+  - [AETHR.SPAWNER:spawnDBClusterFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2184)
 
 
 # 1) generateSpawnerGroups wrapper
@@ -131,6 +132,26 @@ flowchart TB
 - Entry: [AETHR.SPAWNER:spawnAirbaseFill()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L2169)
 - Enqueue: [AETHR.SPAWNER:enqueueGenerateDynamicSpawner()](https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L520)
 
+# 6) spawnDBClusterFill
+
+```mermaid
+%% shared theme: docs/_mermaid/theme.json %%
+flowchart TB
+  C0[start spawnDBClusterFill] --> C1[vec2 equals cluster.Center]
+  subgraph "Radius derivation"
+    direction TB
+    C1 --> C2[minRad equals cluster.Radius]
+    C2 --> C3[maxRad equals cluster.Radius * 2]
+    C3 --> C4[nominalRadius equals average of minRad and maxRad]
+  end
+  C4 --> C5[enqueueGenerateDynamicSpawner with autoSpawn true]
+  C5 --> OUT[return self]
+  class C0 class_io;
+  class C1,C2,C3,C4,C5 class_step;
+  class OUT class_result;
+```
+
+- Used by ZONE_MANAGER town flows. See [zone_manager/towns.md](../zone_manager/towns.md) for orchestration across zones.
 
 # Notes
 - Wrapper diagrams ensure high level readability across files while detailed decision logic remains in specialized documents:
@@ -138,4 +159,5 @@ flowchart TB
   - Zones and divisions: [zones_and_divisions.md](./zones_and_divisions.md)
   - Placement and NOGO checks: [placement.md](./placement.md), [nogo.md](./nogo.md)
   - Build and world actions: [spawn_despawn.md](./spawn_despawn.md)
+  - Deterministic wrapper and controls: [determinism.md](./determinism.md)
   - Async job lifecycle and yielding: [async.md](./async.md)

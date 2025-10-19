@@ -155,6 +155,7 @@ Quick links to pages containing Mermaid flowcharts and sequence diagrams.
 - [Types and counts](spawner/types_and_counts.md)
 - [Auxiliary](spawner/auxiliary.md)
 - [NoGo checks](spawner/nogo.md)
+- [Determinism](spawner/determinism.md)
 - [Async job runner](spawner/async.md)
 - [Spawn and despawn flows](spawner/spawn_despawn.md)
 
@@ -166,6 +167,7 @@ Quick links to pages containing Mermaid flowcharts and sequence diagrams.
 - [Game bounds](zone_manager/game_bounds.md)
 - [Watchers](zone_manager/watchers.md)
 - [Airbases](zone_manager/airbases.md)
+- [Towns](zone_manager/towns.md)
 
 ### BRAIN
 - [Overview](brain/README.md)

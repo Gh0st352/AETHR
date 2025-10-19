@@ -12,6 +12,7 @@
 - Markers and arrows: [docs/zone_manager/markers_and_arrows.md](docs/zone_manager/markers_and_arrows.md)
 - Watchers: [docs/zone_manager/watchers.md](docs/zone_manager/watchers.md)
 - Airbases: [docs/zone_manager/airbases.md](docs/zone_manager/airbases.md)
+- Towns: [docs/zone_manager/towns.md](docs/zone_manager/towns.md)
 
 # End to end relationship
 
