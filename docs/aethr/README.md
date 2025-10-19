@@ -132,8 +132,7 @@ sequenceDiagram
   participant Z as ZONE_MANAGER
   participant W as WORLD
 
-  A->>C: [<a href='https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563'>generateDynamicSpawner</a>] 
-  %% initConfig
+  A->>C: initConfig
   A->>Z: initMizZoneData
   A->>W: initWorldDivisions
   A->>W: initActiveDivisions
@@ -153,11 +152,6 @@ sequenceDiagram
   A->>A: loadUSERSTORAGE
   A->>A: saveUSERSTORAGE
   A->>C: saveConfig
-
- %% click A "https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L199" "AETHR:Init (call site)"
- %% click C "https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua#L364" "CONFIG:initConfig"
- %% click Z "https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L931" "ZONE_MANAGER"
- %% click W "https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua#L1156" "WORLD"
 ```
 
 # Background processes loop
@@ -190,10 +184,6 @@ sequenceDiagram
     B->>B: runScheduledTasks
   end
 
-  %% click A "https://github.com/Gh0st352/AETHR/blob/main/dev/AETHR.lua#L252" "AETHR:Start"
-  %% click B "https://github.com/Gh0st352/AETHR/blob/main/dev/BRAIN.lua" "BRAIN module"
-  %% click W "https://github.com/Gh0st352/AETHR/blob/main/dev/WORLD.lua" "WORLD module"
-  %% click Z "https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua" "ZONE_MANAGER module"
 ```
 
 # Key anchors
