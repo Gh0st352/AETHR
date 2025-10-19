@@ -519,7 +519,7 @@ end
 ---@return integer jobId
 function AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                                      nudgeFactorRadius, countryID, autoSpawn)
-    self.UTILS:debugInfo("AETHR.SPAWNER:enqueueGenerateDynamicSpawner -- Enqueuing job for " .. dynamicSpawner.name)
+    
     self.DATA.GenerationJobCounter = (self.DATA.GenerationJobCounter or 1)
     local id = self.DATA.GenerationJobCounter
     self.DATA.GenerationJobCounter = id + 1
@@ -539,6 +539,7 @@ function AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2, minRa
             autoSpawn = autoSpawn and true or false,
         }
     }
+    self.UTILS:debugInfo("AETHR.SPAWNER:enqueueGenerateDynamicSpawner -- Enqueuing job for " .. dynamicSpawner.name .. " - ID#" .. tostring(id))
     self.DATA.GenerationJobs[id] = job
     table.insert(self.DATA.GenerationQueue, id)
     return id
@@ -1069,6 +1070,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
         self.DATA.BenchmarkLog.generateVec2GroupCenters = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.generateVec2GroupCenters.Time.start = os.clock()
     end
+
     -- Performance notes:
     -- - Squared-distance checks with grid hashing (no sqrt) keep hot loops cheap.
     -- - neighborRange* are computed in cell units to bound grid lookups tightly.
@@ -2173,5 +2175,19 @@ function AETHR.SPAWNER:spawnAirbaseFill(airbase, countryID, dynamicSpawner)
     local nominalRadius = (minRad + maxRad) / 2
     self:enqueueGenerateDynamicSpawner(dynamicSpawner,airbaseVec2 ,
         minRad, nominalRadius, maxRad, .5, countryID, true)
-    return self
+  --  return self
 end
+
+---@param cluster _dbCluster
+---@param countryID  number
+---@param dynamicSpawner _dynamicSpawner
+function AETHR.SPAWNER:spawnDBClusterFill(cluster, countryID, dynamicSpawner)
+    local vec2 = cluster.Center
+    local minRad = cluster.Radius
+    local maxRad = (cluster.Radius * 2)
+    local nominalRadius = (minRad + maxRad) / 2
+    self:enqueueGenerateDynamicSpawner(dynamicSpawner,vec2 ,
+        minRad, nominalRadius, maxRad, .5, countryID, true)
+
+end
+    

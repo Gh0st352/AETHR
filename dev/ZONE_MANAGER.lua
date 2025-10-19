@@ -1149,11 +1149,83 @@ function AETHR.ZONE_MANAGER:spawnAirbasesAllZones(dynamicSpawner)
     local blueCountry = self.CONFIG.MAIN.DefaultBlueCountry
 
     for _, zName in ipairs(redZones) do
-            self:spawnAirbasesZone(zName, redCountry, dynamicSpawner)
+        self:spawnAirbasesZone(zName, redCountry, dynamicSpawner)
     end
     for _, zName in ipairs(blueZones) do
-            self:spawnAirbasesZone(zName, blueCountry, dynamicSpawner)
+        self:spawnAirbasesZone(zName, blueCountry, dynamicSpawner)
     end
 
+    return self
+end
+
+--- Spawns town filler groups for all towns within a zone using SPAWNER.
+--- @function AETHR.ZONE_MANAGER:spawnTownsZone
+--- @param spawnChance number|nil Chance (0-1) to spawn each town
+--- @param zoneName string Zone name key
+--- @param countryID integer Engine country id
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
+--- @param minTownRadius number|nil Minimum radius to consider a town for spawning
+--- @return AETHR.ZONE_MANAGER self
+function AETHR.ZONE_MANAGER:spawnTownsZone(zoneName, countryID, minTownRadius, dynamicSpawner, spawnChance)
+    self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone -----  ZONE: " .. zoneName)
+    local _zones = self.DATA.MIZ_ZONES
+    ---@type _MIZ_ZONE
+    local zone = _zones[zoneName]
+    if not zone then return self end
+    local townSpawners = self.SPAWNER.DATA.dynamicSpawners.Town
+    local townsDB = zone.townsDB or {}
+    -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone -----  # Towns: " .. tostring(self.UTILS.sumTable(townsDB)))
+    local spawnChance_
+
+    ---@param town _dbCluster
+    for _, town in pairs(townsDB) do
+        -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone ----------------------------  Town #: " .. tostring(_))
+        local townRad = town.Radius
+        -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone -----  Town Radius: " .. tostring(townRad))
+        -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone -----  minTownRadius: " .. tostring(minTownRadius))
+        if minTownRadius <= townRad then
+            spawnChance_ = spawnChance or math.random()
+            -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone ----Set Town Spawn Chance: " ..
+            -- tostring(spawnChance_))
+            local rolledChance = math.random()
+           -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone ----Rolled Town Spawn Chance: " ..
+            --tostring(rolledChance))
+            if rolledChance <= spawnChance_ then
+               -- self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone -----  Spawning Town")
+                if not dynamicSpawner then
+                    dynamicSpawner = townSpawners
+                        [self.UTILS:pickRandomKeyFromTable(townSpawners)]
+                end
+
+                self.SPAWNER:spawnDBClusterFill(town, countryID, dynamicSpawner)
+            end
+        end
+    end
+    return self
+end
+
+--- Spawns town filler groups for all towns across all zones using SPAWNER.
+--- Uses RED and BLUE Start Zones to determine country of spawns for towns.
+--- @function AETHR.ZONE_MANAGER:spawnTownsAllZones
+--- @param spawnChance number|nil Chance (0-1) to spawn each town
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
+--- @param minTownRadius number|nil Minimum radius to consider a town for spawning
+--- @return AETHR.ZONE_MANAGER self
+function AETHR.ZONE_MANAGER:spawnTownsAllZones(minTownRadius, dynamicSpawner, spawnChance)
+    --local _zones = self.CONFIG.MAIN.MIZ_ZONES.ALL--self.DATA.MIZ_ZONES
+    local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
+    local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
+    local redCountry = self.CONFIG.MAIN.DefaultRedCountry
+    local blueCountry = self.CONFIG.MAIN.DefaultBlueCountry
+
+    self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsAllZones ----- ")
+    for _, zName in ipairs(redZones) do
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsAllZones ----- RED ZONE: " .. zName)
+        self:spawnTownsZone(zName, redCountry, minTownRadius, dynamicSpawner, spawnChance)
+    end
+    for _, zName in ipairs(blueZones) do
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsAllZones ----- BLUE ZONE: " .. zName)
+        self:spawnTownsZone(zName, blueCountry, minTownRadius, dynamicSpawner, spawnChance)
+    end
     return self
 end
