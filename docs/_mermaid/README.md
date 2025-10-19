@@ -62,9 +62,9 @@ Validation checklist
 - Add clickables to all relevant code sections and files in all labels and classed shapes, e.g.:
   - A subgraph has class_data `C` representing CONFIG; at the bottom of the mermaid definitions, add `click C "https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua" "CONFIG"`
   - A sequence diagram has `participant C as CONFIG`; at the bottom of the mermaid definitions, add `click C "https://github.com/Gh0st352/AETHR/blob/main/dev/CONFIG_.lua" "CONFIG"`
-
 - Add href links to all relevant code sections and files in all mermaid text, e.g.:
   - A subgraph has class_step `GEN[SPAWNER generateDynamicSpawner]`, change to be `GEN[SPAWNER <a href='https://github.com/Gh0st352/AETHR/blob/main/dev/SPAWNER.lua#L563'>generateDynamicSpawner</a>]`
+  - DO NOT add links to line messages and notes on sequence diagrams
 
 
 Notes
