@@ -55,14 +55,14 @@ AETHR.BRAIN.DATA = {
     SchedulerIDCounter = 1, -- Incrementing counter to assign unique IDs to scheduled tasks.
     coroutines = {
         -- phase is an offset (in loop ticks) used to stagger execution across the interval window.
-        saveGroundUnits = {
+        saveGeneratedGroundGroups = {
             interval = 10, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
             phase = 9,
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
             yieldCounter = 0,
-            desc = "saveGroundUnits",
+            desc = "saveGeneratedGroundGroups",
         },
         updateZoneOwnership = {
             interval = 10,
@@ -101,7 +101,7 @@ AETHR.BRAIN.DATA = {
             desc = "updateZoneArrows",
         },
         updateGroundUnitsDB = {
-            interval = 30, -- make ground DB updates less frequent by default
+            interval = 15, -- make ground DB updates less frequent by default
             phase = 8,
             counter = 0,
             thread = nil,
@@ -109,12 +109,21 @@ AETHR.BRAIN.DATA = {
             yieldCounter = 0,
             desc = "updateGroundUnitsDB",
         },
+        updateGroundGroupsDB = {
+            interval = 32, -- make ground DB updates less frequent by default
+            phase = 9,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 10, -- yield more often
+            yieldCounter = 0,
+            desc = "updateGroundGroupsDB",
+        },
         spawnGroundGroups = {
             interval = 10, -- make ground DB updates less frequent by default
             phase = 3,
             counter = 0,
             thread = nil,
-            yieldThreshold = 3, -- yield more often
+            yieldThreshold = 12, -- yield more often
             yieldCounter = 0,
             desc = "spawnGroundGroups",
         },
@@ -128,11 +137,11 @@ AETHR.BRAIN.DATA = {
             desc = "despawnGroundGroups",
         },
         spawnerGenerationQueue = {
-            interval = 10,
+            interval = 5,
             phase = 12,
             counter = 0,
             thread = nil,
-            yieldThreshold = 10,
+            yieldThreshold = 50,
             yieldCounter = 0,
             desc = "spawnerGenerationQueue",
         },

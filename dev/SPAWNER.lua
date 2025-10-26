@@ -90,9 +90,9 @@ AETHR.SPAWNER.DATA = {
     },
     BenchmarkLog = {},
     CONFIG = {
-        BUILD_PAD = 5,          -- Strict building separation constants
+        BUILD_PAD = 5,                -- Strict building separation constants
         EXTRA_ATTEMPTS_BUILDING = 50, -- Extra attempts to place group centers away from buildings
-        SPAWNER_WAIT_TIME = 10, -- Seconds to wait before a group is elligible for spawning after adding to mission engine to prevent DCS crashes
+        SPAWNER_WAIT_TIME = 10,       -- Seconds to wait before a group is elligible for spawning after adding to mission engine to prevent DCS crashes
         UseDivisionAABBReject = true,
         UseDivisionAABBFullInclude = true,
         operationLimit = 50,
@@ -252,15 +252,16 @@ end
 
 --- Cooperative yield helper used only when running inside BRAIN.DATA.coroutines.spawnerGenerationQueue
 --- Yields when the configured threshold is reached to avoid long blocking frames.
-function AETHR.SPAWNER:_maybeYield(inc)
+function AETHR.SPAWNER:_maybeYield(inc, yieldMessage)
+    yieldMessage = yieldMessage or ""
     local co_ = self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.coroutines and
-    self.BRAIN.DATA.coroutines.spawnerGenerationQueue
+        self.BRAIN.DATA.coroutines.spawnerGenerationQueue
     if co_ and co_.thread then
         co_.yieldCounter = (co_.yieldCounter or 0) + (inc or 1)
         if co_.yieldCounter >= (co_.yieldThreshold or 0) then
             co_.yieldCounter = 0
             if self.UTILS and type(self.UTILS.debugInfo) == "function" then
-                self.UTILS:debugInfo("AETHR.SPAWNER:_maybeYield --> YIELD")
+                self.UTILS:debugInfo("AETHR.SPAWNER:_maybeYield --> YIELD " .. yieldMessage)
             end
             coroutine.yield()
         end
@@ -519,7 +520,6 @@ end
 ---@return integer jobId
 function AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2, minRadius, nominalRadius, maxRadius,
                                                      nudgeFactorRadius, countryID, autoSpawn)
-    
     self.DATA.GenerationJobCounter = (self.DATA.GenerationJobCounter or 1)
     local id = self.DATA.GenerationJobCounter
     self.DATA.GenerationJobCounter = id + 1
@@ -539,7 +539,8 @@ function AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2, minRa
             autoSpawn = autoSpawn and true or false,
         }
     }
-    self.UTILS:debugInfo("AETHR.SPAWNER:enqueueGenerateDynamicSpawner -- Enqueuing job for " .. dynamicSpawner.name .. " - ID#" .. tostring(id))
+    self.UTILS:debugInfo("AETHR.SPAWNER:enqueueGenerateDynamicSpawner -- Enqueuing job for " ..
+    dynamicSpawner.name .. " - ID#" .. tostring(id))
     self.DATA.GenerationJobs[id] = job
     table.insert(self.DATA.GenerationQueue, id)
     return id
@@ -996,7 +997,6 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                                         zoneDivSceneryObjects[#zoneDivSceneryObjects + 1] = obj
                                     end
                                 end
-                                
                             end
                         end
 
@@ -1011,7 +1011,6 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                                         zoneDivStaticObjects[#zoneDivStaticObjects + 1] = obj
                                     end
                                 end
-                                
                             end
                         end
 
@@ -1026,14 +1025,13 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                                         zoneDivBaseObjects[#zoneDivBaseObjects + 1] = obj
                                     end
                                 end
-                                
                             end
                         end
                     end
                 end
-                self:_maybeYield(1)
+                self:_maybeYield(1, "determineZoneDivObjects Inner")
             end
-            self:_maybeYield(1)
+            self:_maybeYield(1, "determineZoneDivObjects outer")
 
             subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
             subZone.zoneDivStaticObjects = zoneDivStaticObjects
@@ -1077,9 +1075,9 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     -- - Building separation is strict (never relaxed). Group separation relaxes up to ~30% as glassBreak approaches operationLimit.
     -- - Benchmark logging is gated; no per-iteration logging in hot loops.
     local BUILD_PAD = self.DATA.CONFIG
-    .BUILD_PAD                                                               -- meters of extra padding around buildings for center placement
+        .BUILD_PAD           -- meters of extra padding around buildings for center placement
     local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG
-    .EXTRA_ATTEMPTS_BUILDING                                                 --- extra attempts if building rejection occurs
+        .EXTRA_ATTEMPTS_BUILDING --- extra attempts if building rejection occurs
 
     -- init counters view
     local _centerCounters = self.DATA.BenchmarkLog.generateVec2GroupCenters and
@@ -1224,54 +1222,54 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     if buildingRejectDirect then
                         reject = true
                     end
-                        -- Only if we passed all cheap spatial checks, call expensive NOGO check
-                        if not reject then
-                            reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
-                        end
+                    -- Only if we passed all cheap spatial checks, call expensive NOGO check
+                    if not reject then
+                        reject = self:checkIsInNOGO(possibleVec2, dynamicSpawner.zones.restricted)
+                    end
 
-                        if not reject then
+                    if not reject then
+                        accepted = true
+                    else
+                        accepted = false
+                    end
+
+                    if glassBreak >= operationLimit then
+                        -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
+                        if not buildingRejectDirect then
                             accepted = true
+                        elseif glassBreak < operationLimit + EXTRA_ATTEMPTS_BUILDING then
+                            accepted = false
                         else
                             accepted = false
                         end
+                    end
 
-                        if glassBreak >= operationLimit then
-                            -- At budget: keep strict on buildings; allow fallback only when NOT a building violation.
-                            if not buildingRejectDirect then
-                                accepted = true
-                            elseif glassBreak < operationLimit + EXTRA_ATTEMPTS_BUILDING then
-                                accepted = false
-                            else
-                                accepted = false
+                    -- Enforce strict building rejection even after operationLimit fallback.
+                    if accepted then
+                        local strictBuildingReject = false
+                        if next(structuresGrid) ~= nil then
+                            strictBuildingReject = directReject(
+                                structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                (minBuildings + BUILD_PAD), neighborRangeBuildings
+                            )
+                        end
+                        if strictBuildingReject then
+                            accepted = false
+                            if _centerCounters then
+                                _centerCounters.BuildingRejects = (_centerCounters.BuildingRejects or 0) + 1
                             end
                         end
+                    end
 
-                        -- Enforce strict building rejection even after operationLimit fallback.
-                        if accepted then
-                            local strictBuildingReject = false
-                            if next(structuresGrid) ~= nil then
-                                strictBuildingReject = directReject(
-                                    structuresGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
-                                )
-                            end
-                            if strictBuildingReject then
-                                accepted = false
-                                if _centerCounters then
-                                    _centerCounters.BuildingRejects = (_centerCounters.BuildingRejects or 0) + 1
-                                end
-                            end
-                        end
-
-                        glassBreak = glassBreak + 1
-                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1) end
-                    until accepted
+                    glassBreak = glassBreak + 1
+                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1, "generateVec2GroupCenters Inner") end
+                until accepted
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
                 gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
-                self:_maybeYield(1)
+                self:_maybeYield(1, "generateVec2GroupCenters Outer")
             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
@@ -1310,9 +1308,9 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
     -- - Unit-vs-building separation remains strict; unit-vs-unit separation may relax up to ~30% as budget depletes.
     -- - Avoids hot-loop logging; rely on benchmark flags for summary timing.
     local BUILD_PAD = self.DATA.CONFIG
-    .BUILD_PAD                                   -- meters of extra padding around buildings for center placement
+        .BUILD_PAD               -- meters of extra padding around buildings for center placement
     local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG
-        .EXTRA_ATTEMPTS_BUILDING                 --- extra attempts if building rejection occurs
+        .EXTRA_ATTEMPTS_BUILDING --- extra attempts if building rejection occurs
     -- init counters view
     local _unitCounters = self.DATA.BenchmarkLog.generateVec2UnitPos and
         self.DATA.BenchmarkLog.generateVec2UnitPos.Counters
@@ -1478,19 +1476,19 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         -- Direct checks per object class using nearby grid cells
                         if next(baseGrid) ~= nil then
                             if directReject(baseGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings) then
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings) then
                                 buildingRejectDirect = true
                             end
                         end
                         if not buildingRejectDirect and next(staticGrid) ~= nil then
                             if directReject(staticGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings) then
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings) then
                                 buildingRejectDirect = true
                             end
                         end
                         if not buildingRejectDirect and next(sceneryGrid) ~= nil then
                             if directReject(sceneryGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings) then
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings) then
                                 buildingRejectDirect = true
                             end
                         end
@@ -1527,19 +1525,19 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         if accepted then
                             local strictBuildingReject = false
                             if next(baseGrid) ~= nil and directReject(
-                                baseGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings
-                            ) then
+                                    baseGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
+                                ) then
                                 strictBuildingReject = true
                             elseif next(staticGrid) ~= nil and directReject(
-                                staticGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings
-                            ) then
+                                    staticGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
+                                ) then
                                 strictBuildingReject = true
                             elseif next(sceneryGrid) ~= nil and directReject(
-                                sceneryGrid, cellSize, possibleVec2.x, possibleVec2.y,
-                                (minBuildings + BUILD_PAD), neighborRangeBuildings
-                            ) then
+                                    sceneryGrid, cellSize, possibleVec2.x, possibleVec2.y,
+                                    (minBuildings + BUILD_PAD), neighborRangeBuildings
+                                ) then
                                 strictBuildingReject = true
                             end
                             if strictBuildingReject then
@@ -1551,7 +1549,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         end
 
                         glassBreak = glassBreak + 1
-                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1) end
+                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1, "generateVec2UnitPos Inner") end
                     until accepted
 
                     if _unitCounters then _unitCounters.Attempts = (_unitCounters.Attempts or 0) + glassBreak end
@@ -1559,7 +1557,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                     unitVec2[j] = possibleVec2
                     table.insert(selectedCoords, possibleVec2)
                     gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
-                    self:_maybeYield(1)
+                    self:_maybeYield(1, "generateVec2UnitPos Outer")
                 end
                 groupUnitVec2s[i] = unitVec2
             end
@@ -1621,7 +1619,7 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
         end
 
         for _, size in ipairs(order) do
-            ---@type _spawnerTypeConfig groupSizeConfig 
+            ---@type _spawnerTypeConfig groupSizeConfig
             local groupSizeConfig = zoneObject.groupSettings and zoneObject.groupSettings[size]
             if groupSizeConfig then
                 local _groupTypes = {}
@@ -1708,6 +1706,7 @@ function AETHR.SPAWNER:generateGroupTypes(dynamicSpawner)
     end
     return self
 end
+
 --- Helper: normalize a spawn type key or attribute into the canonical attribute string (e.g. "Armed vehicles")
 ---@param keyOrAttr string
 ---@return string|nil
@@ -1828,7 +1827,8 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
             typesPool[typeName] = typeName
             if self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
                 if source ~= "primary" then
-                    self.UTILS:debugInfo("SPAWNER.seedTypes: fallback '" .. tostring(source) .. "' used for " .. tostring(typeName))
+                    self.UTILS:debugInfo("SPAWNER.seedTypes: fallback '" ..
+                    tostring(source) .. "' used for " .. tostring(typeName))
                 end
             end
         else
@@ -1845,7 +1845,8 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
         if typeData.actual ~= nil then typeData.actual = 0 end
         typeData._typesDBSource = source
         if (not next(typeData.typesDB)) and (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED) then
-            self.UTILS:debugInfo("SPAWNER.seedTypes: extraType '" .. tostring(typeName) .. "' has no candidates (source=" .. tostring(source) .. ")")
+            self.UTILS:debugInfo("SPAWNER.seedTypes: extraType '" ..
+            tostring(typeName) .. "' has no candidates (source=" .. tostring(source) .. ")")
         end
     end
 
@@ -2169,13 +2170,13 @@ end
 ---@param countryID  number
 ---@param dynamicSpawner _dynamicSpawner
 function AETHR.SPAWNER:spawnAirbaseFill(airbase, countryID, dynamicSpawner)
-    local airbaseVec2 = {x = airbase.longestRunway.position.x, y = airbase.longestRunway.position.z}
+    local airbaseVec2 = { x = airbase.longestRunway.position.x, y = airbase.longestRunway.position.z }
     local minRad = airbase.longestRunway.length / 2
     local maxRad = airbase.longestRunway.length
     local nominalRadius = (minRad + maxRad) / 2
-    self:enqueueGenerateDynamicSpawner(dynamicSpawner,airbaseVec2 ,
+    self:enqueueGenerateDynamicSpawner(dynamicSpawner, airbaseVec2,
         minRad, nominalRadius, maxRad, .5, countryID, true)
-  --  return self
+    --  return self
 end
 
 ---@param cluster _dbCluster
@@ -2186,8 +2187,6 @@ function AETHR.SPAWNER:spawnDBClusterFill(cluster, countryID, dynamicSpawner)
     local minRad = cluster.Radius
     local maxRad = (cluster.Radius * 2)
     local nominalRadius = (minRad + maxRad) / 2
-    self:enqueueGenerateDynamicSpawner(dynamicSpawner,vec2 ,
+    self:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2,
         minRad, nominalRadius, maxRad, .5, countryID, true)
-
 end
-    

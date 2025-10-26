@@ -480,7 +480,7 @@ function AETHR.WORLD:getAirbases()
             data.description, data.zoneName, data.zoneObject,
             desc.displayName, desc.category,
             data.categoryText, coalitionNow, -- currentCoalition
-            coalitionNow,                     -- previousCoalition (initially same)
+            coalitionNow,                    -- previousCoalition (initially same)
             data.runways,
             data.maxRunwayLength,
             data.longestRunway
@@ -538,7 +538,7 @@ end
 function AETHR.WORLD:spawnGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups -------------")
     local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
-
+    local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 10
     local queue = self.SPAWNER.DATA.spawnQueue
     if type(queue) ~= "table" then return self end
 
@@ -549,7 +549,7 @@ function AETHR.WORLD:spawnGroundGroups()
             local curTime = self.UTILS:getTime()
             local groupObj = self.SPAWNER.DATA.generatedGroups[name]
             local groupAddTime = (groupObj and groupObj._engineAddTime) or 0
-            local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 0
+
 
             if (curTime - groupAddTime) < waitTime then
                 self.UTILS:debugInfoRate("AETHR.WORLD:spawnGroundGroups|skip|" ..
@@ -561,6 +561,7 @@ function AETHR.WORLD:spawnGroundGroups()
                     if g then
                         Group.activate(g)
                         activated = true
+                        groupObj._spawned = true
                     end
                 end)
                 if safeOk and activated then
@@ -598,13 +599,14 @@ function AETHR.WORLD:despawnGroundGroups()
         local name = queue[i]
         if name then
             self.UTILS:debugInfoRate("AETHR.WORLD:despawnGroundGroups|" .. tostring(name), 2)
-
+            local groupObj = self.SPAWNER.DATA.generatedGroups[name]
             local deactivated = false
             local safeOk = pcall(function()
                 local g = Group.getByName(name)
                 if g then
                     trigger.action.deactivateGroup(g)
                     deactivated = true
+                    groupObj._spawned = false
                 end
             end)
             if safeOk and deactivated then
@@ -936,7 +938,9 @@ function AETHR.WORLD:updateGroundUnitsDB()
     if state.idx > #state.ids then
         local newGroups = {}
         for id, obj in pairs(groundDB) do
-            if obj.isDead then
+            local engineObj = Unit.getByName(id) or nil
+            local objLife = engineObj ~= nil and engineObj:getLife() or 0
+            if objLife < 1 then --obj.isDead then
                 if UTILS and type(UTILS.debugInfo) == "function" then
                     UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> Removed dead unit " .. id)
                 end

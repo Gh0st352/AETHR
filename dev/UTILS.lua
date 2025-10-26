@@ -15,8 +15,8 @@ AETHR.UTILS = {} ---@diagnostic disable-line
 --- @field _cache table Internal cache for UTILS instance.
 --- @field _rateLog table Internal cache for rate-limited logging.
 AETHR.UTILS.DATA = {
-_cache = {},
-_rateLog = {},
+  _cache = {},
+  _rateLog = {},
 }
 
 
@@ -109,10 +109,10 @@ function AETHR.UTILS:debugInfoRate(key, intervalSeconds, data)
 
   -- Prefer engine time if available; fall back to os.time()
   local now =
-    (type(AETHR) == "table" and AETHR.UTILS and type(AETHR.UTILS.getTime) == "function" and AETHR.UTILS.getTime())
-    or (type(self.getTime) == "function" and self.getTime())
-    or (type(os) == "table" and type(os.time) == "function" and os.time())
-    or 0
+      (type(AETHR) == "table" and AETHR.UTILS and type(AETHR.UTILS.getTime) == "function" and AETHR.UTILS.getTime())
+      or (type(self.getTime) == "function" and self.getTime())
+      or (type(os) == "table" and type(os.time) == "function" and os.time())
+      or 0
   if type(now) ~= "number" then now = 0 end
 
   if (now - last) >= intervalSeconds then
@@ -221,8 +221,8 @@ function AETHR.UTILS:Shuffle(t)
     s[i] = t[i]
   end
   for i = #s, 2, -1 do
-    local j = math.random(i)  -- Random index from 1 to i
-    s[i], s[j] = s[j], s[i]   -- Swap elements at indices i and j
+    local j = math.random(i) -- Random index from 1 to i
+    s[i], s[j] = s[j], s[i]  -- Swap elements at indices i and j
   end
   return s
 end
@@ -256,13 +256,15 @@ function AETHR.UTILS:withSeed(seed, fn, warmup, reseedAfter)
 
   -- Optional scramble/restore-ish RNG
   if reseedAfter == nil or reseedAfter == true then
-    self._cache = self._cache or {}
+    self._cache            = self._cache or {}
     self._cache._rng_nonce = (self._cache._rng_nonce or 0) + 1
-    local tAbs = (type(timer) == "table" and type(timer.getAbsTime) == "function") and (timer.getAbsTime() or 0) or 0
-    local tNow = (type(timer) == "table" and type(timer.getTime) == "function") and (timer.getTime() or 0) or 0
-    local mem  = (type(collectgarbage) == "function") and (collectgarbage("count") or 0) or 0
-    local clk  = (type(os) == "table" and type(os.clock) == "function") and (os.clock() or 0) or 0
-    local mix  = math.floor((tAbs * 1e6) + (tNow * 1e3) + (mem * 10) + (clk * 1e5) + self._cache._rng_nonce)
+    local tAbs             = (type(timer) == "table" and type(timer.getAbsTime) == "function") and
+        (timer.getAbsTime() or 0) or 0
+    local tNow             = (type(timer) == "table" and type(timer.getTime) == "function") and (timer.getTime() or 0) or
+        0
+    local mem              = (type(collectgarbage) == "function") and (collectgarbage("count") or 0) or 0
+    local clk              = (type(os) == "table" and type(os.clock) == "function") and (os.clock() or 0) or 0
+    local mix              = math.floor((tAbs * 1e6) + (tNow * 1e3) + (mem * 10) + (clk * 1e5) + self._cache._rng_nonce)
     math.randomseed(mix)
     -- Stir a bit
     for i = 1, 3 do math.random() end

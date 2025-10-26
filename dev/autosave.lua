@@ -9,6 +9,9 @@
 --- @field MARKERS AETHR.MARKERS Markers submodule attached per-instance.
 --- @field MATH AETHR.MATH Math helper table attached per-instance.
 --- @field ENUMS AETHR.ENUMS ENUMS submodule attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
+--- @field UTILS AETHR.UTILS Utilities helper table attached per-instance.
+--- @field BRAIN AETHR.BRAIN Brain submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
 AETHR.AUTOSAVE = {}
 
@@ -23,4 +26,37 @@ function AETHR.AUTOSAVE:New(parent)
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
+end
+
+function AETHR.AUTOSAVE:saveGeneratedGroundGroups()
+    self.UTILS:debugInfo("AETHR.AUTOSAVE:saveGroundUnits -------------")
+    -- local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
+    -- local co_ = self.BRAIN.DATA.coroutines.saveGroundUnits
+
+    -- if co_.thread then
+    --     co_.yieldCounter = co_.yieldCounter + 1
+    --     if co_.yieldCounter >= co_.yieldThreshold then
+    --         co_.yieldCounter = 0
+    --         self.UTILS:debugInfo("AETHR.AUTOSAVE:saveGroundUnits --> YIELD")
+    --         coroutine.yield()
+    --     end
+    -- end
+    local saveGroups = {}
+    local generatedGroupsDB = self.SPAWNER.DATA.generatedGroups
+
+    for name, obj in pairs(generatedGroupsDB) do
+        if obj._save then
+            self.SPAWNER:updateDBGroupInfo(name)
+            saveGroups[name] = obj
+        end
+    end
+
+    self.FILEOPS:splitAndSaveData(
+        saveGroups,
+        self.CONFIG.MAIN.STORAGE.FILENAMES.SAVED_GROUND_GROUPS,
+        self.CONFIG.MAIN.STORAGE.PATHS.GENGROUPS_FOLDER,
+        self.CONFIG.MAIN.saveChunks.genGroups)
+
+    local p = ""
+    return self
 end

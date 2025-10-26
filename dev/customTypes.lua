@@ -741,6 +741,9 @@ end
 --- @field task string
 --- @field uncontrollable boolean
 --- @field countryID number
+--- @field _spawned boolean Internal flag indicating if the group has been spawned
+--- @field _dead boolean Internal flag indicating if the group has been destroyed
+--- @field _save boolean Internal flag indicating if the group should be saved in mission state
 --- @field _engineAddTime number Internal timestamp when the group was added to the mission (for late activation)
 AETHR._groundGroup = {} ---@diagnostic disable-line
 ---
@@ -787,6 +790,9 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         task            = task or "Ground Nothing",
         countryID       = countryID or 0,
         _engineAddTime = 0,
+        _spawned = false,
+        _dead = false,
+        _save = true,
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
     return instance ---@diagnostic disable-line

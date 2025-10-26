@@ -43,6 +43,10 @@ function _testFunc2()
 
 end
 
+function _testFunc3()
+   local pause = ""
+end
+
 -- local UnitArr = {}
 -- table.insert(UnitArr, G_AETHR.SPAWNER:buildGroundUnit("Gepard", -27626, 457048))
 -- table.insert(UnitArr, G_AETHR.SPAWNER:buildGroundUnit("M 818", -27624, 457046))

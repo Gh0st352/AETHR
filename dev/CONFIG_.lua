@@ -207,6 +207,7 @@ AETHR.CONFIG.MAIN = {
             UNITS_FOLDER    = "UNITS",
             OBJECTS_FOLDER  = "OBJECTS",
             USER_FOLDER     = "USER",
+            GENGROUPS_FOLDER   = "GENGROUPS",
         },
         PATHS         = { -- Populated at runtime with full paths.
             LEARNING_FOLDER = "",
@@ -215,6 +216,7 @@ AETHR.CONFIG.MAIN = {
             UNITS_FOLDER    = "",
             OBJECTS_FOLDER  = "",
             USER_FOLDER     = "",
+            GENGROUPS_FOLDER   = "",
         },
         FILENAMES     = { -- lua filenames for data persistence.
             AETHER_CONFIG_FILE    = "AETHR_Config.lua",
@@ -235,11 +237,14 @@ AETHR.CONFIG.MAIN = {
             SPAWNER_ATTRIBUTE_DB  = "spawnerAttributesDB.lua",
             _SPAWNER_ATTRIBUTE_DB = "_spawnerAttributesDB.lua",
             SPAWNER_UNIT_CACHE_DB = "spawnerUnitInfoCache.lua",
+            SAVED_GROUND_UNITS   = "savedGroundUnits.lua",
+            SAVED_GROUND_GROUPS   = "savedGroundGroups.lua",
         },
     },
     saveChunks = {
         divObjects = 300,
         townDB = 250,
+        genGroups = 20,
     },
     worldDivisionArea = 1862500000, -- Desired area (m²) per world division.
     worldBounds = {                 -- Coordinate bounds for supported theaters.
