@@ -1,8 +1,4 @@
 function _testFunc()
-
-
-
-
     G_AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynAirbaseSpawner1, { x = -278244, y = 649034 },
         math.random(2000, 3000), math.random(3000, 4000), math.random(4000, 5000), .5, country.id.CJTF_BLUE, true)
 
@@ -34,17 +30,33 @@ function _testFunc2()
     --     6000
     -- )
     -- G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS = G_AETHR.CONFIG.MAIN.COUNTERS.MARKERS + 1
-    
+
     for _, cluster in pairs(G_AETHR.WORLD.DATA.townClusterDB) do
         --if cluster.Radius >= 1000 then
-            G_AETHR.MARKERS:drawGenericCircle(cluster.Center, cluster.Radius, G_AETHR.MARKERS.DATA.townClusters)
-       -- end
+        G_AETHR.MARKERS:drawGenericCircle(cluster.Center, cluster.Radius, G_AETHR.MARKERS.DATA.townClusters)
+        -- end
     end
-
 end
 
 function _testFunc3()
-   local pause = ""
+    local pause = ""
+end
+
+function _testFunc4()
+    local airbases_ = G_AETHR.WORLD.DATA.AIRBASES
+    for name, abObj in pairs(airbases_) do
+        G_AETHR.UTILS:debugInfo("Airbase: " .. name)
+        local vec2 = { x = abObj.coordinates.x, y = abObj.coordinates.z }
+        local radius = 15000
+        local coalition = abObj.coalition
+        local countryID = coalition == 1 and country.id.CJTF_RED or country.id.CJTF_BLUE
+        local minTownRadius = 500
+        local maxTownRadius = 2000
+        local dynamicSpawner = nil
+        local spawnChance = 0.7
+        G_AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner,
+            spawnChance)
+    end
 end
 
 -- local UnitArr = {}

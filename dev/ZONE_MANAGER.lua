@@ -1160,13 +1160,14 @@ end
 
 --- Spawns town filler groups for all towns within a zone using SPAWNER.
 --- @function AETHR.ZONE_MANAGER:spawnTownsZone
---- @param spawnChance number|nil Chance (0-1) to spawn each town
 --- @param zoneName string Zone name key
 --- @param countryID integer Engine country id
+--- @param minTownRadius number|nil Minimum radius to consider a town for spawning (inclusive)
 --- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
---- @param minTownRadius number|nil Minimum radius to consider a town for spawning
+--- @param spawnChance number|nil Chance (0-1) to spawn each town
+--- @param maxTownRadius number|nil Maximum town cluster radius to include (inclusive, default math.huge)
 --- @return AETHR.ZONE_MANAGER self
-function AETHR.ZONE_MANAGER:spawnTownsZone(zoneName, countryID, minTownRadius, dynamicSpawner, spawnChance)
+function AETHR.ZONE_MANAGER:spawnTownsZone(zoneName, countryID, minTownRadius, dynamicSpawner, spawnChance, maxTownRadius)
     self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsZone | ZONE: " .. zoneName)
     local _zones = self.DATA.MIZ_ZONES
     ---@type _MIZ_ZONE
@@ -1176,16 +1177,18 @@ function AETHR.ZONE_MANAGER:spawnTownsZone(zoneName, countryID, minTownRadius, d
     local townsDB = zone.townsDB or {}
     local spawnChance_
 
+    local minR = (minTownRadius ~= nil) and tonumber(minTownRadius) or 0
+    local maxR = (maxTownRadius ~= nil) and tonumber(maxTownRadius) or math.huge
+
     ---@param town _dbCluster
     for _, town in pairs(townsDB) do
-        local townRad = town.Radius
-        if minTownRadius <= townRad then
+        local townRad = tonumber(town.Radius) or 0
+        if townRad >= minR and townRad <= maxR then
             spawnChance_ = spawnChance or math.random()
             local rolledChance = math.random()
             if rolledChance <= spawnChance_ then
                 if not dynamicSpawner then
-                    dynamicSpawner = townSpawners
-                        [self.UTILS:pickRandomKeyFromTable(townSpawners)]
+                    dynamicSpawner = townSpawners[self.UTILS:pickRandomKeyFromTable(townSpawners)]
                 end
                 self.SPAWNER:spawnDBClusterFill(town, countryID, dynamicSpawner)
             end
@@ -1197,11 +1200,12 @@ end
 --- Spawns town filler groups for all towns across all zones using SPAWNER.
 --- Uses RED and BLUE Start Zones to determine country of spawns for towns.
 --- @function AETHR.ZONE_MANAGER:spawnTownsAllZones
---- @param spawnChance number|nil Chance (0-1) to spawn each town
---- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
 --- @param minTownRadius number|nil Minimum radius to consider a town for spawning
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance
+--- @param spawnChance number|nil Chance (0-1) to spawn each town
+--- @param maxTownRadius number|nil Maximum town cluster radius to include (inclusive, default math.huge)
 --- @return AETHR.ZONE_MANAGER self
-function AETHR.ZONE_MANAGER:spawnTownsAllZones(minTownRadius, dynamicSpawner, spawnChance)
+function AETHR.ZONE_MANAGER:spawnTownsAllZones(minTownRadius, dynamicSpawner, spawnChance, maxTownRadius)
     local redZones = self.CONFIG.MAIN.MIZ_ZONES.REDSTART
     local blueZones = self.CONFIG.MAIN.MIZ_ZONES.BLUESTART
     local redCountry = self.CONFIG.MAIN.DefaultRedCountry
@@ -1210,11 +1214,62 @@ function AETHR.ZONE_MANAGER:spawnTownsAllZones(minTownRadius, dynamicSpawner, sp
     self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsAllZones")
     for _, zName in ipairs(redZones) do
         self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsAllZones | RED ZONE: " .. zName)
-        self:spawnTownsZone(zName, redCountry, minTownRadius, dynamicSpawner, spawnChance)
+        self:spawnTownsZone(zName, redCountry, minTownRadius, dynamicSpawner, spawnChance, maxTownRadius)
     end
     for _, zName in ipairs(blueZones) do
         self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsAllZones | BLUE ZONE: " .. zName)
-        self:spawnTownsZone(zName, blueCountry, minTownRadius, dynamicSpawner, spawnChance)
+        self:spawnTownsZone(zName, blueCountry, minTownRadius, dynamicSpawner, spawnChance, maxTownRadius)
     end
+    return self
+end
+
+
+--- Spawns town filler groups for all eligible towns within a circle using SPAWNER.
+--- Similar to spawnTownsZone but selects by geographic circle and filters by town radius range.
+--- @function AETHR.ZONE_MANAGER:spawnTownsCircle
+--- @param vec2 _vec2 Center of the selection circle
+--- @param radius number Circle radius in meters
+--- @param countryID integer Engine country id
+--- @param minTownRadius number|nil Minimum town cluster radius to include (inclusive, default 0)
+--- @param maxTownRadius number|nil Maximum town cluster radius to include (inclusive, default math.huge)
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance (Town type). When nil, one is chosen from SPAWNER.DATA.dynamicSpawners.Town.
+--- @param spawnChance number|nil Chance (0-1) to spawn each eligible town; when nil, a per-town threshold is drawn randomly.
+--- @return AETHR.ZONE_MANAGER self
+function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner, spawnChance)
+    local center = self.UTILS:normalizePoint(vec2)
+    local r = tonumber(radius) or 0
+    if r <= 0 then return self end
+
+    self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsCircle | center: (" ..
+        tostring(center.x) .. "," .. tostring(center.y) .. ") radius: " .. tostring(r))
+
+    local minR = (minTownRadius ~= nil) and tonumber(minTownRadius) or 0
+    local maxR = (maxTownRadius ~= nil) and tonumber(maxTownRadius) or math.huge
+
+    local townSpawners = self.SPAWNER.DATA.dynamicSpawners.Town
+    local townsDB = (self.WORLD and self.WORLD.DATA and self.WORLD.DATA.townClusterDB) or {}
+    local spawnChance_
+
+    local r2 = r * r
+
+    for _, town in pairs(townsDB) do
+        local tc = town and town.Center and self.UTILS:normalizePoint(town.Center) or nil
+        local townRad = town and tonumber(town.Radius) or 0
+        if tc and townRad >= minR and townRad <= maxR then
+            local dx = tc.x - center.x
+            local dy = tc.y - center.y
+            if (dx * dx + dy * dy) <= r2 then
+                spawnChance_ = spawnChance or math.random()
+                local rolledChance = math.random()
+                if rolledChance <= spawnChance_ then
+                    if not dynamicSpawner then
+                        dynamicSpawner = townSpawners[self.UTILS:pickRandomKeyFromTable(townSpawners)]
+                    end
+                    self.SPAWNER:spawnDBClusterFill(town, countryID, dynamicSpawner)
+                end
+            end
+        end
+    end
+
     return self
 end
