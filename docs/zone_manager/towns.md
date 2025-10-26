@@ -66,17 +66,17 @@ flowchart TD
   class OUT class_result;
 ```
 
-# Circle-based flow
+# Circle/annulus flow
 
 Entry: [AETHR.ZONE_MANAGER:spawnTownsCircle()](https://github.com/Gh0st352/AETHR/blob/main/dev/ZONE_MANAGER.lua#L1238)
 
 ```mermaid
 %% shared theme: docs/_mermaid/theme.json %%
 flowchart TD
-  SC1["spawnTownsCircle(vec2,radius,countryID,minTownRadius?,maxTownRadius?,spawner?,spawnChance?)"] --> SC2["iterate WORLD.DATA.townClusterDB"]
+  SC1["spawnTownsCircle(vec2,radius,countryID,minTownRadius?,maxTownRadius?,spawner?,spawnChance?,minCircleRadius?,maxCircleRadius?)"] --> SC2["iterate WORLD.DATA.townClusterDB"]
   SC2 --> SC3{"minTownRadius <= town.Radius <= maxTownRadius"}
   SC3 -- "no" --> SC2
-  SC3 -- "yes" --> SC4{"distance2(town.Center, vec2) <= radius^2"}
+  SC3 -- "yes" --> SC4{"annulus? yes: inner^2 <= d^2 <= outer^2; no: d^2 <= radius^2"}
   SC4 -- "no" --> SC2
   SC4 -- "yes" --> SC5[roll spawnChance if nil]
   SC5 --> SC6{"math.random() <= spawnChance"}
@@ -85,10 +85,25 @@ flowchart TD
   SC7 --> SC8["SPAWNER.spawnDBClusterFill(town,countryID,spawner)"]
   SC8 --> SC2
   SC2 --> OUT[return self]
-  class SC2,SC7 class_compute;
-  class SC3,SC4,SC6 class_decision;
-  class SC1,SC5,SC8 class_step;
-  class OUT class_result;
+  class SC2,SC7 class-compute;
+  class SC3,SC4,SC6 class-decision;
+  class SC1,SC5,SC8 class-step;
+  class OUT class-result;
+```
+
+## Annulus selection
+
+- minCircleRadius: inner ring radius (inclusive). When provided (with or without max), annulus selection is enabled.
+- maxCircleRadius: outer ring radius (inclusive). When omitted, it falls back to the circle radius argument.
+- Negative values are clamped to 0. If inner > outer, they are swapped. Checks use squared Euclidean distance.
+- When neither bound is provided, behavior is unchanged (simple circle selection by radius).
+
+Example (annulus):
+```lua
+local center = { x = 250000, y = 350000 }
+local countryID = AETHR.CONFIG.MAIN.DefaultBlueCountry
+-- Only spawn towns whose centers are between 5km and 12km from center
+AETHR.ZONE_MANAGER:spawnTownsCircle(center, 15000, countryID, 500, 2000, nil, 0.7, 5000, 12000)
 ```
 
 # Runtime sequence (enqueue to world spawn)

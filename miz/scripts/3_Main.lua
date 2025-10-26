@@ -47,15 +47,33 @@ function _testFunc4()
     for name, abObj in pairs(airbases_) do
         G_AETHR.UTILS:debugInfo("Airbase: " .. name)
         local vec2 = { x = abObj.coordinates.x, y = abObj.coordinates.z }
-        local radius = 15000
+        local radius = nil
         local coalition = abObj.coalition
         local countryID = coalition == 1 and country.id.CJTF_RED or country.id.CJTF_BLUE
-        local minTownRadius = 500
-        local maxTownRadius = 2000
         local dynamicSpawner = nil
-        local spawnChance = 0.7
+        local minTownRadius = 300
+        local maxTownRadius = 2000
+        local spawnChance = 0.33
+        local minCircleRadius = 0
+        local maxCircleRadius = 5000
         G_AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner,
-            spawnChance)
+            spawnChance, minCircleRadius, maxCircleRadius)
+
+        minTownRadius = 300
+        maxTownRadius = 2000
+        spawnChance = 0.22
+        minCircleRadius = 5001
+        maxCircleRadius = 10000
+        G_AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner,
+            spawnChance, minCircleRadius, maxCircleRadius)
+
+        minTownRadius = 300
+        maxTownRadius = 2000
+        spawnChance = 0.11
+        minCircleRadius = 10001
+        maxCircleRadius = 15000
+        G_AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner,
+            spawnChance, minCircleRadius, maxCircleRadius)
     end
 end
 

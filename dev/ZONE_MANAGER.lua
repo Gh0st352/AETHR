@@ -1224,24 +1224,39 @@ function AETHR.ZONE_MANAGER:spawnTownsAllZones(minTownRadius, dynamicSpawner, sp
 end
 
 
---- Spawns town filler groups for all eligible towns within a circle using SPAWNER.
---- Similar to spawnTownsZone but selects by geographic circle and filters by town radius range.
+--- Spawns town filler groups for all eligible towns within a circle or annulus using SPAWNER.
+--- Similar to spawnTownsZone but selects by geographic circle/annulus and filters by town radius range.
 --- @function AETHR.ZONE_MANAGER:spawnTownsCircle
 --- @param vec2 _vec2 Center of the selection circle
---- @param radius number Circle radius in meters
+--- @param radius number|nil Circle radius in meters (used when annulus bounds are omitted)
 --- @param countryID integer Engine country id
 --- @param minTownRadius number|nil Minimum town cluster radius to include (inclusive, default 0)
 --- @param maxTownRadius number|nil Maximum town cluster radius to include (inclusive, default math.huge)
 --- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance (Town type). When nil, one is chosen from SPAWNER.DATA.dynamicSpawners.Town.
 --- @param spawnChance number|nil Chance (0-1) to spawn each eligible town; when nil, a per-town threshold is drawn randomly.
+--- @param minCircleRadius number|nil Inner radial bound for annulus selection (inclusive). When provided (with or without max), annulus selection is used.
+--- @param maxCircleRadius number|nil Outer radial bound for annulus selection (inclusive). When omitted, falls back to 'radius'.
 --- @return AETHR.ZONE_MANAGER self
-function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner, spawnChance)
+function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner, spawnChance, minCircleRadius, maxCircleRadius)
     local center = self.UTILS:normalizePoint(vec2)
     local r = tonumber(radius) or 0
-    if r <= 0 then return self end
+   -- if r <= 0 then return self end
 
-    self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsCircle | center: (" ..
-        tostring(center.x) .. "," .. tostring(center.y) .. ") radius: " .. tostring(r))
+    -- Determine annulus bounds if provided; fallback to circle radius when omitted
+    local innerR = (minCircleRadius ~= nil) and tonumber(minCircleRadius) or 0
+    local outerR = (maxCircleRadius ~= nil) and tonumber(maxCircleRadius) or r
+    if (outerR or 0) <= 0 then outerR = r end
+    if innerR < 0 then innerR = 0 end
+    if innerR > outerR then innerR, outerR = outerR, innerR end
+    local useAnnulus = (minCircleRadius ~= nil) or (maxCircleRadius ~= nil)
+
+    if useAnnulus then
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsCircle | center: (" ..
+            tostring(center.x) .. "," .. tostring(center.y) .. ") ring: [" .. tostring(innerR) .. "," .. tostring(outerR) .. "]")
+    else
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsCircle | center: (" ..
+            tostring(center.x) .. "," .. tostring(center.y) .. ") radius: " .. tostring(r))
+    end
 
     local minR = (minTownRadius ~= nil) and tonumber(minTownRadius) or 0
     local maxR = (maxTownRadius ~= nil) and tonumber(maxTownRadius) or math.huge
@@ -1251,6 +1266,8 @@ function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRad
     local spawnChance_
 
     local r2 = r * r
+    local inner2 = innerR * innerR
+    local outer2 = outerR * outerR
 
     for _, town in pairs(townsDB) do
         local tc = town and town.Center and self.UTILS:normalizePoint(town.Center) or nil
@@ -1258,7 +1275,8 @@ function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRad
         if tc and townRad >= minR and townRad <= maxR then
             local dx = tc.x - center.x
             local dy = tc.y - center.y
-            if (dx * dx + dy * dy) <= r2 then
+            local d2 = dx * dx + dy * dy
+            if (useAnnulus and d2 >= inner2 and d2 <= outer2) or (not useAnnulus and d2 <= r2) then
                 spawnChance_ = spawnChance or math.random()
                 local rolledChance = math.random()
                 if rolledChance <= spawnChance_ then
