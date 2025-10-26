@@ -540,7 +540,7 @@ function AETHR.SPAWNER:enqueueGenerateDynamicSpawner(dynamicSpawner, vec2, minRa
         }
     }
     self.UTILS:debugInfo("AETHR.SPAWNER:enqueueGenerateDynamicSpawner -- Enqueuing job for " ..
-    dynamicSpawner.name .. " - ID#" .. tostring(id))
+        dynamicSpawner.name .. " - ID#" .. tostring(id))
     self.DATA.GenerationJobs[id] = job
     table.insert(self.DATA.GenerationQueue, id)
     return id
@@ -861,6 +861,7 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
         self.DATA.BenchmarkLog.determineZoneDivObjects = { Time = {}, Counters = {} }
         self.DATA.BenchmarkLog.determineZoneDivObjects.Time.start = os.clock()
     end
+    local coroutine_ = self.BRAIN.DATA.coroutines.spawnerGenerationQueue
 
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
@@ -1029,9 +1030,9 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                         end
                     end
                 end
-                self:_maybeYield(1, "determineZoneDivObjects Inner")
+                self.BRAIN:maybeYield(coroutine_, "determineZoneDivObjects Inner", 1)
             end
-            self:_maybeYield(1, "determineZoneDivObjects outer")
+            self.BRAIN:maybeYield(coroutine_, "determineZoneDivObjects outer", 1)
 
             subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
             subZone.zoneDivStaticObjects = zoneDivStaticObjects
@@ -1075,7 +1076,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     -- - Building separation is strict (never relaxed). Group separation relaxes up to ~30% as glassBreak approaches operationLimit.
     -- - Benchmark logging is gated; no per-iteration logging in hot loops.
     local BUILD_PAD = self.DATA.CONFIG
-        .BUILD_PAD           -- meters of extra padding around buildings for center placement
+        .BUILD_PAD               -- meters of extra padding around buildings for center placement
     local EXTRA_ATTEMPTS_BUILDING = self.DATA.CONFIG
         .EXTRA_ATTEMPTS_BUILDING --- extra attempts if building rejection occurs
 
@@ -1262,7 +1263,8 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     end
 
                     glassBreak = glassBreak + 1
-                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1, "generateVec2GroupCenters Inner") end
+                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1,
+                            "generateVec2GroupCenters Inner") end
                 until accepted
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
@@ -1549,7 +1551,8 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         end
 
                         glassBreak = glassBreak + 1
-                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1, "generateVec2UnitPos Inner") end
+                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1,
+                                "generateVec2UnitPos Inner") end
                     until accepted
 
                     if _unitCounters then _unitCounters.Attempts = (_unitCounters.Attempts or 0) + glassBreak end
@@ -1828,7 +1831,7 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
             if self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
                 if source ~= "primary" then
                     self.UTILS:debugInfo("SPAWNER.seedTypes: fallback '" ..
-                    tostring(source) .. "' used for " .. tostring(typeName))
+                        tostring(source) .. "' used for " .. tostring(typeName))
                 end
             end
         else
@@ -1846,7 +1849,7 @@ function AETHR.SPAWNER:seedTypes(dynamicSpawner)
         typeData._typesDBSource = source
         if (not next(typeData.typesDB)) and (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED) then
             self.UTILS:debugInfo("SPAWNER.seedTypes: extraType '" ..
-            tostring(typeName) .. "' has no candidates (source=" .. tostring(source) .. ")")
+                tostring(typeName) .. "' has no candidates (source=" .. tostring(source) .. ")")
         end
     end
 

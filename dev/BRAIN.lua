@@ -235,6 +235,22 @@ function AETHR.BRAIN:doRoutine(cg, routineFn, ...)
     return self
 end
 
+--- Cooperative yield helper used only when running inside BRAIN.DATA.coroutines
+--- Yields when the configured threshold is reached to avoid long blocking frames.
+function AETHR.BRAIN:maybeYield(coroutine_, yieldMessage, increment)
+    yieldMessage = yieldMessage or ""
+    local co_ = coroutine_
+    if co_ and co_.thread then
+        co_.yieldCounter = (co_.yieldCounter or 0) + (increment or 1)
+        if co_.yieldCounter >= (co_.yieldThreshold or 0) then
+            co_.yieldCounter = 0
+            self.UTILS:debugInfo("AETHR.BRAIN:maybeYield --> coroutine YIELD | " .. yieldMessage)
+            coroutine.yield()
+        end
+    end
+    return self
+end
+
 --- Builds a watcher on a table to monitor changes to a specific key.
 ---
 --- This function iterates through each key-value pair in a provided table and sets up a proxy table with a metatable to watch changes.
