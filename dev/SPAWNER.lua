@@ -250,24 +250,6 @@ function AETHR.SPAWNER:_directCellStructureReject(grid, s, x, y, minDist, neighb
     return false
 end
 
---- Cooperative yield helper used only when running inside BRAIN.DATA.coroutines.spawnerGenerationQueue
---- Yields when the configured threshold is reached to avoid long blocking frames.
-function AETHR.SPAWNER:_maybeYield(inc, yieldMessage)
-    yieldMessage = yieldMessage or ""
-    local co_ = self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.coroutines and
-        self.BRAIN.DATA.coroutines.spawnerGenerationQueue
-    if co_ and co_.thread then
-        co_.yieldCounter = (co_.yieldCounter or 0) + (inc or 1)
-        if co_.yieldCounter >= (co_.yieldThreshold or 0) then
-            co_.yieldCounter = 0
-            if self.UTILS and type(self.UTILS.debugInfo) == "function" then
-                self.UTILS:debugInfo("AETHR.SPAWNER:_maybeYield --> YIELD " .. yieldMessage)
-            end
-            coroutine.yield()
-        end
-    end
-end
-
 --- Builds and registers a ground unit prototype with the spawner system.
 --- Stores the constructed _groundUnit in DATA.generatedUnits and returns its unique name.
 --- @function AETHR.SPAWNER:buildGroundUnit
@@ -1030,9 +1012,9 @@ function AETHR.SPAWNER:determineZoneDivObjects(dynamicSpawner)
                         end
                     end
                 end
-                self.BRAIN:maybeYield(coroutine_, "determineZoneDivObjects Inner", 1)
+                self.BRAIN:maybeYield(coroutine_, "SPAWNER:determineZoneDivObjects Inner", 1)
             end
-            self.BRAIN:maybeYield(coroutine_, "determineZoneDivObjects outer", 1)
+            self.BRAIN:maybeYield(coroutine_, "SPAWNER:determineZoneDivObjects outer", 1)
 
             subZone.zoneDivSceneryObjects = zoneDivSceneryObjects
             subZone.zoneDivStaticObjects = zoneDivStaticObjects
@@ -1091,6 +1073,7 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
     local groupsDB = self.WORLD.DATA.groundGroupsDB -- Loaded units per division (not used directly for positions)
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
+    local coroutine_ = self.BRAIN.DATA.coroutines.spawnerGenerationQueue
     -- Local helper aliases to shared SPAWNER routines
     local extractXY = function(obj) return self:_extractXY(obj) end
     local toCell = function(x, y, s) return self:_toCell(x, y, s) end
@@ -1263,15 +1246,14 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                     end
 
                     glassBreak = glassBreak + 1
-                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1,
-                            "generateVec2GroupCenters Inner") end
+                    if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self.BRAIN:maybeYield(coroutine_, "SPAWNER:generateVec2GroupCenters Inner", 1) end
                 until accepted
                 if _centerCounters then _centerCounters.Attempts = (_centerCounters.Attempts or 0) + glassBreak end
                 -- Accept candidate
                 groupCenterVec2s[i] = possibleVec2
                 table.insert(selectedCoords, possibleVec2)
                 gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
-                self:_maybeYield(1, "generateVec2GroupCenters Outer")
+                self.BRAIN:maybeYield(coroutine_, "SPAWNER:generateVec2GroupCenters Outer", 1)
             end
 
             groupSetting.generatedGroupCenterVec2s = groupCenterVec2s
@@ -1325,6 +1307,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
 
 
     local unitsDB = self.WORLD.DATA.groundUnitsDB -- Loaded units per division (not used directly for positions)
+    local coroutine_ = self.BRAIN.DATA.coroutines.spawnerGenerationQueue
     ---@type _spawnerZone[]
     local subZones = dynamicSpawner.zones.sub
 
@@ -1551,8 +1534,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         end
 
                         glassBreak = glassBreak + 1
-                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self:_maybeYield(1,
-                                "generateVec2UnitPos Inner") end
+                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self.BRAIN:maybeYield(coroutine_, "SPAWNER:generateVec2UnitPos Inner", 1) end
                     until accepted
 
                     if _unitCounters then _unitCounters.Attempts = (_unitCounters.Attempts or 0) + glassBreak end
@@ -1560,7 +1542,7 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                     unitVec2[j] = possibleVec2
                     table.insert(selectedCoords, possibleVec2)
                     gridInsert(centersGrid, cellSize, possibleVec2.x, possibleVec2.y)
-                    self:_maybeYield(1, "generateVec2UnitPos Outer")
+                    self.BRAIN:maybeYield(coroutine_, "SPAWNER:generateVec2UnitPos Outer", 1)
                 end
                 groupUnitVec2s[i] = unitVec2
             end

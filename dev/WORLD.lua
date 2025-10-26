@@ -185,7 +185,7 @@ end
 --- Side-effects: Populates DATA.mizCacheDB, DATA.spawnerTemplateDB, DATA.spawnerUnitInfoCache, DATA.spawnerAttributesDB; may query engine groups at runtime.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:generateMizFileCache()
-    self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:initMizFileCache")
     local mizCache = self.DATA.mizCacheDB
     for coalition, coalitionObj in pairs(env.mission.coalition) do
         local _coal = coalition == "blue" and self.ENUMS.Coalition.BLUE or
@@ -499,7 +499,7 @@ end
 --- Side-effects: Mutates zone airbase objects' coalition fields; may yield when configured.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:updateAirbaseOwnership()
-    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.updateAirfieldOwnership
 
@@ -518,14 +518,7 @@ function AETHR.WORLD:updateAirbaseOwnership()
                 abObj.coalition = updatedABObjCoalition
             end
 
-            if co_ and co_.thread then
-                co_.yieldCounter = co_.yieldCounter + 1
-                if co_.yieldCounter >= co_.yieldThreshold then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:updateAirbaseOwnership --> YIELD")
-                    coroutine.yield()
-                end
-            end
+            self.BRAIN:maybeYield(co_, "WORLD:updateAirbaseOwnership", 1)
         end
     end
     return self
@@ -536,7 +529,7 @@ end
 --- Side-effects: Activates engine groups; mutates SPAWNER.DATA.spawnQueue.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:spawnGroundGroups()
-    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups")
     local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
     local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 10
     local queue = self.SPAWNER.DATA.spawnQueue
@@ -571,14 +564,7 @@ function AETHR.WORLD:spawnGroundGroups()
                 end
             end
 
-            if co_ and co_.thread then
-                co_.yieldCounter = co_.yieldCounter + 1
-                if co_.yieldCounter >= co_.yieldThreshold then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups --> YIELD")
-                    coroutine.yield()
-                end
-            end
+            self.BRAIN:maybeYield(co_, "WORLD:spawnGroundGroups", 1)
         end
     end
     return self
@@ -589,7 +575,7 @@ end
 --- Side-effects: Deactivates engine groups; mutates SPAWNER.DATA.despawnQueue.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:despawnGroundGroups()
-    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups")
     local co_ = self.BRAIN.DATA.coroutines.despawnGroundGroups
 
     local queue = self.SPAWNER.DATA.despawnQueue
@@ -615,14 +601,7 @@ function AETHR.WORLD:despawnGroundGroups()
                 self.UTILS:debugInfoRate("AETHR.WORLD:despawnGroundGroups|deactivateFail|" .. tostring(name), 2)
             end
 
-            if co_ and co_.thread then
-                co_.yieldCounter = co_.yieldCounter + 1
-                if co_.yieldCounter >= co_.yieldThreshold then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:despawnGroundGroups --> YIELD")
-                    coroutine.yield()
-                end
-            end
+            self.BRAIN:maybeYield(co_, "WORLD:despawnGroundGroups", 1)
         end
     end
     return self
@@ -633,7 +612,7 @@ end
 --- Side-effects: Mutates zone ownership fields (zObj.ownedBy/oldOwnedBy); may yield when configured.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:updateZoneOwnership()
-    self.UTILS:debugInfo("AETHR.WORLD:updateZoneOwnership -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:updateZoneOwnership")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.updateZoneOwnership
     local ENUM_RED = self.ENUMS.Coalition.RED
@@ -651,14 +630,7 @@ function AETHR.WORLD:updateZoneOwnership()
                 numBlue = numBlue + 1
             end
 
-            if co_.thread then
-                co_.yieldCounter = co_.yieldCounter + 1
-                if co_.yieldCounter >= co_.yieldThreshold then
-                    co_.yieldCounter = 0
-                    self.UTILS:debugInfo("AETHR.WORLD:updateZoneOwnership --> YIELD")
-                    coroutine.yield()
-                end
-            end
+            self.BRAIN:maybeYield(co_, "WORLD:updateZoneOwnership", 1)
         end
 
         if numRed > numBlue then
@@ -683,7 +655,7 @@ end
 --- Side-effects: Updates DCS map markups; writes zObj.lastMarkColorOwner.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:updateZoneColors()
-    self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.updateZoneColors
 
@@ -712,14 +684,7 @@ function AETHR.WORLD:updateZoneColors()
         end
 
 
-        if co_.thread then
-            co_.yieldCounter = co_.yieldCounter + 1
-            if co_.yieldCounter >= co_.yieldThreshold then
-                co_.yieldCounter = 0
-                self.UTILS:debugInfo("AETHR.WORLD:updateZoneColors --> YIELD")
-                coroutine.yield()
-            end
-        end
+        self.BRAIN:maybeYield(co_, "WORLD:updateZoneColors", 1)
     end
 
     return self
@@ -730,7 +695,7 @@ end
 --- Side-effects: Updates arrow markups visibility; writes borderDetail.lastShownCoalition.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:updateZoneArrows()
-    self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows")
     local _zones = self.ZONE_MANAGER.DATA.MIZ_ZONES
     local co_ = self.BRAIN.DATA.coroutines.updateZoneArrows
     local ArrowColors = self.CONFIG.MAIN.Zone.paintColors.ArrowColors
@@ -759,14 +724,7 @@ function AETHR.WORLD:updateZoneArrows()
                                 { c.r, c.g, c.b, 0 }
                             )
                         end
-                        if co_.thread then
-                            co_.yieldCounter = (co_.yieldCounter or 0) + 1
-                            if co_.yieldCounter >= (co_.yieldThreshold or 0) then
-                                co_.yieldCounter = 0
-                                self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
-                                coroutine.yield()
-                            end
-                        end
+                        self.BRAIN:maybeYield(co_, "WORLD:updateZoneArrows", 1)
                     end
 
                     -- Show new arrow (if needed).
@@ -779,14 +737,7 @@ function AETHR.WORLD:updateZoneArrows()
                                 { c.r, c.g, c.b, c.a or 1 }
                             )
                         end
-                        if co_.thread then
-                            co_.yieldCounter = (co_.yieldCounter or 0) + 1
-                            if co_.yieldCounter >= (co_.yieldThreshold or 0) then
-                                co_.yieldCounter = 0
-                                self.UTILS:debugInfo("AETHR.WORLD:updateZoneArrows --> YIELD")
-                                coroutine.yield()
-                            end
-                        end
+                        self.BRAIN:maybeYield(co_, "WORLD:updateZoneArrows", 1)
                     end
 
                     borderDetail.lastShownCoalition = desiredShown
@@ -801,7 +752,7 @@ end
 --- Runs one job at a time; heavy sub-steps yield via _maybeYield inside pipeline functions.
 ---@return AETHR.WORLD self
 function AETHR.WORLD:spawnerGenerationQueue()
-    self.UTILS:debugInfo("AETHR.WORLD:spawnerGenerationQueue -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:spawnerGenerationQueue")
     local state = self.SPAWNER.DATA._genState or { currentJobId = nil }
     self.SPAWNER.DATA._genState = state
     local jobs = self.SPAWNER.DATA.GenerationJobs or {}
@@ -848,7 +799,8 @@ function AETHR.WORLD:spawnerGenerationQueue()
     state.currentJobId = nil
 
     -- Light yield between jobs
-    self.SPAWNER:_maybeYield(1)
+    local coroutine_ = self.BRAIN.DATA.coroutines.spawnerGenerationQueue
+    self.BRAIN:maybeYield(coroutine_, "WORLD:spawnerGenerationQueue between jobs", 1)
     return self
 end
 
@@ -860,7 +812,7 @@ end
 --- Side-effects: Populates DATA.groundUnitsDB and DATA.groundGroupsDB; mutates coroutine state; may yield when configured.
 --- @return AETHR.WORLD self
 function AETHR.WORLD:updateGroundUnitsDB()
-    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB -------------")
+    self.UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB")
     local UTILS = self.UTILS
     local saveDivs = self.DATA.saveDivisions
     if not saveDivs or next(saveDivs) == nil then
@@ -869,7 +821,6 @@ function AETHR.WORLD:updateGroundUnitsDB()
     end
     local groundDB = self.DATA.groundUnitsDB
     local co_ = self.BRAIN.DATA.coroutines.updateGroundUnitsDB
-    local yieldThreshold = (co_ and co_.yieldThreshold) or 10
     local ObjectCategory = self.ENUMS.ObjectCategory
 
     -- Persistent state across coroutine runs; support running without a coroutine
@@ -895,18 +846,6 @@ function AETHR.WORLD:updateGroundUnitsDB()
     local endIdx = math.min(startIdx + divisionsPerRun - 1, #state.ids)
 
     local processed = 0
-    -- progress logging is rate-limited via UTILS:debugInfoRate; removed addedLogEvery
-
-    local function maybeYield(inc)
-        if co_ and co_.thread then
-            co_.yieldCounter = (co_.yieldCounter or 0) + (inc or 1)
-            if co_.yieldCounter >= yieldThreshold then
-                co_.yieldCounter = 0
-                UTILS:debugInfo("AETHR.WORLD:updateGroundUnitsDB --> YIELD")
-                coroutine.yield()
-            end
-        end
-    end
 
     -- Process a slice of divisions this run
     for i = startIdx, endIdx do
@@ -926,10 +865,10 @@ function AETHR.WORLD:updateGroundUnitsDB()
 
                 processed = processed + 1
                 UTILS:debugInfoRate("AETHR.WORLD:updateGroundUnitsDB:progress", 2, { processed = processed })
-                maybeYield(1)
+                self.BRAIN:maybeYield(co_, "WORLD:updateGroundUnitsDB inDiv", 1)
             end
             -- light yield between divisions
-            maybeYield(1)
+            self.BRAIN:maybeYield(co_, "WORLD:updateGroundUnitsDB between divs", 1)
         end
     end
 
@@ -951,7 +890,7 @@ function AETHR.WORLD:updateGroundUnitsDB()
                     newGroups[gname] = obj.groupUnitNames or {}
                 end
             end
-            maybeYield(1)
+            self.BRAIN:maybeYield(co_, "WORLD:updateGroundUnitsDB rebuilding groups", 1)
         end
         self.DATA.groundGroupsDB = newGroups
 

@@ -327,7 +327,7 @@ end
 
 --- Execute scheduled tasks that are due. Iterates through schedulers and runs active tasks whose nextRun <= current time.
 --- @function AETHR.BRAIN:runScheduledTasks
------ @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
+--- @return AETHR.BRAIN self Returns the BRAIN instance for chaining.
 function AETHR.BRAIN:runScheduledTasks(maxPerTick)
     -- Note: UTILS.getTime is a function (defined without colon), call via table field
     local currentTime = (self.AETHR and self.AETHR.UTILS and self.AETHR.UTILS.getTime) and self.AETHR.UTILS.getTime() or
