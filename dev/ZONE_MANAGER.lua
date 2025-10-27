@@ -1240,7 +1240,6 @@ end
 function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner, spawnChance, minCircleRadius, maxCircleRadius)
     local center = self.UTILS:normalizePoint(vec2)
     local r = tonumber(radius) or 0
-   -- if r <= 0 then return self end
 
     -- Determine annulus bounds if provided; fallback to circle radius when omitted
     local innerR = (minCircleRadius ~= nil) and tonumber(minCircleRadius) or 0
@@ -1287,6 +1286,93 @@ function AETHR.ZONE_MANAGER:spawnTownsCircle(vec2, radius, countryID, minTownRad
                 end
             end
         end
+    end
+
+    return self
+end
+
+--- Performs concentrically expanding spawns of town filler groups using non-overlapping annuli.
+--- Each iteration i selects ring [prevOuter+epsilon, baseR*radiusMultiplier^(i-1)] to avoid duplicate spawns on
+--- inclusive bounds used by spawnTownsCircle. Chance per ring is clamped to [0,1] and decreases (or increases)
+--- by chanceMultiplier each iteration. Early exits occur for non-positive radius, degenerate radii, or chance==0.
+--- Epsilon used on inner boundary: 0.01 meters.
+--- @function AETHR.ZONE_MANAGER:spawnTownsExpandingCircle
+--- @param vec2 _vec2 Center of the expanding circle
+--- @param radius number Base circle radius in meters (used for first ring)
+--- @param countryID integer Engine country id
+--- @param minTownRadius number|nil Minimum town cluster radius to include (inclusive, default
+--- @param maxTownRadius number|nil Maximum town cluster radius to include (inclusive, default math.huge)
+--- @param dynamicSpawner _dynamicSpawner|nil Optional dynamic spawner instance (Town type). When nil, one is chosen from SPAWNER.DATA.dynamicSpawners.Town.
+--- @param spawnChance number|nil Base chance (0-1) to spawn each eligible town in the first ring; when nil, a per-town threshold is drawn randomly.
+--- @param concentricSpawnChanceMultiplier number|nil Multiplier applied to spawnChance per iteration (default 0.8)
+--- @param concentricRadiusMultipier number|nil Multiplier applied to radius per iteration (default 1.5)
+--- @param concentricIterations integer|nil Number of concentric rings to spawn (default 1)
+--- @return AETHR.ZONE_MANAGER self
+function AETHR.ZONE_MANAGER:spawnTownsExpandingCircle(vec2, radius, countryID, minTownRadius, maxTownRadius, dynamicSpawner, spawnChance, concentricSpawnChanceMultiplier, concentricRadiusMultipier, concentricIterations)
+    local center = self.UTILS:normalizePoint(vec2)
+    local baseR = tonumber(radius) or 0
+    local minR = (minTownRadius ~= nil) and tonumber(minTownRadius) or 0
+    local maxR = (maxTownRadius ~= nil) and tonumber(maxTownRadius) or math.huge
+    local iterations = math.floor(tonumber(concentricIterations) or 1)
+    if iterations < 1 then iterations = 1 end
+
+    local radiusMultiplier = tonumber(concentricRadiusMultipier) or 1.5
+    local chanceMultiplier = tonumber(concentricSpawnChanceMultiplier) or 0.8
+
+    -- Normalize and validate inputs
+    if baseR <= 0 then
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsExpandingCircle | aborted: radius <= 0")
+        return self
+    end
+
+    if radiusMultiplier <= 1 and iterations > 1 then
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsExpandingCircle | radiusMultiplier (" ..
+            tostring(radiusMultiplier) .. ") ≤ 1 with iterations=" .. tostring(iterations) .. "; reducing to a single ring")
+        iterations = 1
+    end
+
+    local baseChance = (spawnChance ~= nil) and tonumber(spawnChance) or 1.0
+    if baseChance < 0 then baseChance = 0 elseif baseChance > 1 then baseChance = 1 end
+
+    local EPS = 0.01
+    local prevOuter = 0
+
+    for i = 1, iterations do
+        local currentRadius = baseR * (radiusMultiplier ^ (i - 1))
+        if currentRadius <= (prevOuter + EPS) then
+            self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsExpandingCircle | stopping: non-increasing radius at iter " .. tostring(i) ..
+                " (prevOuter=" .. tostring(prevOuter) .. ", current=" .. tostring(currentRadius) .. ")")
+            break
+        end
+
+        local currentChance = baseChance * (chanceMultiplier ^ (i - 1))
+        if currentChance < 0 then currentChance = 0 elseif currentChance > 1 then currentChance = 1 end
+        if currentChance <= 0 then
+            self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsExpandingCircle | stopping: chance ≤ 0 at iter " .. tostring(i))
+            break
+        end
+
+        local inner = (i == 1) and 0 or (prevOuter + EPS)
+        local outer = currentRadius
+
+        self.UTILS:debugInfo("AETHR.ZONE_MANAGER:spawnTownsExpandingCircle | Iteration " .. tostring(i) ..
+            " | center: (" .. tostring(center.x) .. "," .. tostring(center.y) .. ") ring: [" .. tostring(inner) .. "," .. tostring(outer) .. "]" ..
+            " chance: " .. tostring(currentChance))
+
+        -- Use annulus to avoid overlap with prior iterations
+        self:spawnTownsCircle(
+            center,
+            currentRadius,
+            countryID,
+            minR,
+            maxR,
+            dynamicSpawner,
+            currentChance,
+            inner,
+            outer
+        )
+
+        prevOuter = currentRadius
     end
 
     return self

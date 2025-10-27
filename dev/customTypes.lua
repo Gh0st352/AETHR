@@ -745,6 +745,8 @@ end
 --- @field _dead boolean Internal flag indicating if the group has been destroyed
 --- @field _save boolean Internal flag indicating if the group should be saved in mission state
 --- @field _engineAddTime number Internal timestamp when the group was added to the mission (for late activation)
+--- @field _aiOn boolean Internal flag indicating if AI is active and On for the group
+--- @field _emission boolean Internal flag indicating if radar emissions are enabled for the group
 AETHR._groundGroup = {} ---@diagnostic disable-line
 ---
 --- @param visible boolean|nil
@@ -793,6 +795,8 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         _spawned = false,
         _dead = false,
         _save = true,
+        _aiOn = true,
+        _emission = true,
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
     return instance ---@diagnostic disable-line

@@ -528,7 +528,10 @@ end
 --- Processes SPAWNER.DATA.spawnQueue and yields periodically when a coroutine is configured.
 --- Side-effects: Activates engine groups; mutates SPAWNER.DATA.spawnQueue.
 --- @return AETHR.WORLD self
-function AETHR.WORLD:spawnGroundGroups()
+function AETHR.WORLD:spawnGroundGroups(spawnAIOff, spawnEmissionOff)
+    spawnAIOff = spawnAIOff or self.SPAWNER.DATA.CONFIG.spawnAIOff
+    spawnEmissionOff = spawnEmissionOff or self.SPAWNER.DATA.CONFIG.spawnEmissionOff
+
     self.UTILS:debugInfo("AETHR.WORLD:spawnGroundGroups")
     local co_ = self.BRAIN.DATA.coroutines.spawnGroundGroups
     local waitTime = (self.SPAWNER.DATA.CONFIG and self.SPAWNER.DATA.CONFIG.SPAWNER_WAIT_TIME) or 10
@@ -555,6 +558,20 @@ function AETHR.WORLD:spawnGroundGroups()
                         Group.activate(g)
                         activated = true
                         groupObj._spawned = true
+                        if spawnAIOff then
+                            self.BRAIN:scheduleTask(
+                                function(name) 
+                                    self.UTILS:groupOnOff(name, false)
+                                end, 6, nil,nil,nil,name
+                            )
+                        end
+                        if spawnEmissionOff then
+                            self.BRAIN:scheduleTask(
+                                function(name) 
+                                    self.UTILS:groupEnableEmission(name, false)
+                                end, 3, nil,nil,nil,name
+                            )
+                        end
                     end
                 end)
                 if safeOk and activated then

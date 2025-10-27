@@ -5,6 +5,8 @@
 --- @field CONFIG AETHR.CONFIG Configuration table attached per-instance.
 --- @field FILEOPS AETHR.FILEOPS File operations helper table attached per-instance.
 --- @field POLY AETHR.POLY Geometry helper table attached per-instance.
+--- @field BRAIN AETHR.BRAIN AI brain submodule attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field WORLD AETHR.WORLD World learning submodule attached per-instance.
 --- @field ZONE_MANAGER AETHR.ZONE_MANAGER Zone management submodule attached per-instance.
@@ -272,4 +274,24 @@ function AETHR.UTILS:withSeed(seed, fn, warmup, reseedAfter)
 
   if not ok then error(res1) end
   return res1, res2, res3, res4
+end
+
+function AETHR.UTILS:groupOnOff(groupName, on)
+  on = on or false
+  Group.getByName(groupName):getController():setOnOff(on)
+
+  if self.SPAWNER.DATA.generatedGroups[groupName] ~= nil then
+    self.SPAWNER.DATA.generatedGroups[groupName]._aiOn = on
+  end
+  self:debugInfo("AETHR.UTILS:groupOnOff | Group " .. groupName .. " setOnOff: " .. (on and "ON" or "OFF"))
+end
+
+function AETHR.UTILS:groupEnableEmission(groupName, enable)
+  enable = enable or false
+  Group.getByName(groupName):enableEmission(enable)
+
+  if self.SPAWNER.DATA.generatedGroups[groupName] ~= nil then
+    self.SPAWNER.DATA.generatedGroups[groupName]._emission = enable
+  end
+  self:debugInfo("AETHR.UTILS:groupEnableEmission | Group " .. groupName .. " enableEmission: " .. tostring(enable))
 end
