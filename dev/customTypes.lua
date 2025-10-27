@@ -1004,11 +1004,14 @@ function AETHR._dynamicSpawner:_seedRollUpdates()
     self._spawnsManip = {}
     self._spawnsManipTotal = 0
     for k, zoneObject in pairs(self.zones.sub) do
-        table.insert(self._keys, k)
-        ---@type _spawnSettings
-        local spawnSettingsMainGenerated = zoneObject.spawnSettings.generated
-        self._spawnsManip[k] = spawnSettingsMainGenerated.actual
-        self._spawnsManipTotal = self._spawnsManipTotal + self._spawnsManip[k]
+        if zoneObject and zoneObject.spawnSettings and zoneObject.spawnSettings.generated then
+            ---@type _spawnSettings
+            local spawnSettingsMainGenerated = zoneObject.spawnSettings.generated
+            local actual = tonumber(spawnSettingsMainGenerated.actual) or 0
+            table.insert(self._keys, k)
+            self._spawnsManip[k] = actual
+            self._spawnsManipTotal = self._spawnsManipTotal + actual
+        end
     end
     return self
 end
@@ -1019,22 +1022,32 @@ function AETHR._dynamicSpawner:_introduceRandomness()
     ---@type _spawnerZone[]
     local subZones = self.zones.sub
     ---@type _spawnSettings
-    local spawnSettingsMainGenerated = mainZone.spawnSettings.generated
-    local numSubZones = self.numSubZones
+    local spawnSettingsMainGenerated = (mainZone and mainZone.spawnSettings and mainZone.spawnSettings.generated)
+        or self.parentAETHR._spawnSettings:New()
+
+    local keysCount = #self._keys
+    if keysCount == 0 or (spawnSettingsMainGenerated.nudgeReciprocal or 0) <= 0 then
+        return self
+    end
+
     -- Iterate over the zones as defined by the nudge reciprocation number
     for _ = 1, spawnSettingsMainGenerated.nudgeReciprocal do
-        local subZoneKey_ = self._keys[math.random(numSubZones)]
+        local keyIndex = math.random(keysCount)
+        local subZoneKey_ = self._keys[keyIndex]
         local random_value = math.random(-2, 2)
-        local newActual = self._spawnsManip[subZoneKey_] + random_value
-        local newTotal = self._spawnsManipTotal + random_value
+
+        local current = tonumber(self._spawnsManip[subZoneKey_]) or 0
+        local newActual = current + random_value
+        local newTotal = (tonumber(self._spawnsManipTotal) or 0) + random_value
 
         -- Check if the new actual value and the new total value are within the allowed range
-        local subZone = subZones[subZoneKey_]
+        local subZone = subZones and subZones[subZoneKey_]
         ---@type _spawnSettings
-        local spawnSettingsSubZone = subZone.spawnSettings.generated
-        if newActual > spawnSettingsSubZone.min
-            and newTotal <= spawnSettingsMainGenerated.max
-            and newActual < spawnSettingsSubZone.max then
+        local spawnSettingsSubZone = subZone and subZone.spawnSettings and subZone.spawnSettings.generated
+        if spawnSettingsSubZone
+            and newActual > (spawnSettingsSubZone.min or 0)
+            and newTotal <= (spawnSettingsMainGenerated.max or newTotal)
+            and newActual < (spawnSettingsSubZone.max or math.huge) then
             -- Update the actual value and the total value with the new randomized numbers
             self._spawnsManip[subZoneKey_] = newActual
             self._spawnsManipTotal = newTotal
@@ -1046,23 +1059,30 @@ end
 function AETHR._dynamicSpawner:_distributeDifference()
     ---@type _spawnerZone
     local mainZone = self.zones.main
-    ---@type _spawnerZone[]
-    local subZones = self.zones.sub
     ---@type _spawnSettings
-    local spawnSettingsMainGenerated = mainZone.spawnSettings.generated
-    local numSubZones = self.numSubZones
+    local spawnSettingsMainGenerated = (mainZone and mainZone.spawnSettings and mainZone.spawnSettings.generated)
+        or self.parentAETHR._spawnSettings:New()
+
+    local keysCount = #self._keys
+    local targetActual = tonumber(spawnSettingsMainGenerated.actual) or 0
+    local total = tonumber(self._spawnsManipTotal) or 0
 
     -- Calculate the difference between the expected and current total spawn amount
-    local difference = spawnSettingsMainGenerated.actual - self._spawnsManipTotal
+    local difference = targetActual - total
+    if difference == 0 or keysCount == 0 then
+        return self
+    end
 
     -- Distribute the difference across the subzones
+    local step = (difference > 0) and 1 or -1
     for _ = 1, math.abs(difference) do
-        local subZoneKey_ = self._keys[math.random(numSubZones)]
-        local _val = (difference > 0 and 1 or -1) -- Determine if we need to add or subtract
-        -- Update the spawn amounts for the subzone and the total
-        self._spawnsManip[subZoneKey_] = self._spawnsManip[subZoneKey_] + _val
-        self._spawnsManipTotal = self._spawnsManipTotal + _val
+        local keyIndex = math.random(keysCount)
+        local subZoneKey_ = self._keys[keyIndex]
+        local current = tonumber(self._spawnsManip[subZoneKey_]) or 0
+        self._spawnsManip[subZoneKey_] = current + step
+        total = total + step
     end
+    self._spawnsManipTotal = total
     return self
 end
 
@@ -1093,29 +1113,42 @@ function AETHR._dynamicSpawner:_thresholdClamp(zoneObject)
     ---@type _spawnerZone[]
     local subZones = self.zones.sub
     ---@type _spawnSettings
-    local spawnSettingsGenerated = zoneObject.spawnSettings.generated
-    local thresholds = spawnSettingsGenerated.thresholds
+    local spawnSettingsGenerated = zoneObject and zoneObject.spawnSettings and zoneObject.spawnSettings.generated
+    if not spawnSettingsGenerated then
+        return self
+    end
+    local thresholds = spawnSettingsGenerated.thresholds or {}
 
     -- Check for threshold violations and adjust spawn values accordingly
-    if thresholds.overMax > 0 or thresholds.underMin > 0 then
+    if (thresholds.overMax or 0) > 0 or (thresholds.underMin or 0) > 0 then
         local action
-        if thresholds.overMax > 0 then
+        if (thresholds.overMax or 0) > 0 then
             action = -1
-        elseif thresholds.underMin > 0 then
+        elseif (thresholds.underMin or 0) > 0 then
             action = 1
-        elseif thresholds.overNom > 0 then
+        elseif (thresholds.overNom or 0) > 0 then
             action = -1
-        elseif thresholds.underNom > 0 then
+        elseif (thresholds.underNom or 0) > 0 then
             action = 1
         end
 
-        for _ = 1, math.abs(action * (thresholds.overMax + thresholds.underMin + thresholds.overNom + thresholds.underNom)) do
-            local index = self._keys[math.random(#self._keys)]
-            ---@type _spawnerZone
-            local _zone = subZones[index]
-            ---@type _spawnSettings
-            local spawnSettings_zone = _zone.spawnSettings.generated
-            spawnSettings_zone.actual = spawnSettings_zone.actual + action
+        if action then
+            local keysCount = #self._keys
+            if keysCount == 0 then
+                return self
+            end
+
+            local totalAdj = math.abs(action * ((thresholds.overMax or 0) + (thresholds.underMin or 0) + (thresholds.overNom or 0) + (thresholds.underNom or 0)))
+            for _ = 1, totalAdj do
+                local key = self._keys[math.random(keysCount)]
+                ---@type _spawnerZone
+                local _zone = subZones and subZones[key]
+                ---@type _spawnSettings
+                local spawnSettings_zone = _zone and _zone.spawnSettings and _zone.spawnSettings.generated
+                if spawnSettings_zone then
+                    spawnSettings_zone.actual = (tonumber(spawnSettings_zone.actual) or 0) + action
+                end
+            end
         end
     end
 

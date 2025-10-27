@@ -1251,8 +1251,9 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
 
                     glassBreak = glassBreak + 1
                     if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then
-                        if glassBreak % 22 > 20 then emergencyRadiusIncrementCounter = emergencyRadiusIncrementCounter +
-                            1 end
+                        if glassBreak % 22 > 20 then 
+                            emergencyRadiusIncrementCounter = emergencyRadiusIncrementCounter + 1 
+                            end
                         self.BRAIN:maybeYield(coroutine_, "SPAWNER:generateVec2GroupCenters Inner", 1)
                     end
                 until accepted
