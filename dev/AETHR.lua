@@ -34,6 +34,12 @@
 --- @field MARKERS AETHR.MARKERS Marker helper submodule attached per-instance.
 --- @field BRAIN AETHR.BRAIN Task scheduler and coroutine manager.
 --- @field FILEOPS AETHR.FILEOPS Filesystem utilities used to load/save JSON and manage paths.
+--- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
+--- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
+--- @field AI AETHR.AI AI management submodule attached per-instance.   
+--- @field FSM AETHR.FSM Finite State Machine submodule attached per-instance.
+--- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
+--- @field PROXY AETHR.PROXY Proxy submodule attached per-instance.
 --- @field MODULES string[] Names of module tables on the prototype which will be auto-wired into instances.
 --- @field USERSTORAGE table<string, any> Container for per-user saved data.
 AETHR = {
@@ -52,6 +58,7 @@ AETHR = {
         "SPAWNER",
         "FSM",
         "AI",
+        "PROXY",
     },
     USERSTORAGE = {}, -- Holds per-user saved data tables.
 
