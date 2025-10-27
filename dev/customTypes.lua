@@ -149,6 +149,7 @@ end
 ---@field active boolean Flag indicating if division intersects any zone
 ---@field corners _vec2xz[] Rectangle corners in world XZ coordinates (exactly 4 corners expected)
 ---@field height number|nil Optional search height in meters
+---@field groundGroups table<string, _groundGroup>|nil Map of ground group name -> _groundGroup within this division
 AETHR._WorldDivision = {} ---@diagnostic disable-line
 --- Create a new world division descriptor
 --- @param ID number|nil Unique division identifier
@@ -156,12 +157,13 @@ AETHR._WorldDivision = {} ---@diagnostic disable-line
 --- @param corners _vec2xz[4]|nil Rectangle corners in world XZ coordinates
 --- @param height number|nil Optional search height in meters
 --- @return _WorldDivision instance
-function AETHR._WorldDivision:New(ID, active, corners, height)
+function AETHR._WorldDivision:New(ID, active, corners, height, groundGroups)
     local instance = {
         ID = ID or 0,
         active = (active ~= nil) and active or false,
         corners = corners or {},
-        height = height,
+        height = height or 100000,
+        groundGroups = groundGroups or {},
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line

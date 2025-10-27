@@ -560,16 +560,16 @@ function AETHR.WORLD:spawnGroundGroups(spawnAIOff, spawnEmissionOff)
                         groupObj._spawned = true
                         if spawnAIOff then
                             self.BRAIN:scheduleTask(
-                                function(name) 
+                                function(name)
                                     self.UTILS:groupOnOff(name, false)
-                                end, 6, nil,nil,nil,name
+                                end, 6, nil, nil, nil, name
                             )
                         end
                         if spawnEmissionOff then
                             self.BRAIN:scheduleTask(
-                                function(name) 
+                                function(name)
                                     self.UTILS:groupEnableEmission(name, false)
-                                end, 3, nil,nil,nil,name
+                                end, 3, nil, nil, nil, name
                             )
                         end
                     end
@@ -894,6 +894,8 @@ function AETHR.WORLD:updateGroundUnitsDB()
     if state.idx > #state.ids then
         local newGroups = {}
         for id, obj in pairs(groundDB) do
+            local gname = obj.groupName
+            self.SPAWNER:updateDBGroupInfo(gname)
             local engineObj = Unit.getByName(id) or nil
             local objLife = engineObj ~= nil and engineObj:getLife() or 0
             if objLife < 1 then --obj.isDead then
@@ -902,7 +904,6 @@ function AETHR.WORLD:updateGroundUnitsDB()
                 end
                 groundDB[id] = nil
             else
-                local gname = obj.groupName
                 if gname and not newGroups[gname] then
                     newGroups[gname] = obj.groupUnitNames or {}
                 end
@@ -916,6 +917,30 @@ function AETHR.WORLD:updateGroundUnitsDB()
         state.idx = 1
     end
 
+    return self
+end
+
+function AETHR.WORLD:updateActiveDivGroundGroups()
+    self.UTILS:debugInfo("AETHR.WORLD:updateActiveDivGroundGroups")
+    local co_ = self.BRAIN.DATA.coroutines.updateActiveDivGroundGroups
+    local POLY = self.POLY
+    local saveDivs = self.DATA.saveDivisions
+    local generatedGroups = self.SPAWNER.DATA.generatedGroups
+
+    for divID, div in pairs(saveDivs) do
+        local divBounds = div.corners
+        local newGroups = {}
+        for gName, gObj in pairs(generatedGroups) do
+            ---@type _vec2
+            local gCenter = { x = gObj.x, y = gObj.y }
+            if POLY:pointInPolygon(gCenter, divBounds) then
+                newGroups[gName] = gObj
+            end
+            self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups - BETWEEN GEN GROUPS", 1)
+        end
+        div.groundGroups = newGroups
+        self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups - BETWEEN DIVS", 1)
+    end
     return self
 end
 
@@ -1123,9 +1148,9 @@ function AETHR.WORLD:generateWorldDivisions()
         self.CONFIG.MAIN.worldDivisionArea
     )
     for i, div in ipairs(worldDivs) do
-        div.ID = i         -- Assign unique ID
-        div.active = false -- Initial active flag
-        self.DATA.worldDivisions[i] = div
+        --div.ID = i         -- Assign unique ID
+        --div.active = false -- Initial active flag
+        self.DATA.worldDivisions[i] = self.AETHR._WorldDivision:New(i, false, div.corners) --div
     end
     return self
 end

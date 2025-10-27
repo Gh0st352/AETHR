@@ -300,6 +300,12 @@ function AETHR:BackgroundProcesses()
         parentAETHR.WORLD:updateGroundUnitsDB()
     end, self)
 
+        -- updateActiveDivGroundGroups 
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateActiveDivGroundGroups, function(parentAETHR)
+        parentAETHR.WORLD:updateActiveDivGroundGroups()
+    end, self)
+
     --Spawn queued ground Groups
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnGroundGroups, function(parentAETHR)

@@ -381,6 +381,11 @@ function AETHR.SPAWNER:updateDBGroupInfo(Name)
     ---@type _groundGroup
     local DB = self.DATA.generatedGroups[Name]
 
+    if not DB then
+        self.UTILS:debugInfo("AETHR.SPAWNER:updateDBGroupInfo: No generatedGroups entry for group '" .. tostring(Name) .. "'")
+        return self
+    end
+
     local unitPoints = {} ---@type _vec2[]
 
     for index, _unit in pairs(unitsObj) do
@@ -1162,9 +1167,10 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
                 local operationLimit = self.DATA.CONFIG.operationLimit or 100
                 local emergencyRadiusIncrement = 50
                 local emergencyRadiusIncrementCounter = 0
+                local emergencyCTR = 0
                 repeat
                     possibleVec2 = self.POLY:getRandomVec2inCircle(
-                    subZoneRadius + (emergencyRadiusIncrement * emergencyRadiusIncrementCounter), subZoneCenter)
+                        subZoneRadius + (emergencyRadiusIncrement * emergencyRadiusIncrementCounter), subZoneCenter)
 
                     -- Fast proximity checks using grids (squared distances)
                     local reject = false
@@ -1251,9 +1257,13 @@ function AETHR.SPAWNER:generateVec2GroupCenters(dynamicSpawner)
 
                     glassBreak = glassBreak + 1
                     if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then
-                        if glassBreak % 22 > 20 then 
-                            emergencyRadiusIncrementCounter = emergencyRadiusIncrementCounter + 1 
+                        if glassBreak > operationLimit then
+                            emergencyCTR = emergencyCTR + 1
+                            if emergencyCTR >= 100 then
+                                emergencyCTR = 0
+                                emergencyRadiusIncrementCounter = emergencyRadiusIncrementCounter + 1
                             end
+                        end
                         self.BRAIN:maybeYield(coroutine_, "SPAWNER:generateVec2GroupCenters Inner", 1)
                     end
                 until accepted
@@ -1543,8 +1553,10 @@ function AETHR.SPAWNER:generateVec2UnitPos(dynamicSpawner)
                         end
 
                         glassBreak = glassBreak + 1
-                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then self.BRAIN:maybeYield(
-                            coroutine_, "SPAWNER:generateVec2UnitPos Inner", 1) end
+                        if (glassBreak % math.max(1, math.floor(operationLimit / 5))) == 0 then
+                            self.BRAIN:maybeYield(
+                                coroutine_, "SPAWNER:generateVec2UnitPos Inner", 1)
+                        end
                     until accepted
 
                     if _unitCounters then _unitCounters.Attempts = (_unitCounters.Attempts or 0) + glassBreak end

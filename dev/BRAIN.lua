@@ -145,6 +145,15 @@ AETHR.BRAIN.DATA = {
             yieldCounter = 0,
             desc = "spawnerGenerationQueue",
         },
+        updateActiveDivGroundGroups = {
+            interval = 8,
+            phase = 12,
+            counter = 0,
+            thread = nil,
+            yieldThreshold = 50,
+            yieldCounter = 0,
+            desc = "updateActiveDivGroundGroups",
+        },
         processFSMQueue = {
             interval = 10,
             phase = 5,
