@@ -67,6 +67,15 @@ AETHR.WORLD.DATA = {
     spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
     _spawnerAttributesDB   = {}, -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
     spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
+    Background = {
+        -- How many active divisions to scan per tick in updateGroundUnitsDB.
+        divisionsPerRun = 3,
+        -- Controls WORLD:updateActiveDivGroundGroups behavior; when true, include all generated
+        -- prototypes in div.groundGroups (legacy behavior). When false, include only _spawned groups.
+        includeUnspawnedGroupsInDivs = true,
+        -- Yield cadence during group-to-division mapping in updateActiveDivGroundGroups.
+        yieldEveryNGeneratedGroups = 60,
+    },
 }
 
 
@@ -923,24 +932,194 @@ end
 function AETHR.WORLD:updateActiveDivGroundGroups()
     self.UTILS:debugInfo("AETHR.WORLD:updateActiveDivGroundGroups")
     local co_ = self.BRAIN.DATA.coroutines.updateActiveDivGroundGroups
-    local POLY = self.POLY
-    local saveDivs = self.DATA.saveDivisions
-    local generatedGroups = self.SPAWNER.DATA.generatedGroups
 
-    for divID, div in pairs(saveDivs) do
-        local divBounds = div.corners
-        local newGroups = {}
-        for gName, gObj in pairs(generatedGroups) do
-            ---@type _vec2
-            local gCenter = { x = gObj.x, y = gObj.y }
-            if POLY:pointInPolygon(gCenter, divBounds) then
-                newGroups[gName] = gObj
-            end
-            self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups - BETWEEN GEN GROUPS", 1)
-        end
-        div.groundGroups = newGroups
-        self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups - BETWEEN DIVS", 1)
+    local saveDivs = self.DATA.saveDivisions or {}
+    local generatedGroups = (self.SPAWNER and self.SPAWNER.DATA and self.SPAWNER.DATA.generatedGroups) or {}
+
+    -- Nothing to do: no active divisions.
+    if not next(saveDivs) then
+        return self
     end
+    -- If there are no generated groups, clear per-division maps and return.
+    if not next(generatedGroups) then
+        for _, div in pairs(saveDivs) do
+            div.groundGroups = {}
+        end
+        return self
+    end
+
+    -- Behavior toggle (defaults to include all prototypes to preserve legacy behavior).
+    local includeUnspawned = true
+    if self.DATA and self.DATA.Background
+        and self.DATA.Background.includeUnspawnedGroupsInDivs ~= nil
+    then
+        includeUnspawned = self.DATA.Background.includeUnspawnedGroupsInDivs
+    end
+
+    -- Yield cadence during group mapping.
+    local yieldEvery = (self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.Background
+        and self.CONFIG.MAIN.Background.yieldEveryNGeneratedGroups) or 60
+
+    -- Build and cache a fast index from grid cells to division IDs.
+    local function ensureIndex()
+        self._cache = self._cache or {}
+        local cache = self._cache
+        local divs = self.DATA and self.DATA.worldDivisions or {}
+
+        if not next(divs) then return nil, nil end
+
+        local cnt = 0
+        for _ in pairs(divs) do cnt = cnt + 1 end
+
+        if cache._divGrid and cache._divCellToId and cache._divCount == cnt then
+            return cache._divGrid, cache._divCellToId
+        end
+
+        local grid = self:initGrid(divs)
+        grid.invDx = grid.invDx or (1 / (grid.dx or 1))
+        grid.invDz = grid.invDz or (1 / (grid.dz or 1))
+
+        local map = {}
+        for id, d in pairs(divs) do
+            local sx, sz, n = 0, 0, 0
+            for _, v in ipairs(d.corners or {}) do
+                sx = sx + (v.x or 0)
+                sz = sz + (v.z or 0)
+                n = n + 1
+            end
+            if n == 0 then n = 1 end
+            local cx, cz = sx / n, sz / n
+            local col = math.floor((cx - grid.minX) * grid.invDx) + 1
+            local row = math.floor((cz - grid.minZ) * grid.invDz) + 1
+            map[col] = map[col] or {}
+            map[col][row] = id
+        end
+
+        cache._divGrid, cache._divCellToId, cache._divCount = grid, map, cnt
+        return grid, map
+    end
+
+    -- Compute grid cell for a generic vec2 {x=..., y=...} (y accepted as z).
+    local function cellForVec2(grid, vec2)
+        local y = (vec2.y ~= nil) and vec2.y or (vec2.z or 0)
+        local col = math.floor(((vec2.x or 0) - grid.minX) * (grid.invDx or (1 / (grid.dx or 1)))) + 1
+        local row = math.floor((y - grid.minZ) * (grid.invDz or (1 / (grid.dz or 1)))) + 1
+        return col, row
+    end
+
+    -- Confirm membership in a division: try AABB first, then rare polygon fallback.
+    local function confirmInDiv(vec2, divID)
+        local aabb = self.DATA and self.DATA.worldDivAABB and self.DATA.worldDivAABB[divID]
+        if aabb then
+            local x = vec2.x or 0
+            local y = vec2.y or vec2.z or 0
+            if x >= aabb.minX and x <= aabb.maxX and y >= aabb.minZ and y <= aabb.maxZ then
+                return true, "aabb"
+            end
+        end
+        local div = self.DATA and self.DATA.worldDivisions and self.DATA.worldDivisions[divID]
+        if div and div.corners and self.POLY and self.POLY.pointInPolygon then
+            if self.POLY:pointInPolygon({ x = vec2.x, y = vec2.y or vec2.z }, div.corners) then
+                return true, "pip"
+            end
+        end
+        return false, "miss"
+    end
+
+    local grid, cellToId = ensureIndex()
+    if not grid or not cellToId then
+        -- Defensive fallback to legacy O(D×G) scan if index cannot be built.
+        for _, div in pairs(saveDivs) do
+            local bounds = div.corners
+            local newGroups = {}
+            for gName, gObj in pairs(generatedGroups) do
+                if includeUnspawned or gObj._spawned then
+                    local gx, gy = tonumber(gObj.x), tonumber(gObj.y)
+                    if gx and gy then
+                        if self.POLY:pointInPolygon({ x = gx, y = gy }, bounds) then
+                            newGroups[gName] = gObj
+                        end
+                    end
+                end
+                self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups fallback scan", 1)
+            end
+            div.groundGroups = newGroups
+            self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups fallback between divs", 1)
+        end
+        return self
+    end
+
+    local groupsByDiv = {}
+    local processed, skippedNoPos, skippedUnspawned, assigned = 0, 0, 0, 0
+    local neighbors = {
+        { -1, -1 }, { 0, -1 }, { 1, -1 },
+        { -1,  0 },             { 1,  0 },
+        { -1,  1 }, { 0,  1 }, { 1,  1 },
+    }
+
+    for gName, gObj in pairs(generatedGroups) do
+        if includeUnspawned or gObj._spawned then
+            local gx, gy = tonumber(gObj.x), tonumber(gObj.y)
+            if gx and gy then
+                local gvec = { x = gx, y = gy }
+                local col, row = cellForVec2(grid, gvec)
+
+                local bestId = cellToId[col] and cellToId[col][row] or nil
+                local ok = false
+                if bestId then
+                    ok = confirmInDiv(gvec, bestId)
+                    if ok then
+                        groupsByDiv[bestId] = groupsByDiv[bestId] or {}
+                        groupsByDiv[bestId][gName] = gObj
+                        assigned = assigned + 1
+                    end
+                end
+                if not ok then
+                    -- Probe 8-neighbor cells for boundary rounding cases.
+                    for i = 1, #neighbors do
+                        local off = neighbors[i]
+                        local nid = cellToId[col + off[1]] and cellToId[col + off[1]][row + off[2]] or nil
+                        if nid and nid ~= bestId then
+                            if confirmInDiv(gvec, nid) then
+                                groupsByDiv[nid] = groupsByDiv[nid] or {}
+                                groupsByDiv[nid][gName] = gObj
+                                assigned = assigned + 1
+                                ok = true
+                                break
+                            end
+                        end
+                    end
+                end
+                -- If still not ok, group is out-of-bounds or between cells; ignore.
+            else
+                skippedNoPos = skippedNoPos + 1
+            end
+        else
+            skippedUnspawned = skippedUnspawned + 1
+        end
+
+        processed = processed + 1
+        if processed % yieldEvery == 0 then
+            self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups mapping", 1)
+        end
+    end
+
+    -- Assign per-division maps from the accumulator.
+    for divID, div in pairs(saveDivs) do
+        div.groundGroups = groupsByDiv[divID] or {}
+        self.BRAIN:maybeYield(co_, "WORLD:updateActiveDivGroundGroups assign", 1)
+    end
+
+    -- Optional telemetry
+    if self.CONFIG and self.CONFIG.MAIN and self.CONFIG.MAIN.DEBUG_ENABLED then
+        self.UTILS:debugInfoRate("AETHR.WORLD:updateActiveDivGroundGroups:stats", 2, {
+            processed = processed,
+            assigned = assigned,
+            skippedNoPos = skippedNoPos,
+            skippedUnspawned = skippedUnspawned,
+        })
+    end
+
     return self
 end
 
