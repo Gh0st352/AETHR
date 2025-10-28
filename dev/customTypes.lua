@@ -158,6 +158,8 @@ end
 ---@field proxyCornersHeli _vec2xz[] Expanded corners for helicopter proximity checks
 ---@field proxyCornersGround _vec2xz[] Expanded corners for ground unit proximity checks
 ---@field proxyCornersSea _vec2xz[] Expanded corners for sea unit proximity checks
+---@field _proxyAirLastSeenMs number Timestamp of last air unit proxy check
+---@field _proxyHeliLastSeenMs number Timestamp of last helicopter unit proxy check
 AETHR._WorldDivision = {} ---@diagnostic disable-line
 --- Create a new world division descriptor
 --- @param ID number|nil Unique division identifier
@@ -180,6 +182,8 @@ function AETHR._WorldDivision:New(ID, active, corners, height, groundGroups)
         proxyCornersHeli = {},
         proxyCornersGround = {},
         proxyCornersSea = {},
+        _proxyAirLastSeenMs = 0,
+        _proxyHeliLastSeenMs = 0,
     }
     setmetatable(instance, { __index = self })
     if corners ~= {} then 
@@ -772,6 +776,8 @@ end
 --- @field _engineAddTime number Internal timestamp when the group was added to the mission (for late activation)
 --- @field _aiOn boolean Internal flag indicating if AI is active and On for the group
 --- @field _emission boolean Internal flag indicating if radar emissions are enabled for the group
+--- @field _proxyLastChangeMs number Internal timestamp of the last proxy state change
+--- @field _proxyPending boolean Internal flag indicating if a proxy state change is pending
 AETHR._groundGroup = {} ---@diagnostic disable-line
 ---
 --- @param visible boolean|nil
@@ -824,6 +830,8 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         _save = true,
         _aiOn = true,
         _emission = true,
+        _proxyLastChangeMs = 0,
+        _proxyPending = false,
     }
     if not instance.name then instance.name = "AETHR_" .. tostring(os.time()) end
     return instance ---@diagnostic disable-line

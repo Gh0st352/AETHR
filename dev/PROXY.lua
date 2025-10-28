@@ -19,16 +19,21 @@
 --- @field divisionBaseObjects table<number, table<number, _FoundObject>>
 AETHR.PROXY = {} ---@diagnostic disable-line
 
-
 ---@class AETHR.PROXY.Data
 AETHR.PROXY.DATA = {
     divProxyDistanceAirUnits = 160934, --- Distance in meters
     divProxyDistanceHeliUnits = 48280,
     divProxyDistanceGroundUnits = 24140,
     divProxyDistanceSeaUnits = 160934,
+    -- Debounce/hysteresis and scheduling
+    presenceDwellMs = 5000,     -- ms to wait before clearing presence flags after last seen
+    spawnDespawnDwellMs = 5000, -- ms to wait between spawn/despawn actions per group
+    scanDivFraction = 1.0,      -- 0<frac≤1: fraction of divisions processed per invocation
+    debug = false,              -- additional PROXY-local debug gating (requires CONFIG.MAIN.DEBUG_ENABLED)
+    _cache = {},
+    _airborneScanState = { ids = nil, idx = 1 },
 }
 
----TODO Check if Proxy Air/Heli Units are spawned or active in game, if no, do not include in foundobjects
 
 --- Create a new PROXY instance attached to parent AETHR.
 --- @param parent AETHR Parent AETHR instance (owner)
@@ -38,71 +43,158 @@ function AETHR.PROXY:New(parent)
         AETHR = parent,
         -- submodule-local caches/state can be initialized here
         _cache = {},
+        _airborneScanState = { ids = nil, idx = 1 },
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
 end
 
+-- One-pass airborne scan helper
+function AETHR.PROXY:scanDivisionAirborne(div)
+    if not div then return false, false end
+    local corners_ = div.proxyCornersAir or div.corners
+    if not corners_ then return false, false end
+    local corners = self.UTILS:vec2xyToVec2xz(corners_)
+    local height = div.height or 2000
+    local cats = { self.ENUMS.UnitCategory.AIRPLANE, self.ENUMS.UnitCategory.HELICOPTER }
+    local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats)
+    local hasAir, hasHeli = false, false
+    for _, obj in pairs(found or {}) do
+        local cex = obj.categoryEx
+        if cex == self.ENUMS.UnitCategory.AIRPLANE then
+            hasAir = true
+        elseif cex == self.ENUMS.UnitCategory.HELICOPTER then
+            hasHeli = true
+        end
+        if hasAir and hasHeli then break end
+    end
+    return hasAir, hasHeli
+end
+
+-- Unified airborne proximity pass with hysteresis and optional scan cadence
+function AETHR.PROXY:proximityDivAirborneUnits(co_)
+    local co = co_ or
+        (self.BRAIN and self.BRAIN.DATA and self.BRAIN.DATA.coroutines and (self.BRAIN.DATA.coroutines.proximityDivAirUnits or self.BRAIN.DATA.coroutines.proximityDivHeliUnits))
+    local activeDivs = self.WORLD and self.WORLD.DATA and self.WORLD.DATA.saveDivisions or {}
+    if not next(activeDivs) then
+        self.BRAIN:maybeYield(co, "PROXY:proximityDivAirborneUnits - no active divs", 1)
+        return self
+    end
+
+    -- Initialize/refresh scan state
+    self.DATA._airborneScanState = self.DATA._airborneScanState or { ids = nil, idx = 1 }
+    local state = self.DATA._airborneScanState
+    if not state.ids then
+        state.ids = {}
+        for divID, _ in pairs(activeDivs) do state.ids[#state.ids + 1] = divID end
+        table.sort(state.ids, function(a, b) return a < b end)
+        state.idx = 1
+    end
+
+    local n = #state.ids
+    local frac = tonumber(self.DATA and self.DATA.scanDivFraction) or 1.0
+    if frac <= 0 then frac = 1.0 end
+    if frac > 1 then frac = 1.0 end
+    local toProcess = math.max(1, math.ceil(n * frac))
+    local startIdx = state.idx
+    local endIdx = math.min(startIdx + toProcess - 1, n)
+
+    local nowSec = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+    local nowMs = math.floor((tonumber(nowSec) or 0) * 1000)
+    local dwellMs = tonumber(self.DATA and self.DATA.presenceDwellMs) or 5000
+
+    for i = startIdx, endIdx do
+        local divID = state and state.ids and state.ids[i] or nil
+        if not divID then
+            self.BRAIN:maybeYield(co, "PROXY:proximityDivAirborneUnits - missing divID", 1)
+        else
+            local div = activeDivs[divID]
+            if div then
+                local groups = div.groundGroups or {}
+                if next(groups) ~= nil then
+                    local hasAir, hasHeli = self:scanDivisionAirborne(div)
+                    div._proxyAirLastSeenMs = div._proxyAirLastSeenMs or 0
+                    div._proxyHeliLastSeenMs = div._proxyHeliLastSeenMs or 0
+
+                    if hasAir then
+                        if not div.proxyAirUnits and self.DATA and self.DATA.debug then
+                            self.UTILS:debugInfo("PROXY: Air presence in div " .. tostring(divID))
+                        end
+                        div.proxyAirUnits = true
+                        div._proxyAirLastSeenMs = nowMs
+                    else
+                        if div.proxyAirUnits and (nowMs - (div._proxyAirLastSeenMs or 0)) >= dwellMs then
+                            if self.DATA and self.DATA.debug then
+                                self.UTILS:debugInfo("PROXY: Air cleared in div " .. tostring(divID))
+                            end
+                            div.proxyAirUnits = false
+                        end
+                    end
+
+                    if hasHeli then
+                        if not div.proxyHeliUnits and self.DATA and self.DATA.debug then
+                            self.UTILS:debugInfo("PROXY: Heli presence in div " .. tostring(divID))
+                        end
+                        div.proxyHeliUnits = true
+                        div._proxyHeliLastSeenMs = nowMs
+                    else
+                        if div.proxyHeliUnits and (nowMs - (div._proxyHeliLastSeenMs or 0)) >= dwellMs then
+                            if self.DATA and self.DATA.debug then
+                                self.UTILS:debugInfo("PROXY: Heli cleared in div " .. tostring(divID))
+                            end
+                            div.proxyHeliUnits = false
+                        end
+                    end
+                end
+            end
+            self.BRAIN:maybeYield(co, "PROXY:proximityDivAirborneUnits - Div", 1)
+        end
+    end
+
+    state.idx = endIdx + 1
+    if state.idx > n then
+        state.idx = 1
+        state.ids = nil
+    end
+
+    self.BRAIN:maybeYield(co, "PROXY:proximityDivAirborneUnits", 1)
+    return self
+end
+
 function AETHR.PROXY:proximityDivAirUnits()
     local co_ = self.BRAIN.DATA.coroutines.proximityDivAirUnits
-    local activeDivs = self.WORLD.DATA.saveDivisions or {}
-    local unitCats = { self.ENUMS.UnitCategory.AIRPLANE }
-    for divID, div in pairs(activeDivs) do
-        if div.groundGroups ~= {} then
-            local corners_ = div.proxyCornersAir
-            local corners = self.UTILS:vec2xyToVec2xz(corners_)
-            local height = div.height
-            local foundObjects = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, unitCats)
-            if self.UTILS.sumTable(foundObjects) > 0 then
-                self.UTILS:debugInfo("PROXY: Found air units in proximity of division ID " .. divID)
-                div.proxyAirUnits = true
-            else
-                div.proxyAirUnits = false
-            end
-            local pause = ""
-        end
-        self.BRAIN:maybeYield(co_, "PROXY:proximityDivAirUnits - Between Divs", 1)
-    end
-    self.BRAIN:maybeYield(co_, "PROXY:proximityDivAirUnits", 1)
-    return self
+    return self:proximityDivAirborneUnits(co_)
 end
 
 function AETHR.PROXY:proximityDivHeliUnits()
     local co_ = self.BRAIN.DATA.coroutines.proximityDivHeliUnits
-    local activeDivs = self.WORLD.DATA.saveDivisions or {}
-    local unitCats = { self.ENUMS.UnitCategory.HELICOPTER }
-    for divID, div in pairs(activeDivs) do
-        if div.groundGroups ~= {} then
-            local corners_ = div.proxyCornersAir
-            local corners = self.UTILS:vec2xyToVec2xz(corners_)
-            local height = div.height
-            local foundObjects = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, unitCats)
-            if self.UTILS.sumTable(foundObjects) > 0 then
-                self.UTILS:debugInfo("PROXY: Found Heli units in proximity of division ID " .. divID)
-                div.proxyHeliUnits = true
-            else
-                div.proxyHeliUnits = false
-            end
-            local pause = ""
-        end
-        self.BRAIN:maybeYield(co_, "PROXY:proximityDivHeliUnits - Between Divs", 1)
-    end
-    self.BRAIN:maybeYield(co_, "PROXY:proximityDivHeliUnits", 1)
-    return self
+    return self:proximityDivAirborneUnits(co_)
 end
 
 function AETHR.PROXY:proximityDespawnDivGroundGroups()
     local co_ = self.BRAIN.DATA.coroutines.proximityDespawnDivGroundGroups
     local activeDivs = self.WORLD.DATA.saveDivisions or {}
+    local nowSec = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+    local nowMs = math.floor((tonumber(nowSec) or 0) * 1000)
+    local dwellMs = tonumber(self.DATA and self.DATA.spawnDespawnDwellMs) or 5000
+
     for divID, div in pairs(activeDivs) do
-        if div.proxyAirUnits or div.proxyHeliUnits then -- or div.proxyGroundUnits or div.proxySeaUnits
-            -- Do not despawn if air or heli units are present
+        if div.proxyAirUnits or div.proxyHeliUnits then
+            -- presence detected: skip despawn
         else
             local groundGroups = div.groundGroups or {}
-            if groundGroups ~= {} then
+            if next(groundGroups) ~= nil then
                 for gName, gObj in pairs(groundGroups) do
                     if gObj._allowProxySpawn and gObj._spawned then
-                        self.SPAWNER:despawnGroup(gName)
+                        local last = tonumber(gObj._proxyLastChangeMs) or 0
+                        if (nowMs - last) >= dwellMs then
+                            self.SPAWNER:despawnGroup(gName)
+                            gObj._proxyLastChangeMs = nowMs
+                            gObj._proxyPending = false
+                            if self.DATA and self.DATA.debug then
+                                self.UTILS:debugInfo("PROXY: Despawn enqueued " .. tostring(gName))
+                            end
+                        end
                     end
                     self.BRAIN:maybeYield(co_, "PROXY:proximityDespawnDivGroundGroups - Group", 1)
                 end
@@ -118,13 +210,25 @@ end
 function AETHR.PROXY:proximitySpawnDivGroundGroups()
     local co_ = self.BRAIN.DATA.coroutines.proximitySpawnDivGroundGroups
     local activeDivs = self.WORLD.DATA.saveDivisions or {}
+    local nowSec = (self.UTILS and self.UTILS.getTime) and self.UTILS:getTime() or os.time()
+    local nowMs = math.floor((tonumber(nowSec) or 0) * 1000)
+    local dwellMs = tonumber(self.DATA and self.DATA.spawnDespawnDwellMs) or 5000
+
     for divID, div in pairs(activeDivs) do
         if div.proxyAirUnits or div.proxyHeliUnits then -- or div.proxyGroundUnits or div.proxySeaUnits
             local groundGroups = div.groundGroups or {}
-            if groundGroups ~= {} then
+            if next(groundGroups) ~= nil then
                 for gName, gObj in pairs(groundGroups) do
-                    if gObj._allowProxySpawn and not gObj._spawned then
-                        self.SPAWNER:spawnGroup(gName)
+                    if gObj._allowProxySpawn and not gObj._spawned and not gObj._proxyPending then
+                        local last = tonumber(gObj._proxyLastChangeMs) or 0
+                        if (nowMs - last) >= dwellMs then
+                            self.SPAWNER:spawnGroup(gName)
+                            gObj._proxyLastChangeMs = nowMs
+                            gObj._proxyPending = true
+                            if self.DATA and self.DATA.debug then
+                                self.UTILS:debugInfo("PROXY: Spawn enqueued " .. tostring(gName))
+                            end
+                        end
                     end
                     self.BRAIN:maybeYield(co_, "PROXY:proximitySpawnDivGroundGroups - Group", 1)
                 end
