@@ -55,7 +55,7 @@ function AETHR.PROXY:scanDivisionAirborne(div)
     local corners_ = div.proxyCornersAir or div.corners
     if not corners_ then return false, false end
     local corners = self.UTILS:vec2xyToVec2xz(corners_)
-    local height = div.height or 2000
+    local height = div.height or 100000
     local cats = { self.ENUMS.UnitCategory.AIRPLANE, self.ENUMS.UnitCategory.HELICOPTER }
     local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats)
     local hasAir, hasHeli = false, false

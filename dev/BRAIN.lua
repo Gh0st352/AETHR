@@ -56,8 +56,8 @@ AETHR.BRAIN.DATA = {
     coroutines = {
         -- phase is an offset (in loop ticks) used to stagger execution across the interval window.
         saveGeneratedGroundGroups = {
-            interval = 10, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
-            phase = 9,
+            interval = 120, -- backgroundloop iterations between runs. To convert to seconds: interval * BackgroundLoopInterval
+            phase = 90,
             counter = 0,
             thread = nil,
             yieldThreshold = 5,
@@ -101,7 +101,7 @@ AETHR.BRAIN.DATA = {
             desc = "updateZoneArrows",
         },
         updateGroundUnitsDB = {
-            interval = 15, -- make ground DB updates less frequent by default
+            interval = 20, -- make ground DB updates less frequent by default
             phase = 8,
             counter = 0,
             thread = nil,
@@ -110,8 +110,8 @@ AETHR.BRAIN.DATA = {
             desc = "updateGroundUnitsDB",
         },
         updateGroundGroupsDB = {
-            interval = 32, -- make ground DB updates less frequent by default
-            phase = 9,
+            interval = 60, -- make ground DB updates less frequent by default
+            phase = 12,
             counter = 0,
             thread = nil,
             yieldThreshold = 10, -- yield more often
@@ -119,8 +119,8 @@ AETHR.BRAIN.DATA = {
             desc = "updateGroundGroupsDB",
         },
         spawnGroundGroups = {
-            interval = 10, -- make ground DB updates less frequent by default
-            phase = 3,
+            interval = 8, -- make ground DB updates less frequent by default
+            phase = 1,
             counter = 0,
             thread = nil,
             yieldThreshold = 12, -- yield more often
@@ -128,35 +128,35 @@ AETHR.BRAIN.DATA = {
             desc = "spawnGroundGroups",
         },
         despawnGroundGroups = {
-            interval = 10, -- make ground DB updates less frequent by default
-            phase = 1,
+            interval = 8, -- make ground DB updates less frequent by default
+            phase = 5,
             counter = 0,
             thread = nil,
-            yieldThreshold = 50, -- yield more often
+            yieldThreshold = 30, -- yield more often
             yieldCounter = 0,
             desc = "despawnGroundGroups",
         },
         spawnerGenerationQueue = {
-            interval = 5,
-            phase = 12,
+            interval = 1,
+            phase = 0,
             counter = 0,
             thread = nil,
-            yieldThreshold = 50,
+            yieldThreshold = 20,
             yieldCounter = 0,
             desc = "spawnerGenerationQueue",
         },
         updateActiveDivGroundGroups = {
-            interval = 8,
-            phase = 12,
+            interval = 12,
+            phase = 3,
             counter = 0,
             thread = nil,
-            yieldThreshold = 50,
+            yieldThreshold = 30,
             yieldCounter = 0,
             desc = "updateActiveDivGroundGroups",
         },
         proximityDivAirUnits = {
             interval = 20,
-            phase = 16,
+            phase = 5,
             counter = 0,
             thread = nil,
             yieldThreshold = 10,
@@ -165,7 +165,7 @@ AETHR.BRAIN.DATA = {
         },
         proximityDivHeliUnits = {
             interval = 21,
-            phase = 17,
+            phase = 6,
             counter = 0,
             thread = nil,
             yieldThreshold = 10,
@@ -174,7 +174,7 @@ AETHR.BRAIN.DATA = {
         },
         proximityDespawnDivGroundGroups = {
             interval = 22,
-            phase = 18,
+            phase = 7,
             counter = 0,
             thread = nil,
             yieldThreshold = 30,
@@ -183,7 +183,7 @@ AETHR.BRAIN.DATA = {
         },
         proximitySpawnDivGroundGroups = {
             interval = 23,
-            phase = 19,
+            phase = 8,
             counter = 0,
             thread = nil,
             yieldThreshold = 30,
@@ -191,11 +191,11 @@ AETHR.BRAIN.DATA = {
             desc = "proximitySpawnDivGroundGroups",
         },
         processFSMQueue = {
-            interval = 10,
-            phase = 5,
+            interval = 4,
+            phase = 0,
             counter = 0,
             thread = nil,
-            yieldThreshold = 10,
+            yieldThreshold = 12,
             yieldCounter = 0,
             desc = "processFSMQueue",
         },
