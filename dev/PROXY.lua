@@ -21,10 +21,10 @@ AETHR.PROXY = {} ---@diagnostic disable-line
 
 ---@class AETHR.PROXY.Data
 AETHR.PROXY.DATA = {
-    divProxyDistanceAirUnits = 160934, --- Distance in meters
-    divProxyDistanceHeliUnits = 48280,
-    divProxyDistanceGroundUnits = 24140,
-    divProxyDistanceSeaUnits = 160934,
+    divProxyDistanceAirUnits = 80000, --- Distance in meters
+    divProxyDistanceHeliUnits = 40000,
+    divProxyDistanceGroundUnits = 20000,
+    divProxyDistanceSeaUnits = 40000,
     -- Debounce/hysteresis and scheduling
     presenceDwellMs = 5000,     -- ms to wait before clearing presence flags after last seen
     spawnDespawnDwellMs = 5000, -- ms to wait between spawn/despawn actions per group
@@ -49,26 +49,27 @@ function AETHR.PROXY:New(parent)
     return instance ---@diagnostic disable-line
 end
 
--- One-pass airborne scan helper
-function AETHR.PROXY:scanDivisionAirborne(div)
-    if not div then return false, false end
+-- Category-specific airborne scan helpers (separate volumes/thresholds)
+function AETHR.PROXY:scanDivisionAir(div)
+    if not div then return false end
     local corners_ = div.proxyCornersAir or div.corners
-    if not corners_ then return false, false end
+    if not corners_ then return false end
     local corners = self.UTILS:vec2xyToVec2xz(corners_)
-    local height = div.height or 100000
-    local cats = { self.ENUMS.UnitCategory.AIRPLANE, self.ENUMS.UnitCategory.HELICOPTER }
+    local height = div.heightAir or div.height or 100000
+    local cats = { self.ENUMS.UnitCategory.AIRPLANE }
     local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats)
-    local hasAir, hasHeli = false, false
-    for _, obj in pairs(found or {}) do
-        local cex = obj.categoryEx
-        if cex == self.ENUMS.UnitCategory.AIRPLANE then
-            hasAir = true
-        elseif cex == self.ENUMS.UnitCategory.HELICOPTER then
-            hasHeli = true
-        end
-        if hasAir and hasHeli then break end
-    end
-    return hasAir, hasHeli
+    return next(found) ~= nil
+end
+
+function AETHR.PROXY:scanDivisionHeli(div)
+    if not div then return false end
+    local corners_ = div.proxyCornersHeli or div.proxyCornersAir or div.corners
+    if not corners_ then return false end
+    local corners = self.UTILS:vec2xyToVec2xz(corners_)
+    local height = div.heightHeli or div.height or 100000
+    local cats = { self.ENUMS.UnitCategory.HELICOPTER }
+    local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats)
+    return next(found) ~= nil
 end
 
 -- Unified airborne proximity pass with hysteresis and optional scan cadence
@@ -112,7 +113,8 @@ function AETHR.PROXY:proximityDivAirborneUnits(co_)
             if div then
                 local groups = div.groundGroups or {}
                 if next(groups) ~= nil then
-                    local hasAir, hasHeli = self:scanDivisionAirborne(div)
+                    local hasAir = self:scanDivisionAir(div)
+                    local hasHeli = self:scanDivisionHeli(div)
                     div._proxyAirLastSeenMs = div._proxyAirLastSeenMs or 0
                     div._proxyHeliLastSeenMs = div._proxyHeliLastSeenMs or 0
 

@@ -379,6 +379,10 @@ end
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:updateDBGroupInfo(Name)
     local groupObj = Group.getByName(Name)
+    if not groupObj then
+        self.UTILS:debugInfo("AETHR.SPAWNER:updateDBGroupInfo: No group found for name '" .. tostring(Name) .. "'")
+        return self
+    end
     local unitsObj = groupObj:getUnits()
     ---@type _groundGroup
     local DB = self.DATA.generatedGroups[Name]
