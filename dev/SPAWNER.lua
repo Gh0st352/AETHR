@@ -117,8 +117,8 @@ AETHR.SPAWNER.DATA = {
             maxUnits = 50,
             minBuildings = 55,
         },
-        spawnAIOff = true,       -- When true, spawned ground groups AI are turned off after spawning
-        spawnEmissionOff = true, -- When true, spawned ground groups radar emissions are turned on after spawning
+        spawnAIOff = false,       -- When true, spawned ground groups AI are turned off after spawning
+        spawnEmissionOff = false, -- When true, spawned ground groups radar emissions are turned on after spawning
     },
     debugMarkers = {},
     -- Async spawner generation job queue/state
@@ -302,11 +302,12 @@ end
 --- @param start_time number|nil Start time in seconds from mission start. Defaults to 0 (immediate).
 --- @param task string|nil Initial task string (DCS ground task). Defaults to "Ground Nothing" if nil.
 --- @param uncontrollable boolean|nil If true, group is uncontrollable by players (except GMs). Defaults to false if nil.
+--- @param allowProxySpawn boolean|nil If true, group is eligible for proxy spawning by the PROXY submodule. Defaults to false if nil.
 --- @return string groundGroupName Unique name of the created ground group (key in DATA.generatedGroups).
 function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tasks, lateActivation, visible, taskSelected,
                                         hidden,
                                         hiddenOnPlanner, hiddenOnMFD,
-                                        start_time, task, uncontrollable)
+                                        start_time, task, uncontrollable, allowProxySpawn)
     lateActivation = lateActivation or nil
     visible = visible or nil
     taskSelected = taskSelected or nil
@@ -318,6 +319,7 @@ function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tas
     start_time = start_time or nil
     task = task or nil
     uncontrollable = uncontrollable or nil
+    allowProxySpawn = allowProxySpawn or false
 
     local groundGroupName = name and name .. "#" .. tostring(self.CONFIG.MAIN.COUNTERS.GROUPS) or
         "AETHR_GROUND_GROUP#" .. tostring(self.CONFIG.MAIN.COUNTERS.GROUPS)
@@ -326,7 +328,7 @@ function AETHR.SPAWNER:buildGroundGroup(countryID, name, x, y, units, route, tas
     ---@type _groundGroup
     local groundGroup = self.AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, hiddenOnPlanner,
         hiddenOnMFD,
-        route, tasks, units, y, x, groundGroupName, start_time, task, uncontrollable, countryID)
+        route, tasks, units, y, x, groundGroupName, start_time, task, uncontrollable, countryID, allowProxySpawn)
 
     self.DATA.generatedGroups[groundGroupName] = groundGroup
 
@@ -382,7 +384,8 @@ function AETHR.SPAWNER:updateDBGroupInfo(Name)
     local DB = self.DATA.generatedGroups[Name]
 
     if not DB then
-        self.UTILS:debugInfo("AETHR.SPAWNER:updateDBGroupInfo: No generatedGroups entry for group '" .. tostring(Name) .. "'")
+        self.UTILS:debugInfo("AETHR.SPAWNER:updateDBGroupInfo: No generatedGroups entry for group '" ..
+            tostring(Name) .. "'")
         return self
     end
 
@@ -674,6 +677,7 @@ end
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
     local subZones = dynamicSpawner.zones.sub
+    local allowProxySpawn = dynamicSpawner._allowProxySpawn
 
     ---@param subZone _spawnerZone
     for indexSubZone, subZone in pairs(subZones) do
@@ -698,12 +702,13 @@ function AETHR.SPAWNER:buildSpawnGroups(dynamicSpawner, countryID)
                     spawnGroups[#spawnGroups + 1] = self:buildGroundGroup(countryID,
                         dynamicSpawner.spawnedNamePrefix .. "Group_", groupCenterVec2.x, groupCenterVec2.y,
                         self:assembleUnitsForGroup(groupUnitNames), nil, nil, true, false, true, false, false, false, 0,
-                        "Ground Nothing", false)
+                        "Ground Nothing", false, allowProxySpawn)
                 end
             end
         end
         subZone.spawnGroups = spawnGroups
     end
+    return self
 end
 
 --- Determine world divisions that overlap the dynamic spawner area and store them on the spawner.

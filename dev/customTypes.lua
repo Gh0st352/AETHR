@@ -150,6 +150,14 @@ end
 ---@field corners _vec2xz[] Rectangle corners in world XZ coordinates (exactly 4 corners expected)
 ---@field height number|nil Optional search height in meters
 ---@field groundGroups table<string, _groundGroup>|nil Map of ground group name -> _groundGroup within this division
+---@field proxyAirUnits boolean True if air units are proxied for this division
+---@field proxyHeliUnits boolean True if helicopter units are proxied for this division
+---@field proxyGroundUnits boolean True if ground units are proxied for this division
+---@field proxySeaUnits boolean True if sea units are proxied for this division
+---@field proxyCornersAir _vec2xz[] Expanded corners for air unit proximity checks
+---@field proxyCornersHeli _vec2xz[] Expanded corners for helicopter proximity checks
+---@field proxyCornersGround _vec2xz[] Expanded corners for ground unit proximity checks
+---@field proxyCornersSea _vec2xz[] Expanded corners for sea unit proximity checks
 AETHR._WorldDivision = {} ---@diagnostic disable-line
 --- Create a new world division descriptor
 --- @param ID number|nil Unique division identifier
@@ -164,8 +172,22 @@ function AETHR._WorldDivision:New(ID, active, corners, height, groundGroups)
         corners = corners or {},
         height = height or 100000,
         groundGroups = groundGroups or {},
+        proxyAirUnits = false,
+        proxyHeliUnits = false,
+        proxyGroundUnits = false,
+        proxySeaUnits = false,
+        proxyCornersAir = {},
+        proxyCornersHeli = {},
+        proxyCornersGround = {},
+        proxyCornersSea = {},
     }
     setmetatable(instance, { __index = self })
+    if corners ~= {} then 
+        instance.proxyCornersAir = AETHR.POLY:expandPolygon(AETHR.PROXY.DATA.divProxyDistanceAirUnits, instance.corners, 4)
+        instance.proxyCornersHeli = AETHR.POLY:expandPolygon(AETHR.PROXY.DATA.divProxyDistanceHeliUnits, instance.corners, 4)
+        instance.proxyCornersGround = AETHR.POLY:expandPolygon(AETHR.PROXY.DATA.divProxyDistanceGroundUnits, instance.corners, 4)
+        instance.proxyCornersSea = AETHR.POLY:expandPolygon(AETHR.PROXY.DATA.divProxyDistanceSeaUnits, instance.corners, 4)
+    end
     return instance ---@diagnostic disable-line
 end
 
@@ -745,6 +767,7 @@ end
 --- @field countryID number
 --- @field _spawned boolean Internal flag indicating if the group has been spawned
 --- @field _dead boolean Internal flag indicating if the group has been destroyed
+--- @field _allowProxySpawn boolean Internal flag indicating if proxy spawning is allowed for this group
 --- @field _save boolean Internal flag indicating if the group should be saved in mission state
 --- @field _engineAddTime number Internal timestamp when the group was added to the mission (for late activation)
 --- @field _aiOn boolean Internal flag indicating if AI is active and On for the group
@@ -767,9 +790,10 @@ AETHR._groundGroup = {} ---@diagnostic disable-line
 --- @param task string|nil
 --- @param uncontrollable boolean|nil
 --- @param countryID number|nil
+--- @param _allowProxySpawn boolean|nil
 --- @return _groundGroup instance
 function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, hiddenOnPlanner, hiddenOnMFD,
-                                route, tasks, units, y, x, name, start_time, task, uncontrollable, countryID)
+                                route, tasks, units, y, x, name, start_time, task, uncontrollable, countryID, _allowProxySpawn)
     local instance = {
         visible         = visible or false,
         uncontrollable  = uncontrollable or false,
@@ -796,6 +820,7 @@ function AETHR._groundGroup:New(visible, taskSelected, lateActivation, hidden, h
         _engineAddTime = 0,
         _spawned = false,
         _dead = false,
+        _allowProxySpawn = _allowProxySpawn or false,
         _save = true,
         _aiOn = true,
         _emission = true,
@@ -873,6 +898,7 @@ AETHR._GameBounds = {} ---@diagnostic disable-line
 --- @field _cache.worldDivAABB table<number, _BBox>
 --- @field skill string|nil
 --- @field _randSeed number
+--- @field _allowProxySpawn boolean
 AETHR._dynamicSpawner = {} ---@diagnostic disable-line
 ---
 --- @param name string Name of the dynamic spawner instance
@@ -926,6 +952,7 @@ function AETHR._dynamicSpawner:New(name, parentAETHR)
         },
         parentAETHR = parentAETHR or AETHR,
         _randSeed = math.random(),
+        _allowProxySpawn = false,
     }
     setmetatable(instance, { __index = self })
     return instance ---@diagnostic disable-line
@@ -952,6 +979,11 @@ function AETHR._dynamicSpawner:setNumSpawnZones(numSubZonesNominal, numSubZonesM
         instance.numSubZonesMin,
         instance.numSubZonesMax,
         instance.numSubZonesNudgeFactor))
+    return self
+end
+
+function AETHR._dynamicSpawner:allowProxySpawn(allowProxySpawn)
+    self._allowProxySpawn = allowProxySpawn or false
     return self
 end
 

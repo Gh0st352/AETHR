@@ -2000,3 +2000,191 @@ function AETHR.POLY:generateSubCircles(numSubZones, subZoneMinRadius, mainZoneCe
 
     return generatedSubZones
 end
+
+--- @function AETHR.POLY.expandPolygon
+--- @brief Offsets a simple polygon outward by a fixed distance using miter joins with bevel fallback.
+--- @param expandBy number Positive expands outward; negative contracts (inset).
+--- @param points _vec2[]|_vec2xz[] Array-like table of vertices; supports {x,y} or {x,z}.
+--- @param miterJoinLimit number|nil Optional miter limit (default 4). When the miter length divided by expandBy exceeds this limit,
+---        the corner is beveled by emitting two offset points (one per adjacent edge).
+--- @return Vec2[] Array of {x,y} vertices of the expanded polygon, CCW-oriented, open (no duplicate closing point).
+function AETHR.POLY:expandPolygon(expandBy, points, miterJoinLimit)
+    -- Validate inputs
+    if type(points) ~= "table" then return {} end
+    local nIn = #points
+    if nIn == 0 then return {} end
+
+    -- Normalize input to {x,y}
+    local poly = {}
+    for i = 1, nIn do
+        local p = self:normalizePoint(points[i])
+        poly[i] = { x = p.x, y = p.y }
+    end
+
+    local eps = 1e-9
+    local function almostEqual(a, b, tol)
+        return math.abs(a.x - b.x) <= tol and math.abs(a.y - b.y) <= tol
+    end
+    local function dedupAdjacent(tbl, tol)
+        local out = {}
+        for i = 1, #tbl do
+            local p = tbl[i]
+            if #out == 0 or not almostEqual(out[#out], p, tol) then
+                out[#out + 1] = p
+            end
+        end
+        return out
+    end
+
+    poly = dedupAdjacent(poly, 1e-9)
+    local n = #poly
+    if n < 3 then return poly end
+
+    local d = tonumber(expandBy) or 0
+    if d == 0 then return poly end
+
+    -- Signed area (2x) to ensure CCW orientation without reordering beyond reverse
+    local function signedArea2(tbl)
+        local s = 0
+        for i = 1, #tbl do
+            local j = (i % #tbl) + 1
+            s = s + (tbl[i].x * tbl[j].y - tbl[j].x * tbl[i].y)
+        end
+        return s
+    end
+
+    if signedArea2(poly) < 0 then
+        local a, b = 1, n
+        while a < b do
+            poly[a], poly[b] = poly[b], poly[a]
+            a = a + 1
+            b = b - 1
+        end
+    end
+
+    -- Small helpers
+    local function unit(dx, dy)
+        local L = math.sqrt(dx * dx + dy * dy)
+        if L <= eps then return 0, 0 end
+        return dx / L, dy / L
+    end
+    -- For CCW polygons, outward normal for edge direction (ux,uy) is (uy, -ux)
+    local function outwardNormal(ux, uy)
+        return uy, -ux
+    end
+
+    local out = {}
+    local limit = tonumber(miterJoinLimit) or 4
+
+    for i = 1, n do
+        local iPrev = ((i + n - 2) % n) + 1
+        local iNext = (i % n) + 1
+        local pPrev = poly[iPrev]
+        local pCurr = poly[i]
+        local pNext = poly[iNext]
+
+        -- Edge unit vectors e1: (prev->curr), e2: (curr->next)
+        local e1x, e1y = unit(pCurr.x - pPrev.x, pCurr.y - pPrev.y)
+        if e1x == 0 and e1y == 0 then
+            -- search backwards for a non-degenerate baseline
+            local k = 2
+            while k <= n do
+                local jprev = ((i - k + n - 1) % n) + 1
+                local cand = poly[jprev]
+                e1x, e1y = unit(pCurr.x - cand.x, pCurr.y - cand.y)
+                if not (e1x == 0 and e1y == 0) then break end
+                k = k + 1
+            end
+        end
+
+        local e2x, e2y = unit(pNext.x - pCurr.x, pNext.y - pCurr.y)
+        if e2x == 0 and e2y == 0 then
+            -- search forwards for a non-degenerate forward edge
+            local k = 2
+            while k <= n do
+                local jnext = ((i + k - 1) % n) + 1
+                local cand = poly[jnext]
+                e2x, e2y = unit(cand.x - pCurr.x, cand.y - pCurr.y)
+                if not (e2x == 0 and e2y == 0) then break end
+                k = k + 1
+            end
+        end
+
+        local hasE1 = not (e1x == 0 and e1y == 0)
+        local hasE2 = not (e2x == 0 and e2y == 0)
+
+        if not hasE1 and not hasE2 then
+            -- Completely degenerate neighborhood, skip
+        else
+            local n1x, n1y = 0, 0
+            local n2x, n2y = 0, 0
+            if hasE1 then n1x, n1y = outwardNormal(e1x, e1y) end
+            if hasE2 then n2x, n2y = outwardNormal(e2x, e2y) end
+
+            if hasE1 and hasE2 then
+                -- Classify corner: for CCW polygon, positive cross = convex corner
+                local cross = e1x * e2y - e1y * e2x
+                local isConvex = cross > eps
+
+                if isConvex then
+                    -- Miter candidate
+                    local sx, sy = n1x + n2x, n1y + n2y
+                    local sLen = math.sqrt(sx * sx + sy * sy)
+                    if sLen <= eps then
+                        -- Nearly straight; single offset along either normal
+                        local q = { x = pCurr.x + n2x * d, y = pCurr.y + n2y * d }
+                        if #out == 0 or not almostEqual(out[#out], q, 1e-9) then out[#out + 1] = q end
+                    else
+                        local mx, my = sx / sLen, sy / sLen
+                        local denom = mx * n2x + my * n2y -- dot(m, n2)
+                        if math.abs(denom) <= eps then
+                            -- fallback bevel
+                            local q1 = { x = pCurr.x + n1x * d, y = pCurr.y + n1y * d }
+                            local q2 = { x = pCurr.x + n2x * d, y = pCurr.y + n2y * d }
+                            if #out == 0 or not almostEqual(out[#out], q1, 1e-9) then out[#out + 1] = q1 end
+                            if not almostEqual(out[#out], q2, 1e-9) then out[#out + 1] = q2 end
+                        else
+                            local ratio = 1.0 / denom -- miterLength / d
+                            if ratio > limit then
+                                -- bevel fallback
+                                local q1 = { x = pCurr.x + n1x * d, y = pCurr.y + n1y * d }
+                                local q2 = { x = pCurr.x + n2x * d, y = pCurr.y + n2y * d }
+                                if #out == 0 or not almostEqual(out[#out], q1, 1e-9) then out[#out + 1] = q1 end
+                                if not almostEqual(out[#out], q2, 1e-9) then out[#out + 1] = q2 end
+                            else
+                                local mlen = d * ratio
+                                local q = { x = pCurr.x + mx * mlen, y = pCurr.y + my * mlen }
+                                if #out == 0 or not almostEqual(out[#out], q, 1e-9) then out[#out + 1] = q end
+                            end
+                        end
+                    end
+                else
+                    -- Concave or nearly collinear - bevel (two points)
+                    local q1 = { x = pCurr.x + n1x * d, y = pCurr.y + n1y * d }
+                    local q2 = { x = pCurr.x + n2x * d, y = pCurr.y + n2y * d }
+                    if #out == 0 or not almostEqual(out[#out], q1, 1e-9) then out[#out + 1] = q1 end
+                    if not almostEqual(out[#out], q2, 1e-9) then out[#out + 1] = q2 end
+                end
+            else
+                -- Only one valid adjacent edge: offset once along its outward normal
+                local nx, ny = hasE1 and n1x or n2x, hasE1 and n1y or n2y
+                local q = { x = pCurr.x + nx * d, y = pCurr.y + ny * d }
+                if #out == 0 or not almostEqual(out[#out], q, 1e-9) then out[#out + 1] = q end
+            end
+        end
+    end
+
+    -- Cleanup: drop adjacent duplicates and ensure CCW orientation of result
+    out = dedupAdjacent(out, 1e-9)
+    if #out >= 3 and signedArea2(out) < 0 then
+        local a, b = 1, #out
+        while a < b do
+            out[a], out[b] = out[b], out[a]
+            a = a + 1
+            b = b - 1
+        end
+    end
+
+    -- Return open polygon (no duplicate first/last)
+    return out
+end

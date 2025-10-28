@@ -14,6 +14,7 @@ G_AETHR:Init():Start()
 local spawnTypes = G_AETHR.ENUMS.spawnTypes
 local airbaseSpawnerENUM = G_AETHR.ENUMS.dynamicSpawnerTypes.Airbase
 local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
+    :allowProxySpawn(false)
     :setNumSpawnZones(math.random(4, 6), math.random(1, 3), math.random(7, 9), 0.5)
     :setSpawnAmount(math.random(10, 20), math.random(5, 9), math.random(21, 30), 0.5)
     :setGroupSizes(math.random(3, 5), 1)
@@ -29,6 +30,7 @@ local dynAirbaseSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(airbaseSpawnerENUM)
 
 local townSpawnerENUM = G_AETHR.ENUMS.dynamicSpawnerTypes.Town
 local dynATownSpawner1 = G_AETHR.SPAWNER:newDynamicSpawner(townSpawnerENUM)
+    :allowProxySpawn(true)
     :setNumSpawnZones(math.random(4, 6), math.random(1, 3), math.random(7, 9), 0.5)
     :setSpawnAmount(math.random(10, 20), math.random(5, 9), math.random(21, 30), 0.5)
     :setGroupSizes(math.random(3, 5), 1)

@@ -36,7 +36,7 @@
 --- @field FILEOPS AETHR.FILEOPS Filesystem utilities used to load/save JSON and manage paths.
 --- @field UTILS AETHR.UTILS Utility functions submodule attached per-instance.
 --- @field SPAWNER AETHR.SPAWNER Spawner submodule attached per-instance.
---- @field AI AETHR.AI AI management submodule attached per-instance.   
+--- @field AI AETHR.AI AI management submodule attached per-instance.
 --- @field FSM AETHR.FSM Finite State Machine submodule attached per-instance.
 --- @field AUTOSAVE AETHR.AUTOSAVE Autosave submodule attached per-instance.
 --- @field PROXY AETHR.PROXY Proxy submodule attached per-instance.
@@ -227,7 +227,7 @@ function AETHR:Init()
     self.ZONE_MANAGER:initMizZoneData() -- Load or generate mission trigger zones.
     self.WORLD:initWorldDivisions()     -- Load or generate world division grid.
     self.WORLD:initActiveDivisions()    -- Load or generate active divisions in mission.
-    self.WORLD:initMizFileCache()      -- Cache MIZ file data for world learning.
+    self.WORLD:initMizFileCache()       -- Cache MIZ file data for world learning.
 
     if self.CONFIG.MAIN.FLAGS.LEARN_WORLD_OBJECTS then
         self.WORLD:initSceneryInDivisions()
@@ -257,7 +257,6 @@ end
 --- @function AETHR:Start
 --- @return AETHR self Framework instance (for chaining).
 function AETHR:Start()
-
     self.WORLD:updateAirbaseOwnership()
     timer.scheduleFunction(self.BackgroundProcesses, self, timer.getTime() + self.BRAIN.DATA.BackgroundLoopInterval)
 
@@ -307,7 +306,7 @@ function AETHR:BackgroundProcesses()
         parentAETHR.WORLD:updateGroundUnitsDB()
     end, self)
 
-        -- updateActiveDivGroundGroups 
+    -- updateActiveDivGroundGroups
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.updateActiveDivGroundGroups, function(parentAETHR)
         parentAETHR.WORLD:updateActiveDivGroundGroups()
@@ -324,7 +323,7 @@ function AETHR:BackgroundProcesses()
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.despawnGroundGroups, function(parentAETHR)
         parentAETHR.WORLD:despawnGroundGroups()
     end, self)
-    
+
     --Spawner generation job queue
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.spawnerGenerationQueue, function(parentAETHR)
@@ -335,6 +334,32 @@ function AETHR:BackgroundProcesses()
     ---@param parentAETHR AETHR
     self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.processFSMQueue, function(parentAETHR)
         parentAETHR.FSM:processQueue(parentAETHR)
+    end, self)
+
+    --- PROXY routines
+
+    -- Air Units
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.proximityDivAirUnits, function(parentAETHR)
+        parentAETHR.PROXY:proximityDivAirUnits()
+    end, self)
+
+    --- Heli Units
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.proximityDivHeliUnits, function(parentAETHR)
+        parentAETHR.PROXY:proximityDivHeliUnits()
+    end, self)
+
+    --- Despawn Ground Groups
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.proximityDespawnDivGroundGroups, function(parentAETHR)
+        parentAETHR.PROXY:proximityDespawnDivGroundGroups()
+    end, self)
+
+    --- Spawn Ground Groups
+    ---@param parentAETHR AETHR
+    self.BRAIN:doRoutine(self.BRAIN.DATA.coroutines.proximitySpawnDivGroundGroups, function(parentAETHR)
+        parentAETHR.PROXY:proximitySpawnDivGroundGroups()
     end, self)
 
     self.BRAIN:runScheduledTasks(2)

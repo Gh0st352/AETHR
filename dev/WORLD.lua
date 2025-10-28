@@ -67,7 +67,7 @@ AETHR.WORLD.DATA = {
     spawnerAttributesDB    = {}, -- Cached spawner attributes keyed by attribute, value is unit info object.
     _spawnerAttributesDB   = {}, -- Internal use only, do not modify directly, filtered and prioritized spawner attributesDB.
     spawnerUnitInfoCache   = {}, -- Cached spawner unit info keyed by unit typeName.
-    Background = {
+    Background             = {
         -- How many active divisions to scan per tick in updateGroundUnitsDB.
         divisionsPerRun = 3,
         -- Controls WORLD:updateActiveDivGroundGroups behavior; when true, include all generated
@@ -339,13 +339,14 @@ end
 --- @param objectCategory integer Category filter (AETHR.ENUMS.ObjectCategory)
 --- @param corners _vec2xz[] Array of base corner points (x,z) used to compute the box
 --- @param height number Height of the search volume in meters
+--- @param categoryEx integer[]|nil Optional unit category filter (AETHR.ENUMS.UnitCategory); when provided, further filters results
 --- @return table<string|number, _FoundObject> found Found objects keyed by unit name when available, otherwise numeric engine ID or tostring fallback
-function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
+function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height, categoryEx)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
     local vol = self.POLY:createBox(box.min, box.max)
     local found = {} ---@type table<number, _FoundObject>
-
+    categoryEx = categoryEx or nil
     -- Derive a stable key (prefer name, then ID, then engine id_, then tostring)
     local function safeKey(item)
         local key
@@ -369,7 +370,14 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
         local key = safeKey(item)
         local _okval, _val = pcall(safeObj, item)
         if _okval then
-            found[key] = _val
+            if categoryEx then
+                local categoryEx_ = _val.categoryEx
+                if self.UTILS:hasValue(categoryEx, categoryEx_) then
+                    found[key] = _val
+                end
+            else
+                found[key] = _val
+            end
         end
     end
 
@@ -379,9 +387,6 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height)
             self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox world.searchObjects error: " .. tostring(err))
         end
     end
-    -- if dbg and self.UTILS and self.UTILS.debugInfo then
-    --     self.UTILS:debugInfo("AETHR.WORLD:searchObjectsBox ---------END")
-    -- end
     return found
 end
 
@@ -1053,8 +1058,8 @@ function AETHR.WORLD:updateActiveDivGroundGroups()
     local processed, skippedNoPos, skippedUnspawned, assigned = 0, 0, 0, 0
     local neighbors = {
         { -1, -1 }, { 0, -1 }, { 1, -1 },
-        { -1,  0 },             { 1,  0 },
-        { -1,  1 }, { 0,  1 }, { 1,  1 },
+        { -1, 0 }, { 1, 0 },
+        { -1, 1 }, { 0, 1 }, { 1, 1 },
     }
 
     for gName, gObj in pairs(generatedGroups) do

@@ -141,6 +141,58 @@ function AETHR.UTILS:normalizePoint(pt)
   return { x = pt.x or 0, y = (pt.y ~= nil) and pt.y or (pt.z or 0) }
 end
 
+--- Convert _vec2 XY to _vec2xz XZ, accepting single or array inputs.
+---
+--- Behavior:
+--- - nil input returns nil
+--- - Prefer z over y when both are present
+--- - Non-mutating: always constructs new outputs via AETHR._vec2xz:New
+--- - Preserves array order with ipairs
+--- - Pass-through compatible: if input already has z it will be used
+---
+--- @function AETHR.UTILS:vec2xyToVec2xz
+--- @param points _vec2|_vec2[]|_vec2xz|_vec2xz[]|nil Source point or list of points
+--- @return _vec2xz|_vec2xz[]|nil Converted point or list; nil when input is nil
+function AETHR.UTILS:vec2xyToVec2xz(points)
+  if points == nil then return nil end
+
+  -- Prefer instance constructor if available, else fallback to global AETHR
+  local ctor = (self and self.AETHR and self.AETHR._vec2xz) or (AETHR and AETHR._vec2xz) or nil
+
+  local function newXZ(x, z)
+    if ctor and type(ctor.New) == "function" then
+      return ctor:New(x, z)
+    end
+    -- Fallback (should not be needed in normal runtime)
+    return { x = x or 0, z = z or 0 }
+  end
+
+  local function convertOne(p)
+    if not p or type(p) ~= "table" then return newXZ(0, 0) end
+    local x = tonumber(p.x) or 0
+    -- Prefer z over y when both present (DCS uses z for northing on the map)
+    local z = tonumber((p.z ~= nil) and p.z or p.y) or 0
+    return newXZ(x, z)
+  end
+
+  -- Array of points (numeric sequence)
+  if type(points) == "table" and type(points[1]) == "table" then
+    local out = {}
+    for i, p in ipairs(points) do
+      out[i] = convertOne(p)
+    end
+    return out
+  end
+
+  -- Single point-like table
+  if type(points) == "table" and (points.x ~= nil or points.y ~= nil or points.z ~= nil) then
+    return convertOne(points)
+  end
+
+  -- Unsupported shape
+  return nil
+end
+
 --- Alias for legacy name table_hasValue -> hasValue
 --- Performs a linear search for value equality using pairs iteration.
 --- @param tbl table Table to search through.
@@ -278,7 +330,22 @@ end
 
 function AETHR.UTILS:groupOnOff(groupName, on)
   on = on or false
-  Group.getByName(groupName):getController():setOnOff(on)
+
+  local group = Group.getByName(groupName)
+  if group == nil then
+    self:debugInfo("AETHR.UTILS:groupOnOff | Group " .. groupName .. " not found!")
+    return
+  end
+
+  local controller = group:getController()
+  if controller == nil then
+    self:debugInfo("AETHR.UTILS:groupOnOff | Group " .. groupName .. " has no controller!")
+    return
+  end
+
+
+  controller:setOnOff(on)
+  ---Group.getByName(groupName):getController():setOnOff(on)
 
   if self.SPAWNER.DATA.generatedGroups[groupName] ~= nil then
     self.SPAWNER.DATA.generatedGroups[groupName]._aiOn = on
