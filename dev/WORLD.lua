@@ -340,13 +340,15 @@ end
 --- @param corners _vec2xz[] Array of base corner points (x,z) used to compute the box
 --- @param height number Height of the search volume in meters
 --- @param categoryEx integer[]|nil Optional unit category filter (AETHR.ENUMS.UnitCategory); when provided, further filters results
+--- @param activeOnly boolean|nil Optional flag to filter only active objects
 --- @return table<string|number, _FoundObject> found Found objects keyed by unit name when available, otherwise numeric engine ID or tostring fallback
-function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height, categoryEx)
+function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height, categoryEx, activeOnly)
     -- Compute box extents
     local box = self.POLY:getBoxPoints(corners, height) ---@diagnostic disable-line
     local vol = self.POLY:createBox(box.min, box.max)
     local found = {} ---@type table<number, _FoundObject>
     categoryEx = categoryEx or nil
+    activeOnly = activeOnly or false
     -- Derive a stable key (prefer name, then ID, then engine id_, then tostring)
     local function safeKey(item)
         local key
@@ -373,10 +375,26 @@ function AETHR.WORLD:searchObjectsBox(objectCategory, corners, height, categoryE
             if categoryEx then
                 local categoryEx_ = _val.categoryEx
                 if self.UTILS:hasValue(categoryEx, categoryEx_) then
-                    found[key] = _val
+                    if activeOnly then
+                        local exists = Group.getByName(_val.groupName):isExist()
+                        if exists then
+                            found[key] = _val
+                        end
+                    else
+                        found[key] = _val
+                    end
+                    --found[key] = _val
                 end
             else
-                found[key] = _val
+                --found[key] = _val
+                if activeOnly then
+                    local exists = Group.getByName(_val.groupName):isExist()
+                    if exists then
+                        found[key] = _val
+                    end
+                else
+                    found[key] = _val
+                end
             end
         end
     end

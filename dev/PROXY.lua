@@ -52,10 +52,10 @@ end
 function AETHR.PROXY:updateProxyCorners(div)
 
     if not div then return self end
-    local expansionAir = tonumber(self.CONFIG.MAIN.Proxy.divExpansionAirUnits) or 0
-    local expansionHeli = tonumber(self.CONFIG.MAIN.Proxy.divExpansionHeliUnits) or 0
-    local expansionGround = tonumber(self.CONFIG.MAIN.Proxy.divExpansionGroundUnits) or 0
-    local expansionSea = tonumber(self.CONFIG.MAIN.Proxy.divExpansionSeaUnits) or 0
+    local expansionAir = tonumber(self.DATA.divProxyDistanceAirUnits) or 70000
+    local expansionHeli = tonumber(self.DATA.divProxyDistanceHeliUnits) or 25000
+    local expansionGround = tonumber(self.DATA.divProxyDistanceGroundUnits) or 20000
+    local expansionSea = tonumber(self.DATA.divProxyDistanceSeaUnits) or 40000
 
     div.proxyCornersAir = self.POLY:expandPolygon(expansionAir, div.corners )
     div.proxyCornersHeli = self.POLY:expandPolygon(expansionHeli, div.corners )
@@ -68,23 +68,25 @@ end
 -- Category-specific airborne scan helpers (separate volumes/thresholds)
 function AETHR.PROXY:scanDivisionAir(div)
     if not div then return false end
+    self:updateProxyCorners(div)
     local corners_ = div.proxyCornersAir or div.corners
     if not corners_ then return false end
     local corners = self.UTILS:vec2xyToVec2xz(corners_)
     local height = div.heightAir or div.height or 100000
     local cats = { self.ENUMS.UnitCategory.AIRPLANE }
-    local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats)
+    local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats, true)
     return next(found) ~= nil
 end
 
 function AETHR.PROXY:scanDivisionHeli(div)
     if not div then return false end
+    self:updateProxyCorners(div)
     local corners_ = div.proxyCornersHeli or div.proxyCornersAir or div.corners
     if not corners_ then return false end
     local corners = self.UTILS:vec2xyToVec2xz(corners_)
     local height = div.heightHeli or div.height or 100000
     local cats = { self.ENUMS.UnitCategory.HELICOPTER }
-    local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats)
+    local found = self.WORLD:searchObjectsBox(self.ENUMS.ObjectCategory.UNIT, corners, height, cats, true)
     return next(found) ~= nil
 end
 
