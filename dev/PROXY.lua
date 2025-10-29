@@ -49,6 +49,22 @@ function AETHR.PROXY:New(parent)
     return instance ---@diagnostic disable-line
 end
 
+function AETHR.PROXY:updateProxyCorners(div)
+
+    if not div then return self end
+    local expansionAir = tonumber(self.CONFIG.MAIN.Proxy.divExpansionAirUnits) or 0
+    local expansionHeli = tonumber(self.CONFIG.MAIN.Proxy.divExpansionHeliUnits) or 0
+    local expansionGround = tonumber(self.CONFIG.MAIN.Proxy.divExpansionGroundUnits) or 0
+    local expansionSea = tonumber(self.CONFIG.MAIN.Proxy.divExpansionSeaUnits) or 0
+
+    div.proxyCornersAir = self.POLY:expandPolygon(expansionAir, div.corners )
+    div.proxyCornersHeli = self.POLY:expandPolygon(expansionHeli, div.corners )
+    div.proxyCornersGround = self.POLY:expandPolygon(expansionGround, div.corners )
+    div.proxyCornersSea = self.POLY:expandPolygon(expansionSea, div.corners )
+
+return self
+end
+
 -- Category-specific airborne scan helpers (separate volumes/thresholds)
 function AETHR.PROXY:scanDivisionAir(div)
     if not div then return false end

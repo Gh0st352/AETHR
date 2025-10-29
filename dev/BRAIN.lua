@@ -123,7 +123,7 @@ AETHR.BRAIN.DATA = {
             phase = 1,
             counter = 0,
             thread = nil,
-            yieldThreshold = 12, -- yield more often
+            yieldThreshold = 10, -- yield more often
             yieldCounter = 0,
             desc = "spawnGroundGroups",
         },
@@ -141,7 +141,7 @@ AETHR.BRAIN.DATA = {
             phase = 0,
             counter = 0,
             thread = nil,
-            yieldThreshold = 20,
+            yieldThreshold = 10,
             yieldCounter = 0,
             desc = "spawnerGenerationQueue",
         },
@@ -186,7 +186,7 @@ AETHR.BRAIN.DATA = {
             phase = 8,
             counter = 0,
             thread = nil,
-            yieldThreshold = 30,
+            yieldThreshold = 10,
             yieldCounter = 0,
             desc = "proximitySpawnDivGroundGroups",
         },
