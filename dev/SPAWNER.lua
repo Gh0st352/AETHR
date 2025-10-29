@@ -378,6 +378,10 @@ end
 --- @param Name string Group name to update.
 --- @return AETHR.SPAWNER self For chaining.
 function AETHR.SPAWNER:updateDBGroupInfo(Name)
+    if not Name then
+        self.UTILS:debugInfo("AETHR.SPAWNER:updateDBGroupInfo: No group name provided")
+        return self
+    end
     local groupObj = Group.getByName(Name)
     if not groupObj then
         self.UTILS:debugInfo("AETHR.SPAWNER:updateDBGroupInfo: No group found for name '" .. tostring(Name) .. "'")

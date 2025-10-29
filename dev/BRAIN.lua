@@ -155,7 +155,7 @@ AETHR.BRAIN.DATA = {
             desc = "updateActiveDivGroundGroups",
         },
         proximityDivAirUnits = {
-            interval = 20,
+            interval = 30,
             phase = 5,
             counter = 0,
             thread = nil,
@@ -173,7 +173,7 @@ AETHR.BRAIN.DATA = {
             desc = "proximityDivHeliUnits",
         },
         proximityDespawnDivGroundGroups = {
-            interval = 22,
+            interval = 32,
             phase = 7,
             counter = 0,
             thread = nil,
@@ -182,7 +182,7 @@ AETHR.BRAIN.DATA = {
             desc = "proximityDespawnDivGroundGroups",
         },
         proximitySpawnDivGroundGroups = {
-            interval = 23,
+            interval = 33,
             phase = 8,
             counter = 0,
             thread = nil,

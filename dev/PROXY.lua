@@ -21,13 +21,13 @@ AETHR.PROXY = {} ---@diagnostic disable-line
 
 ---@class AETHR.PROXY.Data
 AETHR.PROXY.DATA = {
-    divProxyDistanceAirUnits = 80000, --- Distance in meters
-    divProxyDistanceHeliUnits = 40000,
+    divProxyDistanceAirUnits = 70000, --- Distance in meters
+    divProxyDistanceHeliUnits = 25000,
     divProxyDistanceGroundUnits = 20000,
     divProxyDistanceSeaUnits = 40000,
     -- Debounce/hysteresis and scheduling
-    presenceDwellMs = 5000,     -- ms to wait before clearing presence flags after last seen
-    spawnDespawnDwellMs = 5000, -- ms to wait between spawn/despawn actions per group
+    presenceDwellMs = 20000,     -- ms to wait before clearing presence flags after last seen
+    spawnDespawnDwellMs = 20000, -- ms to wait between spawn/despawn actions per group
     scanDivFraction = 1.0,      -- 0<frac≤1: fraction of divisions processed per invocation
     debug = false,              -- additional PROXY-local debug gating (requires CONFIG.MAIN.DEBUG_ENABLED)
     _cache = {},
